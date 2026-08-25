@@ -30,7 +30,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. User can sign up/log in via Kakao or Google social login
   2. A single account serves both reader and writer roles — a "글쓰기 시작하기" entry point upgrades the same account, with no separate signup flow
   3. User's session persists across visits and browser refresh
-**Plans**: TBD
+**Plans**: 5 plans (Wave 0: env/service setup; Wave 1: wallet+profile schema, auth session infra; Wave 2: OAuth login flow, writer upgrade + account settings)
+
+Plans:
+- [ ] 01-01-PLAN.md — Create Supabase project, register Google/Kakao OAuth apps, install deps + Vitest
+- [ ] 01-02-PLAN.md — Wallet/profile schema + apply_wallet_delta function, concurrency-proof test
+- [ ] 01-03-PLAN.md — Supabase client wrappers + proxy.ts session refresh
+- [ ] 01-04-PLAN.md — Login page, OAuth callback, D-02 email-completion fallback
+- [ ] 01-05-PLAN.md — Writer upgrade flow + account settings/deletion
 
 ### Phase 2: Studio Core (Writer Loop, No AI)
 **Goal**: Writers can build a knowledge base and draft/publish chapters, independent of AI assistance.
@@ -112,7 +119,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Wallet Infrastructure | 0/TBD | Not started | - |
+| 1. Foundation & Wallet Infrastructure | 0/5 | Planned | - |
 | 2. Studio Core (Writer Loop, No AI) | 0/TBD | Not started | - |
 | 3. Reader Core (Reading Loop, No Payment) | 0/TBD | Not started | - |
 | 4. AI Gateway (Mention-Based Generation) | 0/TBD | Not started | - |
