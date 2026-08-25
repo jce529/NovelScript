@@ -14,7 +14,7 @@
 ### Knowledge Base (KB)
 
 - [ ] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
-- [ ] **KB-02**: Writer can view their KB documents in a flat, filterable list per template type
+- [ ] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
 
 ### Editor / AI Generation (EDIT)
 
@@ -81,7 +81,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | SLM 기반 자동 사전검수 파이프라인 | 베타 규모에서는 운영자 수동 검토(ADMIN-01~04)로 대체 |
 | 정밀 스크롤 심도 기반 유효완독률 알고리즘 | 간소화 지표(READ-01)로 시작 |
 | 3-Strike 자동 제재 체계 | 계정 조치는 v1에서 전부 수동 판단(ADMIN-03) |
-| 3패널 풀 IDE (드래그앤드롭 파일트리, 전용 시스템프롬프트 모달, KB 그래프 뷰) | 멘션 기반 컨텍스트 주입 메커니즘 자체를 먼저 검증; UI 정교화는 그 다음 |
+| 3패널 AI 협업 캔버스 (`@`멘션 컨텍스트 주입, 전용 시스템프롬프트 모달, KB 그래프 뷰), 파일트리 내 드래그앤드롭 이동 | 멘션 기반 컨텍스트 주입 메커니즘 자체를 먼저 검증; UI 정교화는 그 다음. (Phase 2 amendment: 기본 폴더/파일 트리 탐색·생성·이름변경·삭제 자체는 범위에 포함됨 — 위 KB-02 참고. 드래그앤드롭 이동만 계속 범위 밖) |
 | 실시간 색상 그라데이션 비용 게이지 / 관계 지역성 가중치 | 단순 추정치(EDIT-05)로 충분, 튜닝은 사용 데이터 확보 후 |
 | PortOne 등 PG 추상화 레이어 | Toss Payments 직접 연동으로 확정 (founder decision, 2026-08-25) |
 
