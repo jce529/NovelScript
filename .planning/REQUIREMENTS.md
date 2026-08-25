@@ -87,41 +87,39 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Filled during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| KB-01 | TBD | Pending |
-| KB-02 | TBD | Pending |
-| EDIT-01 | TBD | Pending |
-| EDIT-02 | TBD | Pending |
-| EDIT-03 | TBD | Pending |
-| EDIT-04 | TBD | Pending |
-| EDIT-05 | TBD | Pending |
-| CONT-01 | TBD | Pending |
-| CONT-02 | TBD | Pending |
-| CONT-03 | TBD | Pending |
-| READ-01 | TBD | Pending |
-| READ-02 | TBD | Pending |
-| READ-03 | TBD | Pending |
-| READ-04 | TBD | Pending |
-| READ-05 | TBD | Pending |
-| PAY-01 | TBD | Pending |
-| PAY-02 | TBD | Pending |
-| PAY-03 | TBD | Pending |
-| ADMIN-01 | TBD | Pending |
-| ADMIN-02 | TBD | Pending |
-| ADMIN-03 | TBD | Pending |
-| ADMIN-04 | TBD | Pending |
+| AUTH-01 | Phase 1 | Mapped |
+| AUTH-02 | Phase 1 | Mapped |
+| AUTH-03 | Phase 1 | Mapped |
+| KB-01 | Phase 2 | Mapped |
+| KB-02 | Phase 2 | Mapped |
+| EDIT-01 | Phase 4 | Mapped |
+| EDIT-02 | Phase 4 | Mapped |
+| EDIT-03 | Phase 4 | Mapped |
+| EDIT-04 | Phase 4 | Mapped |
+| EDIT-05 | Phase 4 | Mapped |
+| CONT-01 | Phase 2 | Mapped |
+| CONT-02 | Phase 2 | Mapped |
+| CONT-03 | Phase 2 | Mapped |
+| READ-01 | Phase 3 | Mapped |
+| READ-02 | Phase 3 | Mapped |
+| READ-03 | Phase 3 | Mapped |
+| READ-04 | Phase 3 | Mapped |
+| READ-05 | Phase 3 | Mapped |
+| PAY-01 | Phase 5 | Mapped |
+| PAY-02 | Phase 6 | Mapped |
+| PAY-03 | Phase 5 | Mapped |
+| ADMIN-01 | Phase 7 | Mapped |
+| ADMIN-02 | Phase 7 | Mapped |
+| ADMIN-03 | Phase 7 | Mapped |
+| ADMIN-04 | Phase 7 | Mapped |
 
 **Coverage:**
 - v1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️ (pending roadmap creation)
+- Mapped to phases: 25
+- Unmapped: 0 ✓ (fully mapped — see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-08-25 after initial definition*
+*Last updated: 2026-08-25 after roadmap creation (traceability filled, 25/25 mapped)*
