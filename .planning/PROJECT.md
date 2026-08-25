@@ -41,6 +41,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 - 원기획서(docs/4)는 Supabase(PostgreSQL/pgvector/Vault) + Vercel + Zustand 스택을 전제로 함 — MVP도 이 스택을 기본으로 이어받되, 세부 채택 여부는 리서치/roadmap 단계에서 재확인.
 - 베타 유저는 특정 커뮤니티(작가/독자)를 통해 모집하며, 초대 인원 제한 없이 열 계획. 실제로 얼마나 모일지는 미지수.
 - AI 비용은 플랫폼이 부담하되, 실제 결제(토큰 충전)로 들어오는 매출이 이를 상쇄하도록 설계 — 결제 시스템을 처음부터 실제로 구현하는 이유.
+- **실행(execute-phase) 방식**: 계획(plan-phase)까지는 GSD 표준(Claude Code 서브에이전트: researcher/roadmapper/planner/verifier, model_profile=balanced)을 그대로 쓴다. 단 실제 코드 구현은 GSD 표준 executor가 아니라, Claude(이 세션)가 `agy --print --dangerously-skip-permissions --output-format json`으로 Antigravity CLI를 직접 호출해 위임하고, 결과를 GSD verifier로 검증하는 방식을 쓴다. TDD(테스트 먼저 작성 → 구현) 방식을 PLAN.md에 명시해 AGY가 따르게 한다.
 
 ## Constraints
 
@@ -58,6 +59,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 | 랭킹/큐레이션은 간소화 지표로 시작 | 스크롤 심도 알고리즘은 정밀 설계·튜닝 비용이 크고, 베타에서는 반응 확인이 우선 | — Pending |
 | SLM 자동 사전검수 대신 운영자 수동 검토 | 베타 규모에서는 자동화 인프라(Cloud Run 큐 등) 구축 비용 대비 효용이 낮음 | — Pending |
 | 에셋 스토어는 v1 범위 밖 | 집필-열람-결제 핵심 루프 검증이 먼저 | — Pending |
+| 실제 코드 구현은 GSD 표준 executor 대신 Antigravity CLI(`agy`)로 위임 | 사용자가 이미 사용 중인 별도 코딩 에이전트 CLI를 구현 단계에 활용하고 싶어함. `agy --print --dangerously-skip-permissions --output-format json`으로 비대화형 호출 가능함을 확인 | — Pending |
 
 ## Evolution
 
