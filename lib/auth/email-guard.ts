@@ -1,5 +1,5 @@
 export interface OAuthUserLike {
-  email: string | null | undefined;
+  email?: string | null | undefined;
 }
 
 /** D-02: never let a user proceed without an email on file. Kakao specifically may
