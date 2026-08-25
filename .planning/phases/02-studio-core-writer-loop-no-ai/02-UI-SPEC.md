@@ -48,7 +48,7 @@ Declared values (must be multiples of 4):
 
 Exceptions:
 - **Tree row height: 32px** (below the 8-pt scale's own increments is fine since it's a component height, not a spacing token) with icon size 16px and per-depth indent of 16px (`md`). Rationale: Studio is a desktop/pointer-first IDE-style surface (per D-18, a same-domain route, not a mobile-optimized flow), so the standard 44px mobile touch-target guideline does not apply here — matches dense file-tree conventions (VS Code, Obsidian) rather than mobile tap-target conventions.
-- **Icon-only tree action buttons (rename/delete/add-child): 24px hit area**, intentionally below 44px for the same desktop-density reason above. Do not apply this exception outside the Studio tree/chapter-list surfaces.
+- **Icon-only tree action buttons (rename/delete/add-child): 24px hit area**, intentionally below 44px for the same desktop-density reason above. Do not apply this exception outside the Studio tree/chapter-list surfaces. **Required:** every icon-only tree action button MUST carry either a `tooltip` (shadcn `tooltip` component, shown on hover/focus with the action's plain-language label, e.g. "이름 변경", "삭제", "하위 문서 추가") or, at minimum, an `aria-label` with the same text if a visible tooltip is deferred. This is non-optional given the reduced 24px hit area makes the icon's meaning harder to guess and the button carries no text label of its own.
 - **Chapter list row height: 44px** (touch-safe) — unlike tree rows, chapter rows carry a drag handle (`@dnd-kit/sortable`) and should be comfortably grabbable.
 
 ---
@@ -78,10 +78,12 @@ Exceptions:
 |------|-------|-------|
 | Dominant (60%) | `--background` (light `oklch(1 0 0)` / dark `oklch(0.145 0 0)`, shadcn `base-nova` default — unmodified) | Studio main content background, editor pane background, page background |
 | Secondary (30%) | `--secondary` / `--sidebar` / `--card` (light `oklch(0.97 0 0)` / dark `oklch(0.269 0 0)` and `oklch(0.205 0 0)`, shadcn default — unmodified) | Tree sidebar panel background, work-list cards, chapter-list row background, editor toolbar strip |
-| Accent (10%) | Override shadcn's monochrome `--primary` with Tailwind v4's built-in indigo scale: `--primary: var(--color-indigo-600)` / `--primary-foreground: var(--color-white)` in `:root`; `--primary: var(--color-indigo-500)` / `--primary-foreground: var(--color-white)` in `.dark`. Also set `--ring` and `--sidebar-primary` to the same indigo value so focus rings and the active-tree-item indicator match. | Reserved EXCLUSIVELY for: (1) primary CTA buttons — "새 작품 만들기", "새 회차 추가", "저장", "발행하기"; (2) the selected/active tree node's left border accent + folder/file icon tint; (3) the chapter-list drag-handle icon on hover/active-drag state; (4) the currently-open document/chapter's tab or breadcrumb highlight. Never applied to badges, borders-by-default, or any other decorative element. |
+| Accent (10%) | Override shadcn's monochrome `--primary` with Tailwind v4's built-in indigo scale: `--primary: var(--color-indigo-600)` / `--primary-foreground: var(--color-white)` in `:root`; `--primary: var(--color-indigo-500)` / `--primary-foreground: var(--color-white)` in `.dark`. Also set `--ring` and `--sidebar-primary` to the same indigo value so focus rings and the active-tree-item indicator match. | Reserved EXCLUSIVELY for: (1) primary CTA buttons — "새 작품 만들기", "새 회차 추가", "문서 저장", "회차 저장", "발행하기"; (2) the selected/active tree node's left border accent + folder/file icon tint; (3) the chapter-list drag-handle icon on hover/active-drag state; (4) the currently-open document/chapter's tab or breadcrumb highlight. Never applied to badges, borders-by-default, or any other decorative element. |
 | Destructive | `--destructive` (light `oklch(0.577 0.245 27.325)` / dark `oklch(0.704 0.191 22.216)`, shadcn default — unmodified) | Reserved EXCLUSIVELY for: 파일/폴더 삭제 button + confirm dialog, 회차 삭제 button + confirm dialog. NOT used for 발행 취소 (unpublish) — see Copywriting Contract; unpublish uses the neutral `outline` button variant with its own (non-destructive-colored) confirm dialog, since it hides content rather than destroying it. |
 
 Accent reserved for: primary CTA buttons, active/selected tree-node indicator, chapter drag-handle hover state, active document/chapter tab highlight — explicitly listed above, never "all interactive elements."
+
+**Primary visual anchor:** On `/studio`, the eye lands on the editor pane first — it occupies the dominant-background majority of the viewport and holds the active document/chapter title, whereas the tree sidebar (secondary background, narrower column) reads as a supporting navigation rail. On the 작품 목록 (work-list) page, the eye lands on the accent-colored "새 작품 만들기" CTA button in the page header before the neutral-background work cards grid below it.
 
 **Locked-folder indicator (D-15, Claude's discretion):** uses `--muted-foreground` (existing shadcn token, not accent, not destructive) + a 12px lucide `Lock` icon next to the folder name. Rename/delete actions for locked folders render as disabled (not hidden — Pitfall 2 in RESEARCH.md requires server-side enforcement regardless, but UI should show *why* via a tooltip rather than hiding the option entirely, so writers understand the fixed-skeleton constraint).
 
@@ -98,7 +100,8 @@ Accent reserved for: primary CTA buttons, active/selected tree-node indicator, c
 | Primary CTA — create KB document (inside a category folder) | "새 문서 만들기" |
 | Primary CTA — create custom template | "새 템플릿 만들기" |
 | Primary CTA — publish chapter | "발행하기" |
-| Primary CTA — save (KB doc / chapter editor, explicit save if not autosave) | "저장" |
+| Primary CTA — save KB document (explicit save if not autosave) | "문서 저장" |
+| Primary CTA — save chapter draft (explicit save, distinct from the separate "발행하기" publish action) | "회차 저장" |
 | Empty state — 작품 목록, no works yet | Heading: "아직 만든 작품이 없어요" · Body: "새 작품을 만들고 집필을 시작해보세요." · CTA: "새 작품 만들기" |
 | Empty state — 회차 목록, no chapters yet | Heading: "첫 회차를 써볼까요?" · Body: "회차를 추가하면 이곳에 표시돼요." · CTA: "새 회차 추가" |
 | Empty state — KB category folder empty (e.g. 인물) | Heading: "아직 등록된 인물이 없어요" · Body: "템플릿을 기반으로 새 문서를 만들어보세요." · CTA: "새 문서 만들기" |
@@ -110,7 +113,7 @@ Accent reserved for: primary CTA buttons, active/selected tree-node indicator, c
 | Destructive — delete file/folder (non-locked KB node) | Confirm dialog title: "'{name}'을(를) 삭제할까요?" · Body: "삭제하면 되돌릴 수 없어요." · Buttons: [취소] [삭제] (destructive variant) |
 | Destructive — delete chapter | Confirm dialog title: "'{title}' 회차를 삭제할까요?" · Body: "삭제하면 되돌릴 수 없어요." · Buttons: [취소] [삭제] (destructive variant) |
 | Non-destructive but confirmed — unpublish chapter (D-22, distinct explicit action, NOT styled as destructive per Color contract) | Confirm dialog title: "발행을 취소할까요?" · Body: "발행을 취소하면 독자에게 더 이상 보이지 않아요. 언제든 다시 발행할 수 있어요." · Buttons: [취소] [발행 취소] (outline variant, not destructive-red) |
-| Rename dialog (tree node) | Label: "이름 변경" · Placeholder: 기존 이름 유지 · Confirm button: "변경" |
+| Rename dialog (tree node) | Label: "이름 변경" · Placeholder: 기존 이름 유지 · Confirm button: "변경 완료" |
 | Publish toggle labels | "무료" / "유료" (segmented toggle or switch, not a dropdown for the free/paid choice itself — only the price tier is a dropdown per D-20) |
 | Price tier dropdown label | "가격 선택" · Options rendered as "{N} 토큰" (see Fixed Values below) |
 
