@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans (Wave 0: env/service setup; Wave 1: wallet+profile schema, auth session infra; Wave 2: OAuth login flow, writer upgrade + account settings)
 
 Plans:
-- [ ] 01-01-PLAN.md — Create Supabase project, register Google/Kakao OAuth apps, install deps + Vitest
+- [x] 01-01-PLAN.md — Create Supabase project, register Google/Kakao OAuth apps, install deps + Vitest
 - [ ] 01-02-PLAN.md — Wallet/profile schema + apply_wallet_delta function, concurrency-proof test
 - [ ] 01-03-PLAN.md — Supabase client wrappers + proxy.ts session refresh
 - [ ] 01-04-PLAN.md — Login page, OAuth callback, D-02 email-completion fallback
