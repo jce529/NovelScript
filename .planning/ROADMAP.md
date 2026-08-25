@@ -45,11 +45,19 @@ Plans:
 **Requirements**: KB-01, KB-02, CONT-01, CONT-02, CONT-03
 **Success Criteria** (what must be TRUE):
   1. Writer can create, edit, and delete KB documents across all 5 templates (인물/장소/사건/세력/아이템)
-  2. Writer can view their KB documents in a flat, filterable list per template type
+  2. Writer can view their KB documents in an IDE-style folder/file tree, organized by template type, scoped per work
   3. Writer can create and save a chapter draft with a title and order
   4. Writer can publish a chapter, marking it free or paid with a price
   5. Writer can edit or unpublish a chapter after publishing
-**Plans**: TBD
+**Plans**: 6 plans (Wave 0: dependencies + schema + template-substitution library; Wave 1: work CRUD, KB tree/node business logic, chapter business logic — all parallel; Wave 2: KB tree UI, chapter UI — parallel)
+
+Plans:
+- [ ] 02-01-PLAN.md — @dnd-kit + shadcn components + indigo accent; works/kb_nodes/chapters schema migration; template-substitution library
+- [ ] 02-02-PLAN.md — Work CRUD business logic + 작품 목록/새 작품 만들기 UI + /studio writer-role gate
+- [ ] 02-03-PLAN.md — KB tree query + node CRUD business logic (template resolution, locked-folder + ownership guards)
+- [ ] 02-04-PLAN.md — Chapter business logic (draft/publish/unpublish/reorder + ownership guards)
+- [ ] 02-05-PLAN.md — KB tree UI + document editor + create/rename/delete dialogs
+- [ ] 02-06-PLAN.md — Chapter list (drag-reorder) + chapter editor/publish UI
 **UI hint**: yes
 
 ### Phase 3: Reader Core (Reading Loop, No Payment)
@@ -120,7 +128,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 0/5 | Planned | - |
-| 2. Studio Core (Writer Loop, No AI) | 0/TBD | Not started | - |
+| 2. Studio Core (Writer Loop, No AI) | 0/6 | Planned | - |
 | 3. Reader Core (Reading Loop, No Payment) | 0/TBD | Not started | - |
 | 4. AI Gateway (Mention-Based Generation) | 0/TBD | Not started | - |
 | 5. Real Payment Integration | 0/TBD | Not started | - |
