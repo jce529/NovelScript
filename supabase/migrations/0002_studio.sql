@@ -138,3 +138,22 @@ begin
   where c.id = v.id and c.work_id = p_work_id;
 end;
 $$;
+
+-- Soft-deleting a kb_nodes row sets deleted_at, which is also the column the
+-- SELECT policy's USING clause filters on (`deleted_at is null`). Under RLS,
+-- Postgres requires the post-UPDATE row to still satisfy the table's SELECT
+-- policy, so a plain caller-privilege UPDATE that sets deleted_at always
+-- fails with "new row violates row-level security policy" — the row becomes
+-- invisible to its own owner as a result of the very statement that touched
+-- it. security definer bypasses RLS for this one operation; the WHERE
+-- clause below (not RLS) is what enforces the ownership boundary.
+create or replace function soft_delete_kb_node(p_node_id uuid, p_owner_id uuid) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  update kb_nodes set deleted_at = now()
+  where id = p_node_id and owner_id = p_owner_id and deleted_at is null
+  returning id into v_id;
+  return v_id;
+end;
+$$;

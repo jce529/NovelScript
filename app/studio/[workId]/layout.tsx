@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getWork } from '@/lib/works/actions';
 import { getKbTree } from '@/lib/kb/actions';
@@ -28,6 +30,12 @@ export default async function WorkLayout({
   return (
     <div className="flex min-h-screen">
       <ScrollArea className="w-64 border-r bg-secondary">
+        <Link
+          href="/studio"
+          className="flex items-center gap-1 px-4 pt-4 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft size={12} /> 작품 목록
+        </Link>
         <div className="p-4 font-medium">{work.title}</div>
         {/* D-14: pinned, always-visible — rendered alongside (not inside) the KB
             tree so chapters navigation is never lost while browsing KB docs. */}

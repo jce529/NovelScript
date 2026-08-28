@@ -190,24 +190,27 @@ export async function renameNode(
   return { ok: true, nodeId: data.id };
 }
 
+/** Soft-delete goes through the soft_delete_kb_node RPC (security definer),
+ * not a direct .update() — setting deleted_at makes the row fail the
+ * SELECT policy's `deleted_at is null` USING clause, and Postgres RLS
+ * rejects any caller-privilege UPDATE whose resulting row would become
+ * invisible to its own owner ("new row violates row-level security
+ * policy"), even with an explicit WITH CHECK that itself passes. */
 export async function deleteNode(
   supabase: SupabaseClient,
   { ownerId, nodeId }: { ownerId: string; nodeId: string }
 ): Promise<NodeMutationResult> {
-  const { error, data } = await supabase
-    .from('kb_nodes')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', nodeId)
-    .eq('owner_id', ownerId)
-    .select('id')
-    .maybeSingle();
+  const { error, data } = await supabase.rpc('soft_delete_kb_node', {
+    p_node_id: nodeId,
+    p_owner_id: ownerId,
+  });
 
   if (error) {
     if (error.message.includes('locked_node_immutable')) return { ok: false, error: FRIENDLY_LOCKED };
     return { ok: false, error: error.message };
   }
   if (!data) return { ok: false, error: '문서를 찾을 수 없어요.' };
-  return { ok: true, nodeId: data.id };
+  return { ok: true, nodeId: data };
 }
 
 export async function saveNodeContent(
