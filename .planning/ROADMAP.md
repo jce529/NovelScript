@@ -55,7 +55,7 @@ Plans:
 - [x] 02-01-PLAN.md — @dnd-kit + shadcn components + indigo accent; works/kb_nodes/chapters schema migration; template-substitution library
 - [x] 02-02-PLAN.md — Work CRUD business logic + 작품 목록/새 작품 만들기 UI + /studio writer-role gate
 - [x] 02-03-PLAN.md — KB tree query + node CRUD business logic (template resolution, locked-folder + ownership guards)
-- [ ] 02-04-PLAN.md — Chapter business logic (draft/publish/unpublish/reorder + ownership guards)
+- [x] 02-04-PLAN.md — Chapter business logic (draft/publish/unpublish/reorder + ownership guards)
 - [ ] 02-05-PLAN.md — KB tree UI + document editor + create/rename/delete dialogs
 - [ ] 02-06-PLAN.md — Chapter list (drag-reorder) + chapter editor/publish UI
 **UI hint**: yes
