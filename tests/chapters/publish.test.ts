@@ -57,7 +57,7 @@ describe('publishChapter (CONT-02)', () => {
     expect(result.ok).toBe(false);
 
     const { data: row } = await admin.from('chapters').select('is_published, price_tier').eq('id', chapterId).single();
-    expect(row.is_published).toBe(false);
-    expect(row.price_tier).toBeNull();
+    expect(row!.is_published).toBe(false);
+    expect(row!.price_tier).toBeNull();
   });
 });

@@ -37,8 +37,8 @@ describe('saveChapterContent / unpublishChapter (CONT-03, D-21, D-22)', () => {
     expect(edit.ok).toBe(true);
 
     const { data: row } = await admin.from('chapters').select('content, is_published').eq('id', chapterId).single();
-    expect(row.content).toBe('수정된 본문 내용');
-    expect(row.is_published).toBe(true);
+    expect(row!.content).toBe('수정된 본문 내용');
+    expect(row!.is_published).toBe(true);
   });
 
   it('saveChapterContent updates content/updated_at without touching is_published/price_tier', async () => {
@@ -48,9 +48,9 @@ describe('saveChapterContent / unpublishChapter (CONT-03, D-21, D-22)', () => {
     expect(edit.ok).toBe(true);
 
     const { data: row } = await admin.from('chapters').select('content, is_published, price_tier').eq('id', chapterId).single();
-    expect(row.content).toBe('초안 본문');
-    expect(row.is_published).toBe(false);
-    expect(row.price_tier).toBeNull();
+    expect(row!.content).toBe('초안 본문');
+    expect(row!.is_published).toBe(false);
+    expect(row!.price_tier).toBeNull();
   });
 
   it('D-22: unpublishChapter sets is_published = false, unpublished_at non-null, and leaves content byte-for-byte unchanged', async () => {
@@ -65,8 +65,8 @@ describe('saveChapterContent / unpublishChapter (CONT-03, D-21, D-22)', () => {
     expect(result.ok).toBe(true);
 
     const { data: row } = await admin.from('chapters').select('content, is_published, unpublished_at').eq('id', chapterId).single();
-    expect(row.is_published).toBe(false);
-    expect(row.unpublished_at).not.toBeNull();
-    expect(row.content).toBe(before.data!.content);
+    expect(row!.is_published).toBe(false);
+    expect(row!.unpublished_at).not.toBeNull();
+    expect(row!.content).toBe(before.data!.content);
   });
 });
