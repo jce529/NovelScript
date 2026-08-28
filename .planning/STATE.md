@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md, 02-03-PLAN.md, 02-04-PLAN.md (Wave 1 done)
-last_updated: "2026-08-28T04:58:08.119Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-08-28T05:06:29.212Z"
 last_activity: 2026-08-28
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 82
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 02 (studio-core-writer-loop-no-ai) — EXECUTING
-Plan: 4 of 6 (Wave 1 done: 02-02, 02-03, 02-04; Wave 2 next: 02-05, 02-06)
-Status: Executing Wave 1 → Wave 2
+Plan: 5 of 6 (Wave 1 done: 02-02, 02-03, 02-04; Wave 2 next: 02-05, 02-06)
+Status: Ready to execute
 Last activity: 2026-08-28
 
 Progress: [█████████████████░░░] 82%
@@ -56,6 +56,7 @@ Progress: [█████████████████░░░] 82%
 | Phase 02 P02 | 15min | 2 tasks | 7 files |
 | Phase 02 P03 | 6min | 2 tasks | 8 files |
 | Phase 02 P04 | 15min | 2 tasks | 6 files |
+| Phase 02 P05 | 5min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase 02 Plan 02: lib/works/actions.ts (createWork/listWorks/getWork) + /studio writer-role gate/작품 목록/새 작품 만들기 live; seedTemplateFiles retyped to real SupabaseClient (was ad-hoc duck type, caused TS2589)
 - [Phase 02]: Plan 02-03: KB tree query + full node CRUD (createNode/renameNode/deleteNode/saveNodeContent) live in lib/kb/actions.ts; D-10 create-time template picker (listTemplateOptions) and defense-in-depth ownership/locked-folder guards proven at the Server-Action layer, independent of UI
 - [Phase 02]: Plan 02-04: chapters ownership-scoped business logic (createChapter/saveChapterContent/publishChapter/unpublishChapter/reorderChapters/listChapters) live and tested; fixed 10/30/50/100 price tiers enforced at zod layer before DB CHECK; D-21/D-22 and reorder deferred-constraint behavior proven
+- [Phase 02]: Plan 02-05: base-ui Tooltip/Select use render prop not asChild (this Next.js/base-ui version has no Radix asChild support); KB tree sidebar + create/rename/delete dialogs + D-10 template picker + D-12 single-textarea editor + D-14 pinned chapters nav link all wired end-to-end via Server Actions onto Plan 02-03's tested lib/kb/actions.ts
 
 ### Pending Todos
 
@@ -86,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-28T04:58:08.115Z
-Stopped at: Completed 02-02-PLAN.md, 02-03-PLAN.md, 02-04-PLAN.md (Wave 1 done)
+Last session: 2026-08-28T05:06:29.208Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
