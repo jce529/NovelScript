@@ -62,9 +62,9 @@ function TreeRow({
         )}
         {node.is_locked && (
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Lock size={12} className="text-muted-foreground" aria-label="기본 폴더는 이름을 바꾸거나 삭제할 수 없어요" />
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={<Lock size={12} className="text-muted-foreground" aria-label="기본 폴더는 이름을 바꾸거나 삭제할 수 없어요" />}
+            />
             <TooltipContent>기본 폴더는 이름을 바꾸거나 삭제할 수 없어요</TooltipContent>
           </Tooltip>
         )}
