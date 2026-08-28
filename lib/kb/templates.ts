@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type KbCategory = '인물' | '장소' | '사건' | '세력' | '아이템';
 
@@ -53,15 +54,10 @@ export interface KbNodeInsert {
  * title substitution (these are templates, not documents — the placeholder stays
  * literal until a real document is created from them). Idempotent: skips any
  * category that already has a file under templateRootId. Takes a minimal
- * client shape (only the two methods used) so callers can pass any Supabase
- * client (admin or session-scoped) without a hard dependency on its full type. */
+ * client shape so callers can pass any Supabase client (admin or
+ * session-scoped) without runtime behavior differing by caller. */
 export async function seedTemplateFiles(
-  supabase: {
-    from: (table: string) => {
-      select: (cols: string) => { eq: (col: string, val: string) => { eq: (col: string, val: string) => { is: (col: string, val: null) => Promise<{ data: { name: string }[] | null }> } } };
-      insert: (rows: KbNodeInsert[]) => Promise<{ error: { message: string } | null }>;
-    };
-  },
+  supabase: SupabaseClient,
   params: { ownerId: string; workId: string | null; scope: 'account_template' | 'work'; templateRootId: string }
 ): Promise<void> {
   const { data: existing } = await supabase
