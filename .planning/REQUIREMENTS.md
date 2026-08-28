@@ -7,9 +7,9 @@
 
 ### Auth (AUTH)
 
-- [ ] **AUTH-01**: User can sign up/log in via social login (Kakao 또는 Google 중 1개 이상)
+- [x] **AUTH-01**: User can sign up/log in via social login (Kakao 또는 Google 중 1개 이상)
 - [x] **AUTH-02**: One account serves both reader and writer roles — no separate signup flow; a "글쓰기 시작하기" entry point upgrades the same account
-- [ ] **AUTH-03**: User session persists across visits/browser refresh
+- [x] **AUTH-03**: User session persists across visits/browser refresh
 
 ### Knowledge Base (KB)
 
@@ -122,4 +122,4 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-08-25 after roadmap creation (traceability filled, 25/25 mapped)*
+*Last updated: 2026-08-28 — AUTH-01/02/03 checked off after Phase 1 completion*
