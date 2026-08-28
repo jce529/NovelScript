@@ -119,3 +119,21 @@ export async function listChapters(supabase: SupabaseClient, { ownerId, workId }
   if (error) throw new Error(error.message);
   return data ?? [];
 }
+
+/** D-17: full-list resequence in one transaction. reorder_chapters (Plan 02-01) does
+ * NOT check ownership itself — it trusts p_work_id — so ownership MUST be verified
+ * here, before the RPC call, exactly mirroring the reasoning in 02-01's migration note. */
+export async function reorderChapters(
+  supabase: SupabaseClient,
+  { ownerId, workId, orderedIds }: { ownerId: string; workId: string; orderedIds: string[] }
+): Promise<ChapterMutationResult> {
+  if (!(await assertWorkOwnership(supabase, { ownerId, workId }))) {
+    return { ok: false, error: '작품을 찾을 수 없어요.' };
+  }
+  const { error } = await supabase.rpc('reorder_chapters', {
+    p_work_id: workId,
+    p_ordered_ids: orderedIds,
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
