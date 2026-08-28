@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: "Completed 01-05-PLAN.md (writer upgrade + account settings). Phase 01 (foundation-wallet-infrastructure) is now fully complete: all 5 plans executed and verified."
-last_updated: "2026-08-28T03:37:03.522Z"
-last_activity: 2026-08-28 -- Plan 01-05 (writer upgrade + account settings) executed and verified
+stopped_at: "Completed 02-01-PLAN.md (studio core: works/kb_nodes/chapters schema, RLS, locked-folder guard trigger, create_work/ensure_account_template_root/reorder_chapters, template-substitution library, dnd-kit + shadcn UI toolkit + indigo accent)"
+last_updated: "2026-08-28T03:44:03.727Z"
+last_activity: 2026-08-28
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 11
-  completed_plans: 5
-  percent: 45
+  completed_plans: 6
+  percent: 55
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 01 — foundation-wallet-infrastructure
+**Current focus:** Phase 02 — studio-core-writer-loop-no-ai
 
 ## Current Position
 
-Phase: 01 (foundation-wallet-infrastructure) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
-Last activity: 2026-08-28 -- Plan 01-05 (writer upgrade + account settings) executed and verified
+Phase: 02 (studio-core-writer-loop-no-ai) — EXECUTING
+Plan: 1 of 6
+Status: Plan 02-01 complete (schema/RLS/functions live, template-substitution library tested, UI toolkit installed) — Phase 01 (foundation-wallet-infrastructure) fully complete, awaiting verification
+Last activity: 2026-08-28
 
-Progress: [█████░░░░░] 45%
+Progress: [██████░░░░] 55%
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Progress: [█████░░░░░] 45%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 P05 | 2 tasks | 8min | 8 files |
+| 02 P01 | 3 tasks | 12min | 19 files |
 
 **Recent Trend:**
 
@@ -64,6 +65,7 @@ Recent decisions affecting current work:
 - Research phase: PG = Toss Payments direct integration, no abstraction layer (confirmed, feeds Phase 5)
 - Roadmap: Wallet/ledger proven with fake credits (Phase 1) before AI spend (Phase 4) or real payments (Phase 5) touch it — strongest cross-cutting signal from research, not to be re-ordered for convenience
 - [Phase 01]: isAccountActive wired into app/account/page.tsx to satisfy D-08's 'soft-deleted accounts treated as inactive on next request' requirement; not yet wired into a global route gate since no general DAL/middleware layer exists in Phase 1
+- [Phase 02]: Phase 02 Plan 01: works/kb_nodes/chapters schema + RLS + create_work/ensure_account_template_root/reorder_chapters functions live; lib/kb/templates.ts tested; dnd-kit + shadcn UI toolkit + indigo accent installed
 
 ### Pending Todos
 
@@ -78,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-28T03:37:03.519Z
-Stopped at: Completed 01-05-PLAN.md (writer upgrade + account settings). Phase 01 (foundation-wallet-infrastructure) is now fully complete: all 5 plans executed and verified.
+Last session: 2026-08-28T03:44:03.724Z
+Stopped at: Completed 02-01-PLAN.md (studio core: works/kb_nodes/chapters schema, RLS, locked-folder guard trigger, create_work/ensure_account_template_root/reorder_chapters, template-substitution library, dnd-kit + shadcn UI toolkit + indigo accent)
 Resume file: None

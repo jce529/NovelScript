@@ -13,8 +13,8 @@
 
 ### Knowledge Base (KB)
 
-- [ ] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
-- [ ] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
+- [x] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
+- [x] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
 
 ### Editor / AI Generation (EDIT)
 
@@ -26,9 +26,9 @@
 
 ### Content / Publishing (CONT)
 
-- [ ] **CONT-01**: Writer can create and save chapter drafts with title and order
-- [ ] **CONT-02**: Writer can publish a chapter, marking it free or paid with a price
-- [ ] **CONT-03**: Writer can edit or unpublish their own chapters after publishing
+- [x] **CONT-01**: Writer can create and save chapter drafts with title and order
+- [x] **CONT-02**: Writer can publish a chapter, marking it free or paid with a price
+- [x] **CONT-03**: Writer can edit or unpublish their own chapters after publishing
 
 ### Reader / Discovery (READ)
 
