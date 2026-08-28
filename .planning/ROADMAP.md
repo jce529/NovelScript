@@ -36,8 +36,8 @@ Plans:
 - [x] 01-01-PLAN.md — Create Supabase project, register Google/Kakao OAuth apps, install deps + Vitest
 - [x] 01-02-PLAN.md — Wallet/profile schema + apply_wallet_delta function, concurrency-proof test
 - [x] 01-03-PLAN.md — Supabase client wrappers + proxy.ts session refresh
-- [ ] 01-04-PLAN.md — Login page, OAuth callback, D-02 email-completion fallback
-- [ ] 01-05-PLAN.md — Writer upgrade flow + account settings/deletion
+- [x] 01-04-PLAN.md — Login page, OAuth callback, D-02 email-completion fallback
+- [x] 01-05-PLAN.md — Writer upgrade flow + account settings/deletion
 
 ### Phase 2: Studio Core (Writer Loop, No AI)
 **Goal**: Writers can build a knowledge base and draft/publish chapters, independent of AI assistance.

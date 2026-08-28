@@ -8,7 +8,7 @@
 ### Auth (AUTH)
 
 - [ ] **AUTH-01**: User can sign up/log in via social login (Kakao 또는 Google 중 1개 이상)
-- [ ] **AUTH-02**: One account serves both reader and writer roles — no separate signup flow; a "글쓰기 시작하기" entry point upgrades the same account
+- [x] **AUTH-02**: One account serves both reader and writer roles — no separate signup flow; a "글쓰기 시작하기" entry point upgrades the same account
 - [ ] **AUTH-03**: User session persists across visits/browser refresh
 
 ### Knowledge Base (KB)

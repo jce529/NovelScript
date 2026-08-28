@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 01 plan 01-04 complete (login/OAuth callback/D-02 fallback verified live for Google+Kakao)
-last_updated: "2026-08-28T03:30:00.000Z"
-last_activity: 2026-08-28 -- Plan 01-04 verified end-to-end and summarized
+status: verifying
+stopped_at: "Completed 01-05-PLAN.md (writer upgrade + account settings). Phase 01 (foundation-wallet-infrastructure) is now fully complete: all 5 plans executed and verified."
+last_updated: "2026-08-28T03:37:03.522Z"
+last_activity: 2026-08-28 -- Plan 01-05 (writer upgrade + account settings) executed and verified
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 11
-  completed_plans: 4
-  percent: 36
+  completed_plans: 5
+  percent: 45
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 01 (foundation-wallet-infrastructure) — EXECUTING
-Plan: 5 of 5 (01-05 remaining)
-Status: Executing Phase 01
-Last activity: 2026-08-28 -- Plan 01-04 verified end-to-end and summarized
+Plan: 5 of 5
+Status: Phase complete — ready for verification
+Last activity: 2026-08-28 -- Plan 01-05 (writer upgrade + account settings) executed and verified
 
-Progress: [████░░░░░░] 36%
+Progress: [█████░░░░░] 45%
 
 ## Performance Metrics
 
@@ -44,7 +44,7 @@ Progress: [████░░░░░░] 36%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 P05 | 2 tasks | 8min | 8 files |
 
 **Recent Trend:**
 
@@ -63,6 +63,7 @@ Recent decisions affecting current work:
 - Research phase: LLM vendor = Google Gemini (confirmed, feeds Phase 4)
 - Research phase: PG = Toss Payments direct integration, no abstraction layer (confirmed, feeds Phase 5)
 - Roadmap: Wallet/ledger proven with fake credits (Phase 1) before AI spend (Phase 4) or real payments (Phase 5) touch it — strongest cross-cutting signal from research, not to be re-ordered for convenience
+- [Phase 01]: isAccountActive wired into app/account/page.tsx to satisfy D-08's 'soft-deleted accounts treated as inactive on next request' requirement; not yet wired into a global route gate since no general DAL/middleware layer exists in Phase 1
 
 ### Pending Todos
 
@@ -77,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-28T03:30:00.000Z
-Stopped at: Plan 01-04 complete and verified live (Google + Kakao OAuth round-trip, D-02 fallback path, error page). Plan 01-05 (writer upgrade + account settings) is the only remaining Phase 1 work.
-Resume file: .planning/phases/01-foundation-wallet-infrastructure/01-05-PLAN.md
+Last session: 2026-08-28T03:37:03.519Z
+Stopped at: Completed 01-05-PLAN.md (writer upgrade + account settings). Phase 01 (foundation-wallet-infrastructure) is now fully complete: all 5 plans executed and verified.
+Resume file: None
