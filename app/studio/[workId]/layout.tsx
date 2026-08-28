@@ -4,7 +4,6 @@ import { getWork } from '@/lib/works/actions';
 import { getKbTree } from '@/lib/kb/actions';
 import { buildTree } from '@/lib/kb/tree';
 import { KbTree } from '@/components/studio/kb-tree';
-import { KbTreeActions } from '@/components/studio/kb-node-dialogs';
 import { ChaptersNavLink } from '@/components/studio/chapters-nav-link';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -33,7 +32,7 @@ export default async function WorkLayout({
         {/* D-14: pinned, always-visible — rendered alongside (not inside) the KB
             tree so chapters navigation is never lost while browsing KB docs. */}
         <ChaptersNavLink workId={workId} />
-        <KbTree nodes={tree} renderRowActions={(node) => <KbTreeActions workId={workId} node={node} />} />
+        <KbTree nodes={tree} />
       </ScrollArea>
       <main className="flex-1 p-8">{children}</main>
     </div>

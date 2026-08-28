@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import { GENRES } from '@/lib/works/actions';
+import { GENRES } from '@/lib/works/genres';
 import { submitCreateWork } from './actions';
 
 export default function NewWorkPage() {

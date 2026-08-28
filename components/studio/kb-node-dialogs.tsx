@@ -16,7 +16,7 @@ import {
   createNodeAction, renameNodeAction, deleteNodeAction, listTemplateOptionsAction,
 } from '@/app/studio/[workId]/kb/[nodeId]/actions';
 
-/** Rendered per tree row via kb-tree.tsx's `renderRowActions` prop. 24px hit-area
+/** Rendered per tree row directly by kb-tree.tsx. 24px hit-area
  * icon buttons per UI-SPEC — every one carries a Tooltip (non-optional at this size). */
 export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode }) {
   const [dialog, setDialog] = useState<'create' | 'rename' | 'delete' | null>(null);
@@ -120,7 +120,14 @@ export function CreateNodeDialog({
           <div className="flex flex-col gap-1">
             <Label htmlFor="new-node-template">템플릿 선택</Label>
             <Select value={selectedTemplateId} onValueChange={(value) => setSelectedTemplateId(value ?? 'canonical')}>
-              <SelectTrigger id="new-node-template"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="new-node-template">
+                <SelectValue>
+                  {(value: string) => {
+                    const opt = templateOptions.find((o) => (o.id ?? 'canonical') === value);
+                    return opt ? `${opt.name} (${SCOPE_LABEL[opt.scope]})` : '템플릿 선택';
+                  }}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {templateOptions.map((option) => (
                   <SelectItem key={option.id ?? 'canonical'} value={option.id ?? 'canonical'}>

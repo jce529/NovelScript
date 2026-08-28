@@ -5,33 +5,20 @@ import { useParams } from 'next/navigation';
 import { Folder, FileText, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { KbTreeActions } from '@/components/studio/kb-node-dialogs';
 import type { TreeNode } from '@/lib/kb/tree';
 
-export function KbTree({
-  nodes,
-  renderRowActions,
-}: {
-  nodes: TreeNode[];
-  renderRowActions?: (node: TreeNode) => React.ReactNode;
-}) {
+export function KbTree({ nodes }: { nodes: TreeNode[] }) {
   return (
     <ul className="flex flex-col">
       {nodes.map((node) => (
-        <TreeRow key={node.id} node={node} depth={0} renderRowActions={renderRowActions} />
+        <TreeRow key={node.id} node={node} depth={0} />
       ))}
     </ul>
   );
 }
 
-function TreeRow({
-  node,
-  depth,
-  renderRowActions,
-}: {
-  node: TreeNode;
-  depth: number;
-  renderRowActions?: (node: TreeNode) => React.ReactNode;
-}) {
+function TreeRow({ node, depth }: { node: TreeNode; depth: number }) {
   const params = useParams<{ workId: string; nodeId?: string }>();
   const isActive = params?.nodeId === node.id;
   const isRootTemplateFolder = node.category === 'template' && node.parent_id === null;
@@ -75,13 +62,13 @@ function TreeRow({
           <Badge variant="secondary" className="text-xs">이 작품 전용</Badge>
         )}
         <span className="ml-auto opacity-0 group-hover:opacity-100">
-          {renderRowActions?.(node)}
+          {params.workId && <KbTreeActions workId={params.workId} node={node} />}
         </span>
       </div>
       {node.children.length > 0 && (
         <ul>
           {node.children.map((child) => (
-            <TreeRow key={child.id} node={child} depth={depth + 1} renderRowActions={renderRowActions} />
+            <TreeRow key={child.id} node={child} depth={depth + 1} />
           ))}
         </ul>
       )}

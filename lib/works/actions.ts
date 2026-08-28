@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { seedTemplateFiles } from '@/lib/kb/templates';
+import { GENRES } from '@/lib/works/genres';
 
-export const GENRES = ['로맨스', '로맨스판타지', '판타지', '현대판타지', '무협', '미스터리/스릴러', '라이트노벨', '기타'] as const;
+export { GENRES };
 
 const createWorkSchema = z.object({
   ownerId: z.string().uuid(),

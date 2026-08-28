@@ -94,7 +94,9 @@ export default function ChapterEditorPage({
               value={String(priceTier ?? PRICE_TIERS[0])}
               onValueChange={(value) => setPriceTier(Number(value))}
             >
-              <SelectTrigger aria-label="가격 선택" className="w-32"><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label="가격 선택" className="w-32">
+                <SelectValue>{(value: string) => `${value} 토큰`}</SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {PRICE_TIERS.map((tier) => (
                   <SelectItem key={tier} value={String(tier)}>{tier} 토큰</SelectItem>
