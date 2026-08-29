@@ -77,7 +77,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 03-01-PLAN.md — Reader schema migration: RLS public-read fix, view_count + increment RPC, work_likes/reading_progress/reports/work_subscriptions/work_bookmarks
+- [x] 03-01-PLAN.md — Reader schema migration: RLS public-read fix, view_count + increment RPC, work_likes/reading_progress/reports/work_subscriptions/work_bookmarks
 - [ ] 03-02-PLAN.md — Discovery feed lib (trending score) + content-leak-safe public work/chapter readers
 - [ ] 03-03-PLAN.md — View-count increment wrapper + reading-progress upsert/read/recently-read lib
 - [ ] 03-04-PLAN.md — Likes/subscriptions/bookmarks toggle lib + report submission lib

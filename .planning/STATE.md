@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 3 UI-SPEC revised (3-tab detail, header icons, banner, ranking title) and re-approved
-last_updated: "2026-08-29T06:04:53.271Z"
-last_activity: 2026-08-28
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-08-29T23:54:43.912Z"
+last_activity: 2026-08-29
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 18
+  completed_plans: 12
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 02 — studio-core-writer-loop-no-ai
+**Current focus:** Phase 03 — reader-core-reading-loop-no-payment
 
 ## Current Position
 
 Phase: 03
-Plan: Not started
-Status: Awaiting phase-goal verification
-Last activity: 2026-08-28
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-08-29
 
 Progress: [████████████████████] 100%
 
@@ -58,6 +58,7 @@ Progress: [████████████████████] 100%
 | Phase 02 P04 | 15min | 2 tasks | 6 files |
 | Phase 02 P05 | 5min | 2 tasks | 7 files |
 | Phase 02 P06 | 12min | 2 tasks | 7 files |
+| Phase 03 P01 | 20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Plan 02-04: chapters ownership-scoped business logic (createChapter/saveChapterContent/publishChapter/unpublishChapter/reorderChapters/listChapters) live and tested; fixed 10/30/50/100 price tiers enforced at zod layer before DB CHECK; D-21/D-22 and reorder deferred-constraint behavior proven
 - [Phase 02]: Plan 02-05: base-ui Tooltip/Select use render prop not asChild (this Next.js/base-ui version has no Radix asChild support); KB tree sidebar + create/rename/delete dialogs + D-10 template picker + D-12 single-textarea editor + D-14 pinned chapters nav link all wired end-to-end via Server Actions onto Plan 02-03's tested lib/kb/actions.ts
 - [Phase 02]: Plan 02-06: chapter list/new-form/editor UI wired to lib/chapters/actions.ts (dnd-kit drag-reorder, shadcn Select price-tier dropdown, non-destructive unpublish confirm) — CONT-01/02/03 fully realized end-to-end, no new business logic or deviations
+- [Phase 03]: Plan 03-01: reader schema migration (0003_reader.sql) live — works_public_read/chapters_public_read additive RLS fixes the reader-facing gap, chapters.view_count + increment_chapter_view SECURITY DEFINER RPC, and work_likes/reading_progress/reports/work_subscriptions/work_bookmarks tables with owner-scoped RLS; anonClient() test helper proves non-owner reads work
 
 ### Pending Todos
 
@@ -90,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-29T06:04:53.266Z
-Stopped at: Phase 3 UI-SPEC revised (3-tab detail, header icons, banner, ranking title) and re-approved
-Resume file: .planning/phases/03-reader-core-reading-loop-no-payment/03-UI-SPEC.md
+Last session: 2026-08-29T23:54:43.907Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None
