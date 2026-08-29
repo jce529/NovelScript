@@ -25,3 +25,11 @@ export async function deleteTestUser(userId: string) {
   const admin = adminClient();
   await admin.auth.admin.deleteUser(userId, false);
 }
+
+export function anonClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
