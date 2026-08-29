@@ -105,7 +105,7 @@ begin
 
   foreach v_category in array array['template','인물','장소','사건','세력','아이템'] loop
     insert into kb_nodes (owner_id, work_id, scope, parent_id, node_type, category, is_locked, name)
-    values (p_owner_id, v_work_id, 'work', null, 'folder', v_category, true, v_category);
+    values (p_owner_id, v_work_id, 'work', null, 'folder', v_category, v_category = 'template', v_category);
   end loop;
 
   return v_work_id;
@@ -157,3 +157,8 @@ begin
   return v_id;
 end;
 $$;
+
+-- Only the 'template' folder is meant to be structurally fixed. The other
+-- category folders (인물/장소/사건/세력/아이템) were seeded locked by mistake —
+-- unlock any that already exist so writers can rename/delete them.
+update kb_nodes set is_locked = false where category <> 'template' and is_locked = true;

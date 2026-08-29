@@ -18,7 +18,7 @@ describe('Studio schema smoke test (0002_studio.sql)', () => {
     return user.id;
   }
 
-  it('create_work returns a work id and creates exactly 6 locked, parent-less kb_nodes for it', async () => {
+  it('create_work returns a work id and creates exactly 6 parent-less kb_nodes for it, only the template folder locked', async () => {
     const owner = await createOwner();
 
     const [row] = await sql`select create_work(${owner}::uuid, '테스트 작품', null, null, null) as work_id`;
@@ -32,33 +32,45 @@ describe('Studio schema smoke test (0002_studio.sql)', () => {
     expect(categories).toEqual(['사건', '세력', '아이템', '인물', '장소', 'template'].sort());
 
     for (const node of nodes) {
-      expect(node.is_locked).toBe(true);
+      expect(node.is_locked).toBe(node.category === 'template');
       expect(node.parent_id).toBeNull();
     }
   });
 
-  it('rejects renaming a locked kb_node with locked_node_immutable', async () => {
+  it('rejects renaming the locked template kb_node with locked_node_immutable', async () => {
     const owner = await createOwner();
     const [row] = await sql`select create_work(${owner}::uuid, '테스트 작품2', null, null, null) as work_id`;
     const workId = row.work_id;
 
-    const [node] = await sql`select id from kb_nodes where work_id = ${workId} limit 1`;
+    const [node] = await sql`select id from kb_nodes where work_id = ${workId} and category = 'template'`;
 
     await expect(
       sql`update kb_nodes set name = 'x' where id = ${node.id}`
     ).rejects.toThrow('locked_node_immutable');
   });
 
-  it('rejects soft-deleting a locked kb_node with locked_node_immutable', async () => {
+  it('rejects soft-deleting the locked template kb_node with locked_node_immutable', async () => {
     const owner = await createOwner();
     const [row] = await sql`select create_work(${owner}::uuid, '테스트 작품3', null, null, null) as work_id`;
     const workId = row.work_id;
 
-    const [node] = await sql`select id from kb_nodes where work_id = ${workId} limit 1`;
+    const [node] = await sql`select id from kb_nodes where work_id = ${workId} and category = 'template'`;
 
     await expect(
       sql`update kb_nodes set deleted_at = now() where id = ${node.id}`
     ).rejects.toThrow('locked_node_immutable');
+  });
+
+  it('allows renaming a non-template category folder (인물/장소/사건/세력/아이템 are unlocked)', async () => {
+    const owner = await createOwner();
+    const [row] = await sql`select create_work(${owner}::uuid, '테스트 작품5', null, null, null) as work_id`;
+    const workId = row.work_id;
+
+    const [node] = await sql`select id from kb_nodes where work_id = ${workId} and category = '인물'`;
+
+    await expect(
+      sql`update kb_nodes set name = '인물(개명)' where id = ${node.id}`
+    ).resolves.toBeDefined();
   });
 
   it('ensure_account_template_root is idempotent across repeated calls', async () => {

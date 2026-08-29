@@ -22,7 +22,7 @@ describe('Locked-folder guard (Pitfall 2) — direct Server Action calls on a fi
     workId = data as string;
 
     const { data: folder } = await admin
-      .from('kb_nodes').select('id, name').eq('work_id', workId).eq('category', '인물').eq('node_type', 'folder').single();
+      .from('kb_nodes').select('id, name').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').single();
     lockedFolderId = folder!.id;
     lockedFolderOriginalName = folder!.name;
   }, 30000);
