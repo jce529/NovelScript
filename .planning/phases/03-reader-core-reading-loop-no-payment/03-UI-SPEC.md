@@ -16,7 +16,7 @@ revised: 2026-08-29
 
 **Design system continuity:** This phase extends, not re-themes, the `base-nova` system locked in `.planning/phases/02-studio-core-writer-loop-no-ai/02-UI-SPEC.md`. All chrome (buttons, forms, badges, dialogs) reuses Phase 2's tokens verbatim so Studio and the reader surface read as one product. The only new contract surface is the chapter-reading pane itself (adjustable font size, three-way theme), which is intentionally scoped to the viewer's content container only — exactly like Phase 2 scoped its editor-textarea line-height exception to editor surfaces only.
 
-**Scope note (2026-08-29 revision):** The promotional banner (D-20), 알림 bell icon (D-18), and 선호작 bookmark icon (D-19) are captured in this contract per the user's mockup review, but as of this revision no REQUIREMENTS.md entry (e.g. a future READ-06+) backs them yet — see `03-CONTEXT.md`'s `<scope_note>`. Treat these as approved *visual* contract, not yet confirmed *buildable* scope: the planner/executor should confirm REQUIREMENTS.md/ROADMAP.md have been amended (or obtain explicit user sign-off) before treating them as required Phase 3 deliverables rather than optional/deferred UI.
+**Scope note (resolved 2026-08-29):** The promotional banner (D-20), 알림 bell icon (D-18), and 선호작 bookmark icon (D-19) are now backed by `REQUIREMENTS.md` READ-09, READ-07, and READ-08 respectively (added and mapped to Phase 3 in `.planning/ROADMAP.md`'s Phase 3 success criteria 6-8). They are confirmed, buildable Phase 3 scope — no further sign-off needed before planning treats them as required deliverables.
 
 ---
 

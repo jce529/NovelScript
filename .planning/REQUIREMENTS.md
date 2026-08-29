@@ -37,6 +37,9 @@
 - [ ] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
 - [ ] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
 - [ ] **READ-05**: Reader can report a novel or chapter for review from the detail page or viewer
+- [ ] **READ-07**: Reader can toggle a per-work new-chapter notification subscription (알림) from the work detail page header, login-gated; subscription state persists to the account. Actual delivery channel (push/email/in-app inbox) is not defined by this requirement and remains open for a later phase — v1 scope is the subscription toggle and its persisted state only.
+- [ ] **READ-08**: Reader can save/unsave a work to a personal 선호작 (bookmark) list from the work detail page header, login-gated — distinct from the 좋아요 (like) action, which remains a separate count-based control.
+- [ ] **READ-09**: Home/discovery screen displays a promotional banner slot above the "최근 읽은 작품" section — a static content slot (no scheduling/targeting system implied).
 
 ### Payments (PAY)
 
@@ -107,6 +110,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | READ-03 | Phase 3 | Mapped |
 | READ-04 | Phase 3 | Mapped |
 | READ-05 | Phase 3 | Mapped |
+| READ-07 | Phase 3 | Mapped |
+| READ-08 | Phase 3 | Mapped |
+| READ-09 | Phase 3 | Mapped |
 | PAY-01 | Phase 5 | Mapped |
 | PAY-02 | Phase 6 | Mapped |
 | PAY-03 | Phase 5 | Mapped |
@@ -116,10 +122,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | ADMIN-04 | Phase 7 | Mapped |
 
 **Coverage:**
-- v1 requirements: 25 total
-- Mapped to phases: 25
+- v1 requirements: 28 total
+- Mapped to phases: 28
 - Unmapped: 0 ✓ (fully mapped — see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-08-28 — AUTH-01/02/03 checked off after Phase 1 completion*
+*Last updated: 2026-08-29 — added READ-07/08/09 (알림, 선호작, promotional banner) after Phase 3 UI-SPEC revision; AUTH-01/02/03 checked off after Phase 1 completion*

@@ -12,8 +12,8 @@ NovelScript ships as one Next.js app with two loops that must both work: writers
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it
-- [ ] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved
+- [x] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it (completed 2026-08-29)
+- [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29)
 - [ ] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage
 - [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
@@ -63,13 +63,16 @@ Plans:
 ### Phase 3: Reader Core (Reading Loop, No Payment)
 **Goal**: Readers can discover and read published chapters end-to-end with a Korean-market-standard viewer, and can flag problem content — all chapters free at this stage.
 **Depends on**: Phase 2
-**Requirements**: READ-01, READ-02, READ-03, READ-04, READ-05
+**Requirements**: READ-01, READ-02, READ-03, READ-04, READ-05, READ-07, READ-08, READ-09
 **Success Criteria** (what must be TRUE):
   1. Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
   2. Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
   3. Reader can adjust font size and toggle a dark/alternate theme in the viewer
   4. Reader's last-read chapter is remembered and resumed on return (이어보기)
   5. Reader can report a novel or chapter for review from the detail page or viewer
+  6. Reader can toggle a per-work new-chapter notification subscription (알림) from the work detail page — state persists, delivery channel out of scope
+  7. Reader can save/unsave a work to a personal 선호작 (bookmark) list from the work detail page, distinct from 좋아요
+  8. Home/discovery screen shows a static promotional banner slot above "최근 읽은 작품"
 **Plans**: TBD
 **UI hint**: yes
 
@@ -127,8 +130,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Wallet Infrastructure | 0/5 | Planned | - |
-| 2. Studio Core (Writer Loop, No AI) | 0/6 | Planned | - |
+| 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
+| 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
 | 3. Reader Core (Reading Loop, No Payment) | 0/TBD | Not started | - |
 | 4. AI Gateway (Mention-Based Generation) | 0/TBD | Not started | - |
 | 5. Real Payment Integration | 0/TBD | Not started | - |

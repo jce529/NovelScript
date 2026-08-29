@@ -19,7 +19,7 @@ Readers can discover published works, view a work's detail page, read chapters i
 - **D-03:** Feed card layout is a grid (2-3 columns, cover-image-centric) — standard Korean web-novel platform convention (Naver Series/Ridi style), not a list.
 - **D-04:** Feed supports genre filter + sort toggle (최신/인기). Genre filter reuses the single-select genre field from Phase 2's work model (see `02-CONTEXT.md` D-04).
 - **D-05:** docs/5-1's "루키 쿼터존" (minimum-10-chapter gate before main-feed exposure, new-author protection) is explicitly OUT of v1 scope. All works are exposed equally in all feeds/rankings regardless of chapter count.
-- **D-20 (new 2026-08-29):** A promotional banner sits at the top of the home/discovery screen, above the "최근 읽은 작품" section — a static content slot (no scheduling/targeting system implied). **Not covered by any existing REQUIREMENTS.md entry** — see "Scope Note" below.
+- **D-20 (new 2026-08-29):** A promotional banner sits at the top of the home/discovery screen, above the "최근 읽은 작품" section — a static content slot (no scheduling/targeting system implied). Backed by **READ-09** (see "Scope Note" below).
 - **D-21 (new 2026-08-29):** The ranking/feed grid section carries an explicit section title ("Weekly Ranking" eyebrow + Korean heading) with a divider above it, so it reads as clearly distinct from the "최근 읽은 작품" section rather than blending into one continuous scroll.
 
 ### Work Detail Page & Paid Chapter Handling
@@ -27,8 +27,8 @@ Readers can discover published works, view a work's detail page, read chapters i
 - **D-07 (revised 2026-08-29):** Work detail page uses a tab structure: **[소개]** (intro/synopsis) + **[작품설정]** (work settings, new) + **[회차]** (chapter list) — 3 tabs. Originally 2 tabs (소개/회차, matching the in-scope subset of docs/5-1's 4-tab vision); **작품설정** was added per the user's mockup-review request to hold per-work settings, separate from the 알림/선호작 icons which live in the header instead (see D-18/D-19). The 세계관(Lore/Wiki) tab remains deferred to v2 (READ-06); the report action remains a persistent button, not a tab (see D-17).
 - **D-08:** Like (좋아요) button requires login and is toggleable (press again to un-like) — prevents duplicate-count gaming.
 - **D-09:** View count increments by 1 every time a reader opens a chapter in the viewer — no per-user dedup logic in v1 (kept simple; precision left for later).
-- **D-18 (new 2026-08-29):** A notification (알림) bell icon sits in the work detail page's top header row, on the same line as the back button (right side, paired with D-19's favorite icon) — toggles new-chapter alerts for this work. Login-gated like other write actions (D-08/D-14/D-17 precedent). **Not covered by any existing REQUIREMENTS.md entry** — see "Scope Note" below.
-- **D-19 (new 2026-08-29):** A favorite/bookmark (선호작) icon sits next to the notification bell in the same header row — saves the work to the reader's personal list, distinct from the 좋아요 (D-08) like-count action. **Not covered by any existing REQUIREMENTS.md entry** — see "Scope Note" below.
+- **D-18 (new 2026-08-29):** A notification (알림) bell icon sits in the work detail page's top header row, on the same line as the back button (right side, paired with D-19's favorite icon) — toggles new-chapter alerts for this work. Login-gated like other write actions (D-08/D-14/D-17 precedent). Backed by **READ-07** (see "Scope Note" below).
+- **D-19 (new 2026-08-29):** A favorite/bookmark (선호작) icon sits next to the notification bell in the same header row — saves the work to the reader's personal list, distinct from the 좋아요 (D-08) like-count action. Backed by **READ-08** (see "Scope Note" below).
 - **D-22 (new 2026-08-29, Claude's discretion):** The new 작품설정 tab (D-07) ships in Phase 3 as a structural placeholder only — its content/settings have not been decided by the user yet. It renders an empty/"준비 중" state, reusing the same established pattern as D-06's locked-chapter message, rather than inventing unreviewed settings. Revisit once the user defines what belongs in this tab.
 
 ### Viewer UX
@@ -54,11 +54,11 @@ Readers can discover published works, view a work's detail page, read chapters i
 </decisions>
 
 <scope_note>
-## Scope Note — features added 2026-08-29 that REQUIREMENTS.md does not cover
+## Scope Note — features added 2026-08-29, now backed by requirements (resolved same day)
 
-The user reviewed a mockup of this phase's UI and asked to formalize three additions beyond the phase's original READ-01~05 requirements: the 알림 bell (D-18), the 선호작 bookmark (D-19), and the promotional banner (D-20). These are captured here as structural/visual decisions so the UI-SPEC and mockup stay consistent, but **no requirement ID in `.planning/REQUIREMENTS.md` currently maps to them**, and ROADMAP.md's Phase 3 entry still lists only READ-01~05 as this phase's requirements and success criteria.
+The user reviewed a mockup of this phase's UI and asked to formalize three additions beyond the phase's original READ-01~05 requirements: the 알림 bell (D-18), the 선호작 bookmark (D-19), and the promotional banner (D-20). These were initially captured as structural/visual decisions only, with no backing requirement ID.
 
-Before planning treats these as buildable Phase 3 scope (not just a visual placeholder), REQUIREMENTS.md and ROADMAP.md's Phase 3 section should be amended to add them explicitly (e.g. new READ-07/READ-08 entries) — or the user should confirm they're fine building UI for features with no backing requirement yet.
+**Resolved:** `.planning/REQUIREMENTS.md` now has READ-07 (알림), READ-08 (선호작), READ-09 (promotional banner), all mapped to Phase 3 in the Traceability table. `.planning/ROADMAP.md`'s Phase 3 section now lists READ-01~05, 07, 08, 09 as requirements, with matching success criteria 6-8. These are confirmed, buildable Phase 3 scope.
 </scope_note>
 
 <canonical_refs>
