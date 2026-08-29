@@ -1,7 +1,7 @@
 ---
 phase: 3
 slug: reader-core-reading-loop-no-payment
-status: draft
+status: approved
 shadcn_initialized: true
 preset: base-nova
 created: 2026-08-29
@@ -185,11 +185,13 @@ No third-party registries declared for this phase. `components.json` `registries
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: pending re-verification
-- [ ] Dimension 2 Visuals: pending re-verification
-- [ ] Dimension 3 Color: pending re-verification (see the Promotional Banner subsection above — this is the dimension most at risk from this revision and has been deliberately addressed)
-- [ ] Dimension 4 Typography: pending re-verification
-- [ ] Dimension 5 Spacing: pending re-verification
-- [ ] Dimension 6 Registry Safety: pending re-verification
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS (banner correction verified — neutral surface + single-hue accent pill only)
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+
+**Approval:** approved (2026-08-29, revision 2)
 
 **Approval:** revised 2026-08-29 — awaiting gsd-ui-checker re-verification (previously approved 2026-08-29 prior to this revision; superseded by D-07 revision + D-18/D-19/D-20/D-21/D-22)
