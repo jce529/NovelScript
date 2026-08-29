@@ -53,7 +53,7 @@ Declared values (must be multiples of 4) — identical base scale to Phase 2, re
 
 Exceptions (reader-specific, mirrors Phase 2's precedent of naming component-height exceptions explicitly rather than forcing them onto the 8-pt token scale):
 
-- **Viewer top toolbar height: 48px.** Fixed, always visible. Contains: back button (← to work detail), chapter title (center, truncated), TOC icon button, settings (⚙️) icon button (D-11).
+- **Viewer top toolbar height: 48px.** Fixed, always visible. Contains: back button (← to work detail), chapter title (center, truncated), TOC icon button, settings (⚙️) icon button (D-11). All three icon-only controls are icon-only by necessity (48px bar has no room for text labels) — see the Copywriting Contract's "Viewer top toolbar icon buttons" row for the mandatory `tooltip`/`aria-label` commitment for each.
 - **Viewer bottom nav bar height: 56px**, matching Phase 2's "touch-safe" precedent (its chapter-list row was 44px for the same reason) — the bottom bar is the primary navigation control for continuous reading and must be comfortably tappable on mobile. Contains `이전화` (left, disabled/`ghost` styling when no previous chapter) — center chapter indicator (tap opens TOC sheet) — `다음화` (right, `default`/accent-filled when a next chapter exists, disabled/`ghost` when it's the last chapter). Individual buttons within the bar: minimum 44px tap height, matching the bar's own touch-safe rationale.
 - **TOC panel row height: 44px** (touch-safe), matching Phase 2's chapter-list row convention exactly — readers tap TOC rows to jump chapters, same interaction class as Studio's drag-reorder rows.
 - **Feed card cover image aspect ratio: 3:4** (portrait book-cover ratio) — not a spacing token but declared here since it drives the grid's row height; matches Naver Series/Ridibooks/Kakao Page cover convention (D-03).
@@ -82,13 +82,13 @@ Exceptions (reader-specific, mirrors Phase 2's precedent of naming component-hei
 
 | Property | Value |
 |----------|-------|
-| Adjustable sizes | 15 / 17 / 19 / 21 / 24px — 5-step button-group stepper (`가−` / numeric readout / `가+`), not a continuous slider |
-| Default size | 19px (index 3 of 5) |
+| Adjustable sizes | 17 / 19 / 21 / 24px — 4-step button-group stepper (`가−` / numeric readout / `가+`), not a continuous slider. (Capped at 4 declared sizes per this typographic role, per the design-quality rule; the low end starts at 17px rather than 15px since sub-17px is uncomfortable for sustained long-form Korean prose reading, and the high end is unchanged at 24px.) |
+| Default size | 19px (index 2 of 4) |
 | Weight | 400 (regular) — no bold/semibold variant inside chapter prose |
 | Line height | 1.9 — deliberately higher than the 1.7 used for Phase 2's plain-text editor textareas, since this is finished, read-only long-form prose (reading comfort), not active composition |
 | Paragraph spacing | 1em (one blank-line equivalent) between paragraphs, matching standard Korean web-novel-viewer convention |
 
-**Font-size control UI (D-11):** lives inside the settings sheet (bottom panel, opened via the toolbar's ⚙️ icon). Layout: label "글자 크기" · `가−` button (disabled at 15px) · numeric readout ("19px") · `가+` button (disabled at 24px). Selection persists only for the current session (no cross-device sync requirement in READ-03/READ-04 — 이어보기 persists chapter position only, not font/theme prefs).
+**Font-size control UI (D-11):** lives inside the settings sheet (bottom panel, opened via the toolbar's ⚙️ icon). Layout: label "글자 크기" · `가−` button (disabled at 17px) · numeric readout ("19px") · `가+` button (disabled at 24px). Selection persists only for the current session (no cross-device sync requirement in READ-03/READ-04 — 이어보기 persists chapter position only, not font/theme prefs).
 
 ---
 
@@ -151,6 +151,7 @@ Per RESEARCH.md's Don't-Hand-Roll guidance (no `next-themes` `ThemeProvider` is 
 | Report — success toast | "신고가 접수되었어요. 검토 후 조치할게요." |
 | Report entry point — work detail page | Small text-button (not primary CTA weight), icon `Flag` + "신고" |
 | Report entry point — viewer | Same "신고" icon-button, placed inside the top toolbar's settings sheet (secondary action, not a fourth toolbar icon competing with TOC/settings for the fixed 48px bar) |
+| **Viewer top toolbar icon buttons (D-11, icon-only, no visible text label — mandatory `tooltip` + `aria-label` per button)** | Back (←): `tooltip`/`aria-label` = "뒤로가기" (returns to work detail page) · TOC icon: `tooltip`/`aria-label` = "목차" (opens the TOC sheet) · Settings (⚙️) icon: `tooltip`/`aria-label` = "보기 설정" (opens the settings sheet). All three use the already-installed `tooltip` component (Phase 2) — no icon-only control in the 48px bar ships without one. |
 | TOC panel (D-12) | Sheet title: "회차 목록" · Each row: chapter number + title (+ `Lock` icon and muted styling if paid, per D-06) · Current chapter row: accent-indigo left border + bold-weight text (weight is the one exception to "2 weights max" being enforced at the chrome-typography level — TOC current-row uses 600 to distinguish from the 400 rows around it, same pattern as Phase 2's 2-weight system, not a 3rd weight) |
 | Settings panel (D-11) | Sheet title: "보기 설정" · Font-size row label: "글자 크기" · Theme row label: "테마" (라이트/세피아/다크 segmented control) |
 | Bottom nav bar (D-13) | "이전화" (left) / "다음화" (right); center tap target shows current chapter number, e.g. "12화" |
