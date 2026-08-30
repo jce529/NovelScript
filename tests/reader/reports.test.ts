@@ -132,6 +132,6 @@ describe('submitReport (READ-05/D-16)', () => {
     expect(result.ok).toBe(true);
 
     const { data: row } = await admin.from('reports').select('chapter_id').eq('id', result.reportId!).single();
-    expect(row.chapter_id).toBeNull();
+    expect(row!.chapter_id).toBeNull();
   });
 });
