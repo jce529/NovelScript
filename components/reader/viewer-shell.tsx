@@ -6,18 +6,23 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, List, Settings, Lock } from 'lucide-react';
 import type { PublicChapter, PublicChapterListItem } from '@/lib/chapters/actions';
+import { TocSheet } from '@/components/reader/toc-sheet';
+import { ViewerSettingsSheet } from '@/components/reader/viewer-settings-sheet';
 
 export type ViewerTheme = 'light' | 'sepia' | 'dark';
 
 const THEME_CLASS: Record<ViewerTheme, string> = { light: '', sepia: 'reader-theme-sepia', dark: 'dark' };
 
 export function ViewerShell({
-  workId, chapter, prev, next,
+  workId, chapter, prev, next, toc, loggedIn, onSubmitReport,
 }: {
   workId: string;
   chapter: PublicChapter;
   prev: PublicChapterListItem | null;
   next: PublicChapterListItem | null;
+  toc: PublicChapterListItem[];
+  loggedIn: boolean;
+  onSubmitReport: (input: { workId: string; chapterId: string | null; reasonCategory: string; detail: string | null }) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const [tocOpen, setTocOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -94,7 +99,13 @@ export function ViewerShell({
           다음화
         </Link>
       </footer>
-      {/* Task 2 wires <TocSheet>/<ViewerSettingsSheet> here, controlled by tocOpen/settingsOpen/fontSize/theme above */}
+      <TocSheet open={tocOpen} onOpenChange={setTocOpen} workId={workId} toc={toc} currentChapterId={chapter.id} />
+      <ViewerSettingsSheet
+        open={settingsOpen} onOpenChange={setSettingsOpen}
+        fontSize={fontSize} onFontSizeChange={setFontSize}
+        theme={theme} onThemeChange={setTheme}
+        workId={workId} chapterId={chapter.id} loggedIn={loggedIn} onSubmitReport={onSubmitReport}
+      />
       {/* Task 3 wires <ViewTracker> here */}
     </div>
   );
