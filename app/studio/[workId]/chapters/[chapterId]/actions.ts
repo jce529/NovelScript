@@ -19,7 +19,10 @@ export async function getChapterAction(chapterId: string) {
     .eq('id', chapterId)
     .eq('works.owner_id', user.id)
     .maybeSingle();
-  return data;
+  if (!data) return null;
+
+  const { data: work } = await supabase.from('works').select('genre').eq('id', data.work_id).maybeSingle();
+  return { ...data, genre: work?.genre ?? null };
 }
 
 export async function saveChapterContentAction(workId: string, chapterId: string, content: string) {
