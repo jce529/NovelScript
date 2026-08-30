@@ -5,6 +5,9 @@ import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
 import type { KbCategory } from '@/lib/kb/templates';
+import { estimateCost, generate } from '@/lib/ai/generate';
+import { createGeminiClient, type ModelTier } from '@/lib/ai/gemini';
+import type { PresetLevel, StylePresetId } from '@/lib/ai/prompt';
 
 export async function getChapterAction(chapterId: string) {
   const supabase = await createClient();
@@ -58,4 +61,45 @@ export async function quickAddMentionAction(workId: string, category: KbCategory
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   return quickAddMentionNode(supabase, { ownerId: user.id, workId, category, name });
+}
+
+function getGeminiClientOrError(): { client?: ReturnType<typeof createGeminiClient>; error?: string } {
+  try {
+    return { client: createGeminiClient() };
+  } catch {
+    return { error: 'AI 기능을 사용할 수 없어요. 잠시 후 다시 시도해주세요.' };
+  }
+}
+
+export interface AiGenerationInput {
+  workId: string;
+  modelTier: ModelTier;
+  mentionedNodeIds: string[];
+  presetLevel: PresetLevel;
+  customInstruction: string | null;
+  styleId: StylePresetId;
+  genre: string;
+  precedingText: string;
+}
+
+export async function estimateCostAction(input: AiGenerationInput) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+
+  const { client, error } = getGeminiClientOrError();
+  if (!client) return { ok: false, error };
+
+  return estimateCost(supabase, client, { ...input, ownerId: user.id });
+}
+
+export async function generateAction(input: AiGenerationInput & { chapterId: string; regenerationFeedback?: string | null }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+
+  const { client, error } = getGeminiClientOrError();
+  if (!client) return { ok: false, error };
+
+  return generate(supabase, client, { ...input, ownerId: user.id });
 }

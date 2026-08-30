@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-08-30T06:15:37.709Z"
-last_activity: 2026-08-30 -- Phase 04 execution started
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-08-30T06:27:38.444Z"
+last_activity: 2026-08-30
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 24
-  completed_plans: 19
+  completed_plans: 22
   percent: 100
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 04 (ai-gateway-mention-based-generation) — EXECUTING
-Plan: 3 of 6
-Status: Executing Phase 04
-Last activity: 2026-08-30 -- Phase 04 execution started
+Plan: 4 of 6
+Status: Ready to execute
+Last activity: 2026-08-30
 
 Progress: [████████████████████] 100%
 
@@ -68,6 +68,7 @@ Progress: [████████████████████] 100%
 | Phase 04 P01 | 15 | 3 tasks | 11 files |
 | Phase 04 P02 | 25min | 3 tasks | 4 files |
 | Phase 04 P03 | 8min | 2 tasks | 2 files |
+| Phase 04 P04 | 12min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-01: lib/ai/cost.ts fixes wallet-token to Gemini-token exchange rate (Open Q1) and debits actual post-call usage not pre-call estimate (Open Q2); lib/ai/gemini.ts GeminiClient is fully mockable; server-only aliased to a no-op stub in vitest.config.ts to unblock unit tests
 - [Phase 04]: Plan 04-02: lib/ai/mentions.ts (searchMentionNodes/quickAddMentionNode/getMentionedNodesContent) live and tested; reuses Phase 2's createNode for quick-add, never resolves inert [[ ]] wiki-link syntax in mentioned content per D-13; searchMentionsAction/quickAddMentionAction wired on the chapter editor route
 - [Phase 04]: Plan 04-03: lib/ai/prompt.ts pure prompt-composition module live and tested (composeSystemInstruction/assembleUserContent) — D-14 baseline always included regardless of preset, D-15 4-style library with concise-hemingway default, D-08rev 3-level AI-지시 프리셋 with safe freeform fallback, D-10rev regeneration feedback folded additively; ready for Plan 04-04's generate/estimate actions to call
+- [Phase 04]: Plan 04-04: lib/ai/generate.ts (generate/estimateCost) live and tested; wallet reads/writes route through createAdminClient() to fix the Wallet RLS Gap (0001_init.sql grants SELECT-only wallet policies, apply_wallet_delta not security definer) following app/account/actions.ts's precedent; D-13 cap-before-call/debit-after-call proven with a mocked GeminiClient
 
 ### Pending Todos
 
@@ -110,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T06:15:37.704Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-08-30T06:27:38.439Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
