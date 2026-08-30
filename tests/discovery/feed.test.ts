@@ -101,13 +101,17 @@ describe('listFeed (READ-01)', () => {
   });
 
   it('trendingScore is an integer between 0 and 100 inclusive for every row', async () => {
-    await createWork({ title: '점수 작품 A', chapterViewCounts: [100, 50], likeCount: 2 });
-    await createWork({ title: '점수 작품 B', chapterViewCounts: [1] });
+    const a = await createWork({ title: '점수 작품 A', chapterViewCounts: [100, 50], likeCount: 2 });
+    const b = await createWork({ title: '점수 작품 B', chapterViewCounts: [1] });
 
     const rows = await listFeed(admin, { sortMode: 'latest' });
+    const ids = new Set([a.workId, b.workId]);
+    const relevant = rows.filter((r) => ids.has(r.id));
 
-    expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) {
+    // Scoped to this test's own rows — the shared dev DB accumulates works from other
+    // test runs/parallel agents, so asserting over the full `rows` array is flaky.
+    expect(relevant.length).toBe(2);
+    for (const row of relevant) {
       expect(Number.isInteger(row.trendingScore)).toBe(true);
       expect(row.trendingScore).toBeGreaterThanOrEqual(0);
       expect(row.trendingScore).toBeLessThanOrEqual(100);
@@ -125,16 +129,22 @@ describe('listFeed (READ-01)', () => {
     expect(rows.some((r) => r.id === fantasy.workId)).toBe(true);
   });
 
+  // The shared dev DB accumulates works from other test runs/parallel agents, so these
+  // ordering assertions filter `rows` down to just the two IDs this test created and
+  // compare their relative order — valid regardless of how much other data is present,
+  // since a comparator-based sort preserves the pairwise order of any subsequence.
+  function relativeOrder(rows: { id: string }[], ids: string[]): string[] {
+    return rows.filter((r) => ids.includes(r.id)).map((r) => r.id);
+  }
+
   it('sortMode "latest" returns works ordered by createdAt descending', async () => {
     const older = await createWork({ title: '오래된 작품', chapterViewCounts: [1] });
     await new Promise((r) => setTimeout(r, 20));
     const newer = await createWork({ title: '새 작품', chapterViewCounts: [1] });
 
     const rows = await listFeed(admin, { sortMode: 'latest' });
-    const olderIdx = rows.findIndex((r) => r.id === older.workId);
-    const newerIdx = rows.findIndex((r) => r.id === newer.workId);
 
-    expect(newerIdx).toBeLessThan(olderIdx);
+    expect(relativeOrder(rows, [older.workId, newer.workId])).toEqual([newer.workId, older.workId]);
   });
 
   it('sortMode "popular", sortBasis "views" orders by viewCount descending', async () => {
@@ -142,10 +152,8 @@ describe('listFeed (READ-01)', () => {
     const high = await createWork({ title: '조회수 높음', chapterViewCounts: [500] });
 
     const rows = await listFeed(admin, { sortMode: 'popular', sortBasis: 'views' });
-    const lowIdx = rows.findIndex((r) => r.id === low.workId);
-    const highIdx = rows.findIndex((r) => r.id === high.workId);
 
-    expect(highIdx).toBeLessThan(lowIdx);
+    expect(relativeOrder(rows, [low.workId, high.workId])).toEqual([high.workId, low.workId]);
   });
 
   it('sortMode "popular", sortBasis "likes" orders by likeCount descending', async () => {
@@ -153,10 +161,8 @@ describe('listFeed (READ-01)', () => {
     const high = await createWork({ title: '좋아요 높음', chapterViewCounts: [1], likeCount: 4 });
 
     const rows = await listFeed(admin, { sortMode: 'popular', sortBasis: 'likes' });
-    const lowIdx = rows.findIndex((r) => r.id === low.workId);
-    const highIdx = rows.findIndex((r) => r.id === high.workId);
 
-    expect(highIdx).toBeLessThan(lowIdx);
+    expect(relativeOrder(rows, [low.workId, high.workId])).toEqual([high.workId, low.workId]);
   });
 
   it('sortMode "popular", sortBasis "ctr" orders by ctr descending', async () => {
@@ -164,10 +170,8 @@ describe('listFeed (READ-01)', () => {
     const high = await createWork({ title: 'CTR 높음', chapterViewCounts: [10, 10] });
 
     const rows = await listFeed(admin, { sortMode: 'popular', sortBasis: 'ctr' });
-    const lowIdx = rows.findIndex((r) => r.id === low.workId);
-    const highIdx = rows.findIndex((r) => r.id === high.workId);
 
-    expect(highIdx).toBeLessThan(lowIdx);
+    expect(relativeOrder(rows, [low.workId, high.workId])).toEqual([high.workId, low.workId]);
   });
 
   it('sortMode "popular" with no sortBasis defaults to trendingScore descending', async () => {
@@ -175,10 +179,8 @@ describe('listFeed (READ-01)', () => {
     const high = await createWork({ title: '트렌딩 높음', chapterViewCounts: [1000], likeCount: 5 });
 
     const rows = await listFeed(admin, { sortMode: 'popular' });
-    const lowIdx = rows.findIndex((r) => r.id === low.workId);
-    const highIdx = rows.findIndex((r) => r.id === high.workId);
 
-    expect(highIdx).toBeLessThan(lowIdx);
+    expect(relativeOrder(rows, [low.workId, high.workId])).toEqual([high.workId, low.workId]);
     for (let i = 1; i < rows.length; i++) {
       expect(rows[i - 1].trendingScore).toBeGreaterThanOrEqual(rows[i].trendingScore);
     }
