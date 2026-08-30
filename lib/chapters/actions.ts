@@ -137,3 +137,65 @@ export async function reorderChapters(
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
+
+export interface PublicChapter {
+  id: string;
+  workId: string;
+  title: string;
+  orderIndex: number;
+  priceTier: number | null;
+  viewCount: number;
+  content: string | null;
+  locked: boolean;
+}
+
+/** READ-02/D-06: never select('*') here — paid chapters are locked in v1 (no unlock
+ * mechanism until Phase 6), so `content` must be explicitly nulled server-side even
+ * though the row itself is readable once published (RLS is row-level, not column-level). */
+export async function getPublicChapter(
+  supabase: SupabaseClient,
+  { chapterId }: { chapterId: string }
+): Promise<PublicChapter | null> {
+  const { data } = await supabase
+    .from('chapters')
+    .select('id, work_id, title, order_index, price_tier, view_count, content')
+    .eq('id', chapterId)
+    .eq('is_published', true)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (!data) return null;
+  const locked = data.price_tier !== null;
+  return {
+    id: data.id, workId: data.work_id, title: data.title, orderIndex: data.order_index,
+    priceTier: data.price_tier, viewCount: data.view_count,
+    content: locked ? null : data.content,
+    locked,
+  };
+}
+
+export interface PublicChapterListItem {
+  id: string;
+  title: string;
+  orderIndex: number;
+  priceTier: number | null;
+  locked: boolean;
+}
+
+/** TOC (D-12) + 회차 tab (D-07) source. Never selects `content`. */
+export async function listPublicChapters(
+  supabase: SupabaseClient,
+  { workId }: { workId: string }
+): Promise<PublicChapterListItem[]> {
+  const { data, error } = await supabase
+    .from('chapters')
+    .select('id, title, order_index, price_tier')
+    .eq('work_id', workId)
+    .eq('is_published', true)
+    .is('deleted_at', null)
+    .order('order_index', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    id: row.id, title: row.title, orderIndex: row.order_index,
+    priceTier: row.price_tier, locked: row.price_tier !== null,
+  }));
+}

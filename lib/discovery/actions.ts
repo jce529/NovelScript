@@ -120,17 +120,20 @@ export async function listFeed(
         coverImageUrl: w.cover_image_url as string | null,
         genre: w.genre as string | null,
         createdAt: w.created_at as string,
-        viewCount: totalViews,
+        totalViews,
         likeCount,
         ctr,
       };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
+  // Note: computeTrendingScores expects `totalViews` (matching its exported type) —
+  // `staged` must carry that exact field name, not `viewCount`, or normalize() silently
+  // treats every row's view metric as non-finite and viewsNorm collapses to all-zero.
   const scores = computeTrendingScores(staged);
   const rows: FeedWork[] = staged.map((r, i) => ({
     id: r.id, title: r.title, synopsis: r.synopsis, coverImageUrl: r.coverImageUrl,
-    genre: r.genre, createdAt: r.createdAt, viewCount: r.viewCount, likeCount: r.likeCount,
+    genre: r.genre, createdAt: r.createdAt, viewCount: r.totalViews, likeCount: r.likeCount,
     ctr: r.ctr, trendingScore: scores[i],
   }));
 

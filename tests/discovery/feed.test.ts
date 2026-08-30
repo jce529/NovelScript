@@ -1,6 +1,16 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
-import { listFeed } from '../../lib/discovery/actions';
+import { listFeed, computeTrendingScores } from '../../lib/discovery/actions';
+
+describe('computeTrendingScores (regression: totalViews must actually influence the score)', () => {
+  it('a row with much higher totalViews scores higher than one with none, all else equal', () => {
+    const [lowScore, highScore] = computeTrendingScores([
+      { totalViews: 0, likeCount: 0, ctr: 0 },
+      { totalViews: 1000, likeCount: 0, ctr: 0 },
+    ]);
+    expect(highScore).toBeGreaterThan(lowScore);
+  });
+});
 
 describe('listFeed (READ-01)', () => {
   const admin = adminClient();
