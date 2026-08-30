@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
+import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
+import type { KbCategory } from '@/lib/kb/templates';
 
 export async function getChapterAction(chapterId: string) {
   const supabase = await createClient();
@@ -42,4 +44,18 @@ export async function unpublishChapterAction(workId: string, chapterId: string) 
   const result = await unpublishChapter(supabase, { ownerId: user.id, chapterId });
   if (result.ok) revalidatePath(`/studio/${workId}/chapters`);
   return result;
+}
+
+export async function searchMentionsAction(workId: string, query: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  return searchMentionNodes(supabase, { ownerId: user.id, workId, query });
+}
+
+export async function quickAddMentionAction(workId: string, category: KbCategory, name: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  return quickAddMentionNode(supabase, { ownerId: user.id, workId, category, name });
 }

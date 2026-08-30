@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
+stopped_at: Completed 04-02-PLAN.md
 last_updated: "2026-08-30T06:15:37.709Z"
 last_activity: 2026-08-30 -- Phase 04 execution started
 progress:
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 04 (ai-gateway-mention-based-generation) — EXECUTING
-Plan: 1 of 6
+Plan: 2 of 6
 Status: Executing Phase 04
 Last activity: 2026-08-30 -- Phase 04 execution started
 
@@ -66,6 +66,7 @@ Progress: [████████████████████] 100%
 | Phase 03 P06 | 25min | 3 tasks | 6 files |
 | Phase 03 P07 | 15min | 3 tasks | 7 files |
 | Phase 04 P01 | 15 | 3 tasks | 11 files |
+| Phase 04 P02 | 25min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-06: work detail page (3-tab 소개/작품설정/회차) live with 알림/선호작 header icons distinct from lower-page 좋아요/신고 controls; ReportDialog built as a shared component with onSubmit callback prop for Plan 03-07's viewer to reuse without duplication
 - [Phase 03]: Plan 03-07: reading progress upsert gated behind if (!locked) in trackChapterOpenAction — a D-06 locked-chapter open never overwrites the reader's 이어보기 resume point; view_count still increments unconditionally per D-09
 - [Phase 04]: Plan 04-01: lib/ai/cost.ts fixes wallet-token to Gemini-token exchange rate (Open Q1) and debits actual post-call usage not pre-call estimate (Open Q2); lib/ai/gemini.ts GeminiClient is fully mockable; server-only aliased to a no-op stub in vitest.config.ts to unblock unit tests
+- [Phase 04]: Plan 04-02: lib/ai/mentions.ts (searchMentionNodes/quickAddMentionNode/getMentionedNodesContent) live and tested; reuses Phase 2's createNode for quick-add, never resolves inert [[ ]] wiki-link syntax in mentioned content per D-13; searchMentionsAction/quickAddMentionAction wired on the chapter editor route
 
 ### Pending Todos
 
@@ -107,5 +109,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-08-30T06:15:37.704Z
-Stopped at: Completed 04-01-PLAN.md
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
