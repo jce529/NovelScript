@@ -8,6 +8,8 @@ import { ArrowLeft, List, Settings, Lock } from 'lucide-react';
 import type { PublicChapter, PublicChapterListItem } from '@/lib/chapters/actions';
 import { TocSheet } from '@/components/reader/toc-sheet';
 import { ViewerSettingsSheet } from '@/components/reader/viewer-settings-sheet';
+import { ViewTracker } from '@/components/reader/view-tracker';
+import { trackChapterOpenAction } from '@/app/works/[workId]/chapters/[chapterId]/actions';
 
 export type ViewerTheme = 'light' | 'sepia' | 'dark';
 
@@ -106,7 +108,7 @@ export function ViewerShell({
         theme={theme} onThemeChange={setTheme}
         workId={workId} chapterId={chapter.id} loggedIn={loggedIn} onSubmitReport={onSubmitReport}
       />
-      {/* Task 3 wires <ViewTracker> here */}
+      <ViewTracker onOpen={() => trackChapterOpenAction(workId, chapter.id, chapter.locked)} />
     </div>
   );
 }

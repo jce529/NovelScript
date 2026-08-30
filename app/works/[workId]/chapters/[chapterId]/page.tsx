@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getPublicChapter, listPublicChapters } from '@/lib/chapters/actions';
 import { getPublicWork } from '@/lib/works/actions';
 import { ViewerShell } from '@/components/reader/viewer-shell';
+import { submitReportAction } from './actions';
 
 export default async function ViewerPage({
   params,
@@ -27,7 +28,7 @@ export default async function ViewerPage({
     <ViewerShell
       workId={workId} chapter={chapter} prev={prev} next={next} toc={toc}
       loggedIn={Boolean(user)}
-      onSubmitReport={async () => ({ ok: false, error: '준비 중이에요.' })}
+      onSubmitReport={submitReportAction}
     />
   );
 }
