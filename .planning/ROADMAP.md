@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it (completed 2026-08-29)
 - [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29)
-- [x] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30)
+- [x] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30)
 - [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
 - [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters
@@ -95,8 +95,16 @@ Plans:
   3. Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
   4. Writer can trigger AI generation that sends mentioned KB docs + preset + instruction to Gemini and inserts the result into the canvas, with per-request and per-user spend caps enforced against the wallet before the call fires
   5. Writer sees a token/cost estimate before generating
-**Plans**: TBD
+**Plans**: 6 plans (Wave 1: wallet-token↔Gemini-token conversion + mockable Gemini client, mention search/quick-add backend, prompt composition — all parallel; Wave 2: generate/estimateCost Server Actions + wallet debit; Wave 3: AiPanel UI shell + permission-prompt preview; Wave 4: mention autocomplete + final page wiring + checkpoint)
 **UI hint**: yes
+
+Plans:
+- [ ] 04-01-PLAN.md — Wallet-token↔Gemini-token conversion formula (Open Questions 1/2) + mockable Gemini client
+- [ ] 04-02-PLAN.md — Mention search by name/type + quick-add KB document creation
+- [ ] 04-03-PLAN.md — Prompt composition (D-14 baseline + D-08rev presets + D-15 style + D-07 genre)
+- [ ] 04-04-PLAN.md — generate/estimateCost Server Actions — D-13 cap-before-call, debit-after-call
+- [ ] 04-05-PLAN.md — AiPanel UI shell: header controls, chip list, cost estimate, D-10rev preview card
+- [ ] 04-06-PLAN.md — Mention autocomplete + quick-add UI + final page wiring + human-verify checkpoint
 
 ### Phase 5: Real Payment Integration
 **Goal**: Users can convert real money into platform tokens through a verified, non-spoofable Toss Payments flow, swapped in behind the same wallet interface Phase 1 proved.
@@ -142,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Complete   | 2026-08-30 |
-| 4. AI Gateway (Mention-Based Generation) | 0/TBD | Not started | - |
+| 4. AI Gateway (Mention-Based Generation) | 0/6 | Not started | - |
 | 5. Real Payment Integration | 0/TBD | Not started | - |
 | 6. Paid Chapter Unlock | 0/TBD | Not started | - |
 | 7. Admin Moderation Surface | 0/TBD | Not started | - |
