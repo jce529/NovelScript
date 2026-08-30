@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { listFeed, type FeedSortMode, type FeedSortBasis } from '@/lib/discovery/actions';
+import { listRecentlyRead } from '@/lib/reader/progress';
 import { FeedCard } from '@/components/reader/feed-card';
 import { FeedFilters } from '@/components/reader/feed-filters';
+import { PromoBanner } from '@/components/reader/promo-banner';
+import { RecentlyReadSection } from '@/components/reader/recently-read-section';
+import { Separator } from '@/components/ui/separator';
 
 const VALID_BASES: FeedSortBasis[] = ['trending', 'views', 'likes', 'ctr'];
 
@@ -16,10 +20,17 @@ export default async function HomePage({
     ? (sortBasisParam as FeedSortBasis) : 'trending';
 
   const supabase = await createClient();
-  const works = await listFeed(supabase, { genre: genre ?? null, sortMode, sortBasis });
+  const { data: { user } } = await supabase.auth.getUser();
+  const [works, recentlyRead] = await Promise.all([
+    listFeed(supabase, { genre: genre ?? null, sortMode, sortBasis }),
+    user ? listRecentlyRead(supabase, { userId: user.id, limit: 10 }) : Promise.resolve([]),
+  ]);
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
+      <PromoBanner />
+      <RecentlyReadSection loggedIn={Boolean(user)} items={recentlyRead} />
+      <Separator className="mt-8" />
       <section id="weekly-ranking" className="flex flex-col gap-1">
         <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Weekly Ranking</span>
         <h2 className="text-xl font-semibold">주간 랭킹</h2>
