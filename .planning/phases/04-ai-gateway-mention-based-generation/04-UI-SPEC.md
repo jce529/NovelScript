@@ -1,10 +1,11 @@
 ---
 phase: 4
 slug: ai-gateway-mention-based-generation
-status: draft
+status: approved
 shadcn_initialized: true
 preset: base-nova
 created: 2026-08-30
+reviewed_at: 2026-08-30
 ---
 
 # Phase 4 — UI Design Contract
@@ -147,11 +148,13 @@ No third-party registries declared for this phase. `components.json` `registries
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG (non-blocking — see recommendation below)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (2026-08-30)
+
+**Recommendation (non-blocking):** Several single-word Korean verb CTAs ("생성하기", "다시 생성", "지우기", "만들기") lack an explicit object noun. Context (panel title, dialog title, field prefill) strongly disambiguates each and mirrors the already-approved Phase 2 dialog pattern, so no change is required.
