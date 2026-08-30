@@ -32,7 +32,7 @@
 
 ### Reader / Discovery (READ)
 
-- [ ] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
+- [x] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
 - [x] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
 - [ ] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
 - [x] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)

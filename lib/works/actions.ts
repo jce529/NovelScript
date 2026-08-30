@@ -85,3 +85,31 @@ export async function getWork(supabase: SupabaseClient, { ownerId, workId }: { o
     .maybeSingle();
   return data ?? null;
 }
+
+export interface PublicWork {
+  id: string;
+  title: string;
+  synopsis: string | null;
+  coverImageUrl: string | null;
+  genre: string | null;
+  ownerId: string;
+}
+
+/** READ-01/READ-02: NO ownerId gate — any non-deleted work is publicly readable.
+ * Distinct from the existing owner-scoped getWork; do not merge these two functions. */
+export async function getPublicWork(
+  supabase: SupabaseClient,
+  { workId }: { workId: string }
+): Promise<PublicWork | null> {
+  const { data } = await supabase
+    .from('works')
+    .select('id, title, synopsis, cover_image_url, genre, owner_id')
+    .eq('id', workId)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id, title: data.title, synopsis: data.synopsis,
+    coverImageUrl: data.cover_image_url, genre: data.genre, ownerId: data.owner_id,
+  };
+}

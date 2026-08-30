@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-03-PLAN.md, 03-04-PLAN.md
-last_updated: "2026-08-30T00:02:50.484Z"
+stopped_at: Completed 03-02-PLAN.md, 03-03-PLAN.md, 03-04-PLAN.md
+last_updated: "2026-08-30T00:11:54.500Z"
 last_activity: 2026-08-30
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 ## Current Position
 
-Phase: 03
-Plan: 3 of 7
-Status: Ready to execute
+Phase: 03 (reader-core-reading-loop-no-payment) — EXECUTING
+Plan: 5 of 7
+Status: Executing Phase 03 — Wave 2 complete, starting Wave 3
 Last activity: 2026-08-30
 
 Progress: [████████████████████] 100%
@@ -59,6 +59,7 @@ Progress: [████████████████████] 100%
 | Phase 02 P05 | 5min | 2 tasks | 7 files |
 | Phase 02 P06 | 12min | 2 tasks | 7 files |
 | Phase 03 P01 | 20min | 2 tasks | 3 files |
+| Phase 03 P02 | 15 | 2 tasks | 7 files |
 | Phase 03 P03 | 10 | 2 tasks | 4 files |
 | Phase 03 P04 | 10 | 2 tasks | 9 files |
 
@@ -80,6 +81,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Plan 02-05: base-ui Tooltip/Select use render prop not asChild (this Next.js/base-ui version has no Radix asChild support); KB tree sidebar + create/rename/delete dialogs + D-10 template picker + D-12 single-textarea editor + D-14 pinned chapters nav link all wired end-to-end via Server Actions onto Plan 02-03's tested lib/kb/actions.ts
 - [Phase 02]: Plan 02-06: chapter list/new-form/editor UI wired to lib/chapters/actions.ts (dnd-kit drag-reorder, shadcn Select price-tier dropdown, non-destructive unpublish confirm) — CONT-01/02/03 fully realized end-to-end, no new business logic or deviations
 - [Phase 03]: Plan 03-01: reader schema migration (0003_reader.sql) live — works_public_read/chapters_public_read additive RLS fixes the reader-facing gap, chapters.view_count + increment_chapter_view SECURITY DEFINER RPC, and work_likes/reading_progress/reports/work_subscriptions/work_bookmarks tables with owner-scoped RLS; anonClient() test helper proves non-owner reads work
+- [Phase 03]: Plan 03-02: lib/discovery/actions.ts listFeed + computeTrendingScores (batched work_likes .in() query, defensive normalize against non-finite inputs) and lib/chapters+works getPublicChapter/listPublicChapters/getPublicWork content-leak guards live; fixed a staged.totalViews/viewCount property mismatch from the plan's own reference code that silently zeroed the views component of trendingScore
 - [Phase 03]: Plan 03-03: lib/reader/views.ts (incrementChapterView, D-09 anonymous-safe view-count RPC wrapper) and lib/reader/progress.ts (upsertReadingProgress/getReadingProgress/listRecentlyRead, D-14/D-15) live and tested; listRecentlyRead exposes chapterOrderIndex (0-based) for UI-SPEC's exact 'N화 읽는 중' copy contract
 - [Phase 03]: Plan 03-04: likes/subscriptions/bookmarks share an identical select-then-insert-or-delete toggle keyed on (work_id, user_id); reports.ts exports REPORT_CATEGORIES as single source of truth matching the DB check constraint verbatim
 
@@ -96,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T00:02:50.479Z
-Stopped at: Completed 03-03-PLAN.md, 03-04-PLAN.md
+Last session: 2026-08-30T00:11:54.496Z
+Stopped at: Completed 03-02-PLAN.md, 03-03-PLAN.md, 03-04-PLAN.md (Wave 2 complete)
 Resume file: None
