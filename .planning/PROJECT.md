@@ -14,13 +14,13 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 
 - [x] 작가가 마크다운 지식베이스(인물/장소/사건/세력/아이템)를 만들고 관리할 수 있다 — Validated in Phase 2: studio-core-writer-loop-no-ai
 - [x] 작가가 회차를 등록/발행할 수 있다 — Validated in Phase 2: studio-core-writer-loop-no-ai
+- [x] 독자가 작품을 탐색(디스커버리)하고 회차를 읽을 수 있는 뷰어가 있다 — Validated in Phase 3: reader-core-reading-loop-no-payment
+- [x] 독자 디스커버리에 간소화된 인기/추천 지표(조회수·좋아요·다음화 이동률 등)가 반영된다 — Validated in Phase 3: reader-core-reading-loop-no-payment
 
 ### Active
 
 - [ ] 작가가 본문 에디터에서 `@` 멘션으로 설정 문서를 선택 주입하고 AI로 본문을 생성/어시스트 받을 수 있다 (외부 LLM API 1개 벤더, 플랫폼 키)
 - [ ] 작가가 3단계 프리셋(초보자/중급자/자유형) 중 선택해 AI 톤을 제어할 수 있다
-- [ ] 독자가 작품을 탐색(디스커버리)하고 회차를 읽을 수 있는 뷰어가 있다
-- [ ] 독자 디스커버리에 간소화된 인기/추천 지표(조회수·좋아요·다음화 이동률 등)가 반영된다
 - [ ] 유저가 실제 결제(PG 연동)로 토큰을 충전하고, 유료 회차 열람 등에 토큰을 소비할 수 있다
 - [ ] 운영자가 신고된/문제 있는 콘텐츠를 수동으로 검토하고 조치할 수 있는 최소한의 운영 도구가 있다
 
@@ -78,4 +78,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-28 after Phase 2 (studio-core-writer-loop-no-ai) completion*
+*Last updated: 2026-08-30 after Phase 3 (reader-core-reading-loop-no-payment) completion*
