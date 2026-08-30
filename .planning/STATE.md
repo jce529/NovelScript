@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-08-30T06:37:22.479Z"
-last_activity: 2026-08-30
+stopped_at: Completed 04-06-PLAN.md (checkpoint resolved — mention/quick-add verified live; Gemini-dependent steps deferred pending GEMINI_API_KEY)
+last_updated: "2026-08-30T07:10:00.000Z"
+last_activity: 2026-08-30 -- Phase 04 all 6 plans complete, awaiting phase-goal verification
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 ## Current Position
 
-Phase: 04 (ai-gateway-mention-based-generation) — EXECUTING
-Plan: 5 of 6
-Status: Ready to execute
-Last activity: 2026-08-30
+Phase: 04 (ai-gateway-mention-based-generation) — PLANS COMPLETE
+Plan: 6 of 6
+Status: Awaiting phase-goal verification (live Gemini generation untested — GEMINI_API_KEY blank by user choice)
+Last activity: 2026-08-30 -- Phase 04 execution started
 
 Progress: [████████████████████] 100%
 
@@ -70,6 +70,7 @@ Progress: [████████████████████] 100%
 | Phase 04 P03 | 8min | 2 tasks | 2 files |
 | Phase 04 P04 | 12min | 3 tasks | 3 files |
 | Phase 04 P05 | 12min | 3 tasks | 2 files |
+| Phase 04 P06 | 35min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -100,10 +101,11 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-03: lib/ai/prompt.ts pure prompt-composition module live and tested (composeSystemInstruction/assembleUserContent) — D-14 baseline always included regardless of preset, D-15 4-style library with concise-hemingway default, D-08rev 3-level AI-지시 프리셋 with safe freeform fallback, D-10rev regeneration feedback folded additively; ready for Plan 04-04's generate/estimate actions to call
 - [Phase 04]: Plan 04-04: lib/ai/generate.ts (generate/estimateCost) live and tested; wallet reads/writes route through createAdminClient() to fix the Wallet RLS Gap (0001_init.sql grants SELECT-only wallet policies, apply_wallet_delta not security definer) following app/account/actions.ts's precedent; D-13 cap-before-call/debit-after-call proven with a mocked GeminiClient
 - [Phase 04]: Plan 04-05: AiPanel/GenerationPreview live — self-contained controlled AI panel wired to Plan 04-04's estimateCostAction/generateAction; genre Select onValueChange wrapped in null-coalescing callback (base-ui pattern) matching existing page.tsx convention
+- [Phase 04]: Plan 04-06: MentionAutocomplete/QuickAddDialog live, page.tsx wires Textarea+AiPanel side-by-side (D-01) with cursor-position text insertion; found+fixed a page-breaking bug during live checkpoint verification — a client component importing KB_CATEGORIES (value, not type) from lib/kb/templates.ts pulled that module's node:fs/promises import into the browser bundle, panicking Turbopack on every chapter editor load; fixed by extracting KbCategory/KB_CATEGORIES into fs-free lib/kb/categories.ts. All 6 Phase 4 plans complete; live Gemini generation (cost estimate accuracy, real API round-trip, wallet debit against a real balance) still untested pending user-supplied GEMINI_API_KEY — do not treat EDIT-04/EDIT-05 as fully verified until that happens.
 
 ### Pending Todos
 
-None yet.
+- Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end.
 
 ### Blockers/Concerns
 
@@ -114,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T06:37:22.475Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-08-30T07:10:00.000Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: None
