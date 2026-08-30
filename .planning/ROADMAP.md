@@ -80,7 +80,7 @@ Plans:
 - [x] 03-01-PLAN.md — Reader schema migration: RLS public-read fix, view_count + increment RPC, work_likes/reading_progress/reports/work_subscriptions/work_bookmarks
 - [ ] 03-02-PLAN.md — Discovery feed lib (trending score) + content-leak-safe public work/chapter readers
 - [ ] 03-03-PLAN.md — View-count increment wrapper + reading-progress upsert/read/recently-read lib
-- [ ] 03-04-PLAN.md — Likes/subscriptions/bookmarks toggle lib + report submission lib
+- [x] 03-04-PLAN.md — Likes/subscriptions/bookmarks toggle lib + report submission lib
 - [ ] 03-05-PLAN.md — Discovery feed UI (app/page.tsx): banner, recently-read, genre/sort filters, trending grid
 - [ ] 03-06-PLAN.md — Work detail page UI: 3-tab structure, header icons, CTA, like button, report dialog
 - [ ] 03-07-PLAN.md — Chapter viewer UI: toolbar, TOC/settings sheets, font/theme, bottom nav, view/progress tracking
