@@ -22,7 +22,7 @@
 - [ ] **EDIT-02**: Writer can see a visible list of currently-mentioned/in-context documents before generating
 - [ ] **EDIT-03**: Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
 - [ ] **EDIT-04**: Writer can trigger AI generation that sends mentioned KB docs + preset + instruction to Gemini and inserts the result into the canvas
-- [ ] **EDIT-05**: Writer sees a token/cost estimate before generating
+- [x] **EDIT-05**: Writer sees a token/cost estimate before generating
 
 ### Content / Publishing (CONT)
 

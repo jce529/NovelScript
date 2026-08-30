@@ -99,7 +99,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 04-01-PLAN.md — Wallet-token↔Gemini-token conversion formula (Open Questions 1/2) + mockable Gemini client
+- [x] 04-01-PLAN.md — Wallet-token↔Gemini-token conversion formula (Open Questions 1/2) + mockable Gemini client
 - [ ] 04-02-PLAN.md — Mention search by name/type + quick-add KB document creation
 - [ ] 04-03-PLAN.md — Prompt composition (D-14 baseline + D-08rev presets + D-15 style + D-07 genre)
 - [ ] 04-04-PLAN.md — generate/estimateCost Server Actions — D-13 cap-before-call, debit-after-call
