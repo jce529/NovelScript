@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/templates';
+import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import { quickAddMentionAction } from '../actions';
 
 export interface QuickAddDialogProps {

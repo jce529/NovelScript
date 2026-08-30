@@ -1,8 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { type KbCategory, KB_CATEGORIES } from './categories';
 
-export type KbCategory = '인물' | '장소' | '사건' | '세력' | '아이템';
+export type { KbCategory };
+export { KB_CATEGORIES };
 
 const CANONICAL_TEMPLATE_FILES: Record<KbCategory, string> = {
   '인물': '인물 템플릿.md',
@@ -11,8 +13,6 @@ const CANONICAL_TEMPLATE_FILES: Record<KbCategory, string> = {
   '세력': '세력 템플릿.md',
   '아이템': '아이템 템플릿.md',
 };
-
-export const KB_CATEGORIES: KbCategory[] = ['인물', '장소', '사건', '세력', '아이템'];
 
 /** Global, no-op-safe substitution. 사건 템플릿.md has zero occurrences by design
  * (Pitfall 3, 02-RESEARCH.md) — do not treat a zero-match result as an error. */
