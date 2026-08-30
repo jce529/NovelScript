@@ -101,7 +101,7 @@ Plans:
 Plans:
 - [ ] 04-01-PLAN.md — Wallet-token↔Gemini-token conversion formula (Open Questions 1/2) + mockable Gemini client
 - [ ] 04-02-PLAN.md — Mention search by name/type + quick-add KB document creation
-- [ ] 04-03-PLAN.md — Prompt composition (D-14 baseline + D-08rev presets + D-15 style + D-07 genre)
+- [x] 04-03-PLAN.md — Prompt composition (D-14 baseline + D-08rev presets + D-15 style + D-07 genre)
 - [ ] 04-04-PLAN.md — generate/estimateCost Server Actions — D-13 cap-before-call, debit-after-call
 - [ ] 04-05-PLAN.md — AiPanel UI shell: header controls, chip list, cost estimate, D-10rev preview card
 - [ ] 04-06-PLAN.md — Mention autocomplete + quick-add UI + final page wiring + human-verify checkpoint
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Complete   | 2026-08-30 |
-| 4. AI Gateway (Mention-Based Generation) | 0/6 | Not started | - |
+| 4. AI Gateway (Mention-Based Generation) | 1/6 | In Progress|  |
 | 5. Real Payment Integration | 0/TBD | Not started | - |
 | 6. Paid Chapter Unlock | 0/TBD | Not started | - |
 | 7. Admin Moderation Surface | 0/TBD | Not started | - |
