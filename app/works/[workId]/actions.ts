@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { toggleLike } from '@/lib/reader/likes';
 import { toggleSubscription } from '@/lib/reader/subscriptions';
 import { toggleBookmark } from '@/lib/reader/bookmarks';
+import { submitReport } from '@/lib/reader/reports';
 
 export async function toggleLikeAction(workId: string) {
   const supabase = await createClient();
@@ -31,4 +32,11 @@ export async function toggleBookmarkAction(workId: string) {
   const result = await toggleBookmark(supabase, { workId, userId: user.id });
   revalidatePath(`/works/${workId}`);
   return { ok: true, bookmarked: result.bookmarked };
+}
+
+export async function submitReportAction(input: { workId: string; chapterId: string | null; reasonCategory: string; detail: string | null }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  return submitReport(supabase, { reporterId: user.id, ...input });
 }
