@@ -17,3 +17,14 @@ All three of 03-02, 03-03, and 03-04 independently hit the same pre-existing iss
 
   Also observed unchanged in 03-05 (`app/page.tsx` + `components/reader/*` — the plan's own files
   type-check clean; only this pre-existing `layout.tsx` error remains in the baseline).
+
+- **03-07: `npx next build` fails in this worktree** with `Error: Could not find the Next.js
+  package (next/package.json)` / Turbopack workspace-root resolution error — `node_modules/`
+  in this worktree checkout is effectively empty (only `.vite/`), so `next build`'s hermetic
+  workspace-root check can't resolve `next` from outside the worktree directory, even though
+  `npx tsc --noEmit` and `npm test` (vitest) both work fine here (Node's own module resolution
+  walks up parent directories; Turbopack's build step deliberately does not). This is a
+  worktree/tooling environment gap, not caused by this plan's code — the plan's actual
+  automated verification (`npx tsc --noEmit`, `npm test`) both pass clean. Not fixed here;
+  full `next build`/`next dev` manual verification should be run from a worktree with a real
+  `node_modules/next` install (or the primary checkout) before shipping.

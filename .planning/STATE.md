@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-05-PLAN.md, 03-06-PLAN.md
-last_updated: "2026-08-30T00:26:52.262Z"
+status: verifying
+stopped_at: Completed 03-07-PLAN.md (final plan in Phase 3) — chapter viewer with toolbar/TOC/settings/view-tracking
+last_updated: "2026-08-30T00:41:18.428Z"
 last_activity: 2026-08-30
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 100
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 Phase: 03 (reader-core-reading-loop-no-payment) — EXECUTING
 Plan: 7 of 7
-Status: Executing Phase 03 — Wave 3 complete, starting Wave 4
+Status: Phase complete — ready for verification
 Last activity: 2026-08-30
 
 Progress: [████████████████████] 100%
@@ -64,6 +64,7 @@ Progress: [████████████████████] 100%
 | Phase 03 P04 | 10 | 2 tasks | 9 files |
 | Phase 03 P05 | 12 | 2 tasks | 5 files |
 | Phase 03 P06 | 25min | 3 tasks | 6 files |
+| Phase 03 P07 | 15min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-04: likes/subscriptions/bookmarks share an identical select-then-insert-or-delete toggle keyed on (work_id, user_id); reports.ts exports REPORT_CATEGORIES as single source of truth matching the DB check constraint verbatim
 - [Phase 03]: Plan 03-05: discovery feed home screen (app/page.tsx, FeedCard/FeedFilters/PromoBanner/RecentlyReadSection) live, sourced entirely from tested listFeed/listRecentlyRead; fixed base-ui Select onValueChange null-vs-undefined typing
 - [Phase 03]: Plan 03-06: work detail page (3-tab 소개/작품설정/회차) live with 알림/선호작 header icons distinct from lower-page 좋아요/신고 controls; ReportDialog built as a shared component with onSubmit callback prop for Plan 03-07's viewer to reuse without duplication
+- [Phase 03]: Plan 03-07: reading progress upsert gated behind if (!locked) in trackChapterOpenAction — a D-06 locked-chapter open never overwrites the reader's 이어보기 resume point; view_count still increments unconditionally per D-09
 
 ### Pending Todos
 
@@ -102,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T00:26:52.257Z
-Stopped at: Completed 03-05-PLAN.md, 03-06-PLAN.md (Wave 3 complete)
+Last session: 2026-08-30T00:41:18.423Z
+Stopped at: Completed 03-07-PLAN.md (final plan in Phase 3) — chapter viewer with toolbar/TOC/settings/view-tracking
 Resume file: None
