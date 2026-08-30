@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
@@ -10,10 +10,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Settings2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Settings2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { GENRES } from '@/lib/works/genres';
 import { STYLE_PRESETS, DEFAULT_STYLE_PRESET, type StylePresetId, type PresetLevel } from '@/lib/ai/prompt';
 import type { ModelTier } from '@/lib/ai/gemini';
+import { estimateCostAction, generateAction } from '../actions';
+import { GenerationPreview } from './GenerationPreview';
 
 export interface MentionedNode {
   id: string;
@@ -49,6 +53,51 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
   const [customInstruction, setCustomInstruction] = useState('');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
+  const [estimatedTokens, setEstimatedTokens] = useState<number | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [preview, setPreview] = useState<{ text: string; wasCapped: boolean } | null>(null);
+
+  const mentionedNodeIds = mentionedNodes.map((n) => n.id);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      const result = await estimateCostAction({
+        workId, modelTier, mentionedNodeIds, presetLevel,
+        customInstruction: presetLevel === 'freeform' ? customInstruction : null,
+        styleId, genre, precedingText: content,
+      });
+      if (result.ok) setEstimatedTokens(result.estimatedTokens ?? null);
+    }, 500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workId, modelTier, genre, presetLevel, customInstruction, styleId, JSON.stringify(mentionedNodeIds), content]);
+
+  async function runGenerate(regenerationFeedback?: string) {
+    setIsGenerating(true);
+    const result = await generateAction({
+      workId, chapterId, modelTier, mentionedNodeIds, presetLevel,
+      customInstruction: presetLevel === 'freeform' ? customInstruction : null,
+      styleId, genre, precedingText: content, regenerationFeedback: regenerationFeedback ?? null,
+    });
+    setIsGenerating(false);
+
+    if (!result.ok) {
+      toast.error(result.error ?? '생성하지 못했어요. 잠시 후 다시 시도해주세요.');
+      setPreview(null);
+      return;
+    }
+
+    setPreview({ text: result.text ?? '', wasCapped: Boolean(result.wasCapped) });
+    if (result.wasCapped) {
+      toast('보유 토큰을 모두 사용해서 여기까지만 생성됐어요.');
+    }
+  }
+
+  function handleAccept() {
+    if (!preview) return;
+    onInsertText(preview.text);
+    setPreview(null);
+  }
 
   return (
     <aside className="flex w-96 shrink-0 flex-col gap-6 rounded-lg border border-border bg-background p-6">
@@ -142,7 +191,49 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
         )}
       </div>
 
-      {/* Task 3 adds: mentioned-documents chip list, cost estimate, generate button, GenerationPreview */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs text-muted-foreground">멘션된 문서</span>
+        {mentionedNodes.length === 0 ? (
+          <p className="text-xs text-muted-foreground">@ 를 입력해 KB 문서를 멘션해보세요.</p>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {mentionedNodes.map((node) => (
+              <Badge key={node.id} variant="secondary" className="gap-1">
+                {node.name}
+                <button type="button" aria-label={`${node.name} 멘션 해제`} onClick={() => onRemoveMention(node.id)}>
+                  <X className="size-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-xs text-muted-foreground">예상 토큰</span>
+        <span>{estimatedTokens === null ? '—' : `약 ${estimatedTokens.toLocaleString('ko-KR')} 토큰`}</span>
+      </div>
+
+      <Button
+        type="button"
+        variant={preview ? 'outline' : 'default'}
+        disabled={isGenerating}
+        onClick={() => runGenerate()}
+        className="w-full"
+      >
+        생성하기
+      </Button>
+
+      {preview && (
+        <GenerationPreview
+          text={preview.text}
+          wasCapped={preview.wasCapped}
+          isRegenerating={isGenerating}
+          onAccept={handleAccept}
+          onRegenerate={(feedback) => runGenerate(feedback)}
+          onReject={() => setPreview(null)}
+        />
+      )}
     </aside>
   );
 }

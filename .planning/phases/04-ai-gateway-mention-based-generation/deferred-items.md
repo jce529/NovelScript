@@ -18,3 +18,8 @@ task (pre-existing, unrelated files) and are logged here rather than fixed.
 ## From Plan 04-04
 
 - **`tests/discovery/feed.test.ts` — 6-8 failures in `listFeed (READ-01)` "popular" sort cases** (`expected [] to deeply equal [...]`) — pre-existing, unrelated to Plan 04-04's changes (`lib/ai/generate.ts`, `app/studio/[workId]/chapters/[chapterId]/actions.ts`). Confirmed via `git stash` that the failure reproduces identically with none of this plan's changes applied. This is Phase 3 (`lib/discovery/actions.ts`) code, out of this plan's scope. Failure count varies between isolated (8) and full-suite (6) runs of the same file, suggesting test-data pollution/ordering sensitivity in the shared Supabase test project rather than a deterministic bug — left for a future Phase 3 fix/investigation pass, not fixed here.
+
+## From Plan 04-05
+
+- **`app/layout.tsx(20,50): error TS2304: Cannot find name 'LayoutProps'`** — still present, unrelated to this plan's changes (UI-only `AiPanel.tsx`/`GenerationPreview.tsx` additions). Same root cause as logged in Plans 04-01/04-02.
+- **`tests/discovery/feed.test.ts` — same 8 pre-existing failures** re-confirmed present and unrelated (this plan touches no `lib/discovery`/`lib/ai` files, UI-component-only change with no dedicated tests per this plan's own verification note).
