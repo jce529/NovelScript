@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-08-30T00:25:53.823Z"
+stopped_at: Completed 03-05-PLAN.md, 03-06-PLAN.md
+last_updated: "2026-08-30T00:26:52.262Z"
 last_activity: 2026-08-30
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 100
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 03 (reader-core-reading-loop-no-payment) — EXECUTING
-Plan: 6 of 7
-Status: Ready to execute
+Plan: 7 of 7
+Status: Executing Phase 03 — Wave 3 complete, starting Wave 4
 Last activity: 2026-08-30
 
 Progress: [████████████████████] 100%
@@ -63,6 +63,7 @@ Progress: [████████████████████] 100%
 | Phase 03 P03 | 10 | 2 tasks | 4 files |
 | Phase 03 P04 | 10 | 2 tasks | 9 files |
 | Phase 03 P05 | 12 | 2 tasks | 5 files |
+| Phase 03 P06 | 25min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-03: lib/reader/views.ts (incrementChapterView, D-09 anonymous-safe view-count RPC wrapper) and lib/reader/progress.ts (upsertReadingProgress/getReadingProgress/listRecentlyRead, D-14/D-15) live and tested; listRecentlyRead exposes chapterOrderIndex (0-based) for UI-SPEC's exact 'N화 읽는 중' copy contract
 - [Phase 03]: Plan 03-04: likes/subscriptions/bookmarks share an identical select-then-insert-or-delete toggle keyed on (work_id, user_id); reports.ts exports REPORT_CATEGORIES as single source of truth matching the DB check constraint verbatim
 - [Phase 03]: Plan 03-05: discovery feed home screen (app/page.tsx, FeedCard/FeedFilters/PromoBanner/RecentlyReadSection) live, sourced entirely from tested listFeed/listRecentlyRead; fixed base-ui Select onValueChange null-vs-undefined typing
+- [Phase 03]: Plan 03-06: work detail page (3-tab 소개/작품설정/회차) live with 알림/선호작 header icons distinct from lower-page 좋아요/신고 controls; ReportDialog built as a shared component with onSubmit callback prop for Plan 03-07's viewer to reuse without duplication
 
 ### Pending Todos
 
@@ -100,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T00:25:53.818Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-08-30T00:26:52.257Z
+Stopped at: Completed 03-05-PLAN.md, 03-06-PLAN.md (Wave 3 complete)
 Resume file: None
