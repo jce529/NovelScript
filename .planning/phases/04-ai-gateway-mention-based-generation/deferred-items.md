@@ -14,3 +14,7 @@ task (pre-existing, unrelated files) and are logged here rather than fixed.
   commit (`191bd39`), unrelated to any Phase 2/3/4 code. Not touched by Plan 04-02;
   left as-is per the scope-boundary rule (only fix issues directly caused by the
   current task's changes).
+
+## From Plan 04-04
+
+- **`tests/discovery/feed.test.ts` — 6-8 failures in `listFeed (READ-01)` "popular" sort cases** (`expected [] to deeply equal [...]`) — pre-existing, unrelated to Plan 04-04's changes (`lib/ai/generate.ts`, `app/studio/[workId]/chapters/[chapterId]/actions.ts`). Confirmed via `git stash` that the failure reproduces identically with none of this plan's changes applied. This is Phase 3 (`lib/discovery/actions.ts`) code, out of this plan's scope. Failure count varies between isolated (8) and full-suite (6) runs of the same file, suggesting test-data pollution/ordering sensitivity in the shared Supabase test project rather than a deterministic bug — left for a future Phase 3 fix/investigation pass, not fixed here.
