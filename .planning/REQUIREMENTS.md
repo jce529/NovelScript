@@ -33,9 +33,9 @@
 ### Reader / Discovery (READ)
 
 - [ ] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
-- [ ] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
+- [x] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
 - [ ] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
-- [ ] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
+- [x] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
 - [ ] **READ-05**: Reader can report a novel or chapter for review from the detail page or viewer
 - [ ] **READ-07**: Reader can toggle a per-work new-chapter notification subscription (알림) from the work detail page header, login-gated; subscription state persists to the account. Actual delivery channel (push/email/in-app inbox) is not defined by this requirement and remains open for a later phase — v1 scope is the subscription toggle and its persisted state only.
 - [ ] **READ-08**: Reader can save/unsave a work to a personal 선호작 (bookmark) list from the work detail page header, login-gated — distinct from the 좋아요 (like) action, which remains a separate count-based control.
