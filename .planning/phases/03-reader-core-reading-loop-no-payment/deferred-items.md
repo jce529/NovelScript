@@ -14,3 +14,6 @@ All three of 03-02, 03-03, and 03-04 independently hit the same pre-existing iss
   to alter by hand in a lib-only plan. All affected `lib/*` files type-check clean in isolation.
   Not fixed here — should be verified/fixed the next time a plan actually touches `app/layout.tsx`
   or introduces a typegen step in CI.
+
+  Also observed unchanged in 03-05 (`app/page.tsx` + `components/reader/*` — the plan's own files
+  type-check clean; only this pre-existing `layout.tsx` error remains in the baseline).

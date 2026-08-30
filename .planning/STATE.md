@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md, 03-03-PLAN.md, 03-04-PLAN.md
-last_updated: "2026-08-30T00:11:54.500Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-08-30T00:25:53.823Z"
 last_activity: 2026-08-30
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 100
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 03 (reader-core-reading-loop-no-payment) — EXECUTING
-Plan: 5 of 7
-Status: Executing Phase 03 — Wave 2 complete, starting Wave 3
+Plan: 6 of 7
+Status: Ready to execute
 Last activity: 2026-08-30
 
 Progress: [████████████████████] 100%
@@ -62,6 +62,7 @@ Progress: [████████████████████] 100%
 | Phase 03 P02 | 15 | 2 tasks | 7 files |
 | Phase 03 P03 | 10 | 2 tasks | 4 files |
 | Phase 03 P04 | 10 | 2 tasks | 9 files |
+| Phase 03 P05 | 12 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-02: lib/discovery/actions.ts listFeed + computeTrendingScores (batched work_likes .in() query, defensive normalize against non-finite inputs) and lib/chapters+works getPublicChapter/listPublicChapters/getPublicWork content-leak guards live; fixed a staged.totalViews/viewCount property mismatch from the plan's own reference code that silently zeroed the views component of trendingScore
 - [Phase 03]: Plan 03-03: lib/reader/views.ts (incrementChapterView, D-09 anonymous-safe view-count RPC wrapper) and lib/reader/progress.ts (upsertReadingProgress/getReadingProgress/listRecentlyRead, D-14/D-15) live and tested; listRecentlyRead exposes chapterOrderIndex (0-based) for UI-SPEC's exact 'N화 읽는 중' copy contract
 - [Phase 03]: Plan 03-04: likes/subscriptions/bookmarks share an identical select-then-insert-or-delete toggle keyed on (work_id, user_id); reports.ts exports REPORT_CATEGORIES as single source of truth matching the DB check constraint verbatim
+- [Phase 03]: Plan 03-05: discovery feed home screen (app/page.tsx, FeedCard/FeedFilters/PromoBanner/RecentlyReadSection) live, sourced entirely from tested listFeed/listRecentlyRead; fixed base-ui Select onValueChange null-vs-undefined typing
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-30T00:11:54.496Z
-Stopped at: Completed 03-02-PLAN.md, 03-03-PLAN.md, 03-04-PLAN.md (Wave 2 complete)
+Last session: 2026-08-30T00:25:53.818Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None

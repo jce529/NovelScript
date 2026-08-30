@@ -81,7 +81,7 @@ Plans:
 - [x] 03-02-PLAN.md — Discovery feed lib (trending score) + content-leak-safe public work/chapter readers
 - [x] 03-03-PLAN.md — View-count increment wrapper + reading-progress upsert/read/recently-read lib
 - [x] 03-04-PLAN.md — Likes/subscriptions/bookmarks toggle lib + report submission lib
-- [ ] 03-05-PLAN.md — Discovery feed UI (app/page.tsx): banner, recently-read, genre/sort filters, trending grid
+- [x] 03-05-PLAN.md — Discovery feed UI (app/page.tsx): banner, recently-read, genre/sort filters, trending grid
 - [ ] 03-06-PLAN.md — Work detail page UI: 3-tab structure, header icons, CTA, like button, report dialog
 - [ ] 03-07-PLAN.md — Chapter viewer UI: toolbar, TOC/settings sheets, font/theme, bottom nav, view/progress tracking
 
@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
-| 3. Reader Core (Reading Loop, No Payment) | 4/7 | In Progress | - |
+| 3. Reader Core (Reading Loop, No Payment) | 5/7 | In Progress|  |
 | 4. AI Gateway (Mention-Based Generation) | 0/TBD | Not started | - |
 | 5. Real Payment Integration | 0/TBD | Not started | - |
 | 6. Paid Chapter Unlock | 0/TBD | Not started | - |
