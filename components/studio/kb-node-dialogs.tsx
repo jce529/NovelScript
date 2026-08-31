@@ -25,7 +25,7 @@ export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode
   return (
     <>
       <div className="flex items-center gap-1">
-        {node.node_type === 'folder' && (
+        {node.node_type === 'folder' && node.category !== 'template' && (
           <IconButton label="하위 문서 추가" onClick={() => setDialog('create')}><Plus size={14} /></IconButton>
         )}
         {!node.is_locked && (

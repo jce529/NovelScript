@@ -181,6 +181,7 @@ export default function ChapterEditorPage({
           defaultGenre={genre}
           mentionedNodes={mentionedNodes}
           onRemoveMention={removeMention}
+          onAddMention={addMention}
           onInsertText={insertTextAtCursor}
         />
       )}

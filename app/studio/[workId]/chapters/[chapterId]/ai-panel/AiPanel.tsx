@@ -1,23 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel,
-  DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator,
+  DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Settings2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { GENRES } from '@/lib/works/genres';
-import { STYLE_PRESETS, DEFAULT_STYLE_PRESET, type StylePresetId, type PresetLevel } from '@/lib/ai/prompt';
+import {
+  STYLE_PRESETS, DEFAULT_STYLE_PRESET, chatHistoryTurnContent,
+  type StylePresetId, type PresetLevel, type DocumentProposal,
+} from '@/lib/ai/prompt';
 import type { ModelTier } from '@/lib/ai/gemini';
-import { estimateCostAction, generateAction } from '../actions';
-import { GenerationPreview } from './GenerationPreview';
+import type { KbCategory } from '@/lib/kb/categories';
+import { chatAction, saveDocumentProposalAction } from '../actions';
+import { ChatMessageBubble } from './ChatMessageBubble';
 
 export interface MentionedNode {
   id: string;
@@ -34,73 +38,126 @@ export interface AiPanelProps {
   defaultGenre: string | null;
   mentionedNodes: MentionedNode[];
   onRemoveMention: (id: string) => void;
+  /** A chat turn's proposed document was saved — add it to the mention list immediately. */
+  onAddMention: (node: { id: string; name: string; category: KbCategory }) => void;
   /** D-10 accept: caller (page.tsx, Plan 04-06) inserts `text` at the textarea's cursor. */
   onInsertText: (text: string) => void;
 }
 
+/** This session's redesign: all three levels are the SAME chat-driven
+ * generation (no separate "생성하기" button, no separate UI for any level) —
+ * they differ ONLY in which system-prompt instruction is active. */
 const PRESET_LEVEL_META: Record<PresetLevel, { label: string; description: string }> = {
-  beginner: { label: '초보자', description: 'AI가 알아서 다음 전개에 맞는 지시를 구성해요. 설정 없이 바로 생성.' },
-  intermediate: { label: '중급자', description: '표준 지시에 약간의 재량을 더해 생성해요.' },
-  freeform: { label: '자유형', description: '직접 지시사항을 입력해 AI를 세밀하게 제어해요. 선택하면 아래 커스텀 지시사항 입력창이 열려요.' },
+  beginner: { label: '초보자', description: 'AI가 알아서 다음 전개를 판단해요. 별다른 지시 없이 대화를 시작해보세요.' },
+  intermediate: { label: '중급자', description: '표준 지시에 약간의 재량을 더해 대화를 이어가요.' },
+  freeform: { label: '자유형', description: '정해진 지시 없이, 대화 내용을 최우선으로 반영해요.' },
 };
 
 const PRESET_LEVELS: PresetLevel[] = ['beginner', 'intermediate', 'freeform'];
 const STYLE_IDS = Object.keys(STYLE_PRESETS) as StylePresetId[];
 
-export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNodes, onRemoveMention, onInsertText }: AiPanelProps) {
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  draft?: string | null;
+  proposal?: DocumentProposal | null;
+  savedNodeId?: string;
+  wasCapped?: boolean;
+}
+
+export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [modelTier, setModelTier] = useState<ModelTier>('lite');
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
-  const [customInstruction, setCustomInstruction] = useState('');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
-  const [estimatedTokens, setEstimatedTokens] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [preview, setPreview] = useState<{ text: string; wasCapped: boolean } | null>(null);
+  const [savingProposalId, setSavingProposalId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const chatLogRef = useRef<HTMLDivElement>(null);
 
   const mentionedNodeIds = mentionedNodes.map((n) => n.id);
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const result = await estimateCostAction({
-        workId, modelTier, mentionedNodeIds, presetLevel,
-        customInstruction: presetLevel === 'freeform' ? customInstruction : null,
-        styleId, genre, precedingText: content,
-      });
-      if (result.ok) setEstimatedTokens(result.estimatedTokens ?? null);
-    }, 500);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workId, modelTier, genre, presetLevel, customInstruction, styleId, JSON.stringify(mentionedNodeIds), content]);
+    chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages, isGenerating]);
 
-  async function runGenerate(regenerationFeedback?: string) {
+  /** Sends one AI 패널 chat turn — the ONLY entry point for talking to the AI
+   * now (no separate "생성하기" call shape). `history` is every PRIOR turn
+   * (not including `userMessage`) — passed explicitly (rather than reading
+   * `messages` state) so 다시 생성하기/거부하고 지우기 can replay a truncated
+   * history without a stale-closure race against the pending setMessages(). */
+  async function sendMessage(userMessage: string, history: ChatMessage[]) {
+    const base = [...history, { id: crypto.randomUUID(), role: 'user' as const, text: userMessage }];
+    setMessages(base);
     setIsGenerating(true);
-    const result = await generateAction({
-      workId, chapterId, modelTier, mentionedNodeIds, presetLevel,
-      customInstruction: presetLevel === 'freeform' ? customInstruction : null,
-      styleId, genre, precedingText: content, regenerationFeedback: regenerationFeedback ?? null,
+
+    const result = await chatAction({
+      workId, chapterId, modelTier, mentionedNodeIds, presetLevel, styleId, genre,
+      precedingText: content,
+      chatHistory: base.map((m) => ({ role: m.role, content: chatHistoryTurnContent(m) })),
     });
     setIsGenerating(false);
 
     if (!result.ok) {
-      toast.error(result.error ?? '생성하지 못했어요. 잠시 후 다시 시도해주세요.');
-      setPreview(null);
+      toast.error(result.error ?? '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.');
       return;
     }
 
-    setPreview({ text: result.text ?? '', wasCapped: Boolean(result.wasCapped) });
+    setMessages([...base, {
+      id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
+      draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
+    }]);
     if (result.wasCapped) {
-      toast('보유 토큰을 모두 사용해서 여기까지만 생성됐어요.');
+      toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
     }
   }
 
-  function handleAccept() {
-    if (!preview) return;
-    onInsertText(preview.text);
-    setPreview(null);
+  function handleSend() {
+    const trimmed = chatInput.trim();
+    if (!trimmed || isGenerating) return;
+    setChatInput('');
+    sendMessage(trimmed, messages);
+  }
+
+  /** Drops the last AI turn (and the user message that prompted it, if any)
+   * and resends the same request — a "redo" of the last exchange. */
+  function handleRegenerate() {
+    if (isGenerating) return;
+    const withoutLastAssistant = messages.slice(0, -1);
+    const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
+    if (tail?.role === 'user') {
+      sendMessage(tail.text, withoutLastAssistant.slice(0, -1));
+    }
+  }
+
+  /** Discards the last AI turn (and the user message that prompted it, if
+   * any) without resending — back to the chat state before that exchange. */
+  function handleReject() {
+    if (isGenerating) return;
+    const withoutLastAssistant = messages.slice(0, -1);
+    const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
+    setMessages(tail?.role === 'user' ? withoutLastAssistant.slice(0, -1) : withoutLastAssistant);
+  }
+
+  async function handleSaveProposal(message: ChatMessage) {
+    if (!message.proposal || savingProposalId) return;
+    setSavingProposalId(message.id);
+    const result = await saveDocumentProposalAction(workId, message.proposal);
+    setSavingProposalId(null);
+
+    if (!result.ok || !result.nodeId) {
+      toast.error(result.error ?? '문서를 저장하지 못했어요.');
+      return;
+    }
+    setMessages((prev) => prev.map((m) => (m.id === message.id ? { ...m, savedNodeId: result.nodeId } : m)));
+    onAddMention({ id: result.nodeId, name: message.proposal.name, category: message.proposal.category });
+    toast.success(`"${message.proposal.name}" 문서를 저장하고 멘션에 추가했어요.`);
   }
 
   return (
-    <aside className="flex w-96 shrink-0 flex-col gap-6 rounded-lg border border-border bg-background p-6">
+    <aside className="sticky top-8 flex h-[calc(100vh-4rem)] w-96 shrink-0 flex-col gap-6 rounded-lg border border-border bg-background p-6">
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
       <div className="flex flex-col gap-2">
@@ -138,16 +195,18 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
               }
             />
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>AI 지시 프리셋</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={presetLevel} onValueChange={(value) => setPresetLevel(value as PresetLevel)}>
-                {PRESET_LEVELS.map((level) => (
-                  <DropdownMenuRadioItem key={level} value={level} className="flex-col items-start gap-0.5">
-                    <span className="font-medium">{PRESET_LEVEL_META[level].label}</span>
-                    <span className="text-xs text-muted-foreground">{PRESET_LEVEL_META[level].description}</span>
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>AI 지시 프리셋</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={presetLevel} onValueChange={(value) => setPresetLevel(value as PresetLevel)}>
+                  {PRESET_LEVELS.map((level) => (
+                    <DropdownMenuRadioItem key={level} value={level} className="flex-col items-start gap-0.5">
+                      <span className="font-medium">{PRESET_LEVEL_META[level].label}</span>
+                      <span className="text-xs text-muted-foreground">{PRESET_LEVEL_META[level].description}</span>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -177,18 +236,6 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
             </SelectContent>
           </Select>
         </div>
-
-        {presetLevel === 'freeform' && (
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-muted-foreground">커스텀 지시사항</label>
-            <Textarea
-              value={customInstruction}
-              onChange={(e) => setCustomInstruction(e.target.value)}
-              placeholder="원하는 스타일이나 요청사항을 입력하세요."
-              className="min-h-24 text-sm"
-            />
-          </div>
-        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -209,31 +256,53 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
         )}
       </div>
 
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-xs text-muted-foreground">예상 토큰</span>
-        <span>{estimatedTokens === null ? '—' : `약 ${estimatedTokens.toLocaleString('ko-KR')} 토큰`}</span>
+      <div ref={chatLogRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+        {messages.length === 0 ? (
+          <p className="text-xs text-muted-foreground">AI에게 말을 걸어보세요 — 본문을 이어 써달라고 하거나, 인물/장소 같은 설정을 같이 정해달라고 요청할 수 있어요.</p>
+        ) : (
+          messages.map((message, index) => {
+            if (message.role === 'user') {
+              return (
+                <div key={message.id} className="self-end max-w-[85%] rounded-lg bg-primary/10 px-3 py-2 text-sm whitespace-pre-wrap">
+                  {message.text}
+                </div>
+              );
+            }
+            const isLast = index === messages.length - 1;
+            return (
+              <ChatMessageBubble
+                key={message.id}
+                text={message.text}
+                draft={message.draft ?? null}
+                proposal={message.proposal ?? null}
+                savedNodeId={message.savedNodeId}
+                wasCapped={Boolean(message.wasCapped)}
+                interactive={isLast}
+                isBusy={isGenerating || savingProposalId === message.id}
+                onInsertDraft={() => message.draft && onInsertText(message.draft)}
+                onSaveProposal={() => handleSaveProposal(message)}
+                onRegenerate={handleRegenerate}
+                onReject={handleReject}
+              />
+            );
+          })
+        )}
+        {isGenerating && <p className="text-xs text-muted-foreground">AI가 응답을 생성하고 있어요...</p>}
       </div>
 
-      <Button
-        type="button"
-        variant={preview ? 'outline' : 'default'}
-        disabled={isGenerating}
-        onClick={() => runGenerate()}
-        className="w-full"
-      >
-        생성하기
-      </Button>
-
-      {preview && (
-        <GenerationPreview
-          text={preview.text}
-          wasCapped={preview.wasCapped}
-          isRegenerating={isGenerating}
-          onAccept={handleAccept}
-          onRegenerate={(feedback) => runGenerate(feedback)}
-          onReject={() => setPreview(null)}
+      <div className="flex items-center gap-2">
+        <Input
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+          placeholder="AI에게 메시지 보내기"
+          disabled={isGenerating}
+          className="flex-1"
         />
-      )}
+        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim()} onClick={handleSend}>
+          보내기
+        </Button>
+      </div>
     </aside>
   );
 }
