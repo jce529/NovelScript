@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 04.1 UI-SPEC approved
-last_updated: "2026-08-31T06:19:15.537Z"
-last_activity: 2026-08-30 -- Phase 04 execution started
+status: in_progress
+stopped_at: Completed 04.1-01-PLAN.md (schema foundation)
+last_updated: "2026-08-31T10:10:29.348Z"
+last_activity: 2026-08-31
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 24
-  completed_plans: 24
-  percent: 100
+  total_plans: 29
+  completed_plans: 25
+  percent: 86
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 04 — ai-gateway-mention-based-generation
+**Current focus:** Phase 04.1-kb — 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)
 
 ## Current Position
 
-Phase: 04 (ai-gateway-mention-based-generation) — PLANS COMPLETE
-Plan: 6 of 6
-Status: Awaiting phase-goal verification (live Gemini generation untested — GEMINI_API_KEY blank by user choice)
-Last activity: 2026-08-30 -- Phase 04 execution started
+Phase: 04.1-kb (KB custom folders + 회차 folder tree)
+Plan: 1 of 5
+Status: Plan 01 (schema foundation) complete — Plans 02-05 remaining
+Last activity: 2026-08-31
 
-Progress: [████████████████████] 100%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [████████████████████] 100%
 | Phase 04 P04 | 12min | 3 tasks | 3 files |
 | Phase 04 P05 | 12min | 3 tasks | 2 files |
 | Phase 04 P06 | 35min | 3 tasks | 6 files |
+| Phase 04.1 P01 | 25min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-05: AiPanel/GenerationPreview live — self-contained controlled AI panel wired to Plan 04-04's estimateCostAction/generateAction; genre Select onValueChange wrapped in null-coalescing callback (base-ui pattern) matching existing page.tsx convention
 - [Phase 04]: Plan 04-06: MentionAutocomplete/QuickAddDialog live, page.tsx wires Textarea+AiPanel side-by-side (D-01) with cursor-position text insertion; found+fixed a page-breaking bug during live checkpoint verification — a client component importing KB_CATEGORIES (value, not type) from lib/kb/templates.ts pulled that module's node:fs/promises import into the browser bundle, panicking Turbopack on every chapter editor load; fixed by extracting KbCategory/KB_CATEGORIES into fs-free lib/kb/categories.ts. All 6 Phase 4 plans complete; live Gemini generation (cost estimate accuracy, real API round-trip, wallet debit against a real balance) still untested pending user-supplied GEMINI_API_KEY — do not treat EDIT-04/EDIT-05 as fully verified until that happens.
 
+- [Phase 04.1]: Plan 04.1-01: schema migration (0004_kb_custom_folders.sql) live - kb_nodes.category widened to 회차/custom, Phase 2 lock regression fixed (all 7 structural folders locked), 회차 seeded+backfilled (D-06), chapters.folder_id added (D-05), guard trigger blocks KB files under 회차 (D-04), soft_delete_kb_node cascade-safe
+
 ### Roadmap Evolution
 
 - Phase 04.1 inserted after Phase 4: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) (URGENT)
@@ -120,6 +123,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-31T06:19:15.533Z
-Stopped at: Phase 04.1 UI-SPEC approved
-Resume file: .planning/phases/04.1-kb/04.1-UI-SPEC.md
+Last session: 2026-08-31T10:10:29.344Z
+Stopped at: Completed 04.1-01-PLAN.md (schema foundation)
+Resume file: .planning/phases/04.1-kb/04.1-02-PLAN.md

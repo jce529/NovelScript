@@ -112,10 +112,10 @@ Plans:
 **Goal:** Writers can create their own folders anywhere in the KB tree (not just documents), 회차(chapters) appear as a fixed folder in that same tree so growing KB content and episodes stay organized as works/accounts scale, and an account-level shared folder space lets cross-work content (e.g. a shared world-bible) be mentioned from any work.
 **Requirements**: KB-03, KB-04, KB-05
 **Depends on:** Phase 4
-**Plans:** 5 plans (Wave 1: schema foundation — category widening, lock-regression fix, 회차 seeding/backfill, chapters.folder_id, guard trigger; Wave 2: KB tree data-layer split + custom folder creation, chapter/회차-folder grouping data layer, cross-scope mention search — all parallel; Wave 3: KB tree UI wiring — two-section sidebar, folder dialogs, chapter leaves, checkpoint)
+**Plans:** 1/5 plans executed
 
 Plans:
-- [ ] 04.1-01-PLAN.md — Schema migration: category CHECK widened (회차/custom), lock-regression fix, 회차 seed + backfill, chapters.folder_id, chapter-folder guard trigger
+- [x] 04.1-01-PLAN.md — Schema migration: category CHECK widened (회차/custom), lock-regression fix, 회차 seed + backfill, chapters.folder_id, chapter-folder guard trigger
 - [ ] 04.1-02-PLAN.md — KB tree data-layer split (getWorkKbNodes/getAccountSharedNodes) + createFolder (server-derived category)
 - [ ] 04.1-03-PLAN.md — Chapter/회차-folder grouping data layer (assertChapterFolder, folder_id-aware createChapter/listChapters, groupChaptersByFolder)
 - [ ] 04.1-04-PLAN.md — Cross-scope @-mention search (searchMentionNodes + getMentionedNodesContent) + MentionAutocomplete scope labels
@@ -166,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Complete   | 2026-08-30 |
 | 4. AI Gateway (Mention-Based Generation) | 6/6 | In Progress|  |
-| 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 0/5 | Not started | - |
+| 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 1/5 | In Progress|  |
 | 5. Real Payment Integration | 0/TBD | Not started | - |
 | 6. Paid Chapter Unlock | 0/TBD | Not started | - |
 | 7. Admin Moderation Surface | 0/TBD | Not started | - |
