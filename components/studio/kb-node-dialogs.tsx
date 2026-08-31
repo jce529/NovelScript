@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, FolderPlus, Pencil, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,20 +13,29 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { TreeNode } from '@/lib/kb/tree';
 import {
-  createNodeAction, renameNodeAction, deleteNodeAction, listTemplateOptionsAction,
+  createNodeAction, renameNodeAction, deleteNodeAction, listTemplateOptionsAction, createFolderAction,
 } from '@/app/studio/[workId]/kb/[nodeId]/actions';
 
 /** Rendered per tree row directly by kb-tree.tsx. 24px hit-area
  * icon buttons per UI-SPEC — every one carries a Tooltip (non-optional at this size). */
 export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode }) {
-  const [dialog, setDialog] = useState<'create' | 'rename' | 'delete' | null>(null);
+  const [dialog, setDialog] = useState<'create' | 'create-folder' | 'rename' | 'delete' | null>(null);
   const router = useRouter();
+  const isChapterFolder = node.category === '회차';
 
   return (
     <>
       <div className="flex items-center gap-1">
-        {node.node_type === 'folder' && node.category !== 'template' && (
+        {isChapterFolder && (
+          <IconButton label="새 회차 만들기" onClick={() => router.push(`/studio/${workId}/chapters/new?folderId=${node.id}`)}>
+            <Plus size={14} />
+          </IconButton>
+        )}
+        {node.node_type === 'folder' && node.category !== 'template' && !isChapterFolder && (
           <IconButton label="하위 문서 추가" onClick={() => setDialog('create')}><Plus size={14} /></IconButton>
+        )}
+        {node.node_type === 'folder' && (
+          <IconButton label="새 폴더 만들기" onClick={() => setDialog('create-folder')}><FolderPlus size={14} /></IconButton>
         )}
         {!node.is_locked && (
           <>
@@ -41,6 +50,12 @@ export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode
           workId={workId} parentId={node.id} category={node.category} onCreated={() => router.refresh()}
         />
       )}
+      {dialog === 'create-folder' && (
+        <CreateFolderDialog
+          open onOpenChange={(v) => !v && setDialog(null)}
+          workId={workId} scope={node.scope} parentId={node.id} onCreated={() => router.refresh()}
+        />
+      )}
       {dialog === 'rename' && (
         <RenameNodeDialog
           open onOpenChange={(v) => !v && setDialog(null)}
@@ -50,7 +65,7 @@ export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode
       {dialog === 'delete' && (
         <DeleteNodeDialog
           open onOpenChange={(v) => !v && setDialog(null)}
-          workId={workId} nodeId={node.id} name={node.name} onDeleted={() => router.refresh()}
+          workId={workId} nodeId={node.id} name={node.name} isChapterFolder={isChapterFolder} onDeleted={() => router.refresh()}
         />
       )}
     </>
@@ -162,6 +177,59 @@ export function CreateNodeDialog({
   );
 }
 
+export function CreateFolderDialog({
+  open, onOpenChange, workId, scope, parentId, onCreated,
+}: { open: boolean; onOpenChange: (v: boolean) => void; workId: string; scope: 'work' | 'account_template'; parentId: string | null; onCreated: () => void }) {
+  const [name, setName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>새 폴더 만들기</DialogTitle></DialogHeader>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="new-folder-name">폴더 이름</Label>
+          <Input id="new-folder-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="폴더 이름" />
+        </div>
+        {error && <p className="text-destructive text-sm">{error}</p>}
+        <DialogFooter>
+          <Button
+            disabled={isPending}
+            onClick={() => startTransition(async () => {
+              const result = await createFolderAction(workId, scope, parentId, name);
+              if (!result.ok) { setError(result.error ?? '저장하지 못했어요. 잠시 후 다시 시도해주세요.'); return; }
+              onOpenChange(false);
+              onCreated();
+            })}
+          >
+            새 폴더 만들기
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Root-header entry point (UI-SPEC: "Root header actions") — neither root is
+ * a real kb_nodes row, so there's no tree row to attach KbTreeActions to;
+ * this is a standalone trigger for parentId=null creation. */
+export function CreateRootFolderButton({ workId, scope }: { workId: string; scope: 'work' | 'account_template' }) {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  return (
+    <>
+      <IconButton label="새 폴더 만들기" onClick={() => setOpen(true)}><FolderPlus size={14} /></IconButton>
+      {open && (
+        <CreateFolderDialog
+          open onOpenChange={setOpen}
+          workId={workId} scope={scope} parentId={null} onCreated={() => router.refresh()}
+        />
+      )}
+    </>
+  );
+}
+
 export function RenameNodeDialog({
   open, onOpenChange, workId, nodeId, currentName,
 }: { open: boolean; onOpenChange: (v: boolean) => void; workId: string; nodeId: string; currentName: string }) {
@@ -195,16 +263,20 @@ export function RenameNodeDialog({
 }
 
 export function DeleteNodeDialog({
-  open, onOpenChange, workId, nodeId, name, onDeleted,
-}: { open: boolean; onOpenChange: (v: boolean) => void; workId: string; nodeId: string; name: string; onDeleted: () => void }) {
+  open, onOpenChange, workId, nodeId, name, isChapterFolder = false, onDeleted,
+}: { open: boolean; onOpenChange: (v: boolean) => void; workId: string; nodeId: string; name: string; isChapterFolder?: boolean; onDeleted: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>{`'${name}'을(를) 삭제할까요?`}</DialogTitle></DialogHeader>
-        <p className="text-sm text-muted-foreground">삭제하면 되돌릴 수 없어요.</p>
+        <DialogHeader>
+          <DialogTitle>{isChapterFolder ? `'${name}' 폴더를 삭제할까요?` : `'${name}'을(를) 삭제할까요?`}</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {isChapterFolder ? '이 폴더 안의 회차는 삭제되지 않고 회차 폴더 상위로 이동해요.' : '삭제하면 되돌릴 수 없어요.'}
+        </p>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
