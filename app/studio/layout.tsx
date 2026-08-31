@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { seedTemplateFiles } from '@/lib/kb/templates';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default async function StudioLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -27,5 +28,10 @@ export default async function StudioLayout({ children }: { children: React.React
     });
   }
 
-  return <div className="min-h-screen bg-background">{children}</div>;
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      {children}
+    </div>
+  );
 }

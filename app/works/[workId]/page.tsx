@@ -13,6 +13,7 @@ import { LikeButton } from '@/components/reader/like-button';
 import { ReportDialog } from '@/components/reader/report-dialog';
 import { submitReportAction } from '@/app/works/[workId]/actions';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ workId: string }> }) {
   const { workId } = await params;
@@ -33,7 +34,9 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
   ]);
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
+    <>
+      <SiteHeader />
+      <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
       <div className="flex h-11 items-center justify-between">
         <Link href="/" aria-label="뒤로가기" className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-muted">
           <ArrowLeft className="size-4" />
@@ -93,6 +96,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
           )}
         </TabsContent>
       </Tabs>
-    </main>
+      </main>
+    </>
   );
 }

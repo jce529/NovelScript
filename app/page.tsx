@@ -6,6 +6,7 @@ import { FeedFilters } from '@/components/reader/feed-filters';
 import { PromoBanner } from '@/components/reader/promo-banner';
 import { RecentlyReadSection } from '@/components/reader/recently-read-section';
 import { Separator } from '@/components/ui/separator';
+import { SiteHeader } from '@/components/layout/site-header';
 
 const VALID_BASES: FeedSortBasis[] = ['trending', 'views', 'likes', 'ctr'];
 
@@ -27,7 +28,9 @@ export default async function HomePage({
   ]);
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
+    <>
+      <SiteHeader />
+      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
       <PromoBanner />
       <RecentlyReadSection loggedIn={Boolean(user)} items={recentlyRead} />
       <Separator className="mt-8" />
@@ -48,6 +51,7 @@ export default async function HomePage({
           {works.map((work) => <FeedCard key={work.id} work={work} />)}
         </div>
       )}
-    </main>
+      </main>
+    </>
   );
 }

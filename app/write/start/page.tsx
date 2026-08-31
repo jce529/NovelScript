@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { submitWriterUpgrade } from './actions';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default async function WriteStartPage({
   searchParams,
@@ -13,7 +14,9 @@ export default async function WriteStartPage({
   if (!user) redirect('/login');
 
   return (
-    <main className="mx-auto max-w-md p-8">
+    <>
+      <SiteHeader />
+      <main className="mx-auto max-w-md p-8">
       <h1 className="text-xl font-semibold mb-4">글쓰기 시작하기</h1>
       {error && <p className="text-red-600 mb-2">{error}</p>}
       <form action={submitWriterUpgrade} className="flex flex-col gap-4">
@@ -29,6 +32,7 @@ export default async function WriteStartPage({
           작가로 시작하기
         </button>
       </form>
-    </main>
+      </main>
+    </>
   );
 }

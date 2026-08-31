@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isAccountActive } from '@/lib/auth/account';
 import { deleteAccountAction } from './actions';
+import { SiteHeader } from '@/components/layout/site-header';
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -22,7 +23,9 @@ export default async function AccountPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-8 flex flex-col gap-6">
+    <>
+      <SiteHeader />
+      <main className="mx-auto max-w-md p-8 flex flex-col gap-6">
       <h1 className="text-xl font-semibold">계정 설정</h1>
       <div>
         <p className="text-sm text-gray-500">이메일</p>
@@ -39,6 +42,7 @@ export default async function AccountPage() {
       <form action={deleteAccountAction}>
         <button type="submit" className="text-red-600 underline">계정 탈퇴하기</button>
       </form>
-    </main>
+      </main>
+    </>
   );
 }
