@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04-06-PLAN.md (checkpoint resolved — mention/quick-add verified live; Gemini-dependent steps deferred pending GEMINI_API_KEY)
-last_updated: "2026-08-30T07:10:00.000Z"
-last_activity: 2026-08-30 -- Phase 04 all 6 plans complete, awaiting phase-goal verification
+status: verifying
+stopped_at: Phase 04.1 context gathered
+last_updated: "2026-08-31T05:38:51.934Z"
+last_activity: 2026-08-30 -- Phase 04 execution started
 progress:
-  total_phases: 7
-  completed_phases: 3
+  total_phases: 8
+  completed_phases: 4
   total_plans: 24
   completed_plans: 24
   percent: 100
@@ -103,6 +103,10 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-05: AiPanel/GenerationPreview live — self-contained controlled AI panel wired to Plan 04-04's estimateCostAction/generateAction; genre Select onValueChange wrapped in null-coalescing callback (base-ui pattern) matching existing page.tsx convention
 - [Phase 04]: Plan 04-06: MentionAutocomplete/QuickAddDialog live, page.tsx wires Textarea+AiPanel side-by-side (D-01) with cursor-position text insertion; found+fixed a page-breaking bug during live checkpoint verification — a client component importing KB_CATEGORIES (value, not type) from lib/kb/templates.ts pulled that module's node:fs/promises import into the browser bundle, panicking Turbopack on every chapter editor load; fixed by extracting KbCategory/KB_CATEGORIES into fs-free lib/kb/categories.ts. All 6 Phase 4 plans complete; live Gemini generation (cost estimate accuracy, real API round-trip, wallet debit against a real balance) still untested pending user-supplied GEMINI_API_KEY — do not treat EDIT-04/EDIT-05 as fully verified until that happens.
 
+### Roadmap Evolution
+
+- Phase 04.1 inserted after Phase 4: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) (URGENT)
+
 ### Pending Todos
 
 - Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end.
@@ -116,6 +120,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-30T07:10:00.000Z
-Stopped at: Completed 04-06-PLAN.md
-Resume file: None
+Last session: 2026-08-31T05:38:51.930Z
+Stopped at: Phase 04.1 context gathered
+Resume file: .planning/phases/04.1-kb/04.1-CONTEXT.md
