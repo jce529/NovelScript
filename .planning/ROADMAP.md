@@ -166,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Complete   | 2026-08-30 |
 | 4. AI Gateway (Mention-Based Generation) | 6/6 | In Progress|  |
-| 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete   | 2026-08-31 |
+| 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Not started | - |
 | 6. Paid Chapter Unlock | 0/TBD | Not started | - |
 | 7. Admin Moderation Surface | 0/TBD | Not started | - |

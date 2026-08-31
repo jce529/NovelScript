@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04.1-05-PLAN.md (final plan of Phase 04.1)
-last_updated: "2026-08-31T10:55:02.073Z"
+status: planning
+stopped_at: Phase 04.1 verified and complete (5/5 plans)
+last_updated: "2026-08-31T11:05:13.726Z"
 last_activity: 2026-08-31
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 4
   total_plans: 29
   completed_plans: 29
-  percent: 97
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 04.1-kb — 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)
+**Current focus:** Phase 5 — Real Payment Integration (Phase 04.1 complete and verified)
 
 ## Current Position
 
-Phase: 04.1-kb (KB custom folders + 회차 folder tree)
-Plan: 5 of 5
-Status: Ready to execute
+Phase: 5 (real-payment-integration)
+Plan: Not started
+Status: Phase 04.1 verified complete (20/20 must-haves) — Phase 4 (AI Gateway) remains unchecked pending live GEMINI_API_KEY verification; Phase 5 not yet planned
 Last activity: 2026-08-31
 
-Progress: [█████████░] 97%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
