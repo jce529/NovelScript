@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29)
 - [x] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30)
 - [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start
+- [ ] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
 - [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters
 - [ ] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports
@@ -105,6 +106,16 @@ Plans:
 - [x] 04-04-PLAN.md — generate/estimateCost Server Actions — D-13 cap-before-call, debit-after-call
 - [x] 04-05-PLAN.md — AiPanel UI shell: header controls, chip list, cost estimate, D-10rev preview card
 - [x] 04-06-PLAN.md — Mention autocomplete + quick-add UI + final page wiring + human-verify checkpoint
+
+### Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) (INSERTED)
+
+**Goal:** Writers can create their own folders anywhere in the KB tree (not just documents), 회차(chapters) appear as a fixed folder in that same tree so growing KB content and episodes stay organized as works/accounts scale, and an account-level shared folder space lets cross-work content (e.g. a shared world-bible) be mentioned from any work.
+**Requirements**: KB-03, KB-04, KB-05
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 04.1 to break down)
 
 ### Phase 5: Real Payment Integration
 **Goal**: Users can convert real money into platform tokens through a verified, non-spoofable Toss Payments flow, swapped in behind the same wallet interface Phase 1 proved.

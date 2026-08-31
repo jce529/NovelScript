@@ -15,6 +15,9 @@
 
 - [x] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
 - [x] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
+- [ ] **KB-03**: Writer can create new folders (not just documents) at any point in the KB tree except the two root containers themselves (the work root and the account-shared root) — including brand-new user-defined top-level folders directly under a work or under the account-shared space, with no template auto-applied to user-defined folders (added in Phase 04.1 discussion — see `.planning/phases/04.1-kb/04.1-CONTEXT.md`)
+- [ ] **KB-04**: The account-level KB space is a "계정 공유 폴더" root containing multiple top-level shared folders (the existing `template` folder plus any user-created shared folders, e.g. world-bible content meant to be reused across works); every document inside it is mentionable (`@`) from any of the writer's works, one-directionally (added in Phase 04.1 discussion)
+- [ ] **KB-05**: 회차(chapters) appear as a fixed, locked "회차" folder inside each work's KB tree (alongside template/인물/장소/사건/세력/아이템), and writers can create sub-folders inside it to organize episodes (e.g. story arcs); individual chapter items keep all existing fields/behavior (title, draft/publish state, price tier, view count) unchanged — chapters remain a distinct, non-mentionable content type, not merged into generic KB documents (added in Phase 04.1 discussion)
 
 ### Editor / AI Generation (EDIT)
 
@@ -97,6 +100,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | AUTH-03 | Phase 1 | Mapped |
 | KB-01 | Phase 2 | Mapped |
 | KB-02 | Phase 2 | Mapped |
+| KB-03 | Phase 04.1 | Mapped |
+| KB-04 | Phase 04.1 | Mapped |
+| KB-05 | Phase 04.1 | Mapped |
 | EDIT-01 | Phase 4 | Mapped |
 | EDIT-02 | Phase 4 | Mapped |
 | EDIT-03 | Phase 4 | Mapped |
@@ -122,10 +128,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | ADMIN-04 | Phase 7 | Mapped |
 
 **Coverage:**
-- v1 requirements: 28 total
-- Mapped to phases: 28
+- v1 requirements: 31 total
+- Mapped to phases: 31
 - Unmapped: 0 ✓ (fully mapped — see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-08-29 — added READ-07/08/09 (알림, 선호작, promotional banner) after Phase 3 UI-SPEC revision; AUTH-01/02/03 checked off after Phase 1 completion*
+*Last updated: 2026-08-31 — added KB-03/04/05 (custom folder creation, account-shared folder restructure, 회차 folder tree) for inserted Phase 04.1*
