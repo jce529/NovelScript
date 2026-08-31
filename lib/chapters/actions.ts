@@ -3,10 +3,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
 
+const ERROR_INVALID_FOLDER = '선택한 폴더를 찾을 수 없어요. 새로고침 후 다시 시도해주세요.';
+
 const createChapterSchema = z.object({
   ownerId: z.string().uuid(),
   workId: z.string().uuid(),
   title: z.string().trim().min(1, '회차 제목을 입력해주세요.'),
+  folderId: z.string().uuid().nullable().optional(),
 });
 
 export interface ChapterMutationResult {
@@ -20,14 +23,39 @@ async function assertWorkOwnership(supabase: SupabaseClient, { ownerId, workId }
   return Boolean(data);
 }
 
+/** D-05: a chapter's folder_id, when set, must reference a real 회차-category
+ * kb_nodes folder belonging to the SAME work — Postgres CHECK constraints
+ * can't reference another table's row, so this is enforced here
+ * (RESEARCH.md §3), exactly mirroring assertWorkOwnership's shape. */
+async function assertChapterFolder(
+  supabase: SupabaseClient,
+  { workId, folderId }: { workId: string; folderId: string }
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('kb_nodes')
+    .select('id')
+    .eq('id', folderId)
+    .eq('work_id', workId)
+    .eq('category', '회차')
+    .eq('node_type', 'folder')
+    .is('deleted_at', null)
+    .maybeSingle();
+  return Boolean(data);
+}
+
 /** CONT-01: default order = current max + 1 for this work (or 0 if first). */
 export async function createChapter(
   supabase: SupabaseClient,
-  input: { ownerId: string; workId: string; title: string }
+  input: { ownerId: string; workId: string; title: string; folderId?: string | null }
 ): Promise<ChapterMutationResult> {
   const parsed = createChapterSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message };
   if (!(await assertWorkOwnership(supabase, input))) return { ok: false, error: '작품을 찾을 수 없어요.' };
+
+  const folderId = parsed.data.folderId ?? null;
+  if (folderId && !(await assertChapterFolder(supabase, { workId: input.workId, folderId }))) {
+    return { ok: false, error: ERROR_INVALID_FOLDER };
+  }
 
   const { data: maxRow } = await supabase
     .from('chapters')
@@ -41,7 +69,7 @@ export async function createChapter(
 
   const { data, error } = await supabase
     .from('chapters')
-    .insert({ work_id: input.workId, title: parsed.data.title, order_index: nextOrder })
+    .insert({ work_id: input.workId, title: parsed.data.title, order_index: nextOrder, folder_id: folderId })
     .select('id')
     .single();
 
@@ -112,7 +140,7 @@ export async function listChapters(supabase: SupabaseClient, { ownerId, workId }
   if (!(await assertWorkOwnership(supabase, { ownerId, workId }))) return [];
   const { data, error } = await supabase
     .from('chapters')
-    .select('id, title, order_index, is_published, price_tier')
+    .select('id, title, order_index, is_published, price_tier, folder_id')
     .eq('work_id', workId)
     .is('deleted_at', null)
     .order('order_index', { ascending: true });
