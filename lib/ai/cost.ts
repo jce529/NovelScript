@@ -11,12 +11,15 @@ export type ModelTier = 'lite' | 'pro';
 export const KRW_PER_WALLET_TOKEN = 10; // provisional: 1 wallet-토큰 ~= 10 KRW
 export const USD_TO_KRW = 1400; // provisional FX rate
 
-/** Gemini list pricing, USD per 1,000,000 tokens (04-RESEARCH.md, verified against
- * https://ai.google.dev/gemini-api/docs/pricing 2026-08-30). Re-verify before
- * implementation if this research goes stale — Gemini pricing changes monthly. */
+/** Gemini list pricing, USD per 1,000,000 tokens (verified against
+ * https://ai.google.dev/gemini-api/docs/pricing 2026-08-31). Both tiers currently
+ * call gemini-3.5-flash (see lib/ai/gemini.ts MODEL_TIER_TO_ID) since gemini-2.5-flash/pro
+ * were retired for new API keys — re-split this table once 프로 moves to a real
+ * pro-tier model. Re-verify before further changes if this pricing goes stale —
+ * Gemini pricing changes monthly. */
 export const GEMINI_PRICING_USD_PER_MILLION: Record<ModelTier, { input: number; output: number }> = {
-  lite: { input: 0.30, output: 2.50 },  // gemini-2.5-flash
-  pro: { input: 1.25, output: 10.00 }, // gemini-2.5-pro
+  lite: { input: 1.50, output: 9.00 }, // gemini-3.5-flash
+  pro: { input: 1.50, output: 9.00 },  // gemini-3.5-flash
 };
 
 /** How many wallet-토큰 one Gemini token of this kind actually costs the platform. */

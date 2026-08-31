@@ -44,7 +44,7 @@ describe('lib/ai/generate.ts — generate() (EDIT-04, D-13)', () => {
 
     const { data: after } = await admin.from('wallets').select('balance').eq('id', owner.id).single();
     // computeDebitAmount({modelTier:'lite', promptTokenCount:100, candidatesTokenCount:200})
-    // = ceil(100*0.000042 + 200*0.00035) = ceil(0.0742) = 1
+    // = ceil(100*0.00021 + 200*0.00126) = ceil(0.273) = 1
     expect(Number(before!.balance) - Number(after!.balance)).toBe(1);
   });
 
@@ -73,10 +73,10 @@ describe('lib/ai/generate.ts — generate() (EDIT-04, D-13)', () => {
 
     let capturedMaxOutputTokens: number | null = null;
     const client = createMockGeminiClient({
-      countTokens: async () => ({ totalTokens: 5000 }),
+      countTokens: async () => ({ totalTokens: 500 }),
       generateContent: async (params) => {
         capturedMaxOutputTokens = params.maxOutputTokens;
-        return { text: '일부만 생성됨', finishReason: 'MAX_TOKENS', promptTokenCount: 5000, candidatesTokenCount: params.maxOutputTokens, totalTokenCount: 5000 + params.maxOutputTokens };
+        return { text: '일부만 생성됨', finishReason: 'MAX_TOKENS', promptTokenCount: 500, candidatesTokenCount: params.maxOutputTokens, totalTokenCount: 500 + params.maxOutputTokens };
       },
     });
 
@@ -86,7 +86,7 @@ describe('lib/ai/generate.ts — generate() (EDIT-04, D-13)', () => {
       styleId: 'concise-hemingway', genre: '판타지', precedingText: '',
     });
 
-    expect(capturedMaxOutputTokens).toBe(89);
+    expect(capturedMaxOutputTokens).toBe(710);
     expect(result.ok).toBe(true);
     expect(result.wasCapped).toBe(true);
     expect(result.text).toBe('일부만 생성됨');

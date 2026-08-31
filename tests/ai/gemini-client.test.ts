@@ -3,7 +3,7 @@ import { createGeminiClient, createMockGeminiClient, MODEL_TIER_TO_ID } from '..
 
 describe('lib/ai/gemini.ts', () => {
   it('MODEL_TIER_TO_ID maps exactly the two Gemini-family tiers this phase supports', () => {
-    expect(MODEL_TIER_TO_ID).toEqual({ lite: 'gemini-2.5-flash', pro: 'gemini-2.5-pro' });
+    expect(MODEL_TIER_TO_ID).toEqual({ lite: 'gemini-3.5-flash', pro: 'gemini-3.5-flash' });
   });
 
   it('createGeminiClient throws a clear error when GEMINI_API_KEY is missing', () => {
