@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getWork } from '@/lib/works/actions';
-import { getKbTree } from '@/lib/kb/actions';
+import { getWorkKbNodes, getAccountSharedNodes } from '@/lib/kb/actions';
 import { buildTree } from '@/lib/kb/tree';
 import { KbTree } from '@/components/studio/kb-tree';
 import { ChaptersNavLink } from '@/components/studio/chapters-nav-link';
@@ -24,8 +24,14 @@ export default async function WorkLayout({
   const work = await getWork(supabase, { ownerId: user.id, workId });
   if (!work) redirect('/studio');
 
-  const flatNodes = await getKbTree(supabase, { ownerId: user.id, workId });
-  const tree = buildTree(flatNodes);
+  // Plan 04.1-05 (Wave 3) will rewire this sidebar into two explicit D-01
+  // sections (작품 폴더 / 계정 공유 폴더). Until then, keep the pre-existing
+  // merged-tree rendering working by combining both split queries here.
+  const [workNodes, accountNodes] = await Promise.all([
+    getWorkKbNodes(supabase, { ownerId: user.id, workId }),
+    getAccountSharedNodes(supabase, { ownerId: user.id }),
+  ]);
+  const tree = buildTree([...workNodes, ...accountNodes]);
 
   return (
     <div className="flex min-h-screen">

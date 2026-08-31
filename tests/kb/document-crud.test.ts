@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createNode, renameNode, deleteNode, saveNodeContent, getKbTree } from '../../lib/kb/actions';
+import { createNode, renameNode, deleteNode, saveNodeContent, getWorkKbNodes } from '../../lib/kb/actions';
 import { readCanonicalSeed } from '../../lib/kb/templates';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
 
@@ -80,7 +80,7 @@ describe('KB node CRUD (integration, lib/kb/actions.ts)', () => {
     expect(data!.name).toBe('이름바꾼후');
   });
 
-  it('soft-deletes a non-locked file and excludes it from a subsequent getKbTree call', async () => {
+  it('soft-deletes a non-locked file and excludes it from a subsequent getWorkKbNodes call', async () => {
     const created = await createNode(admin, {
       ownerId: owner.id, workId, parentId: personFolderId, category: '인물', nodeType: 'file', name: '삭제될문서',
     });
@@ -90,7 +90,7 @@ describe('KB node CRUD (integration, lib/kb/actions.ts)', () => {
     const { data } = await admin.from('kb_nodes').select('deleted_at').eq('id', created.nodeId!).single();
     expect(data!.deleted_at).not.toBeNull();
 
-    const tree = await getKbTree(admin, { ownerId: owner.id, workId });
+    const tree = await getWorkKbNodes(admin, { ownerId: owner.id, workId });
     expect(tree.some((n) => n.id === created.nodeId)).toBe(false);
   });
 

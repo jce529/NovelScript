@@ -2,29 +2,35 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FlatKbNode } from './tree';
 import { buildSeedContent, readCanonicalSeed, type KbCategory } from './templates';
 
-/** KB-02: merges the caller's work-scoped nodes with their account-level
- * template/ root + descendants into one flat list for buildTree to nest. */
-export async function getKbTree(
+/** KB-04 §2 (RESEARCH.md): 작품 폴더 and 계정 공유 폴더 are two separate, explicit
+ * tree sections in the UI (D-01) — each needs its own flat node list. Replaces
+ * the old getKbTree, which merged both scopes into one array (breaking change,
+ * intentional — see tests/kb/tree-query.test.ts, updated in this same plan). */
+export async function getWorkKbNodes(
   supabase: SupabaseClient,
   { ownerId, workId }: { ownerId: string; workId: string }
 ): Promise<FlatKbNode[]> {
-  const [workNodes, accountNodes] = await Promise.all([
-    supabase
-      .from('kb_nodes')
-      .select('id, parent_id, name, node_type, category, is_locked, scope')
-      .eq('owner_id', ownerId)
-      .eq('work_id', workId)
-      .eq('scope', 'work')
-      .is('deleted_at', null),
-    supabase
-      .from('kb_nodes')
-      .select('id, parent_id, name, node_type, category, is_locked, scope')
-      .eq('owner_id', ownerId)
-      .eq('scope', 'account_template')
-      .is('deleted_at', null),
-  ]);
+  const { data } = await supabase
+    .from('kb_nodes')
+    .select('id, parent_id, name, node_type, category, is_locked, scope')
+    .eq('owner_id', ownerId)
+    .eq('work_id', workId)
+    .eq('scope', 'work')
+    .is('deleted_at', null);
+  return (data ?? []) as FlatKbNode[];
+}
 
-  return [...(workNodes.data ?? []), ...(accountNodes.data ?? [])] as FlatKbNode[];
+export async function getAccountSharedNodes(
+  supabase: SupabaseClient,
+  { ownerId }: { ownerId: string }
+): Promise<FlatKbNode[]> {
+  const { data } = await supabase
+    .from('kb_nodes')
+    .select('id, parent_id, name, node_type, category, is_locked, scope')
+    .eq('owner_id', ownerId)
+    .eq('scope', 'account_template')
+    .is('deleted_at', null);
+  return (data ?? []) as FlatKbNode[];
 }
 
 export interface NodeMutationResult {
@@ -158,6 +164,65 @@ export async function createNode(
       is_locked: false,
       name,
       content,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    if (error.code === '23505') return { ok: false, error: FRIENDLY_NAME_COLLISION };
+    return { ok: false, error: error.message };
+  }
+  return { ok: true, nodeId: data.id };
+}
+
+/** KB-03: creates a folder anywhere below a root. `parentId: null` means
+ * directly under a root (work root when scope='work', 계정 공유 폴더 root when
+ * scope='account_template') — category is then 'custom' (RESEARCH.md §1). A
+ * non-null parentId means nested creation — category is ALWAYS derived from
+ * the resolved parent's own category server-side (RESEARCH.md Pitfall 2),
+ * never trusted from the caller, so a malicious/buggy client can never plant
+ * a folder with category='회차' outside the real 회차 subtree, or otherwise
+ * fake a structural category it shouldn't have. */
+export async function createFolder(
+  supabase: SupabaseClient,
+  input: {
+    ownerId: string;
+    workId: string | null; // null for scope='account_template'
+    scope: 'work' | 'account_template';
+    parentId: string | null;
+    name: string;
+  }
+): Promise<NodeMutationResult> {
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: '이름을 입력해주세요.' };
+
+  let category = 'custom';
+  if (input.parentId) {
+    const { data: parent } = await supabase
+      .from('kb_nodes')
+      .select('category, node_type, scope, work_id')
+      .eq('id', input.parentId)
+      .eq('owner_id', input.ownerId)
+      .is('deleted_at', null)
+      .maybeSingle();
+    if (!parent || parent.node_type !== 'folder' || parent.scope !== input.scope || parent.work_id !== input.workId) {
+      return { ok: false, error: '상위 폴더를 찾을 수 없어요.' };
+    }
+    category = parent.category;
+  }
+
+  const { data, error } = await supabase
+    .from('kb_nodes')
+    .insert({
+      owner_id: input.ownerId,
+      work_id: input.workId,
+      scope: input.scope,
+      parent_id: input.parentId,
+      node_type: 'folder',
+      category,
+      is_locked: false,
+      name,
+      content: null,
     })
     .select('id')
     .single();
