@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { createNode, renameNode, deleteNode, saveNodeContent, listTemplateOptions } from '@/lib/kb/actions';
+import { createNode, renameNode, deleteNode, saveNodeContent, listTemplateOptions, createFolder } from '@/lib/kb/actions';
 import type { KbCategory } from '@/lib/kb/templates';
 
 export async function getNodeContentAction(nodeId: string) {
@@ -45,6 +45,30 @@ export async function createNodeAction(
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await createNode(supabase, {
     ownerId: user.id, workId, parentId, category, nodeType, name, templateOverrideContent,
+  });
+  if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
+  return result;
+}
+
+/** KB-03: `workId` is always the CURRENT work page's id, used only for
+ * revalidation — even when scope='account_template' inserts a row with
+ * work_id=null (RESEARCH.md §2/§5.3). `parentId: null` = create directly
+ * under a root. */
+export async function createFolderAction(
+  workId: string,
+  scope: 'work' | 'account_template',
+  parentId: string | null,
+  name: string
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  const result = await createFolder(supabase, {
+    ownerId: user.id,
+    workId: scope === 'work' ? workId : null,
+    scope,
+    parentId,
+    name,
   });
   if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
   return result;

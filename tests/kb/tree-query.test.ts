@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildTree, type FlatKbNode } from '../../lib/kb/tree';
-import { getKbTree } from '../../lib/kb/actions';
+import { getWorkKbNodes, getAccountSharedNodes } from '../../lib/kb/actions';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
 
 function node(overrides: Partial<FlatKbNode> & Pick<FlatKbNode, 'id' | 'parent_id'>): FlatKbNode {
@@ -36,7 +36,7 @@ describe('buildTree (pure, lib/kb/tree.ts)', () => {
   });
 });
 
-describe('getKbTree (integration, lib/kb/actions.ts)', () => {
+describe('getWorkKbNodes / getAccountSharedNodes (integration, lib/kb/actions.ts)', () => {
   const admin = adminClient();
   let userA: { id: string };
   let userB: { id: string };
@@ -81,24 +81,22 @@ describe('getKbTree (integration, lib/kb/actions.ts)', () => {
     await deleteTestUser(userB.id);
   });
 
-  it("merges the work's own nodes with the owner's account-level template root + children, each tagged by scope", async () => {
-    const nodes = await getKbTree(admin, { ownerId: userA.id, workId: workAId });
-    const scopes = new Set(nodes.map((n) => n.scope));
-    expect(scopes.has('work')).toBe(true);
-    expect(scopes.has('account_template')).toBe(true);
-
-    // 6 fixed work-level folders (template/인물/장소/사건/세력/아이템)
-    const workNodeNames = nodes.filter((n) => n.scope === 'work').map((n) => n.name);
+  it("getWorkKbNodes returns only the work's own nodes (6 fixed structural folders), tagged scope='work'", async () => {
+    const nodes = await getWorkKbNodes(admin, { ownerId: userA.id, workId: workAId });
+    expect(nodes.every((n) => n.scope === 'work')).toBe(true);
+    const workNodeNames = nodes.map((n) => n.name);
     expect(workNodeNames).toEqual(expect.arrayContaining(['template', '인물', '장소', '사건', '세력', '아이템']));
-
-    // account-level template root + the one child we inserted
-    const accountNodes = nodes.filter((n) => n.scope === 'account_template');
-    expect(accountNodes.some((n) => n.name === 'template' && n.node_type === 'folder')).toBe(true);
-    expect(accountNodes.some((n) => n.name === '인물' && n.node_type === 'file')).toBe(true);
   });
 
-  it('returns an empty result for a work belonging to a different owner (no cross-owner leakage)', async () => {
-    const nodes = await getKbTree(admin, { ownerId: userB.id, workId: workAId });
+  it("getAccountSharedNodes returns only the owner's account-shared nodes (template root + children), tagged scope='account_template'", async () => {
+    const nodes = await getAccountSharedNodes(admin, { ownerId: userA.id });
+    expect(nodes.every((n) => n.scope === 'account_template')).toBe(true);
+    expect(nodes.some((n) => n.name === 'template' && n.node_type === 'folder')).toBe(true);
+    expect(nodes.some((n) => n.name === '인물' && n.node_type === 'file')).toBe(true);
+  });
+
+  it('getWorkKbNodes returns an empty result for a work belonging to a different owner (no cross-owner leakage)', async () => {
+    const nodes = await getWorkKbNodes(admin, { ownerId: userB.id, workId: workAId });
     expect(nodes).toEqual([]);
   });
 });
