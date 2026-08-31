@@ -4,7 +4,7 @@ import { useEffect, useState, type RefObject } from 'react';
 import getCaretCoordinates from 'textarea-caret';
 import { Popover } from '@base-ui/react/popover';
 import { Command, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { User, MapPin, Zap, Shield, Package } from 'lucide-react';
+import { User, MapPin, Zap, Shield, Package, Folder } from 'lucide-react';
 import type { KbCategory } from '@/lib/kb/templates';
 import { searchMentionsAction } from '../actions';
 import { QuickAddDialog } from './QuickAddDialog';
@@ -12,7 +12,8 @@ import { QuickAddDialog } from './QuickAddDialog';
 export interface MentionCandidate {
   id: string;
   name: string;
-  category: KbCategory;
+  category: KbCategory | 'custom' | 'template';
+  scope?: 'work' | 'account_template';
 }
 
 export interface MentionAutocompleteProps {
@@ -23,9 +24,17 @@ export interface MentionAutocompleteProps {
   onMention: (candidate: MentionCandidate) => void;
 }
 
-const CATEGORY_ICON: Record<KbCategory, typeof User> = {
+const CATEGORY_ICON: Record<string, typeof User> = {
   인물: User, 장소: MapPin, 사건: Zap, 세력: Shield, 아이템: Package,
 };
+
+/** UI-SPEC Copywriting Contract: never render the raw internal 'custom'/
+ * 'template' category string to the writer. */
+function mentionTrailingText(candidate: MentionCandidate): string {
+  if (candidate.scope === 'account_template') return '계정 공유';
+  if (candidate.category === 'custom') return '사용자 폴더';
+  return candidate.category;
+}
 
 /** D-02: caret-anchored mention search overlay on the existing plain <textarea>.
  * Composes @base-ui/react/popover primitives DIRECTLY (Pitfall 3) rather than the
@@ -98,7 +107,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
                     ) : (
                       <CommandGroup>
                         {results.map((candidate) => {
-                          const Icon = CATEGORY_ICON[candidate.category];
+                          const Icon = CATEGORY_ICON[candidate.category] ?? Folder;
                           return (
                             <CommandItem
                               key={candidate.id}
@@ -107,7 +116,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
                             >
                               <Icon className="size-4 text-muted-foreground" />
                               <span className="flex-1">{candidate.name}</span>
-                              <span className="text-xs text-muted-foreground">{candidate.category}</span>
+                              <span className="text-xs text-muted-foreground">{mentionTrailingText(candidate)}</span>
                             </CommandItem>
                           );
                         })}
@@ -126,7 +135,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
         open={quickAddOpen}
         onOpenChange={setQuickAddOpen}
         initialName={query}
-        onCreated={(node) => { consumeTrigger(); onMention(node); setQuickAddOpen(false); }}
+        onCreated={(node) => { consumeTrigger(); onMention({ ...node, scope: 'work' }); setQuickAddOpen(false); }}
       />
     </>
   );
