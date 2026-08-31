@@ -78,4 +78,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-30 after Phase 3 (reader-core-reading-loop-no-payment) completion*
+*Last updated: 2026-08-31 after Phase 04.1 (KB 커스텀 폴더 + 회차 폴더 트리) completion*
