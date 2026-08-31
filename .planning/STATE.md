@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 04.1-01-PLAN.md (schema foundation)
-last_updated: "2026-08-31T10:10:29.348Z"
+status: executing
+stopped_at: Completed 04.1-04-PLAN.md (cross-scope mention search)
+last_updated: "2026-08-31T10:38:16.018Z"
 last_activity: 2026-08-31
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 29
-  completed_plans: 25
-  percent: 86
+  completed_plans: 26
+  percent: 90
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 04.1-kb (KB custom folders + 회차 folder tree)
-Plan: 1 of 5
-Status: Plan 01 (schema foundation) complete — Plans 02-05 remaining
+Plan: 4 of 5
+Status: Plan 01 (schema foundation) and Plan 04 (cross-scope mention search) complete — Plans 02/03 executing in parallel worktrees, Plan 05 pending wave completion
 Last activity: 2026-08-31
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 86%
 | Phase 04 P05 | 12min | 3 tasks | 2 files |
 | Phase 04 P06 | 35min | 3 tasks | 6 files |
 | Phase 04.1 P01 | 25min | 2 tasks | 3 files |
+| Phase 04.1 P04 | 20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-06: MentionAutocomplete/QuickAddDialog live, page.tsx wires Textarea+AiPanel side-by-side (D-01) with cursor-position text insertion; found+fixed a page-breaking bug during live checkpoint verification — a client component importing KB_CATEGORIES (value, not type) from lib/kb/templates.ts pulled that module's node:fs/promises import into the browser bundle, panicking Turbopack on every chapter editor load; fixed by extracting KbCategory/KB_CATEGORIES into fs-free lib/kb/categories.ts. All 6 Phase 4 plans complete; live Gemini generation (cost estimate accuracy, real API round-trip, wallet debit against a real balance) still untested pending user-supplied GEMINI_API_KEY — do not treat EDIT-04/EDIT-05 as fully verified until that happens.
 
 - [Phase 04.1]: Plan 04.1-01: schema migration (0004_kb_custom_folders.sql) live - kb_nodes.category widened to 회차/custom, Phase 2 lock regression fixed (all 7 structural folders locked), 회차 seeded+backfilled (D-06), chapters.folder_id added (D-05), guard trigger blocks KB files under 회차 (D-04), soft_delete_kb_node cascade-safe
+- [Phase 04.1]: Plan 04.1-04: lib/ai/mentions.ts searchMentionNodes/getMentionedNodesContent made cross-scope-aware (work-scoped + account_template-scoped, two-query-then-merge, owner_id-scoped one-directional per D-10); MentionAutocomplete.tsx shows '계정 공유'/'사용자 폴더' trailing text per UI-SPEC Copywriting Contract, never the raw category sentinel; live-verified end-to-end against a real Gemini call
 
 ### Roadmap Evolution
 
@@ -123,6 +125,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-31T10:10:29.344Z
-Stopped at: Completed 04.1-01-PLAN.md (schema foundation)
-Resume file: .planning/phases/04.1-kb/04.1-02-PLAN.md
+Last session: 2026-08-31T10:38:16.012Z
+Stopped at: Completed 04.1-04-PLAN.md (cross-scope mention search)
+Resume file: .planning/phases/04.1-kb/04.1-05-PLAN.md (pending wave completion — 04.1-02/04.1-03 may still be executing in parallel worktrees)
