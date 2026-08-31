@@ -7,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { submitCreateChapter } from './actions';
 
-export default function NewChapterPage({ params }: { params: Promise<{ workId: string }> }) {
+export default function NewChapterPage({
+  params, searchParams,
+}: { params: Promise<{ workId: string }>; searchParams: Promise<{ folderId?: string }> }) {
   const { workId } = use(params);
+  const { folderId } = use(searchParams);
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +19,7 @@ export default function NewChapterPage({ params }: { params: Promise<{ workId: s
 
   const submit = () =>
     startTransition(async () => {
-      const result = await submitCreateChapter(workId, title);
+      const result = await submitCreateChapter(workId, title, folderId ?? null);
       if (!result.ok) {
         setError(result.error ?? '저장하지 못했어요. 잠시 후 다시 시도해주세요.');
         return;
