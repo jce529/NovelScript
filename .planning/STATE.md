@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 04.1-01-PLAN.md (schema foundation)
-last_updated: "2026-08-31T10:10:29.348Z"
+status: executing
+stopped_at: Completed 04.1-03-PLAN.md
+last_updated: "2026-08-31T10:17:39.564Z"
 last_activity: 2026-08-31
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 29
-  completed_plans: 25
+  completed_plans: 26
   percent: 86
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 04.1-kb (KB custom folders + 회차 folder tree)
-Plan: 1 of 5
-Status: Plan 01 (schema foundation) complete — Plans 02-05 remaining
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-08-31
 
 Progress: [█████████░] 86%
@@ -72,6 +72,7 @@ Progress: [█████████░] 86%
 | Phase 04 P05 | 12min | 3 tasks | 2 files |
 | Phase 04 P06 | 35min | 3 tasks | 6 files |
 | Phase 04.1 P01 | 25min | 2 tasks | 3 files |
+| Phase 04.1-kb P03 | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-06: MentionAutocomplete/QuickAddDialog live, page.tsx wires Textarea+AiPanel side-by-side (D-01) with cursor-position text insertion; found+fixed a page-breaking bug during live checkpoint verification — a client component importing KB_CATEGORIES (value, not type) from lib/kb/templates.ts pulled that module's node:fs/promises import into the browser bundle, panicking Turbopack on every chapter editor load; fixed by extracting KbCategory/KB_CATEGORIES into fs-free lib/kb/categories.ts. All 6 Phase 4 plans complete; live Gemini generation (cost estimate accuracy, real API round-trip, wallet debit against a real balance) still untested pending user-supplied GEMINI_API_KEY — do not treat EDIT-04/EDIT-05 as fully verified until that happens.
 
 - [Phase 04.1]: Plan 04.1-01: schema migration (0004_kb_custom_folders.sql) live - kb_nodes.category widened to 회차/custom, Phase 2 lock regression fixed (all 7 structural folders locked), 회차 seeded+backfilled (D-06), chapters.folder_id added (D-05), guard trigger blocks KB files under 회차 (D-04), soft_delete_kb_node cascade-safe
+- [Phase 04.1-kb]: Plan 04.1-03: chapters.folder_id validated write path (assertChapterFolder, D-05) + groupChaptersByFolder pure UI-merge helper landed; /chapters/new accepts optional folderId; test used lib/kb/actions.ts's actual createNode export (plan referenced a nonexistent createFolder)
 
 ### Roadmap Evolution
 
@@ -123,6 +125,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-31T10:10:29.344Z
-Stopped at: Completed 04.1-01-PLAN.md (schema foundation)
-Resume file: .planning/phases/04.1-kb/04.1-02-PLAN.md
+Last session: 2026-08-31T10:17:39.559Z
+Stopped at: Completed 04.1-03-PLAN.md
+Resume file: None
