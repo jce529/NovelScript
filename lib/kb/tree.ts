@@ -28,3 +28,29 @@ export function buildTree(flatNodes: FlatKbNode[]): TreeNode[] {
   }
   return roots;
 }
+
+export interface ChapterLeaf {
+  id: string;
+  title: string;
+  isPublished: boolean;
+}
+
+/** KB-05 §4 (RESEARCH.md): pure UI-layer merge — chapters stay their own table
+ * (D-05), the tree never contains real chapter kb_nodes rows. Buckets a flat
+ * chapter list by the folder node id it should render under: folder_id===null
+ * means "at the 회차 root", so those chapters are keyed under chapterRootId;
+ * a real folder_id is used verbatim — it already IS a validated kb_nodes id
+ * (assertChapterFolder enforces this at write time), so no ancestor_ids/depth
+ * walk is needed here (those columns are dead — see RESEARCH.md Don't Hand-Roll). */
+export function groupChaptersByFolder(
+  chapters: Array<{ id: string; title: string; isPublished: boolean; folderId: string | null }>,
+  chapterRootId: string | null
+): Record<string, ChapterLeaf[]> {
+  const grouped: Record<string, ChapterLeaf[]> = {};
+  for (const chapter of chapters) {
+    const key = chapter.folderId ?? chapterRootId;
+    if (!key) continue;
+    (grouped[key] ??= []).push({ id: chapter.id, title: chapter.title, isPublished: chapter.isPublished });
+  }
+  return grouped;
+}

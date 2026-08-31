@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04.1-02-PLAN.md (KB data layer split + createFolder)
-last_updated: "2026-08-31T10:17:28.708Z"
+stopped_at: Completed 04.1-02-PLAN.md and 04.1-03-PLAN.md
+last_updated: "2026-08-31T10:17:39.564Z"
 last_activity: 2026-08-31
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 29
-  completed_plans: 26
-  percent: 86
+  completed_plans: 27
+  percent: 93
 ---
 
 # Project State
@@ -72,7 +72,8 @@ Progress: [█████████░] 86%
 | Phase 04 P05 | 12min | 3 tasks | 2 files |
 | Phase 04 P06 | 35min | 3 tasks | 6 files |
 | Phase 04.1 P01 | 25min | 2 tasks | 3 files |
-| Phase 04.1 P02 | 12 | 2 tasks | 6 files |
+| Phase 04.1 P02 | 12min | 2 tasks | 6 files |
+| Phase 04.1 P03 | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Recent decisions affecting current work:
 
 - [Phase 04.1]: Plan 04.1-01: schema migration (0004_kb_custom_folders.sql) live - kb_nodes.category widened to 회차/custom, Phase 2 lock regression fixed (all 7 structural folders locked), 회차 seeded+backfilled (D-06), chapters.folder_id added (D-05), guard trigger blocks KB files under 회차 (D-04), soft_delete_kb_node cascade-safe
 - [Phase 04.1]: Plan 04.1-02: getWorkKbNodes/getAccountSharedNodes split + createFolder (server-derived category, root=custom/nested=inherited) live in lib/kb/actions.ts; fixed getKbTree-removal breakage in the live studio sidebar layout.tsx and document-crud.test.ts as blocking-issue deviations
+- [Phase 04.1]: Plan 04.1-03: chapters.folder_id validated write path (assertChapterFolder, D-05) + groupChaptersByFolder pure UI-merge helper landed; /chapters/new accepts optional folderId. Executed in parallel with 04.1-02 in an isolated worktree that predated createFolder's merge, so its test used lib/kb/actions.ts's pre-existing createNode export instead — createFolder now exists on master post-merge and is unaffected.
 
 ### Roadmap Evolution
 
@@ -125,6 +127,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-31T10:17:28.704Z
-Stopped at: Completed 04.1-02-PLAN.md (KB data layer split + createFolder)
+Last session: 2026-08-31T10:17:39.559Z
+Stopped at: Completed 04.1-02-PLAN.md and 04.1-03-PLAN.md
 Resume file: None
