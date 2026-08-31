@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04.1-02, 04.1-03, and 04.1-04-PLAN.md
-last_updated: "2026-08-31T10:38:16.018Z"
+stopped_at: Completed 04.1-05-PLAN.md (final plan of Phase 04.1)
+last_updated: "2026-08-31T10:55:02.073Z"
 last_activity: 2026-08-31
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 29
-  completed_plans: 28
+  completed_plans: 29
   percent: 97
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 04.1-kb (KB custom folders + 회차 folder tree)
-Plan: 4 of 5
-Status: Plans 01-04 complete (schema, KB tree split, chapter folder grouping, cross-scope mention search) — Plan 05 (KB tree UI wiring) ready to execute
+Plan: 5 of 5
+Status: Ready to execute
 Last activity: 2026-08-31
 
 Progress: [█████████░] 97%
@@ -75,6 +75,7 @@ Progress: [█████████░] 97%
 | Phase 04.1 P02 | 12min | 2 tasks | 6 files |
 | Phase 04.1 P03 | 20min | 2 tasks | 6 files |
 | Phase 04.1 P04 | 20min | 3 tasks | 3 files |
+| Phase 04.1-kb P05 | 25min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Recent decisions affecting current work:
 - [Phase 04.1]: Plan 04.1-02: getWorkKbNodes/getAccountSharedNodes split + createFolder (server-derived category, root=custom/nested=inherited) live in lib/kb/actions.ts; fixed getKbTree-removal breakage in the live studio sidebar layout.tsx and document-crud.test.ts as blocking-issue deviations
 - [Phase 04.1]: Plan 04.1-03: chapters.folder_id validated write path (assertChapterFolder, D-05) + groupChaptersByFolder pure UI-merge helper landed; /chapters/new accepts optional folderId. Executed in parallel with 04.1-02 in an isolated worktree that predated createFolder's merge, so its test used lib/kb/actions.ts's pre-existing createNode export instead — createFolder now exists on master post-merge and is unaffected.
 - [Phase 04.1]: Plan 04.1-04: lib/ai/mentions.ts searchMentionNodes/getMentionedNodesContent made cross-scope-aware (work-scoped + account_template-scoped, two-query-then-merge, owner_id-scoped one-directional per D-10); MentionAutocomplete.tsx shows '계정 공유'/'사용자 폴더' trailing text per UI-SPEC Copywriting Contract, never the raw category sentinel; live-verified end-to-end against a real Gemini call — confirmed the mention picker is wired to the main manuscript Textarea (not the AiPanel chat input), and getMentionedNodesContent's fix correctly surfaces account-shared doc content in chat replies
+- [Phase 04.1-kb]: Plan 04.1-05: two-section KB sidebar (작품 폴더/계정 공유 폴더) with folder-creation at both roots and every folder row; 회차 folded into the tree as a Link with chapter leaves via chaptersByFolderId; standalone ChaptersNavLink removed
 
 ### Roadmap Evolution
 
@@ -129,6 +131,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-31T10:38:16.012Z
-Stopped at: Completed 04.1-02, 04.1-03, and 04.1-04-PLAN.md (all Wave 2 plans)
-Resume file: .planning/phases/04.1-kb/04.1-05-PLAN.md (Wave 3 — ready to execute)
+Last session: 2026-08-31T10:55:02.068Z
+Stopped at: Completed 04.1-05-PLAN.md (final plan of Phase 04.1)
+Resume file: None

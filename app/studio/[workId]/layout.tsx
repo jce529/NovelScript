@@ -4,10 +4,12 @@ import { ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getWork } from '@/lib/works/actions';
 import { getWorkKbNodes, getAccountSharedNodes } from '@/lib/kb/actions';
-import { buildTree } from '@/lib/kb/tree';
+import { listChapters } from '@/lib/chapters/actions';
+import { buildTree, groupChaptersByFolder } from '@/lib/kb/tree';
 import { KbTree } from '@/components/studio/kb-tree';
-import { ChaptersNavLink } from '@/components/studio/chapters-nav-link';
+import { CreateRootFolderButton } from '@/components/studio/kb-node-dialogs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 export default async function WorkLayout({
   children,
@@ -24,14 +26,20 @@ export default async function WorkLayout({
   const work = await getWork(supabase, { ownerId: user.id, workId });
   if (!work) redirect('/studio');
 
-  // Plan 04.1-05 (Wave 3) will rewire this sidebar into two explicit D-01
-  // sections (작품 폴더 / 계정 공유 폴더). Until then, keep the pre-existing
-  // merged-tree rendering working by combining both split queries here.
-  const [workNodes, accountNodes] = await Promise.all([
+  const [workNodes, accountNodes, chapters] = await Promise.all([
     getWorkKbNodes(supabase, { ownerId: user.id, workId }),
     getAccountSharedNodes(supabase, { ownerId: user.id }),
+    listChapters(supabase, { ownerId: user.id, workId }),
   ]);
-  const tree = buildTree([...workNodes, ...accountNodes]);
+
+  const workTree = buildTree(workNodes);
+  const accountTree = buildTree(accountNodes);
+  const chapterRoot = workTree.find((n) => n.category === '회차' && n.parent_id === null);
+  const chaptersByFolderId = groupChaptersByFolder(
+    chapters.map((c) => ({ id: c.id, title: c.title, isPublished: c.is_published, folderId: c.folder_id })),
+    chapterRoot?.id ?? null
+  );
+  const hasCustomSharedFolders = accountTree.some((n) => n.category !== 'template');
 
   return (
     <div className="flex min-h-screen">
@@ -42,11 +50,25 @@ export default async function WorkLayout({
         >
           <ArrowLeft size={12} /> 작품 목록
         </Link>
-        <div className="p-4 font-medium">{work.title}</div>
-        {/* D-14: pinned, always-visible — rendered alongside (not inside) the KB
-            tree so chapters navigation is never lost while browsing KB docs. */}
-        <ChaptersNavLink workId={workId} />
-        <KbTree nodes={tree} />
+        <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
+          <span className="truncate">{work.title}</span>
+          <CreateRootFolderButton workId={workId} scope="work" />
+        </div>
+        <KbTree nodes={workTree} chaptersByFolderId={chaptersByFolderId} workId={workId} />
+
+        <Separator className="my-6" />
+
+        <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
+          <span>계정 공유 폴더</span>
+          <CreateRootFolderButton workId={workId} scope="account_template" />
+        </div>
+        {!hasCustomSharedFolders && (
+          <div className="flex flex-col gap-1 px-4 py-6 text-center">
+            <h3 className="text-sm font-semibold">공유 폴더가 아직 없어요</h3>
+            <p className="text-xs text-muted-foreground">여러 작품에서 함께 쓸 폴더를 만들어보세요.</p>
+          </div>
+        )}
+        <KbTree nodes={accountTree} chaptersByFolderId={{}} workId={workId} />
       </ScrollArea>
       <main className="flex-1 p-8">{children}</main>
     </div>
