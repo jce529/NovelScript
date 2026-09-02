@@ -33,9 +33,9 @@ created: 2026-09-02
 | Font | Geist Sans (`--font-sans`), Tailwind v4, CSS variables in `app/globals.css` |
 | Framework | Next.js 16.3.2 App Router, RSC enabled |
 
-**Components needed this phase: zero new installs.** `dialog`, `badge`, `button`, `popover`, `sonner` are all in the Installed Components list (`npx shadcn info`, 2026-09-02). `<Toaster />` is already mounted in `app/layout.tsx`, and `toast()` from `sonner` is already used in 6 app files — **the toast primitive required by D-07 exists; nothing must be built for it.** The dialog primitive required by D-03 exists (`components/ui/dialog.tsx`, base-ui `Dialog.*`).
+**Components needed this phase: zero new installs.** `dialog`, `badge`, `button`, `popover`, `sonner` are all in the Installed Components list (`npx shadcn info`, 2026-09-02). `<Toaster />` is already mounted in `app/layout.tsx`, and `toast()` from `sonner` is already used in 7 app files — **the toast primitive required by D-07 exists; nothing must be built for it.** The dialog primitive required by D-03 exists (`components/ui/dialog.tsx`, base-ui `Dialog.*`).
 
-New lucide icons used, all present in the installed package: `Plus` (진입점), `Loader2` (awaiting spinner — already used inside `components/ui/sonner.tsx` with `animate-spin`), `Check` (selected tier). `Coins` is already imported by `account-panel.tsx`.
+New lucide icons used, all present in the installed package: `Plus` (진입점), `Loader2` (awaiting spinner — the same icon already spins inside `components/ui/sonner.tsx`, imported there under its `Loader2Icon` alias; both names are valid `lucide-react` exports of one icon. This phase's new code writes `Loader2`.), `Check` (selected tier). `Coins` is already imported by `account-panel.tsx`.
 
 ### Component inventory (files this phase creates or touches)
 
@@ -55,7 +55,7 @@ Inherited verbatim from Phase 2:
 
 | Token | Value | Usage in this phase |
 |-------|-------|---------------------|
-| xs | 4px | Gap between rows inside a tier card (`gap-1`), icon-to-label gap |
+| xs | 4px | Gap between rows inside a tier card (`gap-1`) |
 | sm | 8px | Tier grid gap (`gap-2`), gap between CTA and its helper line |
 | md | 16px | Tier card internal padding (`p-4`), dialog body gap between blocks (`gap-4`, DialogContent default) |
 | lg | 24px | — (not used this phase) |
@@ -70,6 +70,7 @@ Inherited verbatim from Phase 2:
 - **AccountPanel popover icon buttons: 28px hit area** (`size-7`). Not a new rule — it matches the two icon buttons already shipped in that popover (계정 설정 `Link`, 닫기 `PopoverPrimitive.Close`, both `size-7`). The new `+` button MUST be `size-7` for optical alignment with them, and MUST carry an `aria-label` (below 44px, icon-only — same requirement Phase 2 attached to its 24px exception).
 - **Primary payment CTA height: 44px** (`h-11`). The shadcn `Button size="lg"` is 36px; the 결제하기 CTA and the awaiting-state 닫기 button override to `h-11` because they are the primary thumb targets of a real-money flow that must work on a phone (Toss redirects the full page on mobile). 44 is a multiple of 4 and is the same touch-safe value Phase 2 already declared for chapter rows.
 - **Tier card: no fixed height.** All four cards render an identical 3-row structure (see [Tier card](#tier-card-contract)) so the CSS grid rows stay visually even without a hard-coded height.
+- **아이콘 클러스터 6px** (`gap-1.5`) — 이미 출하된 `components/layout/account-panel.tsx:47`의 `gap-1.5`(Coins↔보유 토큰)와 광학 정렬을 맞추기 위한 **상속 예외**. 4의 배수가 아니지만 이 phase가 새로 만든 값이 아니다 — 모달의 보유 토큰 행은 그 출하된 행을 verbatim으로 재사용하므로(→ [보유 토큰 summary row](#보유-토큰-summary-row-tier-select-only)) 값을 4의 배수로 바꾸는 순간 verbatim 재사용이 깨진다. 허용 범위는 **아이콘이 들어간 수평 클러스터 2곳뿐**: 재사용된 보유 토큰 행(Coins↔라벨)과 tier card row 1의 badge↔Check 클러스터. 그 외 어디에도 `gap-1.5`를 새로 도입하지 말 것 — 나머지는 전부 4의 배수다.
 
 ---
 
@@ -97,7 +98,9 @@ Inherited verbatim from Phase 2:
 
 **Inherited exception — dialog titles render at 16px/500**, the `DialogTitle` primitive default (`font-heading text-base leading-none font-medium`), not Heading 20px. This is the de-facto convention already shipped by every dialog in the repo (새 문서 만들기, 신고하기, QuickAdd). Do **not** upsize the 충전소 title to 20px; consistency with sibling dialogs outranks the table above. No 5th font size is introduced by new prose — 16px appears only via the untouched primitive.
 
-**Weight reconciliation (read before flagging a third weight):** the declared inventory is 400 + 600. `font-medium` (500) is shipped by the shadcn primitives themselves (`Button`, `Badge`, `DialogTitle`) and by the already-live AccountPanel balance figure (`<span className="font-medium">`). This phase uses 500 **only** where a primitive or an already-shipped sibling element already uses it — i.e. button labels, badge text, dialog title, and the tier price figure (which mirrors the AccountPanel balance figure it is conceptually paired with). New prose (descriptions, helper lines, awaiting copy) uses 400 only.
+**Weight reconciliation (read before flagging a third weight):** the declared inventory is 400 + 600. `font-medium` (500) is shipped by the shadcn primitives themselves (`Button`, `Badge`, `DialogTitle`) and by the already-live AccountPanel balance figure (`<span className="font-medium">`). This phase uses 500 **only** where a primitive or an already-shipped sibling element already uses it — i.e. button labels, badge text, dialog title, the reused balance figure, and the tier price figure (which mirrors that balance figure it is conceptually paired with). New prose (descriptions, helper lines, awaiting copy) uses 400 only.
+
+**The complete list of 500 sites in this phase is exactly these five — nothing else may be added:** (1) `Button` labels, (2) `Badge` text, (3) `DialogTitle`, (4) the balance figure inside the reused 보유 토큰 row, (5) the tier card 원화 가격 (`text-sm font-medium`, which mirrors (4) — the figure it is conceptually paired with). In particular the awaiting title **`결제를 확인하고 있어요` is 400** (`text-sm`, no `font-medium`): its hierarchy over the line beneath comes from size and color (`text-sm` foreground vs `text-xs text-muted-foreground`), not weight. Do not add `font-medium` to it during implementation.
 
 ---
 
@@ -203,8 +206,30 @@ Likewise, `use-topup-flow.ts` is mounted by **AccountPanel**, not by the dialog 
 | Body rhythm | `DialogContent`'s built-in `grid gap-4` (16px) between blocks: header → 보유 토큰 row → tier grid → CTA block |
 | Title | `DialogTitle`: **"토큰 충전소"** (16px/500 primitive default) |
 | Description | `DialogDescription`: **"충전할 토큰 묶음을 선택해주세요."** |
-| Close affordance | `DialogContent` default X (top-right, `ghost` `icon-sm`) — **except in `redirecting`**, where it is hidden |
+| Close affordance | **Custom** X — not the `DialogContent` default (see [Close button accessible name](#close-button-accessible-name)). Visually identical: top-right, `ghost` `icon-sm`. Not rendered in `redirecting`. |
 | Backdrop | Primitive default (`bg-black/10` + `backdrop-blur-xs`) — unchanged |
+
+#### Close button accessible name
+
+`components/ui/dialog.tsx`'s built-in close button hard-codes an English accessible name — `<span className="sr-only">Close</span>` (`dialog.tsx:75`) — with no prop to override it. In a fully Korean modal that leaks "Close" to screen-reader users only, where no sighted reviewer will catch it. The shipped precedent one layer up is Korean: `account-panel.tsx:38` labels its popover close `aria-label="닫기"`.
+
+**Mechanism (binding):** pass `showCloseButton={false}` to `DialogContent` and render a custom close inside the dialog body, matching the primitive's own markup and position:
+
+```tsx
+<DialogContent showCloseButton={false} className="sm:max-w-md">
+  …
+  {state !== 'redirecting' && (
+    <DialogClose render={<Button variant="ghost" size="icon-sm" className="absolute top-2 right-2" />}>
+      <XIcon />
+      <span className="sr-only">닫기</span>
+    </DialogClose>
+  )}
+</DialogContent>
+```
+
+**Do not edit `components/ui/dialog.tsx` to fix this.** That primitive is shared by 새 문서 만들기 / 신고하기 / QuickAdd; changing its default string is a repo-wide change that belongs in its own change, not smuggled into a payment phase. The `showCloseButton={false}` prop already exists precisely for this.
+
+This also removes the need for a separate hide-the-X rule in `redirecting` — the custom close is simply not rendered in that state.
 
 ### 보유 토큰 summary row (tier-select only)
 
@@ -213,17 +238,19 @@ Reuse the AccountPanel row verbatim so the two surfaces read as one object: `fle
 ### Tier grid
 
 ```
-container: role="radiogroup" aria-label="충전할 토큰 묶음"
+container: role="group" aria-label="충전할 토큰 묶음"
            className="grid grid-cols-1 gap-2 sm:grid-cols-2"
 ```
 
 - `<640px`: 1 column, 4 stacked cards (mobile — mandatory, Toss redirects the full page on mobile).
 - `≥640px`: 2×2 grid.
 
+**Why `aria-pressed` and not `role="radiogroup"`/`role="radio"`:** the ARIA radiogroup pattern mandates a roving tabindex (exactly one card in the Tab order) plus arrow-key navigation between cards. This phase deliberately puts **all four cards in the natural Tab order** — it is a four-item, single-screen, real-money choice, and Tab-through is the behaviour a keyboard user gets from every other card grid in this repo. Toggle-button semantics (`aria-pressed`) is the correct pattern for that. Do **not** mix the two: no `role="radio"`, no `aria-checked`, no `tabIndex={-1}`, no arrow-key handler.
+
 ### Tier card contract
 
 ```
-element: <button type="button" role="radio" aria-checked={selected}>
+element: <button type="button" aria-pressed={selected}>
 base:    flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors
          focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none
 unselected: border-border  hover:bg-muted
@@ -235,11 +262,11 @@ Row structure — identical for all four cards:
 
 | Row | Content | Type |
 |-----|---------|------|
-| 1 | `1,000 토큰` (left) · `10% 할인` Badge `variant="secondary"` (right, omitted on tier 1) · `Check` icon `size-4 text-primary` replaces the badge slot **only when selected** — no, see rule below | Heading 20/600 |
+| 1 | `1,000 토큰` (left) · 오른쪽 클러스터: `10% 할인` Badge `variant="secondary"` (tier 1은 배지 없음) + **선택 시 배지 뒤에 `Check` 아이콘(`size-4 text-primary`) 추가** | Heading 20/600 |
 | 2 | `9,000원` | Body 14/500 |
 | 3 | `10,000원` struck-through muted, or `기준 가격` on tier 1 | Label 12/400 |
 
-**Check-icon rule (disambiguates row 1):** the discount badge is never replaced. When a card is selected, a `Check` icon (`size-4 text-primary`) is appended **after** the badge in the same right-hand cluster (`flex items-center gap-1.5`). Selection is therefore signalled by three redundant channels — border, ring/tint, and the check icon — so it survives both color-blindness and the `aria-checked` audit.
+**Check-icon rule:** 배지는 **절대 대체되지 않는다.** 카드가 선택되면 `Check` 아이콘(`size-4 text-primary`)이 같은 오른쪽 클러스터 안에서 배지 **뒤에** 추가될 뿐이다 — 배지가 없는 tier 1에서는 Check 아이콘만 그 자리에 놓인다. 클러스터는 `flex items-center gap-1.5`([상속 예외](#spacing-scale)). 선택은 border, ring/tint, Check 아이콘 세 채널로 중복 신호되므로 색각 이상에서도, `aria-pressed` 감사에서도 살아남는다.
 
 **Default selection: none.** The dialog opens with no tier selected and the CTA disabled. Rationale: this is a real-money action; an explicit choice must precede an explicit confirm. Do not pre-select a tier.
 
@@ -267,7 +294,7 @@ No `취소` button in the footer — the dialog's X (and Escape/backdrop) is the
      className="flex flex-col items-center gap-4 py-8 text-center">
   <Loader2 aria-hidden className="size-8 animate-spin text-muted-foreground" />
   <div className="flex flex-col gap-1">
-    <p className="text-sm font-medium">결제를 확인하고 있어요</p>
+    <p className="text-sm">결제를 확인하고 있어요</p>
     <p className="text-xs text-muted-foreground">{body}</p>
   </div>
 </div>
@@ -290,8 +317,34 @@ Exactly four states. No others may be introduced.
 |-------|---------|--------------|-------|
 | `closed` | nothing | — | `+` click → `tier-select` · URL return marker on mount → `awaiting-credit` or `tier-select` |
 | `tier-select` | header + 보유 토큰 row + tier grid + CTA block | **Yes** — X, Escape, backdrop press | CTA press → `redirecting` · dismiss → `closed` |
-| `redirecting` | same layout, grid `pointer-events-none opacity-60`, CTA spinner-disabled, **X hidden** | **No** — `showCloseButton={false}`, `disablePointerDismissal`, and `onOpenChange` calls `details.cancel()` for reasons `escapeKey` / `outsidePress` / `closePress` | Toss window opens → full-page navigation leaves the app · open failure → `tier-select` + toast |
+| `redirecting` | same layout, grid `pointer-events-none opacity-60`, CTA spinner-disabled, **X hidden** | **No** — the custom X is not rendered in this state, `disablePointerDismissal` is set, and `onOpenChange` calls `details.cancel()` for the close reasons (see [reason-literal warning](#reason-literals-do-not-compare-against-the-constant-names)) | Toss window opens → full-page navigation leaves the app · open failure → `tier-select` + toast |
 | `awaiting-credit` | header + awaiting block + 닫기 | **Yes** — 닫기, X, Escape, backdrop (D-06) | credit confirmed → `closed` (auto) · dismiss → `closed` (polling continues) |
+
+#### Reason literals: do not compare against the constant names
+
+`escapeKey` / `outsidePress` / `closePress` are **exported constant names, not the runtime values.** The actual strings are kebab-case (verified in `node_modules/@base-ui/react/internals/reason-parts.d.ts`):
+
+| Constant | Runtime string |
+|----------|----------------|
+| `REASONS.escapeKey` | `'escape-key'` |
+| `REASONS.outsidePress` | `'outside-press'` |
+| `REASONS.closePress` | `'close-press'` |
+
+A string comparison against `'escapeKey'` compiles and then **silently never matches**, which would let the user dismiss the dialog mid-redirect. Implement with the kebab-case literals (they are the typed union `DialogRoot.ChangeEventReason`, so a typo is a type error):
+
+```tsx
+onOpenChange={(open, details) => {
+  if (!open && state === 'redirecting') {
+    if (details.reason === 'escape-key' || details.reason === 'outside-press' || details.reason === 'close-press') {
+      details.cancel();
+      return;
+    }
+  }
+  setOpen(open);
+}}
+```
+
+Importing `REASONS` from `@base-ui/react/internals/reasons` is a permitted alternative (it is a real package subpath export), but the literals above are preferred — the `internals/` path carries no stability guarantee.
 
 ### Transitions in full
 
@@ -316,12 +369,33 @@ Exactly four states. No others may be introduced.
 
 | URL | Shape | Toss appends |
 |-----|-------|--------------|
-| `successUrl` | `${origin}${pathname}?topup=success` | `paymentKey`, `orderId`, `amount` |
-| `failUrl` | `${origin}${pathname}?topup=fail` | `code`, `message`, `orderId` |
+| `successUrl` | current URL with `topup=success` **set on top of the existing query** | `paymentKey`, `orderId`, `amount` |
+| `failUrl` | current URL with `topup=fail` **set on top of the existing query** | `code`, `message`, `orderId` |
+
+**Build the return URL from the live URL — never from `${origin}${pathname}` alone.** The originating page may legitimately carry query params (a filtered `/studio` view, a `?ref=` link, a future `/works/[workId]?chapter=`), and concatenating origin+pathname silently drops all of them, dumping the user on a different view than the one they left.
+
+```tsx
+const returnUrl = (result: 'success' | 'fail') => {
+  const url = new URL(window.location.href);
+  url.searchParams.set('topup', result); // set, not append — no duplicate topup keys
+  return url.toString();
+};
+```
 
 - `pathname` is the page the user started from. Safe by construction: the `+` button only exists inside `AccountPanel`, which only renders on pages that mount `SiteHeader` (`/`, `/account`, `/studio/*`, `/works/[workId]`, `/write/start`), so the return page always has the header and can re-open the modal.
 - **Detection reads `window.location.search` inside a mount `useEffect` — do NOT use `useSearchParams()` here.** `AccountPanel` sits inside the global header on every one of those routes; `useSearchParams` would pull the client tree up to the nearest `Suspense` boundary out of prerendering and can fail a production build with the missing-Suspense-boundary error (verified in `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-search-params.md`, lines 82–88 and 181). A mount-effect read has no prerender consequence.
-- Immediately after reading, strip the params with `window.history.replaceState(null, '', pathname)` so a refresh or back-nav cannot re-enter the state. Native `replaceState` is supported and integrates with the Next router in this version (`node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md` §`window.history.replaceState`).
+- Immediately after reading, strip **only the payment params** so a refresh or back-nav cannot re-enter the state — every other param the page was carrying must survive. Native `replaceState` is supported and integrates with the Next router in this version (`node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md` §`window.history.replaceState`).
+
+  ```tsx
+  const TOPUP_PARAMS = ['topup', 'paymentKey', 'orderId', 'amount', 'code', 'message'] as const;
+
+  const url = new URL(window.location.href);
+  for (const key of TOPUP_PARAMS) url.searchParams.delete(key);
+  const qs = url.searchParams.toString();
+  window.history.replaceState(null, '', `${url.pathname}${qs ? `?${qs}` : ''}`);
+  ```
+
+  `replaceState(null, '', pathname)` — dropping the whole query string — is a **contract violation**, not a shortcut. All six Toss/flow params must go; nothing else may.
 - The token amount shown in the awaiting copy is derived by matching Toss's returned `amount` (KRW) against the four tier prices — the mapping is a bijection (1,000 / 2,850 / 5,000 / 9,000). No `sessionStorage`, no `localStorage`. If `amount` is absent or unmatched, fall back to the generic copy. **Never** trust the returned amount for anything but copy — crediting is webhook-only (PAY-03).
 - `router.refresh()` is called from the client hook via `useRouter()` from `next/navigation`. (`refresh()` from `next/cache` is Server-Action-only in this Next version and must not be used here.)
 
@@ -346,6 +420,7 @@ All strings are 해요체, matching D-07's locked `결제가 취소되었어요`
 | Entry affordance — accessible name | `토큰 충전하기` |
 | Dialog title | `토큰 충전소` |
 | Dialog description (tier-select / redirecting only) | `충전할 토큰 묶음을 선택해주세요.` |
+| Dialog 닫기 X — 접근성 이름 (`sr-only`, 시각적으로 보이지 않음) | `닫기` — never `Close` |
 | Balance summary label (reused verbatim from AccountPanel) | `보유 토큰` |
 | Tier grid accessible name | `충전할 토큰 묶음` |
 | Tier card — token figure | `100 토큰` / `300 토큰` / `550 토큰` / `1,000 토큰` |
@@ -376,7 +451,7 @@ Voice rules: 해요체 throughout; no `~하십시오`/`~합니다`; no English l
 ## Accessibility
 
 - `+` button: `aria-label="토큰 충전하기"`, 28px hit area, visible focus ring — the sub-44px exception is granted only because it sits in a pointer-first popover alongside two identical 28px buttons already shipped.
-- Tier grid: `role="radiogroup"` + `aria-label`, each card `role="radio"` + `aria-checked`. Cards are real `<button>`s, keyboard-reachable by Tab, activated by Enter/Space.
+- Tier grid: `role="group"` + `aria-label="충전할 토큰 묶음"`; each card is a real `<button type="button">` carrying `aria-pressed={selected}`. All four are in the natural Tab order and are activated by Enter/Space. No roving tabindex and no arrow-key navigation — see [the rationale in Tier grid](#tier-grid). Single-select is enforced in state, not in ARIA.
 - Selection is signalled by border + ring/tint + `Check` icon — never by color alone.
 - `awaiting-credit` block: `role="status"` `aria-live="polite"` so screen readers announce the wait; the `Loader2` icon is `aria-hidden`.
 - `redirecting` suppresses dismissal, so the `DialogTitle` stays the accessible name and no focus trap escape is needed; the state is short-lived and terminates in a navigation.
