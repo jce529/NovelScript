@@ -363,7 +363,7 @@ Importing `REASONS` from `@base-ui/react/internals/reasons` is a permitted alter
 5. **Toss success return** → Toss redirects to the **success Route Handler**, which confirms the payment server-side and then redirects the browser back into the app carrying `?topup=<orderId>`. The app page loads fresh, `AccountPanel` mounts, the flow hook detects the marker → `awaiting-credit`, polling starts. The browser never sees Toss's own params.
 6. **Credit confirmed** → `router.refresh()` (re-renders the `SiteHeader` server component so 보유 토큰 updates), modal closes automatically (D-05), `toast.success('1,000 토큰이 충전되었어요.')` using the token figure the polling action returned for that `orderId` — or `toast.success('토큰이 충전되었어요.')` if it did not return one.
 7. **User presses 닫기 / X / Escape / backdrop while awaiting** → modal closes; **polling keeps running** in `AccountPanel` (D-06). When the credit lands, steps in (6) still fire (refresh + success toast) with no modal involved.
-8. **Toss cancel/fail return** → Toss redirects to the **fail Route Handler**, which redirects back into the app carrying `?topupFail=1`. On mount the modal opens (or stays open) in `tier-select` with nothing selected, and `toast('결제가 취소되었어요')` fires. **Exact string, no trailing period** (D-07). Use the plain `toast()` variant, not `toast.error()` — a user-initiated cancel is not an error (precedent: `AiPanel.tsx` uses plain `toast()` for informational notices).
+8. **Toss cancel/fail return** → Toss redirects to the **fail Route Handler**, which redirects back into the app carrying `?topupFail=1`. On mount the modal opens in `tier-select` with nothing selected (the fail path is always a full-page load under the Route Handler model — there is no still-open modal to preserve), and `toast('결제가 취소되었어요')` fires. **Exact string, no trailing period** (D-07). Use the plain `toast()` variant, not `toast.error()` — a user-initiated cancel is not an error (precedent: `AiPanel.tsx` uses plain `toast()` for informational notices).
 
 ### Polling contract
 
@@ -410,7 +410,9 @@ The `+` button only exists inside `AccountPanel`, which renders on every page th
 | `?topup=<orderId>` | success handler finished — **the value IS the orderId**, not the literal `success` | `awaiting-credit`, polling keyed by that orderId |
 | `?topupFail=1` | fail handler finished (D-07) | `tier-select`, nothing selected, `결제가 취소되었어요` toast |
 
-**Merge, never concatenate.** `return_path` may already carry a query string, so the success handler must build its redirect with `URL`/`URLSearchParams` and `set('topup', orderId)`. Writing `` `${return_path}?topup=${orderId}` `` is a defect — it yields `/studio?tab=drafts?topup=…`.
+**Merge, never concatenate.** `return_path` may already carry a query string, so **both handlers** must build their redirect with `URL`/`URLSearchParams` — the success handler with `set('topup', orderId)`, the fail handler with `set('topupFail', '1')`. Writing `` `${return_path}?topup=${orderId}` `` or `` `${return_path}?topupFail=1` `` is a defect — it yields `/studio?tab=drafts?topup=…`.
+
+**RESEARCH Pattern 3 step 7 is SUPERSEDED on this point.** It literally prints `` `${order.return_path}?topup=${orderId}` `` — that exact line is the defect this rule bans. Do not copy it verbatim; use `URL`/`URLSearchParams` in both handlers.
 
 **Fail path with no `orderId`.** `PAY_PROCESS_CANCELED` may omit `orderId` (RESEARCH Pitfall 5), in which case there is no order row and therefore no `return_path`. The fail handler then redirects to `/?topupFail=1`. This is an accepted, documented degradation — the user still gets the D-07 toast and a working modal, just on the home page. Do **not** work around it by having the client stuff a return path into `failUrl`; that Toss behaviour is unverified.
 
