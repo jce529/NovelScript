@@ -43,9 +43,16 @@ New lucide icons used, all present in the installed package: `Plus` (진입점),
 |------|------|----------------|
 | `lib/payments/tiers.ts` | NEW — shared constant | `TOPUP_TIERS` (D-01) + formatting helpers. **MUST be import-safe from client components**: no `server-only`, no `node:*` imports, no Supabase client. (Phase 4 lesson: a client component importing a value from an fs-touching module panicked Turbopack — see STATE.md Phase 04 Plan 04-06.) |
 | `components/payment/token-topup-dialog.tsx` | NEW — client, presentational | Renders the modal for a given `state`. Owns no fetching, no polling, no URL reading. |
-| `hooks/use-topup-flow.ts` | NEW — client hook | Owns the state machine, URL-return detection, and polling. Mounted by `AccountPanel` so it survives the modal being closed (D-06). |
+| `components/payment/use-topup-flow.ts` | NEW — client hook | Owns the state machine, URL-return detection, and polling. Mounted by `AccountPanel` so it survives the modal being closed (D-06). |
 | `components/layout/account-panel.tsx` | CHANGED | Adds the `+` button inside the existing 보유 토큰 row; renders `<TokenTopUpDialog>` as a **sibling of `<Popover>`**, never inside `<PopoverContent>`. |
 | `components/layout/site-header.tsx` | UNCHANGED | No visual change. Continues to pass `balance` down. |
+
+**These paths are binding; `05-RESEARCH.md`'s differing paths are SUPERSEDED.** RESEARCH proposes `components/payments/topup-dialog.tsx` and `components/payments/use-toss-payment.ts`; a TDD implementer following both documents would write imports that do not resolve. Resolution, with repo evidence:
+
+- **`components/payment/` (singular).** `components/` currently holds `layout`, `reader`, `studio`, `ui` — uniformly singular. Singular is the convention-correct choice.
+- **The hook is co-located at `components/payment/use-topup-flow.ts`.** There is **no `hooks/` directory in this repo** and no `use-*.ts` file exists anywhere yet, so nothing established would be followed by inventing one. `lib/` currently holds `ai, auth, chapters, discovery, format, kb, reader, supabase, works` — domain/server modules, several of them `server-only`; a browser-only React hook does not belong there. Co-location next to its only consumer matches RESEARCH's own instinct to keep the SDK call beside the dialog, without adding a new top-level directory.
+- **`lib/payments/tiers.ts` keeps RESEARCH's path** (plural) — it is a `lib/` domain module, and `lib/` names are already plural (`chapters`, `works`). Only the `components/` and hook paths diverge.
+- RESEARCH's server-side paths (`lib/payments/toss.ts`, `orders.ts`, `actions.ts`, `app/api/payments/toss/**`) are unaffected by this spec and stand as written.
 
 ---
 
@@ -70,7 +77,7 @@ Inherited verbatim from Phase 2:
 - **AccountPanel popover icon buttons: 28px hit area** (`size-7`). Not a new rule — it matches the two icon buttons already shipped in that popover (계정 설정 `Link`, 닫기 `PopoverPrimitive.Close`, both `size-7`). The new `+` button MUST be `size-7` for optical alignment with them, and MUST carry an `aria-label` (below 44px, icon-only — same requirement Phase 2 attached to its 24px exception).
 - **Primary payment CTA height: 44px** (`h-11`). The shadcn `Button size="lg"` is 36px; the 결제하기 CTA and the awaiting-state 닫기 button override to `h-11` because they are the primary thumb targets of a real-money flow that must work on a phone (Toss redirects the full page on mobile). 44 is a multiple of 4 and is the same touch-safe value Phase 2 already declared for chapter rows.
 - **Tier card: no fixed height.** All four cards render an identical 3-row structure (see [Tier card](#tier-card-contract)) so the CSS grid rows stay visually even without a hard-coded height.
-- **아이콘 클러스터 6px** (`gap-1.5`) — 이미 출하된 `components/layout/account-panel.tsx:47`의 `gap-1.5`(Coins↔보유 토큰)와 광학 정렬을 맞추기 위한 **상속 예외**. 4의 배수가 아니지만 이 phase가 새로 만든 값이 아니다 — 모달의 보유 토큰 행은 그 출하된 행을 verbatim으로 재사용하므로(→ [보유 토큰 summary row](#보유-토큰-summary-row-tier-select-only)) 값을 4의 배수로 바꾸는 순간 verbatim 재사용이 깨진다. 허용 범위는 **아이콘이 들어간 수평 클러스터 2곳뿐**: 재사용된 보유 토큰 행(Coins↔라벨)과 tier card row 1의 badge↔Check 클러스터. 그 외 어디에도 `gap-1.5`를 새로 도입하지 말 것 — 나머지는 전부 4의 배수다.
+- **아이콘 클러스터 6px** (`gap-1.5`) — 이미 출하된 `components/layout/account-panel.tsx:46`의 `gap-1.5`(Coins↔보유 토큰)와 광학 정렬을 맞추기 위한 **상속 예외**. 4의 배수가 아니지만 이 phase가 새로 만든 값이 아니다 — 모달의 보유 토큰 행은 그 출하된 행을 verbatim으로 재사용하므로(→ [보유 토큰 summary row](#보유-토큰-summary-row-tier-select-only)) 값을 4의 배수로 바꾸는 순간 verbatim 재사용이 깨진다. 허용 범위는 **아이콘이 들어간 수평 클러스터 2곳뿐**: 재사용된 보유 토큰 행(Coins↔라벨)과 tier card row 1의 badge↔Check 클러스터. 그 외 어디에도 `gap-1.5`를 새로 도입하지 말 것 — 나머지는 전부 4의 배수다.
 
 ---
 
@@ -191,7 +198,7 @@ The only change is inside the existing 보유 토큰 row's right-hand side: the 
 </>
 ```
 
-Likewise, `use-topup-flow.ts` is mounted by **AccountPanel**, not by the dialog — polling must survive the user closing the modal (D-06).
+Likewise, `components/payment/use-topup-flow.ts` is mounted by **AccountPanel**, not by the dialog — polling must survive the user closing the modal (D-06).
 
 ---
 
@@ -301,9 +308,9 @@ No `취소` button in the footer — the dialog's X (and Escape/backdrop) is the
 <Button variant="outline" className="h-11 w-full">닫기</Button>
 ```
 
-`body` has exactly two variants:
-- amount resolved to a known tier → `1,000 토큰이 곧 반영돼요. 충전이 끝나면 자동으로 닫힐게요.`
-- amount missing/unmatched → `충전이 끝나면 자동으로 닫힐게요.`
+`body` has exactly two variants. The token figure is sourced from the polling Server Action's response for this `orderId` — see [Token figure in the awaiting copy](#token-figure-in-the-awaiting-copy):
+- token amount known → `1,000 토큰이 곧 반영돼요. 충전이 끝나면 자동으로 닫힐게요.`
+- not yet known (before the first poll response resolves) → `충전이 끝나면 자동으로 닫힐게요.`
 
 The `DialogTitle`/`DialogDescription` remain mounted in this state (accessibility requires a title); the description swaps to empty-string-free content by simply keeping "충전할 토큰 묶음을 선택해주세요." out — render the description **only in `tier-select`/`redirecting`**, and rely on the visible `결제를 확인하고 있어요` line as the status text.
 
@@ -315,7 +322,7 @@ Exactly four states. No others may be introduced.
 
 | State | Renders | Dismissible? | Exits |
 |-------|---------|--------------|-------|
-| `closed` | nothing | — | `+` click → `tier-select` · URL return marker on mount → `awaiting-credit` or `tier-select` |
+| `closed` | nothing | — | `+` click → `tier-select` · `?topup=<orderId>` on mount → `awaiting-credit` · `?topupFail=1` on mount → `tier-select` + toast |
 | `tier-select` | header + 보유 토큰 row + tier grid + CTA block | **Yes** — X, Escape, backdrop press | CTA press → `redirecting` · dismiss → `closed` |
 | `redirecting` | same layout, grid `pointer-events-none opacity-60`, CTA spinner-disabled, **X hidden** | **No** — the custom X is not rendered in this state, `disablePointerDismissal` is set, and `onOpenChange` calls `details.cancel()` for the close reasons (see [reason-literal warning](#reason-literals-do-not-compare-against-the-constant-names)) | Toss window opens → full-page navigation leaves the app · open failure → `tier-select` + toast |
 | `awaiting-credit` | header + awaiting block + 닫기 | **Yes** — 닫기, X, Escape, backdrop (D-06) | credit confirmed → `closed` (auto) · dismiss → `closed` (polling continues) |
@@ -350,60 +357,95 @@ Importing `REASONS` from `@base-ui/react/internals/reasons` is a permitted alter
 
 1. **`+` click** → popover closes, `tier-select` opens, no tier selected.
 2. **Tier press** → that tier becomes selected (single-select, re-pressing a different card moves the selection; pressing the selected card is a no-op, not a toggle-off — the CTA must never bounce back to disabled).
-3. **CTA press** → `redirecting`. The client asks the server to create the order, then invokes the Toss `requestPayment` redirect (D-04). The 결제수단 선택 UI belongs to Toss — **this phase renders no card/카카오페이/네이버페이 selector of its own.**
+3. **CTA press** → `redirecting`. The client asks the server to create the order (sending only the tier id and the originating `return_path` — never an amount), then invokes the Toss `requestPayment` redirect (D-04). The 결제수단 선택 UI belongs to Toss — **this phase renders no card/카카오페이/네이버페이 selector of its own.**
 4. **Order creation or SDK invocation fails** (nothing was charged) → back to `tier-select`, previous selection preserved, `toast('결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.')`.
    *This does not contradict D-08.* D-08 forbids surfacing a **post-approval** credit/webhook failure. A failure to even open the payment window is a pre-payment, user-actionable condition; hiding it would strand the user on a dead button.
-5. **Toss success return** (`successUrl`) → page loads fresh, `AccountPanel` mounts, the flow hook detects the marker → `awaiting-credit`, polling starts.
-6. **Credit confirmed** → `router.refresh()` (re-renders the `SiteHeader` server component so 보유 토큰 updates), modal closes automatically (D-05), `toast.success('1,000 토큰이 충전되었어요.')` — or `toast.success('토큰이 충전되었어요.')` if the amount could not be resolved.
+5. **Toss success return** → Toss redirects to the **success Route Handler**, which confirms the payment server-side and then redirects the browser back into the app carrying `?topup=<orderId>`. The app page loads fresh, `AccountPanel` mounts, the flow hook detects the marker → `awaiting-credit`, polling starts. The browser never sees Toss's own params.
+6. **Credit confirmed** → `router.refresh()` (re-renders the `SiteHeader` server component so 보유 토큰 updates), modal closes automatically (D-05), `toast.success('1,000 토큰이 충전되었어요.')` using the token figure the polling action returned for that `orderId` — or `toast.success('토큰이 충전되었어요.')` if it did not return one.
 7. **User presses 닫기 / X / Escape / backdrop while awaiting** → modal closes; **polling keeps running** in `AccountPanel` (D-06). When the credit lands, steps in (6) still fire (refresh + success toast) with no modal involved.
-8. **Toss cancel/fail return** (`failUrl`) → modal opens (or stays open) in `tier-select` with nothing selected, and `toast('결제가 취소되었어요')` fires. **Exact string, no trailing period** (D-07). Use the plain `toast()` variant, not `toast.error()` — a user-initiated cancel is not an error (precedent: `AiPanel.tsx` uses plain `toast()` for informational notices).
+8. **Toss cancel/fail return** → Toss redirects to the **fail Route Handler**, which redirects back into the app carrying `?topupFail=1`. On mount the modal opens (or stays open) in `tier-select` with nothing selected, and `toast('결제가 취소되었어요')` fires. **Exact string, no trailing period** (D-07). Use the plain `toast()` variant, not `toast.error()` — a user-initiated cancel is not an error (precedent: `AiPanel.tsx` uses plain `toast()` for informational notices).
 
 ### Polling contract
 
-- Owned by `hooks/use-topup-flow.ts`, mounted in `AccountPanel` — **not** in the dialog.
-- Consumes exactly one signal from the server: *"has this `orderId` been credited?"* (the Server Action's shape, the confirm-call sequencing, and the webhook verification are RESEARCH/PLAN territory — the UI consumes a boolean).
+- Owned by `components/payment/use-topup-flow.ts`, mounted in `AccountPanel` — **not** in the dialog.
+- Keyed by the `orderId` carried in the `?topup=` marker. Consumes exactly one signal from the server: *"has this `orderId` been credited?"* — plus, when available, that order's token amount for copy. The Server Action's exact signature, the confirm-call sequencing, and the webhook verification are RESEARCH/PLAN territory; the UI consumes a boolean.
+- **Collapse `failed` into "not yet credited" at the boundary.** RESEARCH's status action can answer `credited | pending | failed`; the UI must render `failed` identically to `pending` and keep waiting. D-08 forbids surfacing a post-approval failure and D-06 forbids a timeout, so there is deliberately no UI branch for it. Do not add one.
 - First poll fires immediately on entering `awaiting-credit`, then every **2000ms**. RESEARCH may tune the interval; it may **not** introduce a timeout, a max-attempt cap, or a copy change over time (D-06).
+- **The flow must not assume it ever observes an uncredited response.** Toss can deliver the webhook before our confirm response returns (RESEARCH Pitfall 4), so the very first poll may already answer `credited`. `awaiting-credit` must render correctly for a zero-duration wait and close cleanly — no "at least one pending tick" assumption, no minimum spinner time, no error path for "credited too early".
 - Stops only on: credit confirmed, or the component unmounting (page navigation).
 
 ### Return-URL contract
 
-| URL | Shape | Toss appends |
-|-----|-------|--------------|
-| `successUrl` | current URL with `topup=success` **set on top of the existing query** | `paymentKey`, `orderId`, `amount` |
-| `failUrl` | current URL with `topup=fail` **set on top of the existing query** | `code`, `message`, `orderId` |
+**Toss's return URLs point at server Route Handlers, never at an app page.** This is binding and replaces the page-direct model this document previously described.
 
-**Build the return URL from the live URL — never from `${origin}${pathname}` alone.** The originating page may legitimately carry query params (a filtered `/studio` view, a `?ref=` link, a future `/works/[workId]?chapter=`), and concatenating origin+pathname silently drops all of them, dumping the user on a different view than the one they left.
+| Passed to `requestPayment` | Value |
+|----------------------------|-------|
+| `successUrl` | `${window.location.origin}/api/payments/toss/success` |
+| `failUrl` | `${window.location.origin}/api/payments/toss/fail` |
+
+**Why the server hop is load-bearing, not a style choice:** `POST /v1/payments/confirm` requires the secret key, so it can only run on a server. An authorization that is never confirmed expires (`EXPIRED`) after 10 minutes, and the `DONE` webhook then never fires. Because D-06 gives `awaiting-credit` no timeout, a page-direct `successUrl` would leave the user spinning forever after real money was authorized, with no recovery path. RESEARCH Patterns 2/3 own that sequencing; this spec only guarantees the UI never becomes the place where confirm was supposed to happen.
+
+Toss appends its own params to those handler URLs — **none of them reach the browser's app page:**
+
+| Handler | Toss appends |
+|---------|--------------|
+| success | `paymentKey`, `orderId`, `amount`, `paymentType` |
+| fail | `code`, `message`, `orderId` *(may be absent on `PAY_PROCESS_CANCELED`)* |
+
+Because the page never sees these, there is no multi-key strip list and no client-side reading of `paymentKey`/`amount`. The UI's only inbound vocabulary is the two markers below.
+
+#### Preserving the originating view — `payment_orders.return_path`
+
+The `+` button only exists inside `AccountPanel`, which renders on every page that mounts `SiteHeader` (`/`, `/account`, `/studio/*`, `/works/[workId]`, `/write/start`), so the return page always has the header and can re-open the modal. The user must land back on the **exact view** they left.
+
+- The client sends its originating location when it creates the order; the server persists it as `payment_orders.return_path` (RESEARCH Pattern 1).
+- **`return_path` stores `pathname + search`, not `pathname` alone.** RESEARCH says only "앱 내 경로"; this spec fixes the precise value. A filtered `/studio?tab=drafts`, a `?ref=` link, or a future `/works/[workId]?chapter=` must survive the round trip — dropping the query silently returns the user to a different view than the one they left.
+- Client-side value: `window.location.pathname + window.location.search`. Never `href` (carries the origin), and never the hash.
+- **Open-redirect defense (server-side, binding):** accept only values beginning with a single `/` that is not followed by `/` or `\`, and containing no `://`. Reject anything else and store `/`. The redirect target is then same-origin by construction.
+
+#### Inbound markers
+
+| Marker on the app page | Meaning | Enters |
+|------------------------|---------|--------|
+| `?topup=<orderId>` | success handler finished — **the value IS the orderId**, not the literal `success` | `awaiting-credit`, polling keyed by that orderId |
+| `?topupFail=1` | fail handler finished (D-07) | `tier-select`, nothing selected, `결제가 취소되었어요` toast |
+
+**Merge, never concatenate.** `return_path` may already carry a query string, so the success handler must build its redirect with `URL`/`URLSearchParams` and `set('topup', orderId)`. Writing `` `${return_path}?topup=${orderId}` `` is a defect — it yields `/studio?tab=drafts?topup=…`.
+
+**Fail path with no `orderId`.** `PAY_PROCESS_CANCELED` may omit `orderId` (RESEARCH Pitfall 5), in which case there is no order row and therefore no `return_path`. The fail handler then redirects to `/?topupFail=1`. This is an accepted, documented degradation — the user still gets the D-07 toast and a working modal, just on the home page. Do **not** work around it by having the client stuff a return path into `failUrl`; that Toss behaviour is unverified.
+
+#### Detection: mount effect, not `useSearchParams()`
+
+**Read `window.location.search` inside a mount `useEffect`. Do NOT use `useSearchParams()` here.** `AccountPanel` sits inside the global header on all five route trees above; `useSearchParams` would pull the client tree up to the nearest `Suspense` boundary out of prerendering and can fail a production build with the missing-Suspense-boundary error (verified in `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-search-params.md`, lines 82–88 and 181). A mount-effect read has no prerender consequence.
+
+**RESEARCH Pattern 7's "`useSearchParams()`로 읽어… 반드시 `<Suspense>`로 감쌀 것" recommendation is SUPERSEDED by this rule**, for exactly that reason: wrapping is the right fix when the reader is page-local, but `AccountPanel` is mounted in the global header and the boundary would have to be threaded through every route tree. The planner must not re-litigate this against RESEARCH.
+
+#### Cleanup
+
+Immediately after reading, strip **only the one marker key** so a refresh or back-nav cannot re-enter the state — every other param the page was carrying must survive. Native `replaceState` is supported and integrates with the Next router in this version (`node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md` §`window.history.replaceState`).
 
 ```tsx
-const returnUrl = (result: 'success' | 'fail') => {
-  const url = new URL(window.location.href);
-  url.searchParams.set('topup', result); // set, not append — no duplicate topup keys
-  return url.toString();
-};
+const url = new URL(window.location.href);
+url.searchParams.delete('topup');      // or 'topupFail' on the cancel path
+const qs = url.searchParams.toString();
+window.history.replaceState(null, '', `${url.pathname}${qs ? `?${qs}` : ''}`);
 ```
 
-- `pathname` is the page the user started from. Safe by construction: the `+` button only exists inside `AccountPanel`, which only renders on pages that mount `SiteHeader` (`/`, `/account`, `/studio/*`, `/works/[workId]`, `/write/start`), so the return page always has the header and can re-open the modal.
-- **Detection reads `window.location.search` inside a mount `useEffect` — do NOT use `useSearchParams()` here.** `AccountPanel` sits inside the global header on every one of those routes; `useSearchParams` would pull the client tree up to the nearest `Suspense` boundary out of prerendering and can fail a production build with the missing-Suspense-boundary error (verified in `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-search-params.md`, lines 82–88 and 181). A mount-effect read has no prerender consequence.
-- Immediately after reading, strip **only the payment params** so a refresh or back-nav cannot re-enter the state — every other param the page was carrying must survive. Native `replaceState` is supported and integrates with the Next router in this version (`node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md` §`window.history.replaceState`).
+`replaceState(null, '', url.pathname)` — dropping the whole query string — is a **contract violation**, not a shortcut. Exactly one key is removed per return.
 
-  ```tsx
-  const TOPUP_PARAMS = ['topup', 'paymentKey', 'orderId', 'amount', 'code', 'message'] as const;
+#### Token figure in the awaiting copy
 
-  const url = new URL(window.location.href);
-  for (const key of TOPUP_PARAMS) url.searchParams.delete(key);
-  const qs = url.searchParams.toString();
-  window.history.replaceState(null, '', `${url.pathname}${qs ? `?${qs}` : ''}`);
-  ```
-
-  `replaceState(null, '', pathname)` — dropping the whole query string — is a **contract violation**, not a shortcut. All six Toss/flow params must go; nothing else may.
-- The token amount shown in the awaiting copy is derived by matching Toss's returned `amount` (KRW) against the four tier prices — the mapping is a bijection (1,000 / 2,850 / 5,000 / 9,000). No `sessionStorage`, no `localStorage`. If `amount` is absent or unmatched, fall back to the generic copy. **Never** trust the returned amount for anything but copy — crediting is webhook-only (PAY-03).
+- The awaiting body's `{n} 토큰` figure comes from the **polling Server Action's response for that `orderId`** (server-side tier lookup), never from a URL param — `amount` no longer reaches the browser at all.
+- Until the first response resolves, render the generic variant (`충전이 끝나면 자동으로 닫힐게요.`). This is a one-time data-arrival swap that is fixed for the rest of the wait — it is **not** a time-based copy transition and does not violate D-06. The copy must never change again after that first response.
+- No `sessionStorage`, no `localStorage`, no client-side amount→tier mapping.
+- **Never** treat any returned figure as proof of credit — crediting is webhook-only (PAY-03); the figure is copy.
 - `router.refresh()` is called from the client hook via `useRouter()` from `next/navigation`. (`refresh()` from `next/cache` is Server-Action-only in this Next version and must not be used here.)
 
 ### Forbidden UI (D-08 & D-06)
 
 The following must not exist anywhere in this phase's output. The checker and the auditor should treat any occurrence as a contract violation:
 
-- Any user-visible message about a webhook not arriving, a signature verification failure, a delayed credit, or a "결제 확인 실패" / "처리 중 문제가 발생했어요" state. D-08: server-side logging/alerting only.
+- Any user-visible message about a webhook not arriving, 웹훅 검증 실패, a delayed credit, or a "결제 확인 실패" / "처리 중 문제가 발생했어요" state. D-08: server-side logging/alerting only.
 - Any timeout, elapsed-timer, attempt counter, progress bar, or copy that changes as the wait grows (D-06 — the awaiting copy is static forever).
 - A "다시 시도" / "새로고침" button inside `awaiting-credit`.
 - Rendering Toss's `code` / `message` fail params verbatim to the user. The only cancel-path string is D-07's.
@@ -434,12 +476,12 @@ All strings are 해요체, matching D-07's locked `결제가 취소되었어요`
 | CTA label (redirecting) | `결제창을 여는 중이에요` |
 | CTA helper (redirecting) | `잠시 후 결제창으로 이동해요.` |
 | Awaiting — title | `결제를 확인하고 있어요` |
-| Awaiting — body, amount known | `{n} 토큰이 곧 반영돼요. 충전이 끝나면 자동으로 닫힐게요.` |
-| Awaiting — body, amount unknown | `충전이 끝나면 자동으로 닫힐게요.` |
+| Awaiting — body, token amount known | `{n} 토큰이 곧 반영돼요. 충전이 끝나면 자동으로 닫힐게요.` |
+| Awaiting — body, token amount not yet known | `충전이 끝나면 자동으로 닫힐게요.` |
 | Awaiting — dismiss button | `닫기` |
 | **Toast — 결제 취소 (D-07, exact, `toast()`)** | `결제가 취소되었어요` |
-| Toast — 충전 완료, amount known (`toast.success()`) | `{n} 토큰이 충전되었어요.` |
-| Toast — 충전 완료, amount unknown (`toast.success()`) | `토큰이 충전되었어요.` |
+| Toast — 충전 완료, token amount known (`toast.success()`) | `{n} 토큰이 충전되었어요.` |
+| Toast — 충전 완료, token amount unknown (`toast.success()`) | `토큰이 충전되었어요.` |
 | **Error state** — 결제창 열기 실패 (the only user-visible failure in this phase, `toast()`) | `결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.` |
 | **Empty state** | **None exists — intentionally.** The tier list is a hard-coded 4-item constant (D-01/D-02) that can never be empty, and the modal is unreachable for logged-out users (`AccountPanel` is not rendered). Do not build a zero-state. The nearest analogue, a 0-balance wallet, is already covered by the existing `보유 토큰 0` rendering and needs no new copy. |
 | **Destructive confirmation** | **None exists — intentionally.** No action in this phase destroys or spends anything: 충전 only adds, and cancellation happens inside Toss's own UI. `--destructive` is unused this phase. |
@@ -485,8 +527,8 @@ No `npx shadcn add` and no `npx shadcn view` is expected during implementation. 
 1. **`lib/payments/tiers.ts` must stay client-safe.** No `server-only`, no `node:*`, no Supabase import — the dialog imports `TOPUP_TIERS` as a value. This is the exact failure mode that broke the chapter editor in Phase 04 Plan 04-06.
 2. **Dialog outside the popover, hook in `AccountPanel`.** Both rules exist because base-ui unmounts popover content on close; violating either kills the flow the instant the popover dismisses.
 3. **`toLocaleString('ko-KR')` with the explicit locale** on all new numbers to avoid an SSR/CSR hydration mismatch in the server-rendered header.
-4. **PAY-03 is a UI rule too:** nothing on screen may present the client-side `successUrl` return as proof of credit. The awaiting state exists precisely because the redirect is not the source of truth.
-5. Open items that this spec deliberately leaves to `05-RESEARCH.md` / the plan: `orderId` generation, `ledger_entries.reference_type/reference_id` mapping, the confirm-API call sequencing, the polling Server Action's exact signature, and whether the poll interval stays at 2000ms. None of them may add or remove a UI state.
+4. **PAY-03 is a UI rule too:** nothing on screen may present the `?topup=<orderId>` return marker (or the success Route Handler having run at all) as proof of credit. The awaiting state exists precisely because neither the redirect nor the confirm call is the source of truth — only the webhook is.
+5. Items this spec leaves to `05-RESEARCH.md` / the plan — all now answered there: `orderId` generation (Pattern 1), `ledger_entries.reference_type/reference_id` mapping (Pattern 5), the confirm-API call sequencing (Pattern 3 — inside the `successUrl` Route Handler, never on a page), and the polling Server Action's exact signature (Pattern 7). The poll interval may still be tuned. None of them may add or remove a UI state.
 6. Per `CLAUDE.md`, a browsable mockup artifact of the 충전 모달 (all four states) must accompany this spec before the phase's UI deliverable is considered complete.
 
 ---
