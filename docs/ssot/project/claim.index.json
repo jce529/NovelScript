@@ -1,0 +1,1562 @@
+{
+  "entries": [
+    {
+      "claimId": "doc:1fuN5YrpDDJ8emyRssayM#use-case-complete-missing-account-email-address",
+      "epicId": "j2LecR7weVGaqetE2Y2R0",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Provide a missing email address so the account can be completed and the user can continue into the account area.",
+      "object": "use-case-complete-missing-account-email-address",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:b1691adca3c4cb20",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c05b800246f420f4"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:3dGKTJqRgdQ9olSg12DyA#br-chapter-editor-disabled-until-load",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the chapter editor screen has not finished loading the chapter record, the textarea must remain disabled.",
+      "object": "br-chapter-editor-disabled-until-load",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:3dGKTJqRgdQ9olSg12DyA#br-chapter-publish-price-tier",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the user clicks 발행하기, the screen must call publishChapterAction(workId, chapterId, isPaid ? (priceTier ?? PRICE_TIERS[0]) : null), using null for a free chapter and a paid tier selected from PRICE_TIERS when paid.",
+      "object": "br-chapter-publish-price-tier",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:3dGKTJqRgdQ9olSg12DyA#br-chapter-save-feedback",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the user clicks 회차 저장, the screen must submit the current content through saveChapterContentAction(workId, chapterId, content) and show toast.success('저장했어요.') on success or toast.error(result.error ?? '저장하지 못했어요. 잠시 후 다시 시도해주세요.') on failure.",
+      "object": "br-chapter-save-feedback",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:3dGKTJqRgdQ9olSg12DyA#br-chapter-unpublish-confirmation",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the user clicks 발행 취소, the screen must require confirmation in a dialog before calling unpublishChapterAction(workId, chapterId).",
+      "object": "br-chapter-unpublish-confirmation",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:3dGKTJqRgdQ9olSg12DyA#br-chapter-unpublish-feedback",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN unpublishChapterAction(workId, chapterId) completes, the screen must set isPublished to false and show a success toast on success, or show the error toast fallback on failure.",
+      "object": "br-chapter-unpublish-feedback",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:3dGKTJqRgdQ9olSg12DyA#br-mentions-and-ai-input-guards",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the user interacts with mentions or the AI panel, the screen must apply the visible client-side guards for mention deduplication, caret-based autocomplete, blocked sends during active generation or empty trimmed input, and proposal save availability only when a proposal exists and no other save is in progress.",
+      "object": "br-mentions-and-ai-input-guards",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:7wu-KLQuuV73bjaiG-ItU#work-workspace-chapter-list-navigation",
+      "epicId": "_Pnwofz1Iq27Y-rvAkG7q",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The screen must provide a navigation link from /studio/:workId to /studio/{workId}/chapters.",
+      "object": "work-workspace-chapter-list-navigation",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b1016d8fb207d897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:7wu-KLQuuV73bjaiG-ItU#work-workspace-empty-fallback-rendering",
+      "epicId": "_Pnwofz1Iq27Y-rvAkG7q",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The screen must render work?.title for the heading and use work?.synopsis || '' for the synopsis area.",
+      "object": "work-workspace-empty-fallback-rendering",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b1016d8fb207d897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:7wu-KLQuuV73bjaiG-ItU#work-workspace-user-scoped-work-fetch",
+      "epicId": "_Pnwofz1Iq27Y-rvAkG7q",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The screen must fetch work data only when a current Supabase user exists, and the work lookup must be filtered by both owner_id and id.",
+      "object": "work-workspace-user-scoped-work-fetch",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b1016d8fb207d897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:9h-rT3ZauE3y3TCiB0UQo#br-new-work-auth-check-before-create",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN `submitCreateWork` runs, it must call `createClient` and `supabase.auth.getUser`; IF no user is found, it must return the login-required error instead of creating the work.",
+      "object": "br-new-work-auth-check-before-create",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:9h-rT3ZauE3y3TCiB0UQo#br-new-work-disable-submit-while-pending",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHILE the create-work submission is pending, the `새 작품 만들기` button must remain disabled.",
+      "object": "br-new-work-disable-submit-while-pending",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:9h-rT3ZauE3y3TCiB0UQo#br-new-work-inline-error-on-create-failure",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "IF `createWork` returns failure, the screen must show a visible destructive error message inline above the form using the returned error, or `작품을 만들지 못했어요.` when no specific error is available.",
+      "object": "br-new-work-inline-error-on-create-failure",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:9h-rT3ZauE3y3TCiB0UQo#br-new-work-optional-synopsis-normalization",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the user clicks `새 작품 만들기`, the screen must call `submitCreateWork` with `title`, `trimmed-or-null synopsis`, and `genre`.",
+      "object": "br-new-work-optional-synopsis-normalization",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:9h-rT3ZauE3y3TCiB0UQo#br-new-work-success-redirect-to-studio",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN `createWork` succeeds, the screen must navigate to `/studio/{workId}`.",
+      "object": "br-new-work-success-redirect-to-studio",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:9h-rT3ZauE3y3TCiB0UQo#br-new-work-title-required-submit-gating",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHILE `title.trim()` is empty, the screen must keep the `새 작품 만들기` submit button disabled.",
+      "object": "br-new-work-title-required-submit-gating",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:A8j3fHdklKIyCZ6OlYfcg#auth-callback-default-next-destination",
+      "epicId": "ddmjKqZQPK1w1e5HiSfvy",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the callback request is parsed, the handler must read `next` from `searchParams` and use `'/'` as the default destination when `next` is absent.",
+      "object": "auth-callback-default-next-destination",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:d21928355a0ae298"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:A8j3fHdklKIyCZ6OlYfcg#auth-callback-email-completion-redirect",
+      "epicId": "ddmjKqZQPK1w1e5HiSfvy",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN `exchangeCodeForSession(code)` succeeds and returns `data.user`, IF `needsEmailCompletion(data.user)` is true, the handler must redirect the user to `/auth/complete-email`.",
+      "object": "auth-callback-email-completion-redirect",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:d21928355a0ae298"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:A8j3fHdklKIyCZ6OlYfcg#auth-callback-error-redirect-fallback",
+      "epicId": "ddmjKqZQPK1w1e5HiSfvy",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "IF `code` is missing, or `exchangeCodeForSession(code)` returns an `error`, or `data.user` is absent, the handler must redirect to `/auth/auth-code-error`.",
+      "object": "auth-callback-error-redirect-fallback",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:d21928355a0ae298"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:A8j3fHdklKIyCZ6OlYfcg#auth-callback-session-exchange-success-gate",
+      "epicId": "ddmjKqZQPK1w1e5HiSfvy",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the callback request includes `code`, the handler must call `createClient()` and `supabase.auth.exchangeCodeForSession(code)`, and it may redirect to the destination path only if the exchange returns no `error` and `data.user` exists.",
+      "object": "auth-callback-session-exchange-success-gate",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:d21928355a0ae298"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:aQW15jsZsYjO0p1WKDGPO#story-knowledge-management-node-editor-load-gating",
+      "epicId": "eJ5obXr2iXGhdipaJzFza",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The editor must keep the textarea disabled until the node content request has finished successfully and `content` has been set from `result.content`.",
+      "object": "story-knowledge-management-node-editor-load-gating",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:059847e49639d22d"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:aQW15jsZsYjO0p1WKDGPO#story-knowledge-management-node-editor-save-feedback",
+      "epicId": "eJ5obXr2iXGhdipaJzFza",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The editor must prevent save submission before loading completes or while a save is already pending, and it must report save outcomes through toast messages.",
+      "object": "story-knowledge-management-node-editor-save-feedback",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:059847e49639d22d"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:aQW15jsZsYjO0p1WKDGPO#story-knowledge-management-node-editor-save-success",
+      "epicId": "eJ5obXr2iXGhdipaJzFza",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The editor must submit saves using the current `workId`, `nodeId`, and textarea `content`, and a successful save must trigger revalidation of the current node route.",
+      "object": "story-knowledge-management-node-editor-save-success",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:059847e49639d22d"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:AwCJ9e2ky5j9ek3Volw7i#use-case-browse-home-discovery-feed",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "capability",
+      "subject": "visitor",
+      "action": "Browse ranked and filtered works from the home discovery screen.",
+      "object": "use-case-browse-home-discovery-feed",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:AwCJ9e2ky5j9ek3Volw7i#use-case-continue-reading-from-home",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Resume reading from recent activity while browsing the home discovery screen.",
+      "object": "use-case-continue-reading-from-home",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:b6X8AzSuhRiiUa9GfprFJ#authenticated-user-closes-account-and-ends-session",
+      "epicId": "HoBO4rJLao81zsp1RnCM7",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Close their account safely and end their current session.",
+      "object": "authenticated-user-closes-account-and-ends-session",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:c6012ec2744d8fcf"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:BvgjmkjE3dlP6Dg5PXnoH#br-work-list-create-entry-points",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The studio work list must provide a create-work entry point in both the header and the empty state.",
+      "object": "br-work-list-create-entry-points",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:BvgjmkjE3dlP6Dg5PXnoH#br-work-list-empty-state",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The studio work list must show the empty state when there are no works to display.",
+      "object": "br-work-list-empty-state",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:BvgjmkjE3dlP6Dg5PXnoH#br-work-list-excludes-deleted",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The studio work list must exclude deleted works.",
+      "object": "br-work-list-excludes-deleted",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:BvgjmkjE3dlP6Dg5PXnoH#br-work-list-open-work-navigation",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The studio work list must provide a per-work navigation path to the selected work's detail page.",
+      "object": "br-work-list-open-work-navigation",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:BvgjmkjE3dlP6Dg5PXnoH#br-work-list-order-and-card-display",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The studio work list must render work cards in most-recent-first order and must not fail when synopsis is missing.",
+      "object": "br-work-list-order-and-card-display",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:BvgjmkjE3dlP6Dg5PXnoH#br-work-list-user-scope",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The studio work list must load and display only works associated with the current authenticated user's id.",
+      "object": "br-work-list-user-scope",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:eGMhyC0aqVV8t7Ap1Aj75#account-closure-authenticated-user-required",
+      "epicId": "HoBO4rJLao81zsp1RnCM7",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN POST /account action invokes deleteAccountAction, the handler must read the current user with supabase.auth.getUser() before starting deletion work.",
+      "object": "account-closure-authenticated-user-required",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:c6012ec2744d8fcf"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:eGMhyC0aqVV8t7Ap1Aj75#account-closure-sign-out-and-redirect",
+      "epicId": "HoBO4rJLao81zsp1RnCM7",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN the profile soft-delete completes successfully during account closure, the handler must end the current session.",
+      "object": "account-closure-sign-out-and-redirect",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:c6012ec2744d8fcf"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:eGMhyC0aqVV8t7Ap1Aj75#account-closure-soft-delete-active-profile-only",
+      "epicId": "HoBO4rJLao81zsp1RnCM7",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "WHEN deleteAccountAction closes an authenticated user's account, softDeleteAccount must update profiles where id = userId and deleted_at is null.",
+      "object": "account-closure-soft-delete-active-profile-only",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:c6012ec2744d8fcf"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Ehg-YMqZlGgNPl4RGRsks#view-and-open-your-studio-works",
+      "epicId": "yzFrm9l4_RMevijWnGVDf",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Review your current writing projects in Studio and continue with an existing work or start from the empty-state create prompt.",
+      "object": "view-and-open-your-studio-works",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:0fa7f8ae42157474"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:GZUk8gFV3t05jLRPYJx6y#use-case-authenticated-reader-starts-writer-onboarding",
+      "epicId": "TPGBVklZxbIBligTLR7ZA",
+      "claimType": "capability",
+      "subject": "authenticated reader",
+      "action": "Become a writer account with the minimum required profile setup.",
+      "object": "use-case-authenticated-reader-starts-writer-onboarding",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:881e24b5984c6f29",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:f55b2a55c6ec78f9"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Is-UoHvE5p0T6K0LjbX90#adjacent-navigation-disabled-at-boundaries",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The previous and next chapter links must navigate to the neighboring chapter only when that adjacent chapter is available; otherwise the corresponding link must be disabled.",
+      "object": "adjacent-navigation-disabled-at-boundaries",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Is-UoHvE5p0T6K0LjbX90#chapter-open-tracking-and-progress-write-conditions",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "On mount, the reader must call chapter-open tracking for every open, and it must upsert reading_progress only when the chapter is not locked and a user exists.",
+      "object": "chapter-open-tracking-and-progress-write-conditions",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Is-UoHvE5p0T6K0LjbX90#chapter-reader-requires-public-work-and-chapter",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The screen must fall through to notFound() when either the public work or the public chapter is missing.",
+      "object": "chapter-reader-requires-public-work-and-chapter",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Is-UoHvE5p0T6K0LjbX90#locked-chapters-hide-content",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The reader must render the centered payment-preparation message instead of chapter.content when the chapter is locked.",
+      "object": "locked-chapters-hide-content",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Is-UoHvE5p0T6K0LjbX90#report-access-and-other-reason-validation-are-delegated",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When the reader opens or submits 신고, the reporting flow must enforce login checks, and it must reject submissions that choose 기타 without detailed content.",
+      "object": "report-access-and-other-reason-validation-are-delegated",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Is-UoHvE5p0T6K0LjbX90#viewing-settings-are-limited-to-listed-options",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "Font size changes must stay within 17, 19, 21, and 24, and theme changes must stay within light, sepia, and dark.",
+      "object": "viewing-settings-are-limited-to-listed-options",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:J1Qi1ySgPSx3a_u6FM0js#use-case-work-workspace-review-work-summary-and-open-chapter-work",
+      "epicId": "_Pnwofz1Iq27Y-rvAkG7q",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Review a work's core details and continue to chapter-level work.",
+      "object": "use-case-work-workspace-review-work-summary-and-open-chapter-work",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b1016d8fb207d897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:JAcmLTnPJ7e-gwcszXTJC#use-case-social-sign-in-google-kakao",
+      "epicId": "8v1lQnJKU9IzItheJ79gQ",
+      "claimType": "capability",
+      "subject": "visitor",
+      "action": "Sign in with a supported social account to begin an authenticated session",
+      "object": "use-case-social-sign-in-google-kakao",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:8769f48b92cad45f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:jXsQtbCtD6Df_l1J_fGDH#social-sign-in-login-screen-no-observed-feedback-states",
+      "epicId": "8v1lQnJKU9IzItheJ79gQ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "If the provided `/login` screen variant is implemented exactly as shown, the sign-in UI does not present separate loading, empty, or error states in the visible source.",
+      "object": "social-sign-in-login-screen-no-observed-feedback-states",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:8769f48b92cad45f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:jXsQtbCtD6Df_l1J_fGDH#social-sign-in-oauth-redirect-target-login-screen",
+      "epicId": "8v1lQnJKU9IzItheJ79gQ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When the `/login` screen initiates Supabase OAuth for either supported provider, it must set the redirect target to `/auth/callback` under the current window origin.",
+      "object": "social-sign-in-oauth-redirect-target-login-screen",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:8769f48b92cad45f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:jXsQtbCtD6Df_l1J_fGDH#social-sign-in-supported-oauth-actions-login-screen",
+      "epicId": "8v1lQnJKU9IzItheJ79gQ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When a user starts sign-in from `/login`, the screen must offer only the Google and Kakao OAuth actions shown in the source and must start sign-in through `supabase.auth.signInWithOAuth` for the selected provider.",
+      "object": "social-sign-in-supported-oauth-actions-login-screen",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:8769f48b92cad45f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:KQUppw26hCYJ1abHkM1T2#use-case-story-kb-content-update",
+      "epicId": "eJ5obXr2iXGhdipaJzFza",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Update reusable story knowledge content so later writing stays consistent.",
+      "object": "use-case-story-kb-content-update",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:059847e49639d22d"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:l-ZbS2nTBMru7GM5pyIXm#account-overview-authenticated-user-redirect",
+      "epicId": "0oF0HLK2dJTtWk5Y-fQCJ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "A missing authenticated user must be redirected to /login.",
+      "object": "account-overview-authenticated-user-redirect",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:ad11cb91be5b493f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:l-ZbS2nTBMru7GM5pyIXm#account-overview-inactive-profile-signout",
+      "epicId": "0oF0HLK2dJTtWk5Y-fQCJ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "A profile that is missing or not active must be signed out before redirecting to /login.",
+      "object": "account-overview-inactive-profile-signout",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:ad11cb91be5b493f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:l-ZbS2nTBMru7GM5pyIXm#account-overview-role-based-profile-display",
+      "epicId": "0oF0HLK2dJTtWk5Y-fQCJ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The screen must show 이메일 with user.email, show 필명 with profile.pen_name only for writer profiles, and otherwise show the /write/start link labeled 글쓰기 시작하기.",
+      "object": "account-overview-role-based-profile-display",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:ad11cb91be5b493f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:l-ZbS2nTBMru7GM5pyIXm#account-overview-soft-delete-and-signout",
+      "epicId": "0oF0HLK2dJTtWk5Y-fQCJ",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When 계정 탈퇴하기 submits deleteAccountAction for an authenticated user, the system must call softDeleteAccount(admin, user.id), clear pen_name_bio, set deleted_at only if deleted_at is null, sign out the current session, and redirect to /login.",
+      "object": "account-overview-soft-delete-and-signout",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:ad11cb91be5b493f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:LvmlTDAFKhF8eh4aYZqlA#work-chapters-primary-action-depends-on-progress-and-public-chapters",
+      "epicId": "sX2ROfqNfCIDxIsGLpv7-",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The chapters tab must disable the main reading action when there are no public chapters; otherwise it must route to the progress chapter when `progress` exists or to the first chapter when it does not.",
+      "object": "work-chapters-primary-action-depends-on-progress-and-public-chapters",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:a22b016c31220d75"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:LvmlTDAFKhF8eh4aYZqlA#work-detail-engagement-actions-require-authentication",
+      "epicId": "sX2ROfqNfCIDxIsGLpv7-",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The screen must require authentication before it allows `toggleSubscriptionAction(workId)`, `toggleBookmarkAction(workId)`, `toggleLikeAction(workId)`, or opening the report flow.",
+      "object": "work-detail-engagement-actions-require-authentication",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:a22b016c31220d75"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:LvmlTDAFKhF8eh4aYZqlA#work-detail-unavailable-when-work-missing",
+      "epicId": "sX2ROfqNfCIDxIsGLpv7-",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When the screen loads, it uses the route `workId` to fetch the public work, and the screen is unavailable if no work is returned.",
+      "object": "work-detail-unavailable-when-work-missing",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:a22b016c31220d75"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:LvmlTDAFKhF8eh4aYZqlA#work-report-detail-required-only-for-gita",
+      "epicId": "sX2ROfqNfCIDxIsGLpv7-",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The report form must show and require `상세 내용` only when `신고 사유` is set to `기타`.",
+      "object": "work-report-detail-required-only-for-gita",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:a22b016c31220d75"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:mwbjWkDVCoHGlWvuXL0Hk#br-chapter-create-auth-and-target-validation",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The system must reject chapter creation unless the requester is authenticated, the target work is owned by that requester, and any supplied folder is both in the same work and a `회차` folder node.",
+      "object": "br-chapter-create-auth-and-target-validation",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c4cf1d172cd19b45"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:mwbjWkDVCoHGlWvuXL0Hk#br-chapter-create-order-and-success-route",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When a chapter is created successfully for a work, the chapter must receive the next `order_index` after that work's current maximum and the user must be routed to the created chapter detail screen.",
+      "object": "br-chapter-create-order-and-success-route",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c4cf1d172cd19b45"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:mwbjWkDVCoHGlWvuXL0Hk#br-chapter-create-submit-gating",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The create-chapter submit action must remain unavailable while a submission is pending or while `title.trim()` is empty.",
+      "object": "br-chapter-create-submit-gating",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c4cf1d172cd19b45"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:mwbjWkDVCoHGlWvuXL0Hk#br-chapter-list-auth-loading",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The chapter list screen must fetch chapters only when an authenticated user is present; otherwise it must render using an empty chapter list.",
+      "object": "br-chapter-list-auth-loading",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:d1ef4c00a83488d3"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:mwbjWkDVCoHGlWvuXL0Hk#br-chapter-list-query-and-navigation",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The chapter list must present non-deleted chapters for the selected work in ascending `order_index`, and it must provide navigation to both chapter detail and new-chapter creation routes.",
+      "object": "br-chapter-list-query-and-navigation",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:d1ef4c00a83488d3"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:mwbjWkDVCoHGlWvuXL0Hk#br-chapter-reorder-guard-and-trigger",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The system must only attempt chapter reordering when the drag operation changes the order, and the reorder action must require an authenticated requester with a valid owned work context before it succeeds.",
+      "object": "br-chapter-reorder-guard-and-trigger",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:d1ef4c00a83488d3"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:N0y6yB2YQGIz_xeaKnxYK#use-case-return-to-sign-in-after-login-error",
+      "epicId": "4m8kG11em9A1CUTWJcWoz",
+      "claimType": "capability",
+      "subject": "User encountering a login error",
+      "action": "Return to the sign-in flow after a failed or interrupted login attempt.",
+      "object": "use-case-return-to-sign-in-after-login-error",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:5bc68d3024c8a70a"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:ovMW68kDpWeNQZPZUJAvD#use-case-create-chapter-in-work",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Create a new chapter in a work they own by submitting a required chapter title.",
+      "object": "use-case-create-chapter-in-work",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c4cf1d172cd19b45"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:ovMW68kDpWeNQZPZUJAvD#use-case-view-and-organize-chapters-in-work",
+      "epicId": "BSRh96OQqVVy-mCmDspWk",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "View and organize the chapters of a work from the chapter list screen.",
+      "object": "use-case-view-and-organize-chapters-in-work",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:d1ef4c00a83488d3"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:OXdCS9MkYFpq-HWQATVd2#use-case-studio-chapter-ai-proposals",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "capability",
+      "subject": "studio user",
+      "action": "Use AI suggestions and proposal saving while drafting a chapter",
+      "object": "use-case-studio-chapter-ai-proposals",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:OXdCS9MkYFpq-HWQATVd2#use-case-studio-chapter-edit-save-publish",
+      "epicId": "KWzV2pFYljuCDXE3S4ruY",
+      "claimType": "capability",
+      "subject": "studio user",
+      "action": "Revise, save, and publish chapter content from the studio chapter editor",
+      "object": "use-case-studio-chapter-edit-save-publish",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:4835eab26aa2d783"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:pW-7QXuB2-A8AuT_QnFku#use-case-read-public-chapter",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "capability",
+      "subject": "Public reader",
+      "action": "Read a public chapter and control the reading experience",
+      "object": "use-case-read-public-chapter",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:pW-7QXuB2-A8AuT_QnFku#use-case-report-from-chapter-reader",
+      "epicId": "DwVdypyCp2wh37VaxYHTU",
+      "claimType": "capability",
+      "subject": "Authenticated reader",
+      "action": "Report a problem encountered while reading a chapter",
+      "object": "use-case-report-from-chapter-reader",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:b105058b84a85955"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:qkorCmMSOxlOHbLsKB6xo#use-case-auth-callback-routing",
+      "epicId": "ddmjKqZQPK1w1e5HiSfvy",
+      "claimType": "capability",
+      "subject": "user",
+      "action": "Complete external sign-in and reach the correct next step after the authentication callback.",
+      "object": "use-case-auth-callback-routing",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:d21928355a0ae298"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:rcn0TuYvIZiVgonaO3sDM#br-identity-completion-invalid-email-redirect",
+      "epicId": "j2LecR7weVGaqetE2Y2R0",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "Invalid email input must be rejected before the account email update proceeds.",
+      "object": "br-identity-completion-invalid-email-redirect",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:b1691adca3c4cb20",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c05b800246f420f4"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:rcn0TuYvIZiVgonaO3sDM#br-identity-completion-route-driven-error-display",
+      "epicId": "j2LecR7weVGaqetE2Y2R0",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The email completion screen must use the route error parameter to decide whether to render visible error text and must submit the email form to `submitEmail`.",
+      "object": "br-identity-completion-route-driven-error-display",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:b1691adca3c4cb20",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c05b800246f420f4"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:rcn0TuYvIZiVgonaO3sDM#br-identity-completion-success-redirect-account",
+      "epicId": "j2LecR7weVGaqetE2Y2R0",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "Successful completion of the email update must continue the user to the account page.",
+      "object": "br-identity-completion-success-redirect-account",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:b1691adca3c4cb20",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c05b800246f420f4"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:rcn0TuYvIZiVgonaO3sDM#br-identity-completion-update-error-redirect",
+      "epicId": "j2LecR7weVGaqetE2Y2R0",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "Provider-side email update failures must be surfaced by redirecting the user back to the completion route with an error query value.",
+      "object": "br-identity-completion-update-error-redirect",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:b1691adca3c4cb20",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:c05b800246f420f4"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:tLy1py-4JbcoDRsmgK4gs#use-case-engage-with-work",
+      "epicId": "sX2ROfqNfCIDxIsGLpv7-",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Express interest in a work or report a problem while viewing the work detail page.",
+      "object": "use-case-engage-with-work",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:a22b016c31220d75"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:tLy1py-4JbcoDRsmgK4gs#use-case-view-work-detail",
+      "epicId": "sX2ROfqNfCIDxIsGLpv7-",
+      "claimType": "capability",
+      "subject": "reader",
+      "action": "Review a work's overview and available chapters before deciding whether to continue reading or engage.",
+      "object": "use-case-view-work-detail",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:a22b016c31220d75"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Uu-BNPQMB1c1g6dNfzd5G#br-login-error-screen-return-link",
+      "epicId": "4m8kG11em9A1CUTWJcWoz",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The failed-login error screen must provide navigation back to '/login' through the visible '로그인 페이지로 돌아가기' link, and no other user action is confirmed in this variant.",
+      "object": "br-login-error-screen-return-link",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:5bc68d3024c8a70a"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:Uu-BNPQMB1c1g6dNfzd5G#br-login-error-screen-static-message",
+      "epicId": "4m8kG11em9A1CUTWJcWoz",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The failed-login error screen must render static recovery copy in a centered layout and must not introduce form, tab, list, or modal interactions on this variant.",
+      "object": "br-login-error-screen-static-message",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:5bc68d3024c8a70a"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:vgo-RKoWDHt0Cu_oLlGyt#use-case-account-settings-review",
+      "epicId": "0oF0HLK2dJTtWk5Y-fQCJ",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Review account details, profile state, and relevant account actions from the account settings area.",
+      "object": "use-case-account-settings-review",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:ad11cb91be5b493f"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:W1UC02OP6BGs-t5KOiEWk#writer-upgrade-authenticated-access",
+      "epicId": "TPGBVklZxbIBligTLR7ZA",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "Authenticated access is required for both the `/write/start` page and the `submitWriterUpgrade` submission path.",
+      "object": "writer-upgrade-authenticated-access",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:881e24b5984c6f29",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:f55b2a55c6ec78f9"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:W1UC02OP6BGs-t5KOiEWk#writer-upgrade-pen-name-validation",
+      "epicId": "TPGBVklZxbIBligTLR7ZA",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "A writer upgrade may proceed only when `penName` trims to a length from 2 to 20 characters.",
+      "object": "writer-upgrade-pen-name-validation",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:881e24b5984c6f29",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:f55b2a55c6ec78f9"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:W1UC02OP6BGs-t5KOiEWk#writer-upgrade-reader-profile-transition",
+      "epicId": "TPGBVklZxbIBligTLR7ZA",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The upgrade changes only the authenticated user's `profiles` row when that row still has `role = 'reader'`.",
+      "object": "writer-upgrade-reader-profile-transition",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:881e24b5984c6f29",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:f55b2a55c6ec78f9"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:W1UC02OP6BGs-t5KOiEWk#writer-upgrade-redirect-and-error-surface",
+      "epicId": "TPGBVklZxbIBligTLR7ZA",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The writer-upgrade flow reports outcomes through redirects rather than a JSON response body.",
+      "object": "writer-upgrade-redirect-and-error-surface",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:api_spec:881e24b5984c6f29",
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:f55b2a55c6ec78f9"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:WeYoRQa4eWEFzzN612OGX#home-discovery-feed-empty-vs-grid",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The home screen must show the centered empty state copy when `works.length === 0`. Otherwise it must render the feed as cards in a 2-column grid on small screens and a 3-column grid on `sm` screens, with every `FeedCard` linking to `/works/{work.id}`. Inside each card, the screen must show the cover image when `coverImageUrl` exists, show `표지 없음` when it does not, and display view and like counts using `formatKoreanCount`, which keeps raw numbers below 10,000 and uses a `만` suffix at 10,000 or above.",
+      "object": "home-discovery-feed-empty-vs-grid",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:WeYoRQa4eWEFzzN612OGX#home-discovery-filter-fallbacks",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The home discovery screen must derive `sortMode` as `latest` or `popular`, derive `sortBasis` as one of `trending`, `views`, `likes`, or `ctr`, and fall back to `popular` and `trending` for unsupported values. The filter UI must default `genre` to `전체` when no genre is present.",
+      "object": "home-discovery-filter-fallbacks",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:WeYoRQa4eWEFzzN612OGX#home-discovery-filter-navigation-anchor",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "`FeedFilters` must render with the current genre and sort state, and changing genre or sort must push a new route that preserves `#weekly-ranking`. On genre change, the route must update the `genre` query. On click `최신`, the route must set `sortMode=latest`, clear `sortBasis`, and jump to `#weekly-ranking`. On click `인기`, the route must set `sortMode=popular` and jump to `#weekly-ranking`.",
+      "object": "home-discovery-filter-navigation-anchor",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:WeYoRQa4eWEFzzN612OGX#home-discovery-popular-mode-basis-selector",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "`FeedFilters` must show the ranking-basis select only when `sortMode` is `popular`, and when shown it must update `sortBasis` from the selected supported value.",
+      "object": "home-discovery-popular-mode-basis-selector",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:WeYoRQa4eWEFzzN612OGX#home-discovery-recently-read-empty-cta",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "When `RecentlyReadSection` has no items, the screen must show the empty copy and the anchor button `작품 둘러보기` that jumps to `#weekly-ranking`.",
+      "object": "home-discovery-recently-read-empty-cta",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:WeYoRQa4eWEFzzN612OGX#home-discovery-signed-in-recently-read",
+      "epicId": "y10ONYsPUsuqDchl5bB47",
+      "claimType": "business_rule",
+      "subject": "System",
+      "action": "The home screen must call `supabase.auth.getUser()` to determine the current user, call `listRecentlyRead(supabase, { userId: user.id, limit: 10 })` only when a `user` exists, and render `RecentlyReadSection` only when `loggedIn` is true.",
+      "object": "home-discovery-signed-in-recently-read",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:406184af4ba83897"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    },
+    {
+      "claimId": "doc:ZkSOd238mKUDvggt7zKuM#use-case-create-new-work-essential-metadata",
+      "epicId": "42aB4zT1F3DTaXtt59Vzh",
+      "claimType": "capability",
+      "subject": "authenticated user",
+      "action": "Create a new work with a required title and optional synopsis and genre.",
+      "object": "use-case-create-new-work-essential-metadata",
+      "confidence": "source_backed",
+      "evidenceStatus": "source_backed",
+      "sourceRoute": [
+        "source:doc:qlEXtwsu7YJjMVDZhrC2H:screen_spec:fda44a274c9d7b9b"
+      ],
+      "requiresDescentFor": [
+        "permission_answer",
+        "security_answer"
+      ]
+    }
+  ],
+  "conflicts": []
+}
