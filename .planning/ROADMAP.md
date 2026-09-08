@@ -138,6 +138,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can spend tokens to unlock a paid chapter and immediately view its content
   2. Wallet balance is deducted atomically at the moment of unlock, with no double-charge on retry or double-click
+  3. The chapter's author is credited 90% of the spent tokens for the unlock, with 10% retained as a platform fee — this 90/10 split is a **provisional figure** (not final; see `06-CONTEXT.md` D-10), implemented behind a single adjustable constant
 **Plans**: TBD
 **UI hint**: yes
 

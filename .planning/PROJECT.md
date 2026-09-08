@@ -32,6 +32,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 - SLM 기반 비동기 자동 사전검수(시놉시스-본문 정합성, 표절 탐지) 파이프라인 — 베타 규모에서는 운영자 수동 검토로 대체
 - 스크롤 심도 기반 정밀 유효완독률 알고리즘 — 간소화 지표로 시작, 데이터 쌓이면 고도화
 - 3-Strike 자동 제재 체계 — 수동 검토 체계 안정화 이후 고려
+- 구독제(월정액 무제한 열람) — 정기결제(빌링) 인프라가 없어 v1엔 구현하지 않음. 지금은 개발하지 않고, v1 핵심 루프(소장형 결제) 검증 이후 별도 마일스톤에서 재검토할 후보 기능으로 명시 (REQUIREMENTS.md PAY-04)
 
 ## Context
 
@@ -78,4 +79,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-31 after Phase 04.1 (KB 커스텀 폴더 + 회차 폴더 트리) completion*
+*Last updated: 2026-09-08 — added 구독제(월정액) to Out of Scope as an explicit v2 candidate (per Phase 6 discussion follow-up)*
+*Previously updated: 2026-08-31 after Phase 04.1 (KB 커스텀 폴더 + 회차 폴더 트리) completion*

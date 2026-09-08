@@ -47,7 +47,7 @@
 ### Payments (PAY)
 
 - [ ] **PAY-01**: User can purchase tokens through Toss Payments and see the charge reflected as a wallet balance
-- [ ] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time
+- [ ] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
 - [ ] **PAY-03**: Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
 
 ### Admin / Moderation (ADMIN)
@@ -74,6 +74,10 @@ Deferred to future release. Tracked but not in current roadmap.
 ### Admin
 
 - **ADMIN-05**: Report queue search/filter, audit log UI, canned-response templates
+
+### Payments
+
+- **PAY-04**: 구독제(월정액 무제한 열람) — 정기결제(빌링) 인프라가 필요하며 v1엔 존재하지 않음. 지금 당장 개발하지 않고, v1 핵심 루프(소장형 결제) 검증 이후 별도 마일스톤에서 재검토할 후보 기능으로만 명시한다. Phase 6(06-CONTEXT.md D-09)에서 v1 범위 밖으로 확인됨.
 
 ## Out of Scope
 
@@ -134,4 +138,5 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-08-31 — added KB-03/04/05 (custom folder creation, account-shared folder restructure, 회차 folder tree) for inserted Phase 04.1*
+*Last updated: 2026-09-08 — PAY-02 amended: author-credit-on-unlock confirmed at 90/10 (provisional, D-10); added PAY-04 (구독제, v2 candidate) per Phase 6 discussion follow-up*
+*Previously updated: 2026-08-31 — added KB-03/04/05 (custom folder creation, account-shared folder restructure, 회차 folder tree) for inserted Phase 04.1*
