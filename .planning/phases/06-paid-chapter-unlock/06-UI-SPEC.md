@@ -425,3 +425,5 @@ No `npx shadcn add` and no `npx shadcn view` is expected during implementation. 
 - [x] Dimension 6 Registry Safety: PASS
 
 **Approval:** APPROVED by gsd-ui-checker (2026-09-08) — 6/6 dimensions PASS, 0 blocking, 0 FLAG
+
+**Mockup:** https://claude.ai/code/artifact/5a39557c-185c-40ec-94aa-2d688c2f33b7 — 9 artboards (모달 4개 상태, 뷰어 잠금 블록, 언락 성공, 다크 테마 모달, 목차 시트, 회차 탭). Handoff Note 7 충족.
