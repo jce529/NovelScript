@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Platty local state (generated database/cache; exported SSOT is kept separately)
 .platty/
+
+# graphify regenerable extraction cache (re-derivable via `graphify update .`)
+graphify-out/cache/
+# graphify machine-local absolute paths (interpreter path, scan root)
+graphify-out/.graphify_python
+graphify-out/.graphify_root

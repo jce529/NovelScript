@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-09-08T06:18:31.388948+00:00",
+  "nodes": {
+    "_planning_phases_05_real_payment_integration_05_context_payment_decisions": {
+      "code_fingerprint": "ab4b1f3cd7f60ab5468dac0a01e64295e21f8c263380eb3a3846a870c547be9c",
+      "label": "Real Payment Integration Decisions",
+      "last": "2026-09-08T05:44:04.478086+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T05:44:04.478086+00:00",
+          "outcome": "useful",
+          "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
+        }
+      ],
+      "score": 0.999447424,
+      "source_file": ".planning/phases/05-real-payment-integration/05-CONTEXT.md",
+      "status": "tentative",
+      "uses": 1
+    },
+    "components_reader_toc_sheet": {
+      "code_fingerprint": "450ebe7214f2b88ae84185a65d087fdbee63d2634850c5d7f6c33e4b847288d0",
+      "label": "toc-sheet.tsx",
+      "last": "2026-09-08T05:44:04.478086+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T05:44:04.478086+00:00",
+          "outcome": "useful",
+          "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
+        }
+      ],
+      "score": 0.999447424,
+      "source_file": "components/reader/toc-sheet.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "components_reader_viewer_shell": {
+      "code_fingerprint": "fcbf29a4d9aec5418cfe4632c4cd1885d0a81c5b8fa8bf7ae7c69ab9f5487a32",
+      "label": "viewer-shell.tsx",
+      "last": "2026-09-08T05:44:04.478086+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T05:44:04.478086+00:00",
+          "outcome": "useful",
+          "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
+        }
+      ],
+      "score": 0.999447424,
+      "source_file": "components/reader/viewer-shell.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "lib_chapters_actions": {
+      "code_fingerprint": "776b6ac666599dd740c2fe7ebed977c50f35278303daaf1c2568638d92389772",
+      "label": "lib/chapters/actions.ts",
+      "last": "2026-09-08T05:44:04.478086+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T05:44:04.478086+00:00",
+          "outcome": "useful",
+          "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
+        }
+      ],
+      "score": 0.999447424,
+      "source_file": "lib/chapters/actions.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "tests_wallet_ledger_concurrency_test": {
+      "code_fingerprint": "866b7212e3e92011f29f399e61ef2670f3eb0d2d6d54da26693a8d78a770113b",
+      "label": "ledger.concurrency.test.ts",
+      "last": "2026-09-08T05:44:04.478086+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T05:44:04.478086+00:00",
+          "outcome": "useful",
+          "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
+        }
+      ],
+      "score": 0.999447424,
+      "source_file": "tests/wallet/ledger.concurrency.test.ts",
+      "status": "tentative",
+      "uses": 1
+    }
+  },
+  "version": 1
+}
