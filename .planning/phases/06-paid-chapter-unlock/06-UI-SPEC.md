@@ -1,7 +1,8 @@
 ---
 phase: 6
 slug: paid-chapter-unlock
-status: draft
+status: approved
+reviewed_at: 2026-09-08
 shadcn_initialized: true
 preset: base-nova
 created: 2026-09-08
@@ -416,11 +417,11 @@ No `npx shadcn add` and no `npx shadcn view` is expected during implementation. 
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED by gsd-ui-checker (2026-09-08) — 6/6 dimensions PASS, 0 blocking, 0 FLAG
