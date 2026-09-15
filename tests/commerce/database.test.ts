@@ -1,10 +1,18 @@
-import { PGlite } from '@electric-sql/pglite';
+import postgres from 'postgres';
 import { readFileSync } from 'node:fs';
 import { beforeAll, afterAll, beforeEach, afterEach, describe, expect, it } from 'vitest';
 
-// Real PostgreSQL engine in-process: no shared Supabase data or credentials.
-describe('commerce migrations and authorization (PostgreSQL)', () => {
-  let db: PGlite;
+// Real PostgreSQL, isolated schema and outer rollback. Existing app tables and
+// auth users are never changed; all fixtures and functions belong to this schema.
+describe.skipIf(!process.env.SUPABASE_DB_URL)('commerce migrations and authorization (PostgreSQL)', () => {
+  const sql = postgres(process.env.SUPABASE_DB_URL!, { max: 1, prepare: false });
+  const schema = `commerce_test_${crypto.randomUUID().replaceAll('-', '')}`;
+  const db = {
+    exec: (query: string) => sql.unsafe(query),
+    query: async (query: string, params: unknown[] = []) => ({
+      rows: await sql.unsafe(query, params as postgres.ParameterOrJSON<never>[]),
+    }),
+  };
   const owner = '10000000-0000-4000-8000-000000000001';
   const reader = '10000000-0000-4000-8000-000000000002';
   const other = '10000000-0000-4000-8000-000000000003';
@@ -29,28 +37,31 @@ describe('commerce migrations and authorization (PostgreSQL)', () => {
     'select can_view($1::uuid, $2::uuid)', [work, chapter]);
 
   beforeAll(async () => {
-    db = new PGlite();
     await db.exec(`
-      create role anon; create role authenticated; create role service_role bypassrls;
-      create schema auth;
-      create table auth.users(id uuid primary key);
-      create function auth.uid() returns uuid language sql stable as
-        $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-      grant usage on schema auth, public to anon, authenticated, service_role;
-      grant execute on function auth.uid() to anon, authenticated, service_role;
-      alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
-      alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+      begin;
+      create schema ${schema};
+      set search_path = ${schema}, public;
+      create table ${schema}.test_users(id uuid primary key);
+      grant usage on schema ${schema} to anon, authenticated, service_role;
     `);
     for (const file of ['0001_init.sql', '0002_studio.sql', '0003_reader.sql', '0004_kb_custom_folders.sql', '0005_commerce.sql']) {
-      // gen_random_uuid is built into PostgreSQL; PGlite does not bundle pgcrypto.
+      if (file === '0005_commerce.sql') {
+        await db.exec(`grant all on all tables in schema ${schema} to anon, authenticated, service_role;
+          grant all on all sequences in schema ${schema} to anon, authenticated, service_role;`);
+      }
       await db.exec(readFileSync(`supabase/migrations/${file}`, 'utf8')
-        .replace('create extension if not exists "pgcrypto";', ''));
+        .replace('create extension if not exists "pgcrypto";', '')
+        .replaceAll('auth.users', `${schema}.test_users`)
+        .replaceAll('search_path = public', `search_path = ${schema}, public`)
+        .replace(/^begin;|^commit;/gm, ''));
     }
   });
-  afterAll(async () => { await db?.close(); });
+  afterAll(async () => {
+    try { await db.exec('rollback'); } finally { await sql.end(); }
+  });
   beforeEach(async () => {
-    await db.exec('begin');
-    await db.query('insert into auth.users(id) values ($1),($2),($3)', [owner, reader, other]);
+    await db.exec('savepoint fixture');
+    await db.query('insert into test_users(id) values ($1),($2),($3)', [owner, reader, other]);
     await db.query("insert into works(id, owner_id, title) values ($1,$2,'Work')", [work, owner]);
     await db.query(`insert into chapters(id,work_id,title,content,order_index,is_published,price_tier)
       values ($1,$4,'Paid','secret',0,true,30), ($2,$4,'Free','free text',1,true,null),
@@ -58,7 +69,7 @@ describe('commerce migrations and authorization (PostgreSQL)', () => {
     await db.query('update wallets set balance = 100 where id = $1', [reader]);
     await asUser(reader);
   });
-  afterEach(async () => { await db.exec('rollback; reset role'); });
+  afterEach(async () => { await db.exec('rollback to savepoint fixture; reset role'); });
 
   it('keeps grants sparse and allows free content without an account', async () => {
     expect(await scalar('select count(*)::int from entitlements')).toBe(0);
