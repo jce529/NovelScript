@@ -3,6 +3,8 @@
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
+> **2026-09-15:** 최신 구매/권한 분리 요구사항과 실제 구현 기준으로 CONTEXT/RESEARCH를 갱신했다. 이 로그는 당시 발언을 보존한다. 현재 구현은 orders/order_items/entitlements와 구매 버튼/refresh 흐름이며, 작가 90/10 정산은 사용자 지시에 따라 로드맵의 미구현 항목으로 남아 있다.
+
 **Date:** 2026-09-08
 **Phase:** 06-paid-chapter-unlock
 **Areas discussed:** 언락 트리거 & 흐름, 잔액 부족 처리, 소장 vs 대여(영구성), 작가 정산 원장 기록

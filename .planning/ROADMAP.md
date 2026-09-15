@@ -15,10 +15,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it (completed 2026-08-29)
 - [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29)
 - [x] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30)
-- [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start
-- [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
+- [x] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md)
+- [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
-- [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters
+- [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (partially shipped outside GSD — see Phase 6 detail)
 - [ ] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports
 
 ## Phase Details
@@ -130,6 +130,7 @@ Plans:
   2. Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
 **Plans**: TBD
 **UI hint**: yes
+**Status**: Not started — **blocked on external dependency**. No Toss Payments code exists in the repo (verified 2026-09-15: no client/widget/webhook handler, no payment migration beyond `0005_commerce.sql`). `05-CONTEXT.md`, `05-RESEARCH.md`, `05-UI-SPEC.md`, `05-VALIDATION.md` are complete and ready for `/gsd:plan-phase`; execution waits on the Toss merchant keys (사업자등록 + merchant application).
 
 ### Phase 6: Paid Chapter Unlock
 **Goal**: Users can spend real, purchased tokens to unlock paid chapters, combining the proven wallet (Phase 1), paid-chapter metadata (Phase 2), and real payments (Phase 5).
@@ -139,8 +140,22 @@ Plans:
   1. User can spend tokens to unlock a paid chapter and immediately view its content
   2. Wallet balance is deducted atomically at the moment of unlock, with no double-charge on retry or double-click
   3. The chapter's author is credited 90% of the spent tokens for the unlock, with 10% retained as a platform fee — this 90/10 split is a **provisional figure** (not final; see `06-CONTEXT.md` D-10), implemented behind a single adjustable constant
-**Plans**: TBD
+**Plans**: TBD for remaining work. Existing implementation was outside the GSD plan flow; `06-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated or marked complete.
 **UI hint**: yes
+**Status**: Partially complete. Implemented in commits `57e1c8e` / `fc8a4a5` directly against the Phase 1 token wallet, without going through `/gsd:plan-phase`. Implementation report: `docs/commerce-entitlements.md`.
+
+Implemented in source (deployment/runtime verification pending):
+- `supabase/migrations/0005_commerce.sql` — `orders` / `order_items` / `entitlements` tables, RLS, purchase RPC, chapter-body column grants
+- `lib/commerce/actions.ts` (order creation + settlement), `lib/access/actions.ts` (session-based `canView` + protected body read), `lib/chapters/actions.ts` (body RPC + bulk TOC permission read)
+- `components/reader/viewer-shell.tsx` — price display, purchase button, double-click guard, error/retry
+- `tests/commerce/actions.test.ts`, `tests/commerce/database.test.ts`
+- Success Criteria 1 and 2 have source implementations. Actual SQL/RLS, independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
+
+Residual (stays in v1.0, not yet done):
+- [ ] **Implement author settlement (Success Criterion 3)** — author 90% / platform 10% is provisional. Add a single rate adjustment point and atomic author credit with purchase-time distribution snapshots. This remains roadmap work; no settlement code was added by the documentation patch.
+- Phase 6 currently runs on the Phase 1 token wallet with **no real top-up path**, because Phase 5 has not been built. `docs/commerce-entitlements.md` states real-currency charging was explicitly out of its scope. This inverts the roadmap's intended 5 → 6 order; Phase 5 layers on top when the Toss keys arrive.
+- [ ] Apply/verify the migration in a test environment, run SQL/RLS and real concurrent-session tests, and validate the purchase E2E. Previous DB tests remain unexecuted by user choice.
+- GSD-format documentation now includes `06-CONTEXT.md`, `06-RESEARCH.md`, retrospective `06-SUMMARY.md`, `06-VERIFICATION.md` (`gaps_found`) and `06-VALIDATION.md`. The verification document records a source audit, not a completed gsd-verifier or live-DB run.
 
 ### Phase 7: Admin Moderation Surface
 **Goal**: Admins can review reported content and take corrective action, closing the loop opened by reader reports (Phase 3) and the safety mitigations shipped with generation (Phase 4).
@@ -166,8 +181,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Complete   | 2026-08-30 |
-| 4. AI Gateway (Mention-Based Generation) | 6/6 | In Progress|  |
+| 4. AI Gateway (Mention-Based Generation) | 6/6 | Complete (live-key UAT pending) | 2026-08-30 |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
-| 5. Real Payment Integration | 0/TBD | Not started | - |
-| 6. Paid Chapter Unlock | 0/TBD | Not started | - |
+| 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
+| 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 0/TBD | Not started | - |
