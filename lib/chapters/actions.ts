@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { readChapterContent } from '../access/actions';
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
 
@@ -177,26 +178,26 @@ export interface PublicChapter {
   locked: boolean;
 }
 
-/** READ-02/D-06: never select('*') here — paid chapters are locked in v1 (no unlock
- * mechanism until Phase 6), so `content` must be explicitly nulled server-side even
- * though the row itself is readable once published (RLS is row-level, not column-level). */
+/** Metadata stays public; the DB authorizes every content read. */
 export async function getPublicChapter(
   supabase: SupabaseClient,
   { chapterId }: { chapterId: string }
 ): Promise<PublicChapter | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('chapters')
-    .select('id, work_id, title, order_index, price_tier, view_count, content')
+    .select('id, work_id, title, order_index, price_tier, view_count')
     .eq('id', chapterId)
     .eq('is_published', true)
     .is('deleted_at', null)
     .maybeSingle();
+  if (error) throw new Error(error.message);
   if (!data) return null;
-  const locked = data.price_tier !== null;
+  const content = await readChapterContent(supabase, chapterId);
+  const locked = content === null;
   return {
     id: data.id, workId: data.work_id, title: data.title, orderIndex: data.order_index,
     priceTier: data.price_tier, viewCount: data.view_count,
-    content: locked ? null : data.content,
+    content,
     locked,
   };
 }
@@ -222,8 +223,12 @@ export async function listPublicChapters(
     .is('deleted_at', null)
     .order('order_index', { ascending: true });
   if (error) throw new Error(error.message);
+  const { data: access, error: accessError } = await supabase.rpc('list_chapter_access', { p_work_id: workId });
+  if (accessError) throw new Error(accessError.message);
+  const allowed = new Set((access as { chapter_id: string; allowed: boolean }[] ?? [])
+    .filter(row => row.allowed).map(row => row.chapter_id));
   return (data ?? []).map((row) => ({
     id: row.id, title: row.title, orderIndex: row.order_index,
-    priceTier: row.price_tier, locked: row.price_tier !== null,
+    priceTier: row.price_tier, locked: !allowed.has(row.id),
   }));
 }

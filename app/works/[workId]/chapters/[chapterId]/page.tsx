@@ -18,7 +18,7 @@ export default async function ViewerPage({
     listPublicChapters(supabase, { workId }),
     supabase.auth.getUser(),
   ]);
-  if (!work || !chapter) notFound();
+  if (!work || !chapter || chapter.workId !== workId) notFound();
 
   const index = toc.findIndex((c) => c.id === chapterId);
   const prev = index > 0 ? toc[index - 1] : null;

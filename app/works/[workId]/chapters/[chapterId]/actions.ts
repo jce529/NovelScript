@@ -1,6 +1,9 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
+import { canView } from '@/lib/access/actions';
+import { createPurchaseOrder, payPurchaseOrder } from '@/lib/commerce/actions';
 import { incrementChapterView } from '@/lib/reader/views';
 import { upsertReadingProgress } from '@/lib/reader/progress';
 import { submitReport } from '@/lib/reader/reports';
@@ -13,12 +16,23 @@ import { submitReport } from '@/lib/reader/reports';
 export async function trackChapterOpenAction(workId: string, chapterId: string, locked: boolean) {
   const supabase = await createClient();
   await incrementChapterView(supabase, { chapterId });
-  if (!locked) {
+  if (!locked && await canView(supabase, workId, chapterId)) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await upsertReadingProgress(supabase, { userId: user.id, workId, chapterId });
     }
   }
+}
+
+export async function purchaseChapterAction(chapterId: string, idempotencyKey: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  const order = await createPurchaseOrder(supabase, { chapterIds: [chapterId], idempotencyKey });
+  if (!order.ok || !order.orderId) return order;
+  const result = await payPurchaseOrder(supabase, order.orderId);
+  if (result.ok) revalidatePath('/works', 'layout');
+  return result;
 }
 
 export async function submitReportAction(input: { workId: string; chapterId: string | null; reasonCategory: string; detail: string | null }) {

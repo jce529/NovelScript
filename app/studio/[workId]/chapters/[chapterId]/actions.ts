@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
@@ -16,14 +17,16 @@ export async function getChapterAction(chapterId: string) {
   if (!user) return null;
   const { data } = await supabase
     .from('chapters')
-    .select('id, title, content, is_published, price_tier, work_id, works!inner(owner_id)')
+    .select('id, title, is_published, price_tier, work_id, works!inner(owner_id)')
     .eq('id', chapterId)
     .eq('works.owner_id', user.id)
     .maybeSingle();
   if (!data) return null;
 
   const { data: work } = await supabase.from('works').select('genre').eq('id', data.work_id).maybeSingle();
-  return { ...data, genre: work?.genre ?? null };
+  const content = await readChapterContent(supabase, chapterId);
+  if (content === null) return null;
+  return { ...data, content, genre: work?.genre ?? null };
 }
 
 export async function saveChapterContentAction(workId: string, chapterId: string, content: string) {

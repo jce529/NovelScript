@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, List, Settings, Lock } from 'lucide-react';
@@ -9,7 +10,7 @@ import type { PublicChapter, PublicChapterListItem } from '@/lib/chapters/action
 import { TocSheet } from '@/components/reader/toc-sheet';
 import { ViewerSettingsSheet } from '@/components/reader/viewer-settings-sheet';
 import { ViewTracker } from '@/components/reader/view-tracker';
-import { trackChapterOpenAction } from '@/app/works/[workId]/chapters/[chapterId]/actions';
+import { purchaseChapterAction, trackChapterOpenAction } from '@/app/works/[workId]/chapters/[chapterId]/actions';
 
 export type ViewerTheme = 'light' | 'sepia' | 'dark';
 
@@ -30,6 +31,27 @@ export function ViewerShell({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fontSize, setFontSize] = useState(19);
   const [theme, setTheme] = useState<ViewerTheme>('light');
+  const [purchasing, startPurchase] = useTransition();
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const purchaseKey = useRef<{ chapterId: string; key: string } | null>(null);
+  const router = useRouter();
+
+  function purchase() {
+    if (!purchaseKey.current || purchaseKey.current.chapterId !== chapter.id) {
+      purchaseKey.current = { chapterId: chapter.id, key: crypto.randomUUID() };
+    }
+    const key = purchaseKey.current.key;
+    startPurchase(async () => {
+      setPurchaseError(null);
+      try {
+        const result = await purchaseChapterAction(chapter.id, key);
+        if (result.ok) router.refresh();
+        else setPurchaseError(result.error ?? '구매를 완료하지 못했어요.');
+      } catch {
+        setPurchaseError('연결을 확인하고 다시 시도해주세요.');
+      }
+    });
+  }
 
   return (
     <div className={`flex min-h-screen flex-col bg-background text-foreground ${THEME_CLASS[theme]}`}>
@@ -73,8 +95,12 @@ export function ViewerShell({
           {chapter.locked ? (
             <div className="flex flex-col items-center gap-2 py-24 text-center">
               <Lock className="size-6 text-muted-foreground" />
-              <h3 className="text-xl font-semibold">결제 기능 준비중</h3>
-              <p className="text-muted-foreground">곧 유료 회차를 만나보실 수 있어요.</p>
+              <h3 className="text-xl font-semibold">유료 회차</h3>
+              <p className="text-muted-foreground">{chapter.priceTier} 토큰으로 이 회차를 소장할 수 있어요.</p>
+              {loggedIn ? (
+                <Button disabled={purchasing} onClick={purchase}>{purchasing ? '구매 처리 중…' : `${chapter.priceTier} 토큰으로 소장`}</Button>
+              ) : <Link href="/login" className="underline">로그인하고 구매하기</Link>}
+              {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             </div>
           ) : (
             chapter.content
