@@ -8,6 +8,24 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 
 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다. 한쪽만 되는 건 실패로 간주한다.
 
+## Current Milestone: v1.1 멀티 프로바이더 AI 연결 · BYOK · 구독형 AI MCP
+
+**Goal:** 작가가 Gemini 외 다른 AI 제공자를 자기 API 키(BYOK)로 쓸 수 있게 하고, 평소 쓰는 구독형 AI에서 MCP로 NovelScript 작품·설정집에 접근해 초안을 되돌려 저장할 수 있게 한다.
+
+**Target features:**
+- 공통 AI 제공자 인터페이스 + 어댑터 (Gemini 전환, OpenAI, Anthropic)
+- 제공자/모델 선택 — 계정 설정에서 관리, AI 패널 드롭다운에서 호출별 전환
+- BYOK 키 등록·검증·암호화 저장·교체·삭제 (서버 소유권 검증, 키 비노출)
+- 서비스 키 모드 / BYOK 모드 분리 — BYOK는 플랫폼 토큰 0 차감, 사용 기록만 남김
+- 제공자 오류·사용 한도·타임아웃 처리 및 중복 정산 방지
+- 원격 HTTP MCP 서버 + OAuth 계정 연결 — 작품/회차/설정집 읽기 + 초안·설정 변경안 저장 (기존 본문 자동 덮어쓰기 없음), 연결 해제
+
+**Milestone notes:**
+- v1.0 잔여 작업(Phase 5 Toss 결제 / Phase 6 작가 90:10 정산 / Phase 7 운영자 도구)은 v1.0 트랙에 그대로 남긴다. v1.1 로드맵에 포함하지 않으며, 페이즈 번호는 8부터 이어간다.
+- BYOK 키 암호화 저장 방식(Supabase Vault vs 앱 레벨 AES-GCM)은 리서치 단계에서 결정한다.
+- MCP 클라이언트별 공식 커넥터 지원 범위는 2차 착수 시 재확인한다 — 모든 구독 서비스 일괄 지원을 가정하지 않는다.
+- 작업 브랜치 `codex/multi-provider-byok`, 목표 원문 `docs/ai-integration-roadmap.md`.
+
 ## Requirements
 
 ### Validated
@@ -23,11 +41,13 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 - [ ] 작가가 3단계 프리셋(초보자/중급자/자유형) 중 선택해 AI 톤을 제어할 수 있다
 - [ ] 유저가 실제 결제(PG 연동)로 토큰을 충전하고, 유료 회차 열람 등에 토큰을 소비할 수 있다
 - [ ] 운영자가 신고된/문제 있는 콘텐츠를 수동으로 검토하고 조치할 수 있는 최소한의 운영 도구가 있다
+- [ ] 작가가 Gemini 외 다른 AI 제공자(OpenAI, Anthropic)를 선택해 집필 기능을 쓸 수 있다 (v1.1)
+- [ ] 작가가 자신의 API 키를 등록(BYOK)해 플랫폼 토큰 차감 없이 AI를 쓸 수 있다 (v1.1)
+- [ ] 작가가 평소 쓰는 구독형 AI에서 MCP로 자신의 작품·설정집을 읽고 초안을 저장할 수 있다 (v1.1)
 
 ### Out of Scope
 
 - 에셋 스토어(설정집/프롬프트 판매 마켓플레이스) — v1 핵심 루프(집필-열람-결제) 검증 이후로 유예
-- BYOK(외부 API 키 연동) — v1은 플랫폼 키 단일 운영으로 시작, 헤비 유저 대응은 반응 확인 후 추가
 - 토큰 현금 환전(Cash-out, 작가 정산) — 초기엔 수익이 AI 비용을 상쇄하는 데 집중, 작가 정산은 별도 트랙
 - SLM 기반 비동기 자동 사전검수(시놉시스-본문 정합성, 표절 탐지) 파이프라인 — 베타 규모에서는 운영자 수동 검토로 대체
 - 스크롤 심도 기반 정밀 유효완독률 알고리즘 — 간소화 지표로 시작, 데이터 쌓이면 고도화
@@ -46,7 +66,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 ## Constraints
 
 - **비용 구조**: AI 추론 비용은 실비이며 플랫폼이 선부담 — 결제로 유입되는 매출이 이를 상쇄해야 지속 가능. 결제 미구현 상태로 무제한 오픈하지 않는다.
-- **AI 벤더**: MVP는 외부 LLM API 1개 벤더만 지원 (플랫폼 키로 호출). 벤더는 Google Gemini로 확정.
+- **AI 벤더**: v1.0은 Google Gemini 단일 벤더 + 플랫폼 키. v1.1부터 OpenAI·Anthropic을 어댑터로 추가하고 BYOK를 허용하되, 플랫폼 키 모드의 비용 통제 구조는 그대로 유지한다.
 - **기술 스택 연속성**: 기존 docs 기획서와 현재 스캐폴드(Next.js/React/Tailwind)를 최대한 존중.
 - **커뮤니티 베타**: 정식 마케팅이 아닌 커뮤니티 배포 기반 — 초기 온보딩/가입 마찰을 낮게 유지해야 함.
 
@@ -55,7 +75,11 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | 결제는 모의(mock) 토큰이 아닌 실제 PG 연동으로 처음부터 구현, PG는 Toss Payments 직접 연동 | 유저 규모를 인위적으로 제한하고 싶지 않고, 결제 매출로 AI 비용을 자동 상쇄하는 구조를 원함. Toss는 카드/카카오페이/네이버페이/토스페이를 위젯 하나로 커버 | 결정됨 |
-| AI 벤더는 1개만, 플랫폼 키로 운영 (BYOK는 v2) — 벤더는 Google Gemini | MVP 복잡도를 낮추고 비용 통제를 결제 시스템 하나로 단순화 | 결정됨 |
+| AI 벤더는 1개만, 플랫폼 키로 운영 (BYOK는 v2) — 벤더는 Google Gemini | MVP 복잡도를 낮추고 비용 통제를 결제 시스템 하나로 단순화 | 결정됨 — v1.1에서 멀티 프로바이더 + BYOK로 확장 |
+| v1.1 추가 제공자는 OpenAI, Anthropic 2개로 한정 | docs/ai-integration-roadmap.md 기준. 커스텀 OpenAI 호환 엔드포인트는 범위 밖 | 결정됨 |
+| BYOK 모드는 플랫폼 AI 토큰을 차감하지 않는다 | 사용자가 자기 비용으로 호출하므로 이중 과금이 됨. 사용 기록만 남겨 한도·남용 방지에 사용 | 결정됨 |
+| MCP는 원격 HTTP + OAuth 계정 연결, 읽기 + 초안 저장까지만 | 설치 없이 공식 커넥터 경로를 타고, 외부 AI가 기존 본문을 덮어쓰지 못하게 초안/제안으로만 되돌린다 | 결정됨 |
+| BYOK 키 암호화 저장 방식은 리서치 단계에서 결정 | Supabase Vault와 앱 레벨 AES-GCM의 현재 지원 상태·운영 부담 비교 필요 | — Pending |
 | 랭킹/큐레이션은 간소화 지표로 시작 | 스크롤 심도 알고리즘은 정밀 설계·튜닝 비용이 크고, 베타에서는 반응 확인이 우선 | — Pending |
 | SLM 자동 사전검수 대신 운영자 수동 검토 | 베타 규모에서는 자동화 인프라(Cloud Run 큐 등) 구축 비용 대비 효용이 낮음 | — Pending |
 | 에셋 스토어는 v1 범위 밖 | 집필-열람-결제 핵심 루프 검증이 먼저 | — Pending |
@@ -79,5 +103,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-08 — added 구독제(월정액) to Out of Scope as an explicit v2 candidate (per Phase 6 discussion follow-up)*
-*Previously updated: 2026-08-31 after Phase 04.1 (KB 커스텀 폴더 + 회차 폴더 트리) completion*
+*Last updated: 2026-09-15 — v1.1 마일스톤 개시 (멀티 프로바이더 AI + BYOK + 구독형 AI MCP)*
+*Previously updated: 2026-09-08 — added 구독제(월정액) to Out of Scope as an explicit v2 candidate (per Phase 6 discussion follow-up)*

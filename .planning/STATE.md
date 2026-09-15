@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: Phase 6 context gathered
-last_updated: "2026-09-08T04:09:06.582Z"
-last_activity: 2026-08-31
+milestone: v1.1
+milestone_name: 멀티 프로바이더 AI 연결 · BYOK · 구독형 AI MCP
+status: defining requirements
+stopped_at: Milestone v1.1 started — defining requirements
+last_updated: "2026-09-15T00:00:00.000Z"
+last_activity: 2026-09-15
 progress:
-  total_phases: 8
-  completed_phases: 5
-  total_plans: 29
-  completed_plans: 29
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,16 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 5 — Real Payment Integration (Phase 04.1 complete and verified)
+**Current focus:** v1.0 잔여 정리 — Phase 5(Toss 키 대기로 차단), Phase 6 90/10 작가 정산(미구현), Phase 7(미착수). 멀티 프로바이더 + BYOK 작업은 별도 마일스톤(v1.1)으로 분리 예정 — `codex/multi-provider-byok` 브랜치, 목표 문서 `docs/ai-integration-roadmap.md`.
 
 ## Current Position
 
-Phase: 5 (real-payment-integration)
-Plan: Not started
-Status: Phase 04.1 verified complete (20/20 must-haves) — Phase 4 (AI Gateway) remains unchecked pending live GEMINI_API_KEY verification; Phase 5 not yet planned
-Last activity: 2026-08-31
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-09-15 — Milestone v1.1 started (멀티 프로바이더 AI + BYOK + 구독형 AI MCP)
 
-Progress: [██████████] 100%
+**v1.0 잔여 (별도 트랙, v1.1 로드맵에 포함하지 않음):**
+- Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
+- Phase 6 작가 90:10 정산 — 미구현
+- Phase 7 Admin Moderation Surface — 미착수
+- Phase 4 라이브 GEMINI_API_KEY UAT — 미완
 
 ## Performance Metrics
 
@@ -114,23 +118,29 @@ Recent decisions affecting current work:
 - [Phase 04.1]: Plan 04.1-04: lib/ai/mentions.ts searchMentionNodes/getMentionedNodesContent made cross-scope-aware (work-scoped + account_template-scoped, two-query-then-merge, owner_id-scoped one-directional per D-10); MentionAutocomplete.tsx shows '계정 공유'/'사용자 폴더' trailing text per UI-SPEC Copywriting Contract, never the raw category sentinel; live-verified end-to-end against a real Gemini call — confirmed the mention picker is wired to the main manuscript Textarea (not the AiPanel chat input), and getMentionedNodesContent's fix correctly surfaces account-shared doc content in chat replies
 - [Phase 04.1-kb]: Plan 04.1-05: two-section KB sidebar (작품 폴더/계정 공유 폴더) with folder-creation at both roots and every folder row; 회차 folded into the tree as a Link with chapter leaves via chaptersByFolderId; standalone ChaptersNavLink removed
 
+- [Phase 06]: Implemented outside the GSD plan flow (commits 57e1c8e/fc8a4a5, report at docs/commerce-entitlements.md) — 0005_commerce.sql adds orders/order_items/entitlements + RLS + purchase RPC; lib/commerce/actions.ts, lib/access/actions.ts, lib/chapters/actions.ts, components/reader/viewer-shell.tsx wire purchase→immediate view; idempotency via orders(user_id, idempotency_key) UNIQUE. Built directly on the Phase 1 token wallet with NO real top-up path, inverting the roadmap's intended 5→6 order — real-currency charging was explicitly out of scope per its own report. No PLAN/SUMMARY/VERIFICATION artifacts exist for this phase.
+
 ### Roadmap Evolution
 
 - Phase 04.1 inserted after Phase 4: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) (URGENT)
+- Phase 6 executed ahead of Phase 5 and outside GSD (2026-09-15 discovery) — roadmap order 5→6 no longer reflects build order; Phase 5 now layers real top-up onto an already-shipped unlock flow
+- v1.1 milestone planned for multi-provider AI + BYOK (branch `codex/multi-provider-byok`, goals in `docs/ai-integration-roadmap.md`) — deliberately NOT folded into Phase 4, whose EDIT-01~05 success criteria are Gemini-single-provider
 
 ### Pending Todos
 
-- Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end.
+- Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end. (Phase 4 is marked Complete on the roadmap; this is the one outstanding human UAT item — see 04-VERIFICATION.md `human_verification`.)
+- **[Phase 06, v1.0 residual]** Implement the author 90/10 credit split with the 10% platform fee behind a single adjustable constant (ROADMAP Phase 6 success criterion 3, provisional per 06-CONTEXT.md D-10). Confirmed absent from lib/commerce/actions.ts and 0005_commerce.sql on 2026-09-15. Decision: keep in v1.0, handle alongside Phase 5 when the Toss keys arrive.
+- **[Phase 06, v1.0 residual]** Complete runtime verification against ROADMAP criteria when the environment is available. 06-VERIFICATION.md now records a source audit with gaps_found; it does not claim a gsd-verifier agent run or SQL/RLS/E2E success. Keep the user's DB-test deferral in effect.
 
 ### Blockers/Concerns
 
-- Toss Payments merchant application + 사업자등록 status is unknown — Pitfalls research flags this as the likely actual critical path to launch (~2+ week external review). Should be confirmed/started in parallel with Phase 1, not deferred to Phase 5.
+- **Toss Payments merchant keys are now the active blocker on Phase 5.** Confirmed 2026-09-15: no Toss client, widget, or webhook handler exists anywhere in the repo. Phase 5's CONTEXT/RESEARCH/UI-SPEC/VALIDATION are all complete and ready for /gsd:plan-phase — only the keys are missing. Pitfalls research flagged the merchant application + 사업자등록 (~2+ week external review) as the likely real critical path to launch.
 - 선불전자지급수단 (prepaid payment instrument) regulatory classification not yet confirmed by a PG compliance team or lawyer — current no-cash-out, single-merchant design appears to qualify for exemption but this is unverified. Not blocking v1, but must be revisited before ever scoping cash-out or an asset store.
 - Phase 4 (AI Gateway) and Phase 5 (Real Payment Integration) were flagged by research as needing a dedicated research-phase pass before detailed planning (Gemini rate-limit/pricing/context-window specifics; Toss webhook payload verification against live docs).
 - (Resolved 2026-08-28) Kakao login was blocked by KOE205: Supabase's Kakao provider requests `account_email profile_image profile_nickname` as a fixed scope set, but only `account_email` was enabled as a consent item in Kakao Developers console. Fixed by enabling all three consent items. Any future Kakao/OAuth provider work should check ALL requested scopes against console config, not just the one business logic cares about.
 
 ## Session Continuity
 
-Last session: 2026-09-08T04:09:06.577Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-paid-chapter-unlock/06-CONTEXT.md
+Last session: 2026-09-15
+Stopped at: Milestone v1.1 opened — PROJECT.md/STATE.md updated, defining requirements next
+Resume file: .planning/REQUIREMENTS.md (v1.1) / docs/ai-integration-roadmap.md (v1.1 goals) / .planning/ROADMAP.md (v1.0 residuals)
