@@ -245,7 +245,11 @@ describe('reading bookkeeping is skipped without failing the read', () => {
         work_likes: { work_id: workId },
         chapters: { id: chapterId, work_id: workId, title: '1화', order_index: 0, price_tier: 10, view_count: 3 },
       },
-      rpcData: { read_chapter_content: 'purchased body' },
+      rpcData: {
+        read_chapter_content: 'purchased body',
+        // 07-04: the viewer asks for explicit access state before the body RPC.
+        get_chapter_access_state: { state: 'readable', entitled: true, blind_scope: null, blind_reason: null },
+      },
     });
     expect(await getLikeState(fake.client, { workId, userId })).toBe(true);
     expect(await getPublicChapter(fake.client, { chapterId })).toMatchObject({ content: 'purchased body', locked: false });

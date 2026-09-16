@@ -42,24 +42,28 @@ export interface RecentlyReadItem {
   chapterTitle: string;
   /** 0-based order_index. UI-SPEC's "{N}화" copy uses chapterOrderIndex + 1. */
   chapterOrderIndex: number;
+  /** D-14: the resume chapter is blinded; consumers show it locked, never renumbered or sold. */
+  chapterBlinded: boolean;
   updatedAt: string;
 }
 
-/** D-15(b): cross-work "최근 읽은 작품" list on the homepage. */
+/** D-15(b): cross-work "최근 읽은 작품" list on the homepage. D-12: work-wide blinds are
+ * excluded in the query (before the limit), like the feed. */
 export async function listRecentlyRead(
   supabase: SupabaseClient,
   { userId, limit = 10 }: { userId: string; limit?: number }
 ): Promise<RecentlyReadItem[]> {
   const { data, error } = await supabase
     .from('reading_progress')
-    .select('work_id, chapter_id, updated_at, works(title, cover_image_url), chapters(title, order_index)')
+    .select('work_id, chapter_id, updated_at, works!inner(title, cover_image_url, admin_blinded), chapters(title, order_index, admin_blinded)')
     .eq('user_id', userId)
+    .eq('works.admin_blinded', false)
     .order('updated_at', { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => {
     const work = row.works as unknown as { title: string; cover_image_url: string | null } | null;
-    const chapter = row.chapters as unknown as { title: string; order_index: number } | null;
+    const chapter = row.chapters as unknown as { title: string; order_index: number; admin_blinded?: boolean } | null;
     return {
       workId: row.work_id,
       workTitle: work?.title ?? '',
@@ -67,6 +71,7 @@ export async function listRecentlyRead(
       chapterId: row.chapter_id,
       chapterTitle: chapter?.title ?? '',
       chapterOrderIndex: chapter?.order_index ?? 0,
+      chapterBlinded: chapter?.admin_blinded === true,
       updatedAt: row.updated_at,
     };
   });

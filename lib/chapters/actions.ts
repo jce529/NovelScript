@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { readChapterContent } from '../access/actions';
+import { getChapterAccessState, readChapterContent, type ReaderAccessState } from '../access/actions';
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
@@ -188,9 +188,17 @@ export interface PublicChapter {
   viewCount: number;
   content: string | null;
   locked: boolean;
+  /** Explicit reader state; 'blinded' must never be rendered as a purchase prompt. */
+  accessState: ReaderAccessState;
+  entitled: boolean;
+  blindScope: 'work' | 'chapter' | null;
+  /** Public blind reason only (no internal notes). */
+  blindReason: string | null;
 }
 
-/** Metadata stays public; the DB authorizes every content read. */
+/** Metadata stays public; the DB authorizes every content read. The body RPC is only called
+ * for a 'readable' state, so a blinded chapter never returns its body to the viewer even for
+ * its owner (owner correction goes through the studio path). */
 export async function getPublicChapter(
   supabase: SupabaseClient,
   { chapterId }: { chapterId: string }
@@ -204,13 +212,18 @@ export async function getPublicChapter(
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
-  const content = await readChapterContent(supabase, chapterId);
+  const access = await getChapterAccessState(supabase, { workId: data.work_id, chapterId });
+  const content = access.state === 'readable' ? await readChapterContent(supabase, chapterId) : null;
   const locked = content === null;
   return {
     id: data.id, workId: data.work_id, title: data.title, orderIndex: data.order_index,
     priceTier: data.price_tier, viewCount: data.view_count,
     content,
     locked,
+    accessState: locked && access.state === 'readable' ? 'unavailable' : access.state,
+    entitled: access.entitled,
+    blindScope: access.blindScope,
+    blindReason: access.blindReason,
   };
 }
 
@@ -220,6 +233,19 @@ export interface PublicChapterListItem {
   orderIndex: number;
   priceTier: number | null;
   locked: boolean;
+  /** D-14: blinded rows stay in order with state 'blinded' (never renumbered or hidden). */
+  state: Exclude<ReaderAccessState, 'unavailable'>;
+  blinded: boolean;
+  entitled: boolean;
+  blindReason: string | null;
+}
+
+interface ChapterAccessRow {
+  chapter_id: string;
+  allowed: boolean;
+  entitled?: boolean;
+  blinded?: boolean;
+  blind_reason?: string | null;
 }
 
 /** TOC (D-12) + 회차 tab (D-07) source. Never selects `content`. */
@@ -237,10 +263,18 @@ export async function listPublicChapters(
   if (error) throw new Error(error.message);
   const { data: access, error: accessError } = await supabase.rpc('list_chapter_access', { p_work_id: workId });
   if (accessError) throw new Error(accessError.message);
-  const allowed = new Set((access as { chapter_id: string; allowed: boolean }[] ?? [])
-    .filter(row => row.allowed).map(row => row.chapter_id));
-  return (data ?? []).map((row) => ({
-    id: row.id, title: row.title, orderIndex: row.order_index,
-    priceTier: row.price_tier, locked: !allowed.has(row.id),
-  }));
+  const byId = new Map(((access as ChapterAccessRow[] | null) ?? []).map(row => [row.chapter_id, row]));
+  return (data ?? []).map((row): PublicChapterListItem => {
+    const entry = byId.get(row.id);
+    const blinded = entry?.blinded === true;
+    const allowed = !blinded && entry?.allowed === true;
+    return {
+      id: row.id, title: row.title, orderIndex: row.order_index,
+      priceTier: row.price_tier, locked: !allowed,
+      state: blinded ? 'blinded' : allowed ? 'readable' : 'purchase_required',
+      blinded,
+      entitled: entry?.entitled === true,
+      blindReason: blinded ? entry?.blind_reason ?? null : null,
+    };
+  });
 }

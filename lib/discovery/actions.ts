@@ -81,7 +81,9 @@ export async function listFeed(
   let query = supabase
     .from('works')
     .select('id, title, synopsis, cover_image_url, genre, created_at, chapters(view_count, order_index, is_published, deleted_at)')
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    // D-12: work-wide blinds are absent from discovery.
+    .eq('admin_blinded', false);
   if (params.genre) query = query.eq('genre', params.genre);
 
   const { data: works, error } = await query;

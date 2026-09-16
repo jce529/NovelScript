@@ -97,6 +97,10 @@ export interface PublicWork {
   coverImageUrl: string | null;
   genre: string | null;
   ownerId: string;
+  /** D-12: work-wide administrator blind. Direct entry shows an unavailable/review notice. */
+  blinded: boolean;
+  /** Public blind reason only. */
+  blindReason: string | null;
 }
 
 /** READ-01/READ-02: NO ownerId gate — any non-deleted work is publicly readable.
@@ -107,13 +111,16 @@ export async function getPublicWork(
 ): Promise<PublicWork | null> {
   const { data } = await supabase
     .from('works')
-    .select('id, title, synopsis, cover_image_url, genre, owner_id')
+    .select('id, title, synopsis, cover_image_url, genre, owner_id, admin_blinded, admin_blind_reason')
     .eq('id', workId)
     .is('deleted_at', null)
     .maybeSingle();
   if (!data) return null;
+  const blinded = data.admin_blinded === true;
+  // A blinded work keeps only safe entry metadata; synopsis/cover may be the reported content.
   return {
-    id: data.id, title: data.title, synopsis: data.synopsis,
-    coverImageUrl: data.cover_image_url, genre: data.genre, ownerId: data.owner_id,
+    id: data.id, title: data.title, synopsis: blinded ? null : data.synopsis,
+    coverImageUrl: blinded ? null : data.cover_image_url, genre: data.genre, ownerId: data.owner_id,
+    blinded, blindReason: blinded ? data.admin_blind_reason ?? null : null,
   };
 }
