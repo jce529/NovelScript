@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 멀티 프로바이더 AI 연결 · BYOK · 구독형 AI MCP
-status: "v1.1 로드맵 확정(Phase 8~14) → `/gsd:plan-phase 8`. v1.0 잔여 트랙은 Phase 7 컨텍스트까지 완료 → `/gsd:plan-phase 7`"
-stopped_at: Phase 7 context gathered
-last_updated: "2026-09-16T04:37:54.487Z"
-last_activity: 2026-09-16 — v1.1 리서치 4종 완료·로드맵 작성(Phase 8~14), 이어서 v1.0 Phase 7 컨텍스트 수집
+status: "Phase 7 ready to execute (v1.0 separate track); v1.1 Phase 8 planning remains pending"
+stopped_at: Phase 7 planning complete - 7 plans in 6 waves
+last_updated: "2026-09-16T11:13:58Z"
+last_activity: 2026-09-16 — Phase 7 리서치·UI 설계·계획 7개 작성 및 계획 검증 완료
 progress:
   total_phases: 7
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** v1.1 로드맵 수립 완료 — Phase 8~14 (1단계 8~11: 멀티 프로바이더 어댑터 + BYOK, 2단계 12~14: 원격 MCP 서버). 다음은 `/gsd:plan-phase 8`. 브랜치 `codex/multi-provider-byok`, 목표 문서 `docs/ai-integration-roadmap.md`.
+**Current focus:** 사용자 요청으로 v1.0 별도 트랙 Phase 7 계획 완료; 다음은 `$gsd-execute-phase 7`. v1.1 Phase 8~14 로드맵과 `docs/ai-integration-roadmap.md`는 유지하며 해당 트랙의 다음 단계는 `$gsd-plan-phase 8`. 현재 로컬 브랜치는 `master`이며 `origin/codex/multi-provider-byok`를 rebase로 반영한 상태.
 
 ## Current Position
 
-Phase: 8 — 프로바이더 어댑터 기반 · 멱등 차감 수정 (not started)
-Plan: —
-Status: v1.1 로드맵 확정(Phase 8~14) → `/gsd:plan-phase 8`
-Last activity: 2026-09-16 — v1.1 리서치 4종 완료·로드맵 작성(Phase 8~14), 이어서 v1.0 Phase 7 컨텍스트 수집
+Phase: 7 — Admin Moderation Surface (v1.0 separate track)
+Plan: 0/7 completed; 07-01 next
+Status: Ready to execute
+Last activity: 2026-09-16 — Phase 7 planning complete; 7 plans, 6 waves, 15 tasks
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
@@ -50,7 +50,7 @@ Last activity: 2026-09-16 — v1.1 리서치 4종 완료·로드맵 작성(Phase
 
 - Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
 - Phase 6 작가 90:10 정산 — 미구현
-- Phase 7 Admin Moderation Surface — **컨텍스트 수집 완료(2026-09-16), 계획 대기** → `/gsd:plan-phase 7`. 결정 D-01~D-20은 `.planning/phases/07-admin-moderation-surface/07-CONTEXT.md`. 논의 중 범위 확장 2건(D-12 작품 전체 블라인드, D-16 작가 재검토 요청)이 ADMIN-02 문면을 넘어섬 — 플랜 규모 조절 시 우선 검토 대상
+- Phase 7 Admin Moderation Surface — **계획 검증 완료(2026-09-16), 0/7 구현** → `$gsd-execute-phase 7`. 리서치·UI-SPEC·PATTERNS·VALIDATION 및 계획 7개가 `.planning/phases/07-admin-moderation-surface/`에 있음. D-01~D-20과 범위 확장 D-12/D-16 포함. 실제 DB 적용·동시성·브라우저 검증은 실행 단계의 필수 조건.
 - Phase 4 라이브 GEMINI_API_KEY UAT — 미완
 
 ## Performance Metrics

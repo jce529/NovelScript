@@ -185,9 +185,30 @@ Residual (stays in v1.0, not yet done):
   2. Admin can unpublish/blind a specific chapter
   3. Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
   4. Admin can mark a report resolved or dismissed with a short note
-**Plans**: TBD — `/gsd:plan-phase 7` 대기
+**Plans**: 7 plans, 6 waves — ready for `$gsd-execute-phase 7`
+
+**Wave 1**
+- [ ] 07-01-PLAN.md — 관리자 권한·보호된 스키마·초기 관리자 등록
+
+**Wave 2 (blocked on Wave 1)**
+- [ ] 07-02-PLAN.md — 원자적 운영 조치·감사 기록·대상별 신고 큐
+
+**Wave 3 (blocked on Wave 2; parallel)**
+- [ ] 07-03-PLAN.md — 제재 만료·DB/서버 쓰기 차단·읽기 유지
+- [ ] 07-05-PLAN.md — 관리자 신고/재검토 화면·조치 폼
+
+**Wave 4 (blocked on 07-03)**
+- [ ] 07-04-PLAN.md — 작품/회차 블라인드·구매/열람 경계
+
+**Wave 5 (blocked on 07-04 and 07-05)**
+- [ ] 07-06-PLAN.md — 경고 확인·작가 재검토 요청·독자 잠금 상태
+
+**Wave 6 (blocked on Wave 5)**
+- [ ] 07-07-PLAN.md — 실제 DB 적용·동시성·브라우저 통합 검증
+
+**Cross-cutting constraints:** 세션 기반 관리자 판정; 조치/감사 기록의 원자성; 제재 중 기존 읽기 유지; 블라인드와 발행 상태 분리; 기존 구매권 보존; DB 검사 skip은 통과로 인정하지 않음.
 **UI hint**: yes
-**Status**: Context gathered 2026-09-16 — `.planning/phases/07-admin-moderation-surface/07-CONTEXT.md` (D-01~D-20). 계획 전에 반드시 읽을 것.
+**Status**: Planned 2026-09-16 — 7 plans / 15 tasks, ADMIN-01~04 및 D-01~D-20 포함. 구현과 런타임 검증은 미실행.
 **논의에서 확정된 범위 확장 2건** (Success Criteria 문면을 넘어섬 — 플랜이 커지면 여기부터 조절):
   - **D-12 작품 전체 블라인드** — ADMIN-02는 "특정 회차"만 명시. `reports.work_id`가 필수라 작품 단위 신고가 이미 존재해 추가함. 피드·상세·목록·뷰어 쿼리 분기가 늘어남
   - **D-16 작가 재검토 요청 + 별도 탭** — 작가측 진입점과 요청 상태 모델이 추가됨. 최종 해제 권한은 운영자에게 고정
@@ -310,7 +331,7 @@ Residual (stays in v1.0, not yet done):
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
-| 7. Admin Moderation Surface | 0/TBD | Context gathered (07-CONTEXT.md) | - |
+| 7. Admin Moderation Surface | 0/7 | Planned (6 waves) | - |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/TBD | Not started | - |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
