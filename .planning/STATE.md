@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: 멀티 프로바이더 AI 연결 · BYOK · 구독형 AI MCP
-status: "Phase 7 ready to execute (v1.0 separate track); v1.1 Phase 8 planning remains pending"
-stopped_at: Phase 7 planning complete - 7 plans in 6 waves
-last_updated: "2026-09-16T11:13:58Z"
-last_activity: 2026-09-16 — Phase 7 리서치·UI 설계·계획 7개 작성 및 계획 검증 완료
+milestone_name: Overview
+status: executing
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-09-16T11:43:02.212Z"
+last_activity: 2026-09-16
 progress:
-  total_phases: 7
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 8
+  completed_phases: 5
+  total_plans: 36
+  completed_plans: 31
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** 사용자 요청으로 v1.0 별도 트랙 Phase 7 계획 완료; 다음은 `$gsd-execute-phase 7`. v1.1 Phase 8~14 로드맵과 `docs/ai-integration-roadmap.md`는 유지하며 해당 트랙의 다음 단계는 `$gsd-plan-phase 8`. 현재 로컬 브랜치는 `master`이며 `origin/codex/multi-provider-byok`를 rebase로 반영한 상태.
+**Current focus:** Phase 07 — admin-moderation-surface
 
 ## Current Position
 
-Phase: 7 — Admin Moderation Surface (v1.0 separate track)
-Plan: 0/7 completed; 07-01 next
+Phase: 07 (admin-moderation-surface) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-09-16 — Phase 7 planning complete; 7 plans, 6 waves, 15 tasks
+Last activity: 2026-09-16
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
@@ -97,6 +97,7 @@ Last activity: 2026-09-16 — Phase 7 planning complete; 7 plans, 6 waves, 15 ta
 | Phase 04.1 P03 | 20min | 2 tasks | 6 files |
 | Phase 04.1 P04 | 20min | 3 tasks | 3 files |
 | Phase 04.1-kb P05 | 25min | 3 tasks | 4 files |
+| Phase 07 P01 | 25min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,7 @@ Recent decisions affecting current work:
 - [Phase 04.1-kb]: Plan 04.1-05: two-section KB sidebar (작품 폴더/계정 공유 폴더) with folder-creation at both roots and every folder row; 회차 folded into the tree as a Link with chapter leaves via chaptersByFolderId; standalone ChaptersNavLink removed
 
 - [Phase 06]: Implemented outside the GSD plan flow (commits 57e1c8e/fc8a4a5, report at docs/commerce-entitlements.md) — 0005_commerce.sql adds orders/order_items/entitlements + RLS + purchase RPC; lib/commerce/actions.ts, lib/access/actions.ts, lib/chapters/actions.ts, components/reader/viewer-shell.tsx wire purchase→immediate view; idempotency via orders(user_id, idempotency_key) UNIQUE. Built directly on the Phase 1 token wallet with NO real top-up path, inverting the roadmap's intended 5→6 order — real-currency charging was explicitly out of scope per its own report. No PLAN/SUMMARY/VERIFICATION artifacts exist for this phase.
+- [Phase 07]: Plan 07-01: admin_users membership granted only via privileged SQL grant_admin/revoke_admin (not executable by service_role); apply_user_sanction is the single cache write path and requires a matching admin_actions row; cache = permanent dominates, else max timed expiry since last lift; warnings never touch cache
 
 ### Roadmap Evolution
 
@@ -168,12 +170,15 @@ Recent decisions affecting current work:
 - 선불전자지급수단 (prepaid payment instrument) regulatory classification not yet confirmed by a PG compliance team or lawyer — current no-cash-out, single-merchant design appears to qualify for exemption but this is unverified. Not blocking v1, but must be revisited before ever scoping cash-out or an asset store.
 - Phase 4 (AI Gateway) and Phase 5 (Real Payment Integration) were flagged by research as needing a dedicated research-phase pass before detailed planning (Gemini rate-limit/pricing/context-window specifics; Toss webhook payload verification against live docs).
 - (Resolved 2026-08-28) Kakao login was blocked by KOE205: Supabase's Kakao provider requests `account_email profile_image profile_nickname` as a fixed scope set, but only `account_email` was enabled as a consent item in Kakao Developers console. Fixed by enabling all three consent items. Any future Kakao/OAuth provider work should check ALL requested scopes against console config, not just the one business logic cares about.
+- SUPABASE_DB_URL unreachable (tenant/user not found) - Phase 7 DB suites verified only on local PGlite; real Supabase apply + rerun required before 07-07
 
 ## Session Continuity
 
-Last session: 2026-09-16T04:37:54.481Z
-Stopped at: Phase 7 context gathered
+Last session: 2026-09-16T11:42:55.960Z
+Stopped at: Completed 07-01-PLAN.md
 Next: 두 트랙이 열려 있다 —
+
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
-Resume file: .planning/phases/07-admin-moderation-surface/07-CONTEXT.md
+
+Resume file: None

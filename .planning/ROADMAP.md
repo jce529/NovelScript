@@ -188,7 +188,7 @@ Residual (stays in v1.0, not yet done):
 **Plans**: 7 plans, 6 waves — ready for `$gsd-execute-phase 7`
 
 **Wave 1**
-- [ ] 07-01-PLAN.md — 관리자 권한·보호된 스키마·초기 관리자 등록
+- [x] 07-01-PLAN.md — 관리자 권한·보호된 스키마·초기 관리자 등록
 
 **Wave 2 (blocked on Wave 1)**
 - [ ] 07-02-PLAN.md — 원자적 운영 조치·감사 기록·대상별 신고 큐
@@ -331,7 +331,7 @@ Residual (stays in v1.0, not yet done):
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
-| 7. Admin Moderation Surface | 0/7 | Planned (6 waves) | - |
+| 7. Admin Moderation Surface | 1/7 | In Progress | - |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/TBD | Not started | - |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
