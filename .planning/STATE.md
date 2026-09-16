@@ -10,7 +10,7 @@ progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 36
-  completed_plans: 32
+  completed_plans: 34
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 07 (admin-moderation-surface) — EXECUTING
-Plan: 3 of 7
+Plan: 5 of 7 (wave 4: 07-04)
 Status: Ready to execute
 Last activity: 2026-09-16
 

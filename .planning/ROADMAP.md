@@ -194,8 +194,8 @@ Residual (stays in v1.0, not yet done):
 - [x] 07-02-PLAN.md — 원자적 운영 조치·감사 기록·대상별 신고 큐
 
 **Wave 3 (blocked on Wave 2; parallel)**
-- [ ] 07-03-PLAN.md — 제재 만료·DB/서버 쓰기 차단·읽기 유지
-- [ ] 07-05-PLAN.md — 관리자 신고/재검토 화면·조치 폼
+- [x] 07-03-PLAN.md — 제재 만료·DB/서버 쓰기 차단·읽기 유지
+- [x] 07-05-PLAN.md — 관리자 신고/재검토 화면·조치 폼
 
 **Wave 4 (blocked on 07-03)**
 - [ ] 07-04-PLAN.md — 작품/회차 블라인드·구매/열람 경계
@@ -331,7 +331,7 @@ Residual (stays in v1.0, not yet done):
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
-| 7. Admin Moderation Surface | 2/7 | In Progress | - |
+| 7. Admin Moderation Surface | 4/7 | In Progress | - |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/TBD | Not started | - |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
