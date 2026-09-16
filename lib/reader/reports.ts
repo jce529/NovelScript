@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 
 /** D-16: fixed set, must match the reports.reason_category check constraint in
  * 0003_reader.sql verbatim. Single source of truth — UI plans (03-06/03-07) import
@@ -20,6 +21,7 @@ export interface ReportMutationResult {
   ok: boolean;
   error?: string;
   reportId?: string;
+  code?: WriteDenialCode;
 }
 
 /** READ-05/D-16/D-17: login-gated (caller must supply a real reporterId from the
@@ -35,6 +37,8 @@ export async function submitReport(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? '신고를 접수하지 못했어요.' };
   }
+  const access = await checkWriteAccess(supabase, input.reporterId);
+  if (!access.ok) return writeDenial(access);
   const { data, error } = await supabase
     .from('reports')
     .insert({

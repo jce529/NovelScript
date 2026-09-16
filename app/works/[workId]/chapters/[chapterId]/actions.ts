@@ -15,9 +15,10 @@ import { submitReport } from '@/lib/reader/reports';
  * "reading", so it must not become the reader's 이어보기 resume point). */
 export async function trackChapterOpenAction(workId: string, chapterId: string, locked: boolean) {
   const supabase = await createClient();
-  await incrementChapterView(supabase, { chapterId });
+  const { data: { user } } = await supabase.auth.getUser();
+  // D-07: both bookkeeping writes no-op for a suspended reader; the read itself is unaffected.
+  await incrementChapterView(supabase, { chapterId, userId: user?.id ?? null });
   if (!locked && await canView(supabase, workId, chapterId)) {
-    const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await upsertReadingProgress(supabase, { userId: user.id, workId, chapterId });
     }
@@ -28,9 +29,9 @@ export async function purchaseChapterAction(chapterId: string, idempotencyKey: s
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
-  const order = await createPurchaseOrder(supabase, { chapterIds: [chapterId], idempotencyKey });
+  const order = await createPurchaseOrder(supabase, { chapterIds: [chapterId], idempotencyKey }, { userId: user.id });
   if (!order.ok || !order.orderId) return order;
-  const result = await payPurchaseOrder(supabase, order.orderId);
+  const result = await payPurchaseOrder(supabase, order.orderId, { userId: user.id });
   if (result.ok) revalidatePath('/works', 'layout');
   return result;
 }

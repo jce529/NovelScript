@@ -8,6 +8,7 @@ import {
 import { computeMaxOutputTokens, computeDebitAmount } from '@/lib/ai/cost';
 import { MODEL_TIER_TO_ID, type ModelTier, type GeminiClient } from '@/lib/ai/gemini';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
+import { checkWriteAccess, type WriteDenialCode } from '@/lib/auth/write-access';
 
 export const AI_GENERATION_REFERENCE_TYPE = 'ai_generation';
 export type { DocumentProposal };
@@ -73,6 +74,8 @@ export interface ChatResult {
    * because balance was already exhausted, or because finishReason === 'MAX_TOKENS'). */
   wasCapped?: boolean;
   remainingBalance?: number;
+  /** Set when D-07 write access was refused (suspension or failed permission lookup). */
+  code?: WriteDenialCode;
 }
 
 /**
@@ -86,8 +89,19 @@ export interface ChatResult {
  * plans. `input.ownerId` must always come from the authenticated session
  * (never client-supplied) — the Server Action wrapper enforces that, not
  * this function.
+ *
+ * D-07 (07-03): generation is a user-initiated write. Write access is checked with the session
+ * client BEFORE the wallet read and any provider call (no token counting, no generation, no
+ * charge for a suspended writer). A suspension can still land while the provider call is in
+ * flight, so access is checked again with the service-role client immediately before the
+ * wallet debit: if it is now refused, the completed output is discarded and nothing is charged.
+ * A suspension committed after that second check is treated like any write that finished just
+ * before the sanction.
  */
 export async function chat(supabase: SupabaseClient, client: GeminiClient, input: ChatInput): Promise<ChatResult> {
+  const access = await checkWriteAccess(supabase, input.ownerId);
+  if (!access.ok) return { ok: false, error: access.error, code: access.code };
+
   const admin = createAdminClient();
 
   const { data: wallet } = await admin.from('wallets').select('balance').eq('id', input.ownerId).maybeSingle();
@@ -122,6 +136,9 @@ export async function chat(supabase: SupabaseClient, client: GeminiClient, input
   } catch {
     return { ok: false, error: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해주세요.' };
   }
+
+  const stillAllowed = await checkWriteAccess(admin, input.ownerId);
+  if (!stillAllowed.ok) return { ok: false, error: stillAllowed.error, code: stillAllowed.code };
 
   const debitAmount = computeDebitAmount({
     modelTier: input.modelTier, promptTokenCount: result.promptTokenCount, candidatesTokenCount: result.candidatesTokenCount,

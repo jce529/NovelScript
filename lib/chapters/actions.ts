@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { readChapterContent } from '../access/actions';
+import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
 
@@ -17,6 +18,7 @@ export interface ChapterMutationResult {
   ok: boolean;
   error?: string;
   chapterId?: string;
+  code?: WriteDenialCode;
 }
 
 async function assertWorkOwnership(supabase: SupabaseClient, { ownerId, workId }: { ownerId: string; workId: string }) {
@@ -51,6 +53,8 @@ export async function createChapter(
 ): Promise<ChapterMutationResult> {
   const parsed = createChapterSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message };
+  const access = await checkWriteAccess(supabase, input.ownerId);
+  if (!access.ok) return writeDenial(access);
   if (!(await assertWorkOwnership(supabase, input))) return { ok: false, error: '작품을 찾을 수 없어요.' };
 
   const folderId = parsed.data.folderId ?? null;
@@ -95,6 +99,8 @@ export async function saveChapterContent(
   supabase: SupabaseClient,
   { ownerId, chapterId, content }: { ownerId: string; chapterId: string; content: string }
 ): Promise<ChapterMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
   if (!(await findOwnedChapter(supabase, { ownerId, chapterId }))) return { ok: false, error: '회차를 찾을 수 없어요.' };
   const { error } = await supabase.from('chapters').update({ content, updated_at: new Date().toISOString() }).eq('id', chapterId);
   if (error) return { ok: false, error: error.message };
@@ -112,6 +118,8 @@ export async function publishChapter(
 ): Promise<ChapterMutationResult> {
   const parsed = publishSchema.safeParse({ priceTier: input.priceTier });
   if (!parsed.success) return { ok: false, error: '가격은 10/30/50/100 토큰 중에서 선택해주세요.' };
+  const access = await checkWriteAccess(supabase, input.ownerId);
+  if (!access.ok) return writeDenial(access);
   if (!(await findOwnedChapter(supabase, input))) return { ok: false, error: '회차를 찾을 수 없어요.' };
 
   const { error } = await supabase
@@ -128,6 +136,8 @@ export async function unpublishChapter(
   supabase: SupabaseClient,
   { ownerId, chapterId }: { ownerId: string; chapterId: string }
 ): Promise<ChapterMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
   if (!(await findOwnedChapter(supabase, { ownerId, chapterId }))) return { ok: false, error: '회차를 찾을 수 없어요.' };
   const { error } = await supabase
     .from('chapters')
@@ -156,6 +166,8 @@ export async function reorderChapters(
   supabase: SupabaseClient,
   { ownerId, workId, orderedIds }: { ownerId: string; workId: string; orderedIds: string[] }
 ): Promise<ChapterMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
   if (!(await assertWorkOwnership(supabase, { ownerId, workId }))) {
     return { ok: false, error: '작품을 찾을 수 없어요.' };
   }

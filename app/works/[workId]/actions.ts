@@ -12,6 +12,7 @@ export async function toggleLikeAction(workId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await toggleLike(supabase, { workId, userId: user.id });
+  if (result.denied) return { ok: false, error: result.denied.error, liked: result.liked };
   revalidatePath(`/works/${workId}`);
   return { ok: true, liked: result.liked };
 }
@@ -21,6 +22,7 @@ export async function toggleSubscriptionAction(workId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await toggleSubscription(supabase, { workId, userId: user.id });
+  if (result.denied) return { ok: false, error: result.denied.error, subscribed: result.subscribed };
   revalidatePath(`/works/${workId}`);
   return { ok: true, subscribed: result.subscribed };
 }
@@ -30,6 +32,7 @@ export async function toggleBookmarkAction(workId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await toggleBookmark(supabase, { workId, userId: user.id });
+  if (result.denied) return { ok: false, error: result.denied.error, bookmarked: result.bookmarked };
   revalidatePath(`/works/${workId}`);
   return { ok: true, bookmarked: result.bookmarked };
 }

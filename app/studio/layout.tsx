@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { seedTemplateFiles } from '@/lib/kb/templates';
+import { checkWriteAccess } from '@/lib/auth/write-access';
 import { SiteHeader } from '@/components/layout/site-header';
 
 export default async function StudioLayout({ children }: { children: React.ReactNode }) {
@@ -16,16 +17,21 @@ export default async function StudioLayout({ children }: { children: React.React
 
   if (profile?.role !== 'writer') redirect('/write/start');
 
-  const { data: templateRootId } = await supabase.rpc('ensure_account_template_root', {
-    p_owner_id: user.id,
-  });
-  if (templateRootId) {
-    await seedTemplateFiles(supabase, {
-      ownerId: user.id,
-      workId: null,
-      scope: 'account_template',
-      templateRootId,
+  // D-07: first-visit template seeding is a write. A suspended writer must still be able to open
+  // the studio read-only, so seeding is skipped (not failed) when write access is refused.
+  const access = await checkWriteAccess(supabase, user.id);
+  if (access.ok) {
+    const { data: templateRootId } = await supabase.rpc('ensure_account_template_root', {
+      p_owner_id: user.id,
     });
+    if (templateRootId) {
+      await seedTemplateFiles(supabase, {
+        ownerId: user.id,
+        workId: null,
+        scope: 'account_template',
+        templateRootId,
+      });
+    }
   }
 
   return (

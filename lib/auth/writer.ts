@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { checkWriteAccess, type WriteDenialCode } from './write-access';
 
 export interface UpgradeToWriterInput {
   userId: string;
@@ -9,6 +10,7 @@ export interface UpgradeToWriterInput {
 export interface UpgradeResult {
   ok: boolean;
   error?: string;
+  code?: WriteDenialCode;
 }
 
 /** D-04/D-05: first-time writer conversion. Pen name uniqueness is enforced by the
@@ -19,6 +21,9 @@ export async function upgradeToWriter(
   supabase: SupabaseClient,
   { userId, penName, bio }: UpgradeToWriterInput
 ): Promise<UpgradeResult> {
+  const access = await checkWriteAccess(supabase, userId);
+  if (!access.ok) return { ok: false, error: access.error, code: access.code };
+
   const trimmed = penName.trim();
   if (trimmed.length < 2 || trimmed.length > 20) {
     return { ok: false, error: '필명은 2자 이상 20자 이하로 입력해주세요.' };

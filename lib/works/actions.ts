@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { seedTemplateFiles } from '@/lib/kb/templates';
 import { GENRES } from '@/lib/works/genres';
+import { checkWriteAccess, writeDenial, type WriteDenialCode } from '@/lib/auth/write-access';
 
 export { GENRES };
 
@@ -17,6 +18,7 @@ export interface CreateWorkResult {
   ok: boolean;
   workId?: string;
   error?: string;
+  code?: WriteDenialCode;
 }
 
 /** D-01/D-02/D-03: explicit, separate creation flow; title-only required.
@@ -31,6 +33,8 @@ export async function createWork(
     return { ok: false, error: parsed.error.issues[0]?.message ?? '작품 제목을 입력해주세요.' };
   }
   const { ownerId, title, synopsis, coverImageUrl, genre } = parsed.data;
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
 
   const { data: workId, error } = await supabase.rpc('create_work', {
     p_owner_id: ownerId,

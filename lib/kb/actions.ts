@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FlatKbNode } from './tree';
 import { buildSeedContent, readCanonicalSeed, type KbCategory } from './templates';
+import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 
 /** KB-04 §2 (RESEARCH.md): 작품 폴더 and 계정 공유 폴더 are two separate, explicit
  * tree sections in the UI (D-01) — each needs its own flat node list. Replaces
@@ -37,6 +38,7 @@ export interface NodeMutationResult {
   ok: boolean;
   error?: string;
   nodeId?: string;
+  code?: WriteDenialCode;
 }
 
 const FRIENDLY_NAME_COLLISION = '이미 같은 이름의 파일/폴더가 있어요. 다른 이름을 사용해주세요.';
@@ -142,6 +144,8 @@ export async function createNode(
 ): Promise<NodeMutationResult> {
   const name = input.name.trim();
   if (!name) return { ok: false, error: '이름을 입력해주세요.' };
+  const access = await checkWriteAccess(supabase, input.ownerId);
+  if (!access.ok) return writeDenial(access);
 
   let content: string | null = null;
   if (input.nodeType === 'file' && input.category !== 'template') {
@@ -195,6 +199,8 @@ export async function createFolder(
 ): Promise<NodeMutationResult> {
   const name = input.name.trim();
   if (!name) return { ok: false, error: '이름을 입력해주세요.' };
+  const access = await checkWriteAccess(supabase, input.ownerId);
+  if (!access.ok) return writeDenial(access);
 
   let category = 'custom';
   if (input.parentId) {
@@ -238,6 +244,8 @@ export async function renameNode(
   supabase: SupabaseClient,
   { ownerId, nodeId, name }: { ownerId: string; nodeId: string; name: string }
 ): Promise<NodeMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
   const { error, data } = await supabase
     .from('kb_nodes')
     .update({ name: name.trim(), updated_at: new Date().toISOString() })
@@ -265,6 +273,8 @@ export async function deleteNode(
   supabase: SupabaseClient,
   { ownerId, nodeId }: { ownerId: string; nodeId: string }
 ): Promise<NodeMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
   const { error, data } = await supabase.rpc('soft_delete_kb_node', {
     p_node_id: nodeId,
     p_owner_id: ownerId,
@@ -282,6 +292,8 @@ export async function saveNodeContent(
   supabase: SupabaseClient,
   { ownerId, nodeId, content }: { ownerId: string; nodeId: string; content: string }
 ): Promise<NodeMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
   const { error, data } = await supabase
     .from('kb_nodes')
     .update({ content, updated_at: new Date().toISOString() })

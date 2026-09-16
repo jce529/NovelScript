@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { checkWriteAccess } from '../auth/write-access';
 
 /** D-14: server-side, login-gated, one row per user+work, chapter-level granularity
  * only (no scroll-position tracking — D-14's explicit scope). Called on every chapter
@@ -7,6 +8,10 @@ export async function upsertReadingProgress(
   supabase: SupabaseClient,
   { userId, workId, chapterId }: { userId: string; workId: string; chapterId: string }
 ): Promise<void> {
+  // D-07: bookkeeping for a suspended (or unverifiable) reader is skipped silently so the
+  // chapter read that triggered it never fails. The DB policy would refuse it anyway.
+  const access = await checkWriteAccess(supabase, userId);
+  if (!access.ok) return;
   const { error } = await supabase.from('reading_progress').upsert(
     { user_id: userId, work_id: workId, chapter_id: chapterId, updated_at: new Date().toISOString() },
     { onConflict: 'user_id,work_id' }
