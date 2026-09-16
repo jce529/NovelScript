@@ -60,15 +60,20 @@ export interface ReportGroupSummary {
   chapterTitle: string | null;
   coverImageUrl: string | null;
   reportCount: number;
+  /** Distinct reporters in the group (queue reporter summary). */
+  reporterCount: number;
   categories: string[];
   oldestReportedAt: string;
   status: ReportStatus;
+  /** Current blind state of the exact target row. */
+  blinded: boolean;
   /** Any report ID in the group; detail pages resolve the whole group from it. */
   anchorReportId: string;
 }
 
 export interface AdminReportItem {
   id: string;
+  target: ModerationTarget;
   reporterId: string;
   reasonCategory: string;
   detail: string | null;
@@ -101,6 +106,8 @@ export interface AdminReportDetail {
   reports: AdminReportItem[];
   /** Exact open report IDs the operator reviewed; commands resolve only this set. */
   reviewedReportIds: string[];
+  /** Opaque target version; commands fail with stale_target if it changed. */
+  targetVersion: string;
   authorReportHistory: AdminReportItem[];
   authorActionHistory: AdminActionRecord[];
 }
@@ -116,6 +123,34 @@ export interface ReviewRequestSummary {
   createdAt: string;
   resolvedAt: string | null;
 }
+
+/** Admin-only review request detail (D-16). */
+export interface ReviewRequestDetail extends ReviewRequestSummary {
+  resolutionNote: string | null;
+  targetBody: string | null;
+  blinded: boolean;
+  publicBlindReason: string | null;
+  targetVersion: string;
+  targetActionHistory: AdminActionRecord[];
+}
+
+/** One page of complete groups/requests. totalCount is 0 when the page is past the end. */
+export interface AdminPage<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasNext: boolean;
+}
+
+export const MODERATION_ACTIONS = ['resolve', 'dismiss', 'blind', 'warn', 'suspend', 'permanent_suspend'] as const;
+export type ModerationAction = (typeof MODERATION_ACTIONS)[number];
+
+/** Actions that change content or a user and therefore need internal + public reasons (D-19). */
+export const OPERATIVE_MODERATION_ACTIONS = ['blind', 'warn', 'suspend', 'permanent_suspend'] as const;
+
+export const REVIEW_OUTCOMES = ['maintained', 'unblinded'] as const;
+export type ReviewOutcome = (typeof REVIEW_OUTCOMES)[number];
 
 export interface UserSanctionRecord {
   id: string;
