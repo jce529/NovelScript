@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: Overview
-status: "Roadmap drafted, awaiting approval → `/gsd:plan-phase 8`"
+milestone_name: 멀티 프로바이더 AI 연결 · BYOK · 구독형 AI MCP
+status: "v1.1 로드맵 확정(Phase 8~14) → `/gsd:plan-phase 8`. v1.0 잔여 트랙은 Phase 7 컨텍스트까지 완료 → `/gsd:plan-phase 7`"
 stopped_at: Phase 7 context gathered
 last_updated: "2026-09-16T04:37:54.487Z"
-last_activity: 2026-09-16 — v1.1 로드맵 작성 (Phase 8~14, 요구사항 27개 전수 매핑)
+last_activity: 2026-09-16 — v1.1 리서치 4종 완료·로드맵 작성(Phase 8~14), 이어서 v1.0 Phase 7 컨텍스트 수집
 progress:
-  total_phases: 8
-  completed_phases: 5
-  total_plans: 29
-  completed_plans: 30
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -26,8 +26,12 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 Phase: 8 — 프로바이더 어댑터 기반 · 멱등 차감 수정 (not started)
 Plan: —
-Status: Roadmap drafted, awaiting approval → `/gsd:plan-phase 8`
-Last activity: 2026-09-16 — v1.1 로드맵 작성 (Phase 8~14, 요구사항 27개 전수 매핑)
+Status: v1.1 로드맵 확정(Phase 8~14) → `/gsd:plan-phase 8`
+Last activity: 2026-09-16 — v1.1 리서치 4종 완료·로드맵 작성(Phase 8~14), 이어서 v1.0 Phase 7 컨텍스트 수집
+
+> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
+
+**v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
 **v1.1 페이즈 구조:**
 
@@ -46,7 +50,7 @@ Last activity: 2026-09-16 — v1.1 로드맵 작성 (Phase 8~14, 요구사항 27
 
 - Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
 - Phase 6 작가 90:10 정산 — 미구현
-- Phase 7 Admin Moderation Surface — 미착수
+- Phase 7 Admin Moderation Surface — **컨텍스트 수집 완료(2026-09-16), 계획 대기** → `/gsd:plan-phase 7`. 결정 D-01~D-20은 `.planning/phases/07-admin-moderation-surface/07-CONTEXT.md`. 논의 중 범위 확장 2건(D-12 작품 전체 블라인드, D-16 작가 재검토 요청)이 ADMIN-02 문면을 넘어섬 — 플랜 규모 조절 시 우선 검토 대상
 - Phase 4 라이브 GEMINI_API_KEY UAT — 미완
 
 ## Performance Metrics
@@ -169,5 +173,7 @@ Recent decisions affecting current work:
 
 Last session: 2026-09-16T04:37:54.481Z
 Stopped at: Phase 7 context gathered
-Next: 승인 후 `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
+Next: 두 트랙이 열려 있다 —
+  - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
+  - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 Resume file: .planning/phases/07-admin-moderation-surface/07-CONTEXT.md

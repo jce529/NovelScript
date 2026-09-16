@@ -185,8 +185,12 @@ Residual (stays in v1.0, not yet done):
   2. Admin can unpublish/blind a specific chapter
   3. Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
   4. Admin can mark a report resolved or dismissed with a short note
-**Plans**: TBD
+**Plans**: TBD — `/gsd:plan-phase 7` 대기
 **UI hint**: yes
+**Status**: Context gathered 2026-09-16 — `.planning/phases/07-admin-moderation-surface/07-CONTEXT.md` (D-01~D-20). 계획 전에 반드시 읽을 것.
+**논의에서 확정된 범위 확장 2건** (Success Criteria 문면을 넘어섬 — 플랜이 커지면 여기부터 조절):
+  - **D-12 작품 전체 블라인드** — ADMIN-02는 "특정 회차"만 명시. `reports.work_id`가 필수라 작품 단위 신고가 이미 존재해 추가함. 피드·상세·목록·뷰어 쿼리 분기가 늘어남
+  - **D-16 작가 재검토 요청 + 별도 탭** — 작가측 진입점과 요청 상태 모델이 추가됨. 최종 해제 권한은 운영자에게 고정
 
 ---
 
@@ -306,7 +310,7 @@ Residual (stays in v1.0, not yet done):
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
-| 7. Admin Moderation Surface | 0/TBD | Not started | - |
+| 7. Admin Moderation Surface | 0/TBD | Context gathered (07-CONTEXT.md) | - |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/TBD | Not started | - |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |

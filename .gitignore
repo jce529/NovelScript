@@ -48,3 +48,9 @@ graphify-out/cache/
 # graphify machine-local absolute paths (interpreter path, scan root)
 graphify-out/.graphify_python
 graphify-out/.graphify_root
+# graphify incremental/AST caches (regenerable via `graphify update .`)
+graphify-out/.graphify_ast.json
+graphify-out/.graphify_cached.json
+graphify-out/.graphify_chunk_*.json
+graphify-out/.graphify_incremental.json
+graphify-out/.graphify_uncached.txt
