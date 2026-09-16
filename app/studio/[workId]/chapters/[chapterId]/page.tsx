@@ -12,6 +12,7 @@ import { PRICE_TIERS } from '@/lib/chapters/actions';
 import {
   getChapterAction, saveChapterContentAction, publishChapterAction, unpublishChapterAction,
 } from './actions';
+import { ReviewRequestPanel } from '@/components/moderation/review-request';
 import { AiPanel, type MentionedNode } from './ai-panel/AiPanel';
 import { MentionAutocomplete, type MentionCandidate } from './ai-panel/MentionAutocomplete';
 
@@ -98,6 +99,7 @@ export default function ChapterEditorPage({
   return (
     <div className="flex gap-8">
       <div className="flex flex-1 flex-col gap-4">
+        <ReviewRequestPanel workId={workId} chapterId={chapterId} />
         <Textarea
           ref={textareaRef}
           value={content}

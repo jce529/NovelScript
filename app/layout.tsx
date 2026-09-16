@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { AccountNotices } from "@/components/moderation/account-notices";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,6 +26,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* D-09: loads after hydration; failures never block rendering, login or logout. */}
+        <AccountNotices />
         {children}
         <Toaster />
       </body>
