@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-09-16T11:43:02.212Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-09-16T11:57:36.499Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 36
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 07 (admin-moderation-surface) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-09-16
 
@@ -98,6 +98,7 @@ Last activity: 2026-09-16
 | Phase 04.1 P04 | 20min | 3 tasks | 3 files |
 | Phase 04.1-kb P05 | 25min | 3 tasks | 4 files |
 | Phase 07 P01 | 25min | 2 tasks | 6 files |
+| Phase 07 P02 | 35min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,9 @@ Recent decisions affecting current work:
 
 - [Phase 06]: Implemented outside the GSD plan flow (commits 57e1c8e/fc8a4a5, report at docs/commerce-entitlements.md) — 0005_commerce.sql adds orders/order_items/entitlements + RLS + purchase RPC; lib/commerce/actions.ts, lib/access/actions.ts, lib/chapters/actions.ts, components/reader/viewer-shell.tsx wire purchase→immediate view; idempotency via orders(user_id, idempotency_key) UNIQUE. Built directly on the Phase 1 token wallet with NO real top-up path, inverting the roadmap's intended 5→6 order — real-currency charging was explicitly out of scope per its own report. No PLAN/SUMMARY/VERIFICATION artifacts exist for this phase.
 - [Phase 07]: Plan 07-01: admin_users membership granted only via privileged SQL grant_admin/revoke_admin (not executable by service_role); apply_user_sanction is the single cache write path and requires a matching admin_actions row; cache = permanent dominates, else max timed expiry since last lift; warnings never touch cache
+- [Phase 07]: 07-02: Stale = reviewed report not open or target version changed; late reports stay open
+- [Phase 07]: 07-02: Operative actions need internal + public reason; resolve/dismiss note optional
+- [Phase 07]: 07-02: lib/admin exports authorize before validating; actor always session-derived
 
 ### Roadmap Evolution
 
@@ -174,8 +178,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-16T11:42:55.960Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-09-16T11:57:36.494Z
+Stopped at: Completed 07-02-PLAN.md
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
