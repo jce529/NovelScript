@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-09-16T12:22:08.640Z"
+stopped_at: Completed 07-06-PLAN.md
+last_updated: "2026-09-16T12:33:00.495Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 36
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 07 (admin-moderation-surface) — EXECUTING
-Plan: 6 of 7 (wave 4: 07-04)
+Plan: 7 of 7 (wave 4: 07-04)
 Status: Ready to execute
 Last activity: 2026-09-16
 
@@ -100,6 +100,7 @@ Last activity: 2026-09-16
 | Phase 07 P01 | 25min | 2 tasks | 6 files |
 | Phase 07 P02 | 35min | 2 tasks | 6 files |
 | Phase 07 P04 | 25min | 2 tasks | 10 files |
+| Phase 07 P06 | 35min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,8 @@ Recent decisions affecting current work:
 - [Phase 07]: 07-02: Operative actions need internal + public reason; resolve/dismiss note optional
 - [Phase 07]: 07-02: lib/admin exports authorize before validating; actor always session-derived
 - [Phase 07]: 07-04: blind precedence over free/entitled in SQL; entitlement reported separately; purchases raise content_blinded before debit
+- [Phase 07]: Warning notices use session client + own-row RLS; AccountNotices loads after hydration so failures never block render/login
+- [Phase 07]: purchaseChapterAction rechecks access state: blinded refused before order, owned retry returns ok without charge
 
 ### Roadmap Evolution
 
@@ -180,8 +183,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-16T12:22:08.634Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-09-16T12:33:00.489Z
+Stopped at: Completed 07-06-PLAN.md
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
