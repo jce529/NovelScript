@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 멀티 프로바이더 AI 연결 · BYOK · 구독형 AI MCP
-status: defining requirements
-stopped_at: Milestone v1.1 started — defining requirements
-last_updated: "2026-09-15T00:00:00.000Z"
-last_activity: 2026-09-15
+status: roadmap drafted
+stopped_at: v1.1 roadmap created — Phase 8~14 정의, 요구사항 27개 전수 매핑 완료 (승인 대기)
+last_updated: "2026-09-16T00:00:00.000Z"
+last_activity: 2026-09-16
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,27 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** v1.0 잔여 정리 — Phase 5(Toss 키 대기로 차단), Phase 6 90/10 작가 정산(미구현), Phase 7(미착수). 멀티 프로바이더 + BYOK 작업은 별도 마일스톤(v1.1)으로 분리 예정 — `codex/multi-provider-byok` 브랜치, 목표 문서 `docs/ai-integration-roadmap.md`.
+**Current focus:** v1.1 로드맵 수립 완료 — Phase 8~14 (1단계 8~11: 멀티 프로바이더 어댑터 + BYOK, 2단계 12~14: 원격 MCP 서버). 다음은 `/gsd:plan-phase 8`. 브랜치 `codex/multi-provider-byok`, 목표 문서 `docs/ai-integration-roadmap.md`.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 8 — 프로바이더 어댑터 기반 · 멱등 차감 수정 (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-09-15 — Milestone v1.1 started (멀티 프로바이더 AI + BYOK + 구독형 AI MCP)
+Status: Roadmap drafted, awaiting approval → `/gsd:plan-phase 8`
+Last activity: 2026-09-16 — v1.1 로드맵 작성 (Phase 8~14, 요구사항 27개 전수 매핑)
+
+**v1.1 페이즈 구조:**
+
+| Phase | 목표 | Requirements |
+|-------|------|--------------|
+| 8 | 프로바이더 어댑터 기반 · 멱등 차감 수정 | PROV-01, COST-01 |
+| 9 | OpenAI · Anthropic 어댑터 + 제공자별 단가 | PROV-02, PROV-03, PROV-04, PROV-07 |
+| 10 | BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | BYOK-01~04, PROV-05 |
+| 11 | BYOK 호출 경로 · 사용 기록 · 실패 UX | BYOK-05~09, PROV-06, COST-02 |
+| — | **하드 경계** (1단계 안정화 전 2단계 시작 금지) | — |
+| 12 | MCP OAuth 기반 · 연결/해제 | MCP-01, MCP-08 |
+| 13 | MCP 읽기 도구 + 집필 컨텍스트 번들 | MCP-02, MCP-03, MCP-04, MCP-09 |
+| 14 | MCP 쓰기 도구 + 스튜디오 리뷰 큐 | MCP-05, MCP-06, MCP-07 |
 
 **v1.0 잔여 (별도 트랙, v1.1 로드맵에 포함하지 않음):**
 - Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
@@ -125,14 +138,27 @@ Recent decisions affecting current work:
 - Phase 04.1 inserted after Phase 4: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) (URGENT)
 - Phase 6 executed ahead of Phase 5 and outside GSD (2026-09-15 discovery) — roadmap order 5→6 no longer reflects build order; Phase 5 now layers real top-up onto an already-shipped unlock flow
 - v1.1 milestone planned for multi-provider AI + BYOK (branch `codex/multi-provider-byok`, goals in `docs/ai-integration-roadmap.md`) — deliberately NOT folded into Phase 4, whose EDIT-01~05 success criteria are Gemini-single-provider
+- 2026-09-16: v1.1 로드맵 추가 — Phase 8~14 (7개), v1.1 요구사항 27개 전수 매핑. v1.0 잔여 Phase 5/6/7은 별도 트랙으로 그대로 남아 있으며 v1.1 범위가 아니다
+- 로드맵 순서 고정 제약(편의로 재배열하지 않을 것): (1) 로컬 토큰 추정이 어댑터 시그니처의 선행 조건(원격 countTokens는 Gemini 전용), (2) 어댑터+Gemini 이관(P8) 이 OpenAI/Anthropic(P9)보다 먼저 회귀 증명돼야 함, (3) 멱등 차감(COST-01, P8)이 재시도/백오프 로직(P11)보다 먼저, (4) BYOK 키 검증과 모델 피커 배지는 같은 페이즈(P10), (5) MCP OAuth는 BYOK와 코드를 공유하지 않으므로 합치지 않음, (6) MCP 리뷰 큐 UI는 실제 스코프(축소 금지)
 
 ### Pending Todos
+
+- **[v1.1 Phase 8 병행 착수]** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청을 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐라서 늦게 시작하면 Phase 9가 통째로 대기한다.
+- **[v1.1 Phase 10 계획 시점 결정]** BYOK 키 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)을 페이즈 **계획 시점에** 확정한다 — 구현 중 미루면 데이터 마이그레이션이 된다. (PROJECT.md Key Decisions의 Pending 항목)
+- **[v1.1 Phase 12 선행 스파이크]** 실제 Claude 커스텀 커넥터로 discovery → 등록 → 토큰 교환 왕복을 먼저 성공시켜 authorization server를 확정(Supabase Auth OAuth 2.1 Server vs WorkOS AuthKit). 실패하면 페이즈 내용 자체가 바뀜다. `/gsd:research-phase` 필수.
+- **[v1.1 정리]** 워크트리의 `mcpres/`(수동 다운로드한 tarball + 추출 디렉터리)는 커밋 대상이 아니다 — 채택 시 npm registry에서 정식 설치하고 `mcpres/`는 삭제한다.
 
 - Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end. (Phase 4 is marked Complete on the roadmap; this is the one outstanding human UAT item — see 04-VERIFICATION.md `human_verification`.)
 - **[Phase 06, v1.0 residual]** Implement the author 90/10 credit split with the 10% platform fee behind a single adjustable constant (ROADMAP Phase 6 success criterion 3, provisional per 06-CONTEXT.md D-10). Confirmed absent from lib/commerce/actions.ts and 0005_commerce.sql on 2026-09-15. Decision: keep in v1.0, handle alongside Phase 5 when the Toss keys arrive.
 - **[Phase 06, v1.0 residual]** Complete runtime verification against ROADMAP criteria when the environment is available. 06-VERIFICATION.md now records a source audit with gaps_found; it does not claim a gsd-verifier agent run or SQL/RLS/E2E success. Keep the user's DB-test deferral in effect.
 
 ### Blockers/Concerns
+
+- **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
+- **[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.
+- **[v1.1] BYOK 키는 응답 본문이 아니라 Error 객체의 request config(`Authorization` 헤더)를 통해 새난다.** 관찰성 목적의 `console.error(err)` 한 줄이면 끝이고 로그는 회수 불가능하다. 스크러밍 choke point를 어댑터 인터페이스와 **같이** 출하한다(Phase 8).
+- **[v1.1] MCP 도구가 `createAdminClient()` 관행을 복사하면 confused deputy가 된다.** Server Action에서 옆았던 패턴이 bearer 토큰 호출에서는 교차 사용자 읽기/쓰기를 열어준다(Phase 13/14).
+- **[v1.1] "연결 해제 후 즉시 차단"은 stateless JWT 검증으로 구조적으로 달성 불가능하다.** 매 호출 grant introspection을 Phase 12 설계에 처음부터 넣어야 하며 나중에 붙일 수 없다.
 
 - **Toss Payments merchant keys are now the active blocker on Phase 5.** Confirmed 2026-09-15: no Toss client, widget, or webhook handler exists anywhere in the repo. Phase 5's CONTEXT/RESEARCH/UI-SPEC/VALIDATION are all complete and ready for /gsd:plan-phase — only the keys are missing. Pitfalls research flagged the merchant application + 사업자등록 (~2+ week external review) as the likely real critical path to launch.
 - 선불전자지급수단 (prepaid payment instrument) regulatory classification not yet confirmed by a PG compliance team or lawyer — current no-cash-out, single-merchant design appears to qualify for exemption but this is unverified. Not blocking v1, but must be revisited before ever scoping cash-out or an asset store.
@@ -141,6 +167,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-15
-Stopped at: Milestone v1.1 opened — PROJECT.md/STATE.md updated, defining requirements next
-Resume file: .planning/REQUIREMENTS.md (v1.1) / docs/ai-integration-roadmap.md (v1.1 goals) / .planning/ROADMAP.md (v1.0 residuals)
+Last session: 2026-09-16
+Stopped at: v1.1 로드맵 작성 완료 (Phase 8~14) — 사용자 승인 및 커밋 대기
+Next: 승인 후 `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
+Resume file: .planning/ROADMAP.md (v1.1 Phase Details) / .planning/REQUIREMENTS.md (v1.1 Requirements + Traceability) / .planning/research/SUMMARY.md

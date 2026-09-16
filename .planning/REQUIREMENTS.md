@@ -196,12 +196,45 @@ Explicitly excluded. Documented to prevent scope creep.
 | ADMIN-03 | Phase 7 | Mapped |
 | ADMIN-04 | Phase 7 | Mapped |
 
+**v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PROV-01 | Phase 8 | Mapped |
+| PROV-02 | Phase 9 | Mapped |
+| PROV-03 | Phase 9 | Mapped |
+| PROV-04 | Phase 9 | Mapped |
+| PROV-05 | Phase 10 | Mapped |
+| PROV-06 | Phase 11 | Mapped |
+| PROV-07 | Phase 9 | Mapped |
+| BYOK-01 | Phase 10 | Mapped |
+| BYOK-02 | Phase 10 | Mapped |
+| BYOK-03 | Phase 10 | Mapped |
+| BYOK-04 | Phase 10 | Mapped |
+| BYOK-05 | Phase 11 | Mapped |
+| BYOK-06 | Phase 11 | Mapped |
+| BYOK-07 | Phase 11 | Mapped |
+| BYOK-08 | Phase 11 | Mapped |
+| BYOK-09 | Phase 11 | Mapped |
+| COST-01 | Phase 8 | Mapped |
+| COST-02 | Phase 11 | Mapped |
+| MCP-01 | Phase 12 | Mapped |
+| MCP-02 | Phase 13 | Mapped |
+| MCP-03 | Phase 13 | Mapped |
+| MCP-04 | Phase 13 | Mapped |
+| MCP-05 | Phase 14 | Mapped |
+| MCP-06 | Phase 14 | Mapped |
+| MCP-07 | Phase 14 | Mapped |
+| MCP-08 | Phase 12 | Mapped |
+| MCP-09 | Phase 13 | Mapped |
+
 **Coverage:**
-- v1 requirements: 31 total
-- Mapped to phases: 31
-- Unmapped: 0 ✓ (fully mapped — see .planning/ROADMAP.md)
+- v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
+- v1.1 requirements: 27 total (PROV 7 + BYOK 9 + COST 2 + MCP 9) / mapped 27 / unmapped 0 ✓ (Phases 8–14)
+- 전체: 58 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-09-08 — PAY-02 amended: author-credit-on-unlock confirmed at 90/10 (provisional, D-10); added PAY-04 (구독제, v2 candidate) per Phase 6 discussion follow-up*
+*Last updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*
+*Previously updated: 2026-09-08 — PAY-02 amended: author-credit-on-unlock confirmed at 90/10 (provisional, D-10); added PAY-04 (구독제, v2 candidate) per Phase 6 discussion follow-up*
 *Previously updated: 2026-08-31 — added KB-03/04/05 (custom folder creation, account-shared folder restructure, 회차 folder tree) for inserted Phase 04.1*

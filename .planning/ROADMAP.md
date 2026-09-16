@@ -4,6 +4,12 @@
 
 NovelScript ships as one Next.js app with two loops that must both work: writers drafting with mention-injected AI assistance, and readers discovering/consuming what gets published — bound together by a real-money token wallet. The build order follows the strongest cross-cutting signal from research: the wallet/ledger must be built and concurrency-proven with fake credits before any real AI spend or real payment code touches it, so a payment bug can never block AI validation and vice versa. Concretely: prove auth + the ledger first (Phase 1), build the writer's non-AI loop and the reader's non-payment loop independently on top of it (Phases 2-3), wire AI generation against the still-fake wallet with cost guardrails built in from day one (Phase 4), swap in real Toss Payments behind the same wallet interface (Phase 5), let the paid-chapter-unlock feature use both proven pieces together (Phase 6), and close the trust/safety loop last with the admin moderation surface (Phase 7). PG paperwork (사업자등록, Toss merchant application) should start in parallel from Phase 1's kickoff — it runs on an external ~2+ week clock independent of the engineering sequence below.
 
+### v1.1 Overview (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)
+
+v1.1은 새 제품이 아니라 기존 `lib/ai/` 모듈의 증축 마일스톤이다 — 새 배포 단위도, 새 서비스도 없다. 마일스톤은 방향이 반대인 2단 구조를 가진다: 1단계(Phase 8~11)는 "NovelScript가 LLM을 호출한다"(멀티 프로바이더 어댑터 + BYOK), 2단계(Phase 12~14)는 "LLM이 NovelScript를 호출한다"(원격 MCP 서버). 두 단계는 공유 코드가 사실상 없으므로 하나의 '인증 페이즈'로 묶지 않는다. 빌드 순서는 리서치 4건이 독립적으로 도출한 동일한 결론을 따른다 — 벤더를 늘리기 전에 어댑터 추상화를 Gemini로 회귀 증명하고(Phase 8), 같은 페이즈에서 현존하는 멱등 차감 버그를 먼저 고친 뒤(재시도 로직이 이중 차감을 만들지 않도록), 플랫폼 키로 새 벤더를 증명하고(Phase 9), BYOK 키 보관·검증과 그 검증이 생산하는 모델 피커를 함께 올리고(Phase 10), BYOK 호출 경로를 엮은 뒤(Phase 11), 하드 경계를 넘어 MCP OAuth → 읽기 도구 → 쓰기 도구+리뷰 큐 순으로 간다(Phase 12~14). 외부 리드타임(OpenAI Organization Verification, Anthropic 빌링 tier)은 v1.0 Phase 5의 PG 심사와 같은 모양의 외부 큐이므로 Phase 8 킥오프와 **병행** 착수한다.
+
+**v1.0 잔여 트랙:** Phase 5(Toss 결제) / Phase 6(작가 90:10 정산) / Phase 7(운영자 도구)은 v1.0 트랙에 그대로 남으며 v1.1 범위가 아니다.
+
 ## Phases
 
 **Phase Numbering:**
@@ -20,6 +26,19 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
 - [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (partially shipped outside GSD — see Phase 6 detail)
 - [ ] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports
+
+**v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
+
+- [ ] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
+- [ ] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
+- [ ] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다
+- [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다
+
+**v1.1 — 하드 경계 — 2단계: LLM이 NovelScript를 호출한다**
+
+- [ ] **Phase 12: MCP OAuth 기반 · 연결/해제** - 작가가 Claude에 NovelScript를 커넥터로 연결하고, 해제하면 그 즉시 접근이 실제로 끊긴다
+- [ ] **Phase 13: MCP 읽기 도구 + 집필 컨텍스트 번들** - 연결된 AI가 작가 본인의 작품·회차·설정집을 읽고, 앱과 동일한 구성의 집필 컨텍스트를 한 번에 받는다
+- [ ] **Phase 14: MCP 쓰기 도구 + 스튜디오 리뷰 큐** - 외부 AI가 '제안된 초안·설정 변경안'만 되돌리고, 작가가 스튜디오에서 출처와 함께 수락/거절한다
 
 ## Phase Details
 
@@ -169,10 +188,112 @@ Residual (stays in v1.0, not yet done):
 **Plans**: TBD
 **UI hint**: yes
 
+---
+
+## Phase Details — v1.1
+
+### Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정
+**Goal**: Gemini 생성 경로가 공통 `ProviderClient` 어댑터 뒤로 이관되어도 작가 눈에는 아무것도 달라지지 않고, 동시에 현존하는 이중 차감 버그가 사라진다 — 이후 모든 제공자·재시도·BYOK 작업이 딛고 설 기반.
+**Depends on**: Phase 4 (AI Gateway)
+**Requirements**: PROV-01, COST-01
+**Success Criteria** (what must be TRUE):
+  1. 작가가 어댑터 이관 전과 똑같이 Gemini로 생성한다 — `@`멘션 주입, 3단계 프리셋, 4종 문체, `[REPLY]/[DRAFT]/[DOCUMENT]` 초안·제안 파싱이 모두 이전과 동일하게 동작한다
+  2. 같은 생성 호출이 재시도돼도 지갑에서 토큰이 한 번만 차감된다 (매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지를 무력화하던 현재 동작이 고쳐진다)
+  3. 생성 전 비용 상한 계산이 원격 `countTokens` 호출 없이도 이전과 같은 수준으로 동작한다 (로컬 추정으로 전환 — 실제 차감은 여전히 제공자가 돌려준 실사용량 기준)
+  4. 제공자가 안전 거절(safety refusal)을 반환하면 작가는 영어 거절문이 창작 결과물처럼 렌더링되는 대신 한국어 안내를 본다
+**Plans**: TBD
+**Notes**: 스키마 변경 없음(중복 방지 제약은 이미 존재). BYOK 키가 로그로 새는 유일한 경로인 **에러 스크러빙 choke point를 어댑터 인터페이스와 같이 출하**한다 — 세 번째 어댑터에서 잊히면 늦는다. 킥오프 체크리스트에 **OpenAI Organization Verification / Anthropic 빌링·tier 신청**을 넣어 병행 착수한다(외부 리드타임).
+
+### Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가
+**Goal**: 작가가 플랫폼(서비스) 키로 Gemini 외 두 제공자를 실제로 골라 집필할 수 있고, 무엇을 고르든 그 모델의 진짜 단가로 계산된 비용을 생성 전에 본다.
+**Depends on**: Phase 8
+**Requirements**: PROV-02, PROV-03, PROV-04, PROV-07
+**Success Criteria** (what must be TRUE):
+  1. 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받고, 결과가 기존 초안·제안 UI로 동일하게 들어온다
+  2. 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받고, 결과가 기존 초안·제안 UI로 동일하게 들어온다
+  3. 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
+  4. 서비스 키 모드에서 작가가 보는 비용 추정치가 선택한 제공자·모델의 실제 단가를 반영한다 (Gemini 단가가 GPT 호출에 재사용되지 않는다)
+**Plans**: TBD
+**UI hint**: yes
+**Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. 한국어 토큰 추정 상수는 provider별로 분리해 한국어 산문 샘플로 보정한다(단일 상수는 같은 잔액에 대해 제공자마다 출력 예산이 달라지는 체감 문제를 만든다).
+
+### Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지
+**Goal**: 작가가 자신의 API 키를 플랫폼에 맡기고, 그 키 검증이 돌려준 모델 목록이 곧 피커가 보여주는 "내가 실제로 쓸 수 있는 모델"이 된다 — 누가 비용을 내는지가 선택 시점에 보인다.
+**Depends on**: Phase 9
+**Requirements**: BYOK-01, BYOK-02, BYOK-03, BYOK-04, PROV-05
+**Success Criteria** (what must be TRUE):
+  1. 작가가 계정 설정 화면에서 제공자별로 자신의 API 키를 1개씩 등록하고, 서버가 저장 전에 제공자의 모델 목록 엔드포인트로 유효성·소유권을 검증한다 — 검증에 실패한 키는 활성 키로 저장되지 않으며, 검증 자체가 작가에게 과금되지 않는다
+  2. 등록된 키는 제공자·끝 4자리·등록일과 `연결됨/검증 실패/미등록` 상태로만 보이고, 평문은 화면·응답·로그 어디에도 다시 나타나지 않는다
+  3. 작가가 키를 삭제할 때 해당 제공자가 어떻게 되는지 안내받고, 삭제된 키가 기본 선택이었다면 선택이 자동 대체된다 (교체 = 삭제 후 재등록)
+  4. 모델 피커에 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 — 전역 모드 토글은 존재하지 않는다
+**Plans**: TBD
+**UI hint**: yes
+**Notes**: 키 검증(models-list)과 피커는 **같은 기능**이다 — 검증 결과가 피커의 모델 목록을 생산하므로 페이즈를 가르지 않는다. 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)은 **이 페이즈 계획 시점에 확정**한다 — 구현 중 미루면 데이터 마이그레이션이 된다. 별도 평문 `masked_hint` 컬럼이 BYOK 슬라이스에서 가장 중요한 스키마 결정. 평문 키가 어떤 경로로도 로그에 닿지 않음을 테스트로 확인한다.
+
+### Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX
+**Goal**: 지갑 잔액이 0인 작가도 자기 키로 막힘없이 생성하고, 실패했을 때 원인별로 다른 안내를 받으며, 이번 달 자기 키로 얼마나 썼는지 확인할 수 있다.
+**Depends on**: Phase 10
+**Requirements**: PROV-06, BYOK-05, BYOK-06, BYOK-07, BYOK-08, BYOK-09, COST-02
+**Success Criteria** (what must be TRUE):
+  1. 작가가 BYOK 모델로 호출하면 플랫폼 토큰이 전혀 차감되지 않고, 지갑 잔액이 0이어도 호출이 차단되지 않는다
+  2. BYOK 모델을 선택하면 AI 패널의 지갑 토큰 비용 게이지가 숨겨지고, 1회 출력 토큰 상한이 서비스 키 호출보다 높게 적용된다
+  3. 무효·폐기된 키 / 레이트리밋 / 크레딧 소진 / 타임아웃·장애 네 가지 실패가 각각 구분되는 한국어 메시지로 안내되고, 무효 키만 `검증 실패`로 바뀐다 — 자동 재시도도, 서비스 키로의 조용한 폴백도 일어나지 않는다
+  4. 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 스스로 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 없다
+  5. 작가가 이번 달 제공자별 BYOK 호출 수·토큰 수·예상 비용(금액)을 보고, 모든 AI 호출이 제공자·모델·토큰 수와 함께 지갑 원장과 분리된 사용 기록에 남는다 (지갑 원장에 0원 행이 기록되지 않는다)
+**Plans**: TBD
+**UI hint**: yes
+**Notes**: 과금 모드는 **매 호출 서버에서 재도출**한다 — 클라이언트가 보낸 `byok: true`를 분기 입력으로 쓰지 않는다(TOCTOU). BYOK 경로는 "상한 0인 서비스 경로"가 아니라 cap 계산 블록 전체를 구조적으로 건너뛰는 별도 분기다. `ai_usage`에 "정산 무관" 명시 SQL 주석을 남겨 향후 작가 90/10 정산 쿼리를 오염시키지 않는다. 429 재시도는 Phase 8의 멱등 차감 수정이 선행된 뒤에만 붙이며, 바이트가 도착하기 전의 실패에만 한정한다(부분 응답 후 끊김은 사용자 재시도 대상). 핵심 회귀 테스트: 잔액 0 + BYOK 키 보유 사용자의 성공, 그리고 패널 로드와 전송 사이에 키를 삭제한 케이스.
+
+---
+
+**하드 경계** — 1단계(Phase 8~11)가 안정화되기 전에 2단계(Phase 12~14)를 시작하지 않는다. BYOK는 "우리가 남의 비밀을 보관해 밖으로 호출", MCP OAuth는 "우리가 비밀을 발급해 밖에서 들어옴" — 방향이 반대이고 공유 코드가 없다. 하나의 '인증 페이즈'로 묶지 않는다.
+
+---
+
+### Phase 12: MCP OAuth 기반 · 연결/해제
+**Goal**: 작가가 Claude에서 NovelScript를 커스텀 커넥터로 연결해 자기 계정 데이터에만 접근하도록 승인하고, 해제하면 이미 발급된 접근이 실제로 끊긴다.
+**Depends on**: Phase 11 (1단계 안정화 이후)
+**Requirements**: MCP-01, MCP-08
+**Success Criteria** (what must be TRUE):
+  1. 작가가 Claude에서 NovelScript를 커스텀 커넥터로 추가하고 OAuth 계정 연결을 승인하면 연결이 성립한다
+  2. 연결된 토큰은 승인한 작가 본인의 데이터에만 접근하며, 다른 사용자의 리소스에는 유효한 토큰으로도 도달하지 못한다
+  3. 작가가 NovelScript에서 연결된 클라이언트 목록과 마지막 사용 시각을 본다
+  4. 작가가 연결을 해제하면, 해제 이전에 발급된 토큰으로 시도한 호출이 즉시 차단된다
+**Plans**: TBD
+**UI hint**: yes
+**Notes**: **인수 기준 클라이언트는 Claude만.** ChatGPT는 쓰기 가능 커스텀 커넥터를 Business/Enterprise/Edu 워크스페이스로 제한하므로 best-effort 문서화 대상이며 성공 기준이 아니다. 첫 작업은 **스파이크**다 — 실제 Claude 커스텀 커넥터로 discovery → 등록 → 토큰 교환을 왕복시켜 authorization server 선택(Supabase Auth OAuth 2.1 Server vs WorkOS AuthKit)을 결판낸다. 스파이크 실패 시 페이즈 내용 자체가 바뀌므로 도구 작업과 섞지 않는다. 해제 검증은 UI 목록이 아니라 **해제 이전에 발급된 토큰으로 실제 도구 호출을 시도**해서 한다 — stateless JWT 검증만으로는 이 기준을 구조적으로 충족할 수 없고, 매 호출 살아있는 grant introspection이 필요하다(나중에 붙일 수 없다). `/gsd:research-phase` 필수: 2026-07-28 spec 개정이 DCR을 CIMD로 대체해 기존 튜토리얼이 전부 낡았고, 커넥터 UI가 실제로 무엇을 보내는지는 구현 시점 재확인이 필요하다.
+
+### Phase 13: MCP 읽기 도구 + 집필 컨텍스트 번들
+**Goal**: 연결된 AI가 작가 본인의 작품·회차·설정집을 읽고, 앱 안에서와 동일한 구성의 집필 컨텍스트를 한 번에 받아 초안을 쓸 준비를 마친다.
+**Depends on**: Phase 12
+**Requirements**: MCP-02, MCP-03, MCP-04, MCP-09
+**Success Criteria** (what must be TRUE):
+  1. 연결된 AI가 작가의 작품 목록·회차 목록·회차 본문을 조회할 수 있다
+  2. 연결된 AI가 작가의 설정집 문서를 검색하고 내용을 읽을 수 있다
+  3. 연결된 AI가 멘션 방식 집필 컨텍스트 번들(설정집 + 프리셋 + 문체 조합)을 한 번에 받아, 앱 안에서 생성한 것과 같은 구성으로 초안을 쓴다
+  4. 읽기 도구를 호출할 때 클라이언트가 불필요한 확인 프롬프트를 띄우지 않는다 (모든 툴에 읽기/쓰기 성격 annotation이 붙는다)
+**Plans**: TBD
+**Notes**: 도구는 기본적으로 user-scoped 클라이언트를 쓴다 — Server Action에서 옳았던 `createAdminClient()` 관행을 그대로 복사하면 bearer 토큰 하나로 교차 사용자 읽기가 가능해지는 confused deputy가 된다. `createAdminClient` import는 그 자체로 추가 리뷰 대상. 모든 도구에 대해 **두 번째 사용자 토큰으로 첫 사용자 리소스를 찌르는 교차 사용자 테스트 스위트**를 통과시킨다. `get_writing_context`는 기존 `composeSystemInstruction`/`assembleUserContent`를 **재사용**한다(fork 금지) — 이 페이즈를 단순 CRUD API가 아니게 만드는 유일한 차별화 도구다.
+
+### Phase 14: MCP 쓰기 도구 + 스튜디오 리뷰 큐
+**Goal**: 외부 AI가 되돌릴 수 있는 것은 '제안된 초안'과 '설정 변경안'뿐이고, 작가가 스튜디오에서 출처와 함께 그것들을 검토해 수락하거나 거절한다 — 기존 본문은 어떤 경우에도 조용히 바뀌지 않는다.
+**Depends on**: Phase 13
+**Requirements**: MCP-05, MCP-06, MCP-07
+**Success Criteria** (what must be TRUE):
+  1. 연결된 AI가 특정 회차에 '제안된 초안'을 저장할 수 있고, 그 회차의 기존 본문은 어떤 경로로도 덮어쓰이지 않는다 (본문 직접 수정 툴 자체가 존재하지 않으며, 새 초안 회차를 만들지도 않는다)
+  2. 연결된 AI가 설정집 문서의 신규 생성안 또는 기존 문서 수정안을 제안할 수 있다
+  3. 작가가 설정집 수정안을 원문과 나란히 놓고 비교(diff)해 수락 또는 거절한다
+  4. 작가가 스튜디오에서 MCP로 도착한 초안·제안을 출처(어느 클라이언트에서, 언제)와 함께 검토하고 수락 또는 거절한다
+**Plans**: TBD
+**UI hint**: yes
+**Notes**: 리뷰 큐 UI는 "도구 몇 개 더"의 반올림 오차가 아니라 실제 UI 스코프다 — 마지막에 두되 축소하지 않는다. `save_draft` / `propose_kb_document` 둘 다 pending 상태 객체만 생성하며, "외부 AI가 제안하고 작가가 결정한다"를 UI 카피가 아니라 **데이터 접근 레이어에서** 강제한다(`mcp_drafts` / `mcp_kb_proposals`). LLM이 넘긴 `work_id`/`chapter_id`는 읽기 도구 결과를 거쳐 온 **비신뢰 입력**이므로 매 호출 서버에서 소유권을 재검증한다 — 초안/제안 전용 설계는 이 문제의 대체재가 아니라 짝이다. 주입된 도구 결과로 유도된 교차 사용자 쓰기 테스트를 포함한다.
+
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+**v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -186,3 +307,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 0/TBD | Not started | - |
+| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/TBD | Not started | - |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
+| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
+| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
+| 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
+| 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
+| 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
+
+**v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
