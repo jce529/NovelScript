@@ -66,7 +66,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('admin moderation operations (Post
   async function reportRow(id: string) {
     await asOwner();
     const [row] = await query('select status, resolution_note, resolved_by from reports where id = $1', [id]);
-    return row as { status: string; resolution_note: string | null; resolved_by: string | null };
+    return row as unknown as { status: string; resolution_note: string | null; resolved_by: string | null };
   }
   async function counts() {
     await asOwner();
@@ -211,7 +211,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('admin moderation operations (Post
     await op({ ids: [r2], action: 'suspend', reason: 'second', publicReason: '정지 사유', endsAt: until });
     await asOwner();
     const [cache] = await query('select sanction_kind, sanctioned_until from profiles where id = $1', [writer]);
-    expect((cache as { sanction_kind: string }).sanction_kind).toBe('suspension');
+    expect((cache as unknown as { sanction_kind: string }).sanction_kind).toBe('suspension');
     const r3 = await report(outsider, work, null);
     await op({ ids: [r3], chapterId: null, action: 'permanent_suspend', reason: 'third', publicReason: '영구 정지' });
     await asOwner();
