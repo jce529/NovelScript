@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Settings2, Lock } from 'lucide-react';
+import { ArrowLeft, EyeOff, Settings2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getPublicWork } from '@/lib/works/actions';
 import { listPublicChapters } from '@/lib/chapters/actions';
@@ -14,6 +14,8 @@ import { ReportDialog } from '@/components/reader/report-dialog';
 import { submitReportAction } from '@/app/works/[workId]/actions';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SiteHeader } from '@/components/layout/site-header';
+import { TocBadge } from '@/components/reader/toc-sheet';
+import { BLINDED_VIEWER_TITLE, BLINDED_WORK_NOTE } from '@/lib/moderation/user-actions';
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ workId: string }> }) {
   const { workId } = await params;
@@ -23,6 +25,29 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
     getPublicWork(supabase, { workId }),
   ]);
   if (!work) notFound();
+
+  // D-12/D-13: a work-wide blind shows a direct-entry notice with no synopsis, TOC or reader actions.
+  if (work.blinded) {
+    return (
+      <>
+        <SiteHeader />
+        <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
+          <div className="flex h-11 items-center">
+            <Link href="/" aria-label="뒤로가기" className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-muted">
+              <ArrowLeft className="size-4" />
+            </Link>
+          </div>
+          <h1 className="text-xl font-semibold">{work.title}</h1>
+          <div role="status" className="flex flex-col items-center gap-2 py-16 text-center">
+            <EyeOff className="size-6 text-muted-foreground" aria-hidden />
+            <h3 className="text-xl font-semibold">{BLINDED_VIEWER_TITLE}</h3>
+            {work.blindReason && <p className="text-muted-foreground">{work.blindReason}</p>}
+            <p className="text-sm text-muted-foreground">{BLINDED_WORK_NOTE}</p>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   const [subscribed, bookmarked, chapters, progress, liked, likeCount] = await Promise.all([
     user ? getSubscriptionState(supabase, { workId, userId: user.id }) : Promise.resolve(false),
@@ -88,7 +113,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
                 <li key={chapter.id}>
                   <a href={`/works/${workId}/chapters/${chapter.id}`} className="flex h-11 items-center gap-2 px-1 text-sm">
                     <span>{chapter.orderIndex + 1}화 {chapter.title}</span>
-                    {chapter.locked && <Lock className="size-3 text-muted-foreground" aria-label="유료 회차" />}
+                    <TocBadge chapter={chapter} />
                   </a>
                 </li>
               ))}

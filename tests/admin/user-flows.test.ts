@@ -28,7 +28,10 @@ import {
 import {
   acknowledgeWarningAction, getAccountNoticesAction, getReviewPanelStateAction, requestReviewAction,
 } from '../../lib/moderation/actions';
-import { saveChapterContent } from '../../lib/chapters/actions';
+import { saveChapterContent, type PublicChapter, type PublicChapterListItem } from '../../lib/chapters/actions';
+import { viewerLockModel, tocRowBadge, BLINDED_ENTITLED_NOTE, BLINDED_VIEWER_TITLE } from '../../lib/moderation/user-actions';
+import { purchaseChapterAction, trackChapterOpenAction } from '../../app/works/[workId]/chapters/[chapterId]/actions';
+import { PURCHASE_BLINDED_MESSAGE, PURCHASE_UNAVAILABLE_MESSAGE } from '../../lib/commerce/actions';
 
 export const WRITER = '10000000-0000-4000-8000-000000000001';
 export const STRANGER = '10000000-0000-4000-8000-000000000002';
@@ -54,6 +57,7 @@ export interface FakeDb {
   fail: Set<string>;
   calls: string[];
   updates: { table: string; values: Row }[];
+  rpcHandlers: Record<string, (args: Row) => { data: unknown; error: { message: string } | null } | 'throw'>;
 }
 
 export function seedDb(): FakeDb {
@@ -63,7 +67,7 @@ export function seedDb(): FakeDb {
       { id: OTHER_WORK, owner_id: STRANGER, deleted_at: null, admin_blinded: true, admin_blind_reason: '기타' },
     ],
     chapters: [
-      { id: CHAPTER, work_id: WORK, deleted_at: null, admin_blinded: true, admin_blind_reason: '혐오 표현' },
+      { id: CHAPTER, work_id: WORK, deleted_at: null, is_published: true, admin_blinded: true, admin_blind_reason: '혐오 표현' },
       { id: OTHER_CHAPTER, work_id: OTHER_WORK, deleted_at: null, admin_blinded: true, admin_blind_reason: '기타' },
     ],
     user_sanctions: [
@@ -78,6 +82,7 @@ export function seedDb(): FakeDb {
     fail: new Set(),
     calls: [],
     updates: [],
+    rpcHandlers: {},
   };
 }
 
@@ -187,6 +192,12 @@ export function fakeClient(db: FakeDb, session: string | null) {
         db.warning_acknowledgements.push({ sanction_id: target.id, user_id: session });
       }
       return { data: true, error: null };
+    }
+    const handler = db.rpcHandlers[name];
+    if (handler) {
+      const out = handler(args);
+      if (out === 'throw') throw new Error('network down');
+      return out;
     }
     return { data: null, error: { message: `unexpected rpc ${name}` } };
   });
@@ -395,5 +406,130 @@ describe('writer re-review requests (D-15/D-16)', () => {
     expect(update).toBeDefined();
     expect(Object.keys(update!.values).some((k) => k.startsWith('admin_'))).toBe(false);
     expect(db.chapters[0].admin_blinded).toBe(true);
+  });
+});
+
+describe('reader lock model (D-13/D-14)', () => {
+  const base: Pick<PublicChapter, 'accessState' | 'content' | 'entitled' | 'blindScope' | 'blindReason' | 'priceTier'> = {
+    accessState: 'readable', content: null, entitled: false, blindScope: null, blindReason: null, priceTier: 30,
+  };
+
+  it('owned-but-blind: no body, no purchase CTA, entitlement note and safe reason', () => {
+    const model = viewerLockModel({ ...base, accessState: 'blinded', entitled: true, blindScope: 'chapter', blindReason: '혐오 표현' });
+    expect(model).toEqual({
+      kind: 'blinded', title: BLINDED_VIEWER_TITLE, reason: '혐오 표현', entitledNote: BLINDED_ENTITLED_NOTE, showPurchase: false,
+    });
+  });
+
+  it('unpaid-but-blind: still no purchase CTA', () => {
+    const model = viewerLockModel({ ...base, accessState: 'blinded', blindScope: 'work', blindReason: '기타' });
+    expect(model).toMatchObject({ kind: 'blinded', showPurchase: false, entitledNote: null });
+  });
+
+  it('restored purchase: an unblinded owned chapter renders its body without another purchase', () => {
+    expect(viewerLockModel({ ...base, accessState: 'readable', content: '본문', entitled: true })).toEqual({ kind: 'content', showPurchase: false });
+  });
+
+  it('only purchase_required for a non-entitled reader offers payment', () => {
+    expect(viewerLockModel({ ...base, accessState: 'purchase_required' })).toEqual({ kind: 'purchase', priceTier: 30, showPurchase: true });
+    expect(viewerLockModel({ ...base, accessState: 'purchase_required', entitled: true }).showPurchase).toBe(false);
+    expect(viewerLockModel({ ...base, accessState: 'unavailable' }).showPurchase).toBe(false);
+    expect(viewerLockModel({ ...base, accessState: 'readable', content: null }).kind).toBe('unavailable');
+  });
+
+  it('TOC keeps blinded rows in order with the review badge instead of a price lock', () => {
+    const rows: (Pick<PublicChapterListItem, 'orderIndex' | 'state' | 'blinded'>)[] = [
+      { orderIndex: 4, state: 'readable', blinded: false },
+      { orderIndex: 5, state: 'blinded', blinded: true },
+      { orderIndex: 6, state: 'purchase_required', blinded: false },
+    ];
+    expect(rows.map((row) => [row.orderIndex + 1, tocRowBadge(row)])).toEqual([[5, null], [6, 'review'], [7, 'paid']]);
+  });
+});
+
+describe('reader actions recheck permission (D-07/D-13)', () => {
+  const ORDER = '40000000-0000-4000-8000-000000000001';
+  const KEY = '40000000-0000-4000-8000-0000000000aa';
+
+  function accessState(state: string, entitled = false) {
+    db.rpcHandlers.get_chapter_access_state = () => ({
+      data: {
+        state, entitled,
+        blind_scope: state === 'blinded' ? 'chapter' : null,
+        blind_reason: state === 'blinded' ? '혐오 표현' : null,
+      },
+      error: null,
+    });
+  }
+  function purchaseRpcs() {
+    db.rpcHandlers.create_purchase_order = () => ({ data: ORDER, error: null });
+    db.rpcHandlers.pay_purchase_order = () => ({ data: ORDER, error: null });
+  }
+
+  it('entitled reader of a blinded chapter is never sent to the purchase RPCs', async () => {
+    accessState('blinded', true);
+    purchaseRpcs();
+    expect(await purchaseChapterAction(CHAPTER, KEY)).toEqual({ ok: false, error: PURCHASE_BLINDED_MESSAGE, code: 'content_blinded' });
+    expect(db.calls).not.toContain('rpc:create_purchase_order');
+    expect(db.calls).not.toContain('rpc:pay_purchase_order');
+  });
+
+  it('unpaid reader of a blinded chapter is refused the same way', async () => {
+    accessState('blinded', false);
+    purchaseRpcs();
+    expect(await purchaseChapterAction(CHAPTER, KEY)).toMatchObject({ ok: false, code: 'content_blinded' });
+    expect(db.calls).not.toContain('rpc:create_purchase_order');
+  });
+
+  it('purchase_required still purchases (no payment regression)', async () => {
+    accessState('purchase_required');
+    purchaseRpcs();
+    expect(await purchaseChapterAction(CHAPTER, KEY)).toEqual({ ok: true, orderId: ORDER });
+    expect(db.calls).toContain('rpc:pay_purchase_order');
+    expect(h.revalidatePath).toHaveBeenCalledWith('/works', 'layout');
+  });
+
+  it('a retry after the chapter became owned reports success without charging again', async () => {
+    accessState('readable', true);
+    purchaseRpcs();
+    expect(await purchaseChapterAction(CHAPTER, KEY)).toEqual({ ok: true });
+    expect(db.calls).not.toContain('rpc:create_purchase_order');
+    expect(db.calls).not.toContain('rpc:pay_purchase_order');
+  });
+
+  it('access lookup failure or unknown chapter fails closed without an order', async () => {
+    db.rpcHandlers.get_chapter_access_state = () => ({ data: null, error: { message: 'down' } });
+    purchaseRpcs();
+    expect(await purchaseChapterAction(CHAPTER, KEY)).toMatchObject({ ok: false, error: PURCHASE_UNAVAILABLE_MESSAGE });
+    expect(await purchaseChapterAction(OTHER_WORK, KEY)).toMatchObject({ ok: false, code: 'content_unavailable' });
+    expect(db.calls).not.toContain('rpc:create_purchase_order');
+  });
+
+  it('suspended reader opening a readable chapter: bookkeeping is skipped silently', async () => {
+    db.sanction[WRITER] = 'suspension';
+    db.rpcHandlers.can_view = () => ({ data: true, error: null });
+    db.rpcHandlers.increment_chapter_view = () => ({ data: null, error: null });
+    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeUndefined();
+    expect(db.calls).not.toContain('rpc:increment_chapter_view');
+    expect(db.reading_progress).toHaveLength(0);
+  });
+
+  it('records progress only after the server recheck allows reading', async () => {
+    db.rpcHandlers.increment_chapter_view = () => ({ data: null, error: null });
+    db.rpcHandlers.can_view = () => ({ data: false, error: null });
+    await trackChapterOpenAction(WORK, CHAPTER, false); // client claims readable; server says blinded
+    expect(db.reading_progress).toHaveLength(0);
+    db.rpcHandlers.can_view = () => ({ data: true, error: null });
+    await trackChapterOpenAction(WORK, CHAPTER, false);
+    expect(db.reading_progress).toHaveLength(1);
+  });
+
+  it('bookkeeping failures never reject the viewer action', async () => {
+    db.rpcHandlers.increment_chapter_view = () => 'throw';
+    db.rpcHandlers.can_view = () => ({ data: null, error: { message: 'down' } });
+    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeUndefined();
+    db.rpcHandlers.can_view = () => ({ data: true, error: null });
+    db.fail.add('reading_progress');
+    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeUndefined();
   });
 });

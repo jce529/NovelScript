@@ -249,7 +249,7 @@ export async function requestReview(
 // Reader lock model (D-13/D-14). Pure; used by viewer, TOC and tests.
 // ---------------------------------------------------------------------------
 export type ViewerLockModel =
-  | { kind: 'content' }
+  | { kind: 'content'; showPurchase: false }
   | { kind: 'blinded'; title: string; reason: string | null; entitledNote: string | null; showPurchase: false }
   | { kind: 'purchase'; priceTier: number | null; showPurchase: true }
   | { kind: 'unavailable'; showPurchase: false };
@@ -259,7 +259,7 @@ export function viewerLockModel(
 ): ViewerLockModel {
   switch (chapter.accessState) {
     case 'readable':
-      return chapter.content !== null ? { kind: 'content' } : { kind: 'unavailable', showPurchase: false };
+      return chapter.content !== null ? { kind: 'content', showPurchase: false } : { kind: 'unavailable', showPurchase: false };
     case 'blinded':
       return {
         kind: 'blinded', title: BLINDED_VIEWER_TITLE, reason: chapter.blindReason,

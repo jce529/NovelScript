@@ -5,12 +5,14 @@ import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, List, Settings, Lock } from 'lucide-react';
+import { ArrowLeft, EyeOff, List, Settings, Lock } from 'lucide-react';
 import type { PublicChapter, PublicChapterListItem } from '@/lib/chapters/actions';
 import { TocSheet } from '@/components/reader/toc-sheet';
 import { ViewerSettingsSheet } from '@/components/reader/viewer-settings-sheet';
 import { ViewTracker } from '@/components/reader/view-tracker';
 import { purchaseChapterAction, trackChapterOpenAction } from '@/app/works/[workId]/chapters/[chapterId]/actions';
+import { UNAVAILABLE_CONTENT_MESSAGE } from '@/lib/access/actions';
+import { viewerLockModel } from '@/lib/moderation/user-actions';
 
 export type ViewerTheme = 'light' | 'sepia' | 'dark';
 
@@ -35,6 +37,8 @@ export function ViewerShell({
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const purchaseKey = useRef<{ chapterId: string; key: string } | null>(null);
   const router = useRouter();
+  // D-13: blind wins over entitlement and payment; only purchase_required may show a purchase CTA.
+  const lock = viewerLockModel(chapter);
 
   function purchase() {
     if (!purchaseKey.current || purchaseKey.current.chapterId !== chapter.id) {
@@ -92,7 +96,23 @@ export function ViewerShell({
             fontFamily: 'var(--font-geist-sans), -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif',
           }}
         >
-          {chapter.locked ? (
+          {lock.kind === 'content' ? (
+            chapter.content
+          ) : lock.kind === 'blinded' ? (
+            <div role="status" className="flex flex-col items-center gap-2 py-24 text-center">
+              <EyeOff className="size-6 text-muted-foreground" aria-hidden />
+              <h3 className="text-xl font-semibold">{lock.title}</h3>
+              {lock.reason && <p className="text-muted-foreground">{lock.reason}</p>}
+              {lock.entitledNote && <p className="text-sm text-muted-foreground">{lock.entitledNote}</p>}
+              <Link href={`/works/${workId}`} className="inline-flex h-11 items-center underline">회차 목록</Link>
+            </div>
+          ) : lock.kind === 'unavailable' ? (
+            <div role="status" className="flex flex-col items-center gap-2 py-24 text-center">
+              <Lock className="size-6 text-muted-foreground" aria-hidden />
+              <h3 className="text-xl font-semibold">{UNAVAILABLE_CONTENT_MESSAGE}</h3>
+              <Link href={`/works/${workId}`} className="inline-flex h-11 items-center underline">회차 목록</Link>
+            </div>
+          ) : (
             <div className="flex flex-col items-center gap-2 py-24 text-center">
               <Lock className="size-6 text-muted-foreground" />
               <h3 className="text-xl font-semibold">유료 회차</h3>
@@ -102,8 +122,6 @@ export function ViewerShell({
               ) : <Link href="/login" className="underline">로그인하고 구매하기</Link>}
               {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             </div>
-          ) : (
-            chapter.content
           )}
         </div>
       </main>
@@ -134,7 +152,7 @@ export function ViewerShell({
         theme={theme} onThemeChange={setTheme}
         workId={workId} chapterId={chapter.id} loggedIn={loggedIn} onSubmitReport={onSubmitReport}
       />
-      <ViewTracker onOpen={() => trackChapterOpenAction(workId, chapter.id, chapter.locked)} />
+      <ViewTracker onOpen={() => trackChapterOpenAction(workId, chapter.id, lock.kind !== 'content')} />
     </div>
   );
 }
