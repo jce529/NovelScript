@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
@@ -18,10 +19,16 @@ import {
   STYLE_PRESETS, DEFAULT_STYLE_PRESET, chatHistoryTurnContent,
   type StylePresetId, type PresetLevel, type DocumentProposal,
 } from '@/lib/ai/prompt';
-import type { ModelTier } from '@/lib/ai/gemini';
+import type { ModelTier } from '@/lib/ai/providers/types';
+import {
+  createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice,
+  type ChatNotice, type SendAttempt,
+} from '@/lib/ai/chat-request';
+import type { ChatResult } from '@/lib/ai/chat-result';
 import type { KbCategory } from '@/lib/kb/categories';
 import { chatAction, saveDocumentProposalAction } from '../actions';
 import { ChatMessageBubble } from './ChatMessageBubble';
+import { AiPanelNotice } from './AiPanelNotice';
 
 export interface MentionedNode {
   id: string;
@@ -66,6 +73,19 @@ interface ChatMessage {
   wasCapped?: boolean;
 }
 
+/** Frozen snapshot of everything one send needs — retry replays it verbatim (UI-SPEC §1). */
+interface SendPayload {
+  userTurnId: string;
+  userMessage: string;
+  history: ChatMessage[];
+  modelTier: ModelTier;
+  genre: string;
+  presetLevel: PresetLevel;
+  styleId: StylePresetId;
+  mentionedNodeIds: string[];
+  precedingText: string;
+}
+
 export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [modelTier, setModelTier] = useState<ModelTier>('lite');
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
@@ -76,6 +96,13 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const chatLogRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const lockRef = useRef(createSendLock());
+  const failedAttemptRef = useRef<SendAttempt<SendPayload> | null>(null);
+  const noticeSeqRef = useRef(0);
+  const [notice, setNotice] = useState<{ id: string; notice: ChatNotice } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const retryButtonRef = useRef<HTMLButtonElement>(null);
 
   const mentionedNodeIds = mentionedNodes.map((n) => n.id);
 
@@ -83,59 +110,126 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
     chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isGenerating]);
 
-  /** Sends one AI 패널 chat turn — the ONLY entry point for talking to the AI
-   * now (no separate "생성하기" call shape). `history` is every PRIOR turn
-   * (not including `userMessage`) — passed explicitly (rather than reading
-   * `messages` state) so 다시 생성하기/거부하고 지우기 can replay a truncated
-   * history without a stale-closure race against the pending setMessages(). */
-  async function sendMessage(userMessage: string, history: ChatMessage[]) {
-    const base = [...history, { id: crypto.randomUUID(), role: 'user' as const, text: userMessage }];
+  useEffect(() => {
+    if (!notice) return;
+    if (notice.notice.variant === 'error' && notice.notice.retryable) retryButtonRef.current?.focus();
+    else inputRef.current?.focus();
+  }, [notice]);
+
+  /** Snapshots the CURRENT panel state for one send. `history` is every PRIOR
+   * turn (not including `userMessage`) — passed explicitly so 다시 생성하기 can
+   * replay a truncated history without a stale-closure race. */
+  function buildPayload(userMessage: string, history: ChatMessage[]): SendPayload {
+    return {
+      userTurnId: crypto.randomUUID(),
+      userMessage, history, modelTier, genre, presetLevel, styleId, mentionedNodeIds,
+      precedingText: content,
+    };
+  }
+
+  function showNotice(n: ChatNotice) {
+    noticeSeqRef.current += 1;
+    // DOM id never includes the idempotency key.
+    setNotice({ id: `ai-notice-${noticeSeqRef.current}`, notice: n });
+  }
+
+  /** Runs one send attempt — the ONLY entry point for talking to the AI.
+   * The lock is taken synchronously before any await so a double click or
+   * Enter burst issues exactly one chatAction. */
+  async function runAttempt(attempt: SendAttempt<SendPayload>) {
+    if (!lockRef.current.tryAcquire()) return;
+    setNotice(null);
+    const p = attempt.payload;
+    const base: ChatMessage[] = [...p.history, { id: p.userTurnId, role: 'user' as const, text: p.userMessage }];
     setMessages(base);
     setIsGenerating(true);
 
-    const result = await chatAction({
-      workId, chapterId, modelTier, mentionedNodeIds, presetLevel, styleId, genre,
-      precedingText: content,
-      chatHistory: base.map((m) => ({ role: m.role, content: chatHistoryTurnContent(m) })),
-    });
-    setIsGenerating(false);
+    let result: ChatResult | null = null;
+    try {
+      result = await chatAction({
+        workId, chapterId,
+        modelTier: p.modelTier,
+        mentionedNodeIds: [...p.mentionedNodeIds],
+        presetLevel: p.presetLevel,
+        styleId: p.styleId,
+        genre: p.genre,
+        precedingText: p.precedingText,
+        chatHistory: base.map((m) => ({ role: m.role, content: chatHistoryTurnContent(m) })),
+        idempotencyKey: attempt.idempotencyKey,
+      });
+    } catch {
+      result = null;
+    } finally {
+      lockRef.current.release();
+      setIsGenerating(false);
+    }
 
-    if (!result.ok) {
-      toast.error(result.error ?? '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.');
+    if (result === null) {
+      failedAttemptRef.current = attempt;
+      showNotice(thrownChatNotice());
       return;
     }
 
-    setMessages([...base, {
-      id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
-      draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
-    }]);
-    if (result.wasCapped) {
-      toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
+    const outcome = resolveChatOutcome(result);
+    if (outcome.kind === 'success') {
+      failedAttemptRef.current = null;
+      setMessages([...base, {
+        id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
+        draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
+      }]);
+      if (result.wasCapped) {
+        toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
+      }
+      if (outcome.refreshBalance) router.refresh();
+      return;
     }
+
+    const n = outcome.notice;
+    if (n.removeUserTurn) setMessages([...p.history]);
+    if (n.restoreInput) setChatInput(p.userMessage);
+    failedAttemptRef.current = n.retryable ? attempt : null;
+    if (n.refreshBalance) router.refresh();
+    showNotice(n);
   }
 
   function handleSend() {
     const trimmed = chatInput.trim();
-    if (!trimmed || isGenerating) return;
+    if (!trimmed || isGenerating || lockRef.current.locked) return;
+    const failed = failedAttemptRef.current;
+    // A new message after a failure drops the failed user turn from history.
+    const history = failed ? messages.filter((m) => m.id !== failed.payload.userTurnId) : messages;
+    failedAttemptRef.current = null;
     setChatInput('');
-    sendMessage(trimmed, messages);
+    void runAttempt(createSendAttempt(buildPayload(trimmed, history)));
+  }
+
+  /** 다시 시도: same key, same snapshot (UI-SPEC §1 row 2). */
+  function handleRetry() {
+    const attempt = failedAttemptRef.current;
+    if (!attempt || isGenerating || lockRef.current.locked) return;
+    void runAttempt(attempt);
+  }
+
+  function handleDismiss() {
+    setNotice(null);
+    inputRef.current?.focus();
   }
 
   /** Drops the last AI turn (and the user message that prompted it, if any)
-   * and resends the same request — a "redo" of the last exchange. */
+   * and resends the same request with a NEW key — a "redo" of the last exchange. */
   function handleRegenerate() {
-    if (isGenerating) return;
+    if (isGenerating || lockRef.current.locked) return;
     const withoutLastAssistant = messages.slice(0, -1);
     const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
     if (tail?.role === 'user') {
-      sendMessage(tail.text, withoutLastAssistant.slice(0, -1));
+      void runAttempt(createSendAttempt(buildPayload(tail.text, withoutLastAssistant.slice(0, -1))));
     }
   }
 
   /** Discards the last AI turn (and the user message that prompted it, if
    * any) without resending — back to the chat state before that exchange. */
   function handleReject() {
-    if (isGenerating) return;
+    if (isGenerating || lockRef.current.locked) return;
     const withoutLastAssistant = messages.slice(0, -1);
     const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
     setMessages(tail?.role === 'user' ? withoutLastAssistant.slice(0, -1) : withoutLastAssistant);
@@ -290,8 +384,27 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
         {isGenerating && <p className="text-xs text-muted-foreground">AI가 응답을 생성하고 있어요...</p>}
       </div>
 
+      <div
+        role={notice?.notice.variant === 'error' ? 'alert' : 'status'}
+        aria-live={notice?.notice.variant === 'error' ? 'assertive' : 'polite'}
+        className="empty:hidden"
+      >
+        {notice && (
+          <AiPanelNotice
+            key={notice.id}
+            id={notice.id}
+            notice={notice.notice}
+            disabled={isGenerating}
+            onDismiss={handleDismiss}
+            onRetry={notice.notice.retryable ? handleRetry : undefined}
+            retryButtonRef={retryButtonRef}
+          />
+        )}
+      </div>
+
       <div className="flex items-center gap-2">
         <Input
+          ref={inputRef}
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
