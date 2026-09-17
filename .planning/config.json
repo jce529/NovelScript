@@ -31,6 +31,11 @@
   "hooks": {
     "context_warnings": true
   },
+  "model_overrides": {
+    "gsd-planner": "gpt-5.6-sol",
+    "gsd-phase-researcher": "gpt-5.6-luna",
+    "gsd-executor": "gpt-5.6-terra"
+  },
   "agent_skills": {},
   "resolve_model_ids": "omit",
   "mode": "interactive",
