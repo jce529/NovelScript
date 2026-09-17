@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
@@ -8,7 +9,10 @@ import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
 import { saveNodeContent } from '@/lib/kb/actions';
 import type { KbCategory } from '@/lib/kb/templates';
 import { chat, type DocumentProposal } from '@/lib/ai/chat';
-import { createGeminiClient, type ModelTier } from '@/lib/ai/gemini';
+import { createPlatformProvider } from '@/lib/ai/providers/registry';
+import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
+import type { ModelTier } from '@/lib/ai/providers/types';
+import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
 
 export async function getChapterAction(chapterId: string) {
@@ -70,14 +74,6 @@ export async function quickAddMentionAction(workId: string, category: KbCategory
   return quickAddMentionNode(supabase, { ownerId: user.id, workId, category, name });
 }
 
-function getGeminiClientOrError(): { client?: ReturnType<typeof createGeminiClient>; error?: string } {
-  try {
-    return { client: createGeminiClient() };
-  } catch {
-    return { error: 'AI 기능을 사용할 수 없어요. 잠시 후 다시 시도해주세요.' };
-  }
-}
-
 export interface ChatActionInput {
   workId: string;
   chapterId: string;
@@ -91,21 +87,54 @@ export interface ChatActionInput {
    * message as its last entry — the single entry point for every AI 패널
    * turn now (no separate "생성하기" call shape; see lib/ai/chat.ts). */
   chatHistory: ChatTurn[];
+  /** D-01: generated once per writer send in AiPanel; resent unchanged on retry. */
+  idempotencyKey: string;
 }
+
+// Not exported: 'use server' modules may only export async functions.
+const chatActionSchema = z.object({
+  idempotencyKey: z.string().uuid(),
+  modelTier: z.enum(['lite', 'pro']),
+});
 
 /** This session's redesign: ONE chat action for the whole AI 패널, replacing
  * the old generateAction/planChatAction split. Every turn may come back with
  * a chapter-prose draft, a KB document proposal, both absent (plain reply),
  * or neither (see lib/ai/chat.ts's ChatResult) — never both at once. */
-export async function chatAction(input: ChatActionInput) {
+export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  if (!user) return { ok: false, status: 'failed', failureKind: 'unauthenticated', error: CHAT_COPY.unauthenticated };
 
-  const { client, error } = getGeminiClientOrError();
-  if (!client) return { ok: false, error };
+  const parsed = chatActionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
 
-  return chat(supabase, client, { ...input, ownerId: user.id });
+  let client;
+  try {
+    client = createPlatformProvider();
+  } catch (err) {
+    // Never log or return the raw error: it may carry the API key (D-11).
+    const info = err instanceof ProviderCallError
+      ? err.info
+      : { provider: 'gemini' as const, status: null, kind: 'config' as const, providerErrorCode: null };
+    logProviderFailure(info, parsed.data.idempotencyKey);
+    return { ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config };
+  }
+
+  // Explicit field list (never spread input) so a forged ownerId cannot ride along.
+  return chat(supabase, client, {
+    workId: input.workId,
+    chapterId: input.chapterId,
+    modelTier: parsed.data.modelTier,
+    mentionedNodeIds: input.mentionedNodeIds,
+    presetLevel: input.presetLevel,
+    styleId: input.styleId,
+    genre: input.genre,
+    precedingText: input.precedingText,
+    chatHistory: input.chatHistory,
+    idempotencyKey: parsed.data.idempotencyKey,
+    ownerId: user.id,
+  });
 }
 
 /** Persists a chat-proposed document as a real KB document (createNode +
