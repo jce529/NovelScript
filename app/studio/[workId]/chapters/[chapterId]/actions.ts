@@ -11,6 +11,7 @@ import type { KbCategory } from '@/lib/kb/templates';
 import { chat, type DocumentProposal } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
+import { readProviderFixture } from '@/lib/ai/providers/fixture';
 import type { ModelTier } from '@/lib/ai/providers/types';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
@@ -97,6 +98,9 @@ const chatActionSchema = z.object({
   modelTier: z.enum(['lite', 'pro']),
 });
 
+// Dev fixture only: keys whose response was already dropped once (in-memory, per server process).
+const droppedFixtureKeys = new Set<string>();
+
 /** This session's redesign: ONE chat action for the whole AI 패널, replacing
  * the old generateAction/planChatAction split. Every turn may come back with
  * a chapter-prose draft, a KB document proposal, both absent (plain reply),
@@ -122,7 +126,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
   }
 
   // Explicit field list (never spread input) so a forged ownerId cannot ride along.
-  return chat(supabase, client, {
+  const result = await chat(supabase, client, {
     workId: input.workId,
     chapterId: input.chapterId,
     modelTier: parsed.data.modelTier,
@@ -135,6 +139,17 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     idempotencyKey: parsed.data.idempotencyKey,
     ownerId: user.id,
   });
+
+  // Dev fixture: simulate a response lost AFTER the real debit, once per key, so 다시 시도 hits already_processed.
+  if (
+    readProviderFixture(process.env) === 'drop-response' &&
+    result.status === 'completed' &&
+    !droppedFixtureKeys.has(parsed.data.idempotencyKey)
+  ) {
+    droppedFixtureKeys.add(parsed.data.idempotencyKey);
+    throw new Error('dev fixture: dropped response');
+  }
+  return result;
 }
 
 /** Persists a chat-proposed document as a real KB document (createNode +
