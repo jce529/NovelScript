@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { chat, parseChatResponse } from '../../lib/ai/chat';
-import { createMockGeminiClient } from '../../lib/ai/gemini';
+import { createMockProvider } from '../helpers/mock-provider';
+import { CHAT_COPY } from '../../lib/ai/chat-result';
 import { createChapter } from '../../lib/chapters/actions';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
 
@@ -66,11 +67,11 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     await admin.rpc('apply_wallet_delta', { p_wallet_id: owner.id, p_delta: 1000, p_reference_type: 'test_grant', p_reference_id: 'grant-1', p_reason: 'test' });
     const { data: before } = await admin.from('wallets').select('balance').eq('id', owner.id).single();
 
-    const client = createMockGeminiClient({
-      countTokens: async () => ({ totalTokens: 50 }),
+    const client = createMockProvider({
+      estimateInputTokens: () => 50,
       generateContent: async () => ({
         text: '[REPLY]\n이렇게 이어봤어요.\n[DRAFT]\n생성된 문단\n[/DRAFT]',
-        finishReason: 'STOP', promptTokenCount: 100, candidatesTokenCount: 200, totalTokenCount: 300,
+        finishReason: 'stop', refusal: null, usage: { inputTokens: 100, outputTokens: 200, thoughtsTokens: null, reported: { input: true, output: true } },
       }),
     });
 
@@ -78,6 +79,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       ownerId: owner.id, workId, chapterId, modelTier: 'lite',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '어느 날...', chatHistory: [{ role: 'user', content: '이어서 써줘' }],
+      idempotencyKey: crypto.randomUUID(),
     });
 
     expect(result.ok).toBe(true);
@@ -94,8 +96,8 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
   it('returns a friendly ok:false (no wallet debit) instead of throwing when generateContent rejects (rate limit / transient 503)', async () => {
     const freshUser = await createTestUser();
     await admin.rpc('apply_wallet_delta', { p_wallet_id: freshUser.id, p_delta: 1000, p_reference_type: 'test_grant', p_reference_id: 'grant-2', p_reason: 'test' });
-    const client = createMockGeminiClient({
-      countTokens: async () => ({ totalTokens: 50 }),
+    const client = createMockProvider({
+      estimateInputTokens: () => 50,
       generateContent: async () => { throw new Error('503 UNAVAILABLE'); },
     });
 
@@ -103,9 +105,10 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       ownerId: freshUser.id, workId, chapterId, modelTier: 'lite',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '어느 날...', chatHistory: [{ role: 'user', content: '이어서 써줘' }],
+      idempotencyKey: crypto.randomUUID(),
     });
 
-    expect(result).toEqual({ ok: false, error: expect.any(String) });
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'unavailable', error: CHAT_COPY.unavailable });
     const { data: balance } = await admin.from('wallets').select('balance').eq('id', freshUser.id).single();
     expect(Number(balance!.balance)).toBe(1000);
     await deleteTestUser(freshUser.id);
@@ -114,19 +117,22 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
   it('stops BEFORE calling generateContent when the balance is already exhausted (D-13 hard-stop)', async () => {
     const freshUser = await createTestUser();
     let called = false;
-    const client = createMockGeminiClient({
-      countTokens: async () => ({ totalTokens: 10 }),
-      generateContent: async () => { called = true; return { text: 'x', finishReason: 'STOP', promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 }; },
+    const client = createMockProvider({
+      estimateInputTokens: () => 10,
+      generateContent: async () => { called = true; return { text: 'x', finishReason: 'stop', refusal: null, usage: { inputTokens: 1, outputTokens: 1, thoughtsTokens: null, reported: { input: true, output: true } } }; },
     });
 
     const result = await chat(admin, client, {
       ownerId: freshUser.id, workId, chapterId, modelTier: 'lite',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '', chatHistory: [{ role: 'user', content: '안녕' }],
+      idempotencyKey: crypto.randomUUID(),
     });
 
     expect(called).toBe(false);
-    expect(result).toEqual({ ok: false, error: expect.any(String), wasCapped: true, remainingBalance: 0 });
+    expect(result).toEqual({
+      ok: false, status: 'failed', failureKind: 'insufficient_balance', error: CHAT_COPY.insufficient_balance, wasCapped: true, remainingBalance: 0,
+    });
     await deleteTestUser(freshUser.id);
   });
 
@@ -135,11 +141,11 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     await admin.rpc('apply_wallet_delta', { p_wallet_id: lowBalanceUser.id, p_delta: 1, p_reference_type: 'test_grant', p_reference_id: 'low-1', p_reason: 'test' });
 
     let capturedMaxOutputTokens: number | null = null;
-    const client = createMockGeminiClient({
-      countTokens: async () => ({ totalTokens: 500 }),
+    const client = createMockProvider({
+      estimateInputTokens: () => 500,
       generateContent: async (params) => {
         capturedMaxOutputTokens = params.maxOutputTokens;
-        return { text: `[REPLY]\n일부만 생성됨\n[/REPLY]`, finishReason: 'MAX_TOKENS', promptTokenCount: 500, candidatesTokenCount: params.maxOutputTokens, totalTokenCount: 500 + params.maxOutputTokens };
+        return { text: `[REPLY]\n일부만 생성됨\n[/REPLY]`, finishReason: 'max_tokens', refusal: null, usage: { inputTokens: 500, outputTokens: params.maxOutputTokens, thoughtsTokens: null, reported: { input: true, output: true } } };
       },
     });
 
@@ -147,6 +153,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       ownerId: lowBalanceUser.id, workId, chapterId, modelTier: 'pro',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '', chatHistory: [{ role: 'user', content: '이어서 써줘' }],
+      idempotencyKey: crypto.randomUUID(),
     });
 
     expect(capturedMaxOutputTokens).toBe(710);
@@ -157,11 +164,11 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
   });
 
   it('returns a document proposal (not a draft) when the AI decides to propose a KB document', async () => {
-    const client = createMockGeminiClient({
-      countTokens: async () => ({ totalTokens: 50 }),
+    const client = createMockProvider({
+      estimateInputTokens: () => 50,
       generateContent: async () => ({
         text: '[REPLY]\n이런 인물은 어떨까요?\n[DOCUMENT]\n카테고리: 인물\n이름: 오수진\n내용:\n다정한 동료.\n[/DOCUMENT]',
-        finishReason: 'STOP', promptTokenCount: 100, candidatesTokenCount: 200, totalTokenCount: 300,
+        finishReason: 'stop', refusal: null, usage: { inputTokens: 100, outputTokens: 200, thoughtsTokens: null, reported: { input: true, output: true } },
       }),
     });
 
@@ -169,6 +176,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       ownerId: owner.id, workId, chapterId, modelTier: 'lite',
       mentionedNodeIds: [], presetLevel: 'freeform', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '', chatHistory: [{ role: 'user', content: '동료 인물 하나 만들어줘' }],
+      idempotencyKey: crypto.randomUUID(),
     });
 
     expect(result.ok).toBe(true);

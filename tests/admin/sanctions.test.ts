@@ -27,7 +27,8 @@ import { incrementChapterView } from '../../lib/reader/views';
 import { createPurchaseOrder, payPurchaseOrder } from '../../lib/commerce/actions';
 import { isAccountActive } from '../../lib/auth/account';
 import { chat, type ChatInput } from '../../lib/ai/chat';
-import type { GeminiClient } from '../../lib/ai/gemini';
+import type { ProviderClient } from '../../lib/ai/providers/types';
+import { createMockProvider } from '../helpers/mock-provider';
 
 const userId = '10000000-0000-4000-8000-000000000001';
 const workId = '20000000-0000-4000-8000-000000000001';
@@ -261,15 +262,15 @@ describe('AI generation checks write access before provider work and before char
   const input: ChatInput = {
     ownerId: userId, workId, chapterId, modelTier: 'lite', mentionedNodeIds: [], presetLevel: 'beginner',
     styleId: 'concise-hemingway', genre: '판타지', precedingText: '', chatHistory: [{ role: 'user', content: '이어줘' }],
+    idempotencyKey: '60000000-0000-4000-8000-000000000001',
   };
   function provider() {
-    return {
-      countTokens: vi.fn(async () => ({ totalTokens: 10 })),
-      generateContent: vi.fn(async () => ({
-        text: '[REPLY]\n좋아요\n[DRAFT]\n본문\n[/DRAFT]', finishReason: 'STOP',
-        promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20,
-      })),
-    };
+    return createMockProvider({
+      generateContent: async () => ({
+        text: '[REPLY]\n좋아요\n[DRAFT]\n본문\n[/DRAFT]', finishReason: 'stop', refusal: null,
+        usage: { inputTokens: 10, outputTokens: 10, thoughtsTokens: null, reported: { input: true, output: true } },
+      }),
+    });
   }
   beforeEach(() => { adminState.created = 0; adminState.client = null; });
 
@@ -279,11 +280,11 @@ describe('AI generation checks write access before provider work and before char
       const admin = fakeClient({ access: ACCESS.ok, rows: { wallets: { balance: 1000 } } });
       adminState.client = admin.client;
       const gemini = provider();
-      const result = await chat(session.client, gemini as unknown as GeminiClient, input);
+      const result = await chat(session.client, gemini as unknown as ProviderClient, input);
       expect(result).toMatchObject({ ok: false });
       expect(result.code).toBeDefined();
       expect(adminState.created).toBe(0);
-      expect(gemini.countTokens).not.toHaveBeenCalled();
+      expect(gemini.estimateInputTokens).not.toHaveBeenCalled();
       expect(gemini.generateContent).not.toHaveBeenCalled();
       expect(admin.rpcCalls).not.toContain('apply_wallet_delta');
     });
@@ -293,9 +294,9 @@ describe('AI generation checks write access before provider work and before char
     const admin = fakeClient({ access: ACCESS.suspended, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990 } });
     adminState.client = admin.client;
     const gemini = provider();
-    const result = await chat(session.client, gemini as unknown as GeminiClient, input);
+    const result = await chat(session.client, gemini as unknown as ProviderClient, input);
     expect(gemini.generateContent).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ ok: false, code: 'write_suspended', error: WRITE_SUSPENDED_MESSAGE });
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'write_denied', code: 'write_suspended', error: WRITE_SUSPENDED_MESSAGE });
     expect(admin.rpc).toHaveBeenCalledWith('get_write_access', { p_user_id: userId });
     expect(admin.rpcCalls).not.toContain('apply_wallet_delta');
   });
@@ -304,8 +305,11 @@ describe('AI generation checks write access before provider work and before char
     const session = fakeClient({ access: ACCESS.ok });
     const admin = fakeClient({ access: ACCESS.ok, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990 } });
     adminState.client = admin.client;
-    const result = await chat(session.client, provider() as unknown as GeminiClient, input);
-    expect(result).toMatchObject({ ok: true, draft: '본문', remainingBalance: 990 });
+    const result = await chat(session.client, provider() as unknown as ProviderClient, input);
+    expect(result).toMatchObject({ ok: true, status: 'completed', draft: '본문', remainingBalance: 990 });
     expect(admin.rpcCalls).toEqual(['get_write_access', 'apply_wallet_delta']);
+    expect(admin.rpc).toHaveBeenCalledWith('apply_wallet_delta', expect.objectContaining({
+      p_reference_type: 'ai_generation', p_reference_id: '60000000-0000-4000-8000-000000000001',
+    }));
   });
 });
