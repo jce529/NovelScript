@@ -1,43 +1,43 @@
 # Graph Report - novelscript-mvp  (2026-09-17)
 
 ## Corpus Check
-- 557 files · ~459,827 words
+- 600 files · ~496,639 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2032 nodes · 3777 edges · 197 communities (130 shown, 52 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 63 edges (avg confidence: 0.82)
+- 2316 nodes · 4267 edges · 225 communities (151 shown, 50 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 65 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bfe48e50`
+- Built from commit: `a335f77f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - blinding.test.ts
 - vitest
-- lucide-react
-- kb/actions.ts
-- works/[workId]/page.tsx
+- sheet.tsx
+- providers/gemini.ts
+- sanctions.test.ts
 - dependencies
 - Phase 7 Plan 06: Writer Re-review, Warning Acknowledgement and Reader Locked States Summary
 - Home Discovery Data Dictionary
 - components.json
 - package.json
 - Social Sign-In Rules
-- quickAddMentionAction
+- Phase 8 — UI Design Contract
 - compilerOptions
 - Phase 6: Paid Chapter Unlock - Context
 - SSOT Coverage Report
 - KB Folder Context
-- AiPanel.tsx
+- cn
 - queries.ts
 - Workspace Work Entity
 - Project Research Summary
-- cn
+- user-actions.ts
 - Graphify 후속 조사 질문
-- admin/page.tsx
+- react
 - devDependencies
 - Studio Foundation Plan
 - app/layout.tsx
@@ -47,7 +47,7 @@
 - lib/admin/actions.ts
 - app/admin/actions.ts
 - Graphify Pipeline
-- user-flows.test.ts
+- lib/chapters/actions.ts
 - Readable Chapter
 - Phase 02 Plan 02: Studio Work Creation & Writer Gate Summary
 - AI Gateway Context
@@ -156,7 +156,7 @@
 - Pitfalls Research
 - Stack Research
 - Phase 7: Admin Moderation Surface - Research
-- sanctions.test.ts
+- chat.ts
 - app/page.tsx
 - Phase 7 - UI Design Contract
 - 구매 및 열람 권한 구현
@@ -174,53 +174,72 @@
 - moderation-form.tsx
 - Phase 7 Plan 01: Moderation Foundation and Admin Trust Boundary Summary
 - 07-PATTERNS.md
-- types.ts
-- ChapterEditorPage
+- Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Context
+- moderation/actions.ts
 - createClient
+- getReviewPanelStateAction
+- Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 — Research
+- Phase 8 Plan 08: Dev-only Provider Fixture Summary
+- chat-request.ts
 - studio/[workId]/chapters/[chapterId]/actions.ts
-- lib/chapters/actions.ts
-- viewer-shell.tsx
-- chapter-list.tsx
-- account/page.tsx
 - Phase 7 Plan 02: Transactional Moderation and Grouped Queue Services Summary
-- popover.tsx
-- kb-node-dialogs.tsx
+- Phase 8 — Validation Strategy
+- AiPanel.tsx
 - Admin moderation: deployment and verification record (07-07)
 - Phase 7 Plan 03: Suspension Enforcement Without Losing Purchased Reading Summary
-- user-actions.ts
-- [workId]/layout.tsx
-- session
-- route.ts
-- utils.ts
-- getReviewPanelStateAction
+- user-flows.test.ts
+- providers/types.ts
+- Phase 8 Plan 02: Gemini Provider Adapter + Platform Registry Summary
+- chat-refusal.test.ts
+- lucide-react
+- Phase 8 Plan 04: Client Send Lifecycle and AiPanelNotice Summary
 - Phase 7 Plan 04: Blinding Throughout Reader Access and Purchases Summary
 - Phase 7 UAT — browser acceptance (07-07 task 3)
-- complete-email/actions.ts
-- studio/page.tsx
+- SEED-001: 안전 거절 검토·환불 루프 + 사전 필터 (자체 LLM 데이터셋 기반)
+- 07-07 Summary: real DB, concurrency and browser verification
+- Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Discussion Log
+- fakeClient
+- Problem
+- route.ts
+- chat-result.ts
+- admin/types.ts
+- cost.ts
+- [workId]/layout.tsx
+- admin/page.tsx
+- Phase 8 Plan 01: Provider Contracts, Error Scrubbing, Token Estimator Summary
+- chapter-list.tsx
+- acknowledgeWarningAction
+- Phase 8 Plan 03: Idempotent Chat Orchestration Summary
+- Phase 8 Plan 06: Real-DB Idempotent Debit Evidence Summary
+- WorkHeaderActions
+- requestReview
+- ViewerShell
+- popover.tsx
+- Phase 8 Plan 05: chatAction Server Action Boundary Summary
 
 ## God Nodes (most connected - your core abstractions)
-1. `cn()` - 87 edges
+1. `cn()` - 89 edges
 2. `createClient()` - 68 edges
-3. `vitest` - 55 edges
-4. `createTestUser()` - 53 edges
+3. `vitest` - 65 edges
+4. `createTestUser()` - 54 edges
 5. `checkWriteAccess()` - 43 edges
 6. `deleteTestUser()` - 34 edges
-7. `adminClient()` - 32 edges
-8. `@supabase/supabase-js` - 30 edges
-9. `react` - 29 edges
-10. `lucide-react` - 28 edges
+7. `@supabase/supabase-js` - 33 edges
+8. `adminClient()` - 32 edges
+9. `react` - 31 edges
+10. `lucide-react` - 29 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `CreateFolderDialog()` --calls--> `createFolderAction()`  [EXTRACTED]
+  components/studio/kb-node-dialogs.tsx → app/studio/[workId]/kb/[nodeId]/actions.ts
+- `RenameNodeDialog()` --calls--> `renameNodeAction()`  [EXTRACTED]
+  components/studio/kb-node-dialogs.tsx → app/studio/[workId]/kb/[nodeId]/actions.ts
 - `purchase()` --calls--> `purchaseChapterAction()`  [EXTRACTED]
   components/reader/viewer-shell.tsx → app/works/[workId]/chapters/[chapterId]/actions.ts
 - `SubmitButton()` --calls--> `cn()`  [EXTRACTED]
   components/admin/moderation-form.tsx → lib/utils.ts
-- `DropdownMenuItem()` --calls--> `cn()`  [EXTRACTED]
-  components/ui/dropdown-menu.tsx → lib/utils.ts
-- `DropdownMenuSubTrigger()` --calls--> `cn()`  [EXTRACTED]
-  components/ui/dropdown-menu.tsx → lib/utils.ts
-- `DropdownMenuSubContent()` --calls--> `cn()`  [EXTRACTED]
-  components/ui/dropdown-menu.tsx → lib/utils.ts
+- `DialogOverlay()` --calls--> `cn()`  [EXTRACTED]
+  components/ui/dialog.tsx → lib/utils.ts
 
 ## Import Cycles
 - None detected.
@@ -252,27 +271,27 @@
 - **Writer Studio Screens** — docs_ssot_specs_screen_28a1521fad1225bb_new_chapter_screen, docs_ssot_specs_screen_31e04d36ea04448b_new_work_screen, docs_ssot_specs_screen_5ed7abf91158a5ea_knowledge_base_editor_screen, docs_ssot_specs_screen_62d6b6c1b8099f81_studio_work_list_screen, docs_ssot_specs_screen_6b8128ed6b4fe6f7_chapter_list_screen, docs_ssot_specs_screen_a4992bce897aaf20_chapter_editor_screen, docs_ssot_specs_screen_cba5f8214d2acb18_studio_work_home_screen [INFERRED 0.85]
 - **Account Overview SSOT Bundle** — docs_ssot_epics_0of0hlk2djttwk5y_fqcj_br_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_data_dictionary_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_design_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_overview_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_persona_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_usecases_ucl_document [INFERRED 0.95]
 
-## Communities (197 total, 52 thin omitted)
+## Communities (225 total, 50 thin omitted)
 
 ### Community 0 - "blinding.test.ts"
-Cohesion: 0.15
-Nodes (20): purchaseChapterAction(), submitReportAction(), ViewerPage(), getChapterAccessState(), readChapterContent(), isWriteAccessDbError(), getPublicChapter(), createPurchaseOrder() (+12 more)
+Cohesion: 0.11
+Nodes (22): purchaseChapterAction(), BLINDED_CONTENT_MESSAGE, ChapterAccessState, getChapterAccessState(), READER_ACCESS_STATES, UNAVAILABLE, UNAVAILABLE_CONTENT_MESSAGE, isWriteAccessDbError() (+14 more)
 
 ### Community 1 - "vitest"
-Cohesion: 0.15
-Nodes (20): vitest, createOwnerWithWork(), createOwnerWithChapter(), createOwnerWithThreeChapters(), createWork(), createWorkWithPublishedAndUnpublishedChapter(), adminClient(), anonClient() (+12 more)
+Cohesion: 0.11
+Nodes (27): createChapter(), deleteNode(), vitest, grantedUser(), createOwnerWithWork(), createOwnerWithChapter(), createOwnerAWithChapter(), createOwnerWithChapter() (+19 more)
 
-### Community 2 - "lucide-react"
+### Community 2 - "sheet.tsx"
 Cohesion: 0.13
-Nodes (13): ReportDialog(), TocSheet(), FONT_SIZES, THEME_OPTIONS, ViewerSettingsSheet(), ViewerTheme, Button(), Sheet() (+5 more)
+Nodes (14): ReportDialog(), TocSheet(), FONT_SIZES, THEME_OPTIONS, ViewerSettingsSheet(), ViewerTheme, Sheet(), SheetContent() (+6 more)
 
-### Community 3 - "kb/actions.ts"
-Cohesion: 0.16
-Nodes (22): saveDocumentProposalAction(), createNodeAction(), listTemplateOptionsAction(), saveNodeContentAction(), CreateNodeDialog(), getMentionedNodesContent(), quickAddMentionNode(), resolveCategoryFolderId() (+14 more)
+### Community 3 - "providers/gemini.ts"
+Cohesion: 0.11
+Nodes (27): chatAction(), ProviderCallError, createFixtureProvider(), OK_RESULT, PROVIDER_FIXTURE_MODES, ProviderFixtureMode, readProviderFixture(), createGeminiProvider() (+19 more)
 
-### Community 4 - "works/[workId]/page.tsx"
-Cohesion: 0.15
-Nodes (22): submitReportAction(), toggleBookmarkAction(), toggleLikeAction(), toggleSubscriptionAction(), WorkDetailPage(), LikeButton(), onClick(), WorkHeaderActions() (+14 more)
+### Community 4 - "sanctions.test.ts"
+Cohesion: 0.10
+Nodes (40): submitReportAction(), trackChapterOpenAction(), canView(), assertCanWrite(), checkWriteAccess(), deny(), ToggleDenial, WRITE_FORBIDDEN_MESSAGE (+32 more)
 
 ### Community 5 - "dependencies"
 Cohesion: 0.08
@@ -298,9 +317,9 @@ Nodes (23): name, private, version, @base-ui/react, clsx, cmdk, drizzle-orm, esl
 Cohesion: 0.13
 Nodes (20): Login Error Recovery Rules, Login Error Data Dictionary, Login Error Screen State, Login Page Destination, Missing Login Model Evidence, Login Error Recovery Design, Login Error Recovery Rationale, Login Error Recovery Overview (+12 more)
 
-### Community 11 - "quickAddMentionAction"
-Cohesion: 0.67
-Nodes (3): quickAddMentionAction(), QuickAddDialog(), submit()
+### Community 11 - "Phase 8 — UI Design Contract"
+Cohesion: 0.11
+Nodes (18): 1. 전송 키 수명 (D-01, COST-01), 2. 결과별 처리, 3. 안전 거절 사유 접기 (D-09), 4. 접근성, Checker Sign-Off, Color, Copywriting Contract, Design System (+10 more)
 
 ### Community 12 - "compilerOptions"
 Cohesion: 0.11
@@ -318,13 +337,13 @@ Nodes (18): SSOT Coverage Report, Submit Writer Upgrade API, Submit Email API, A
 Cohesion: 0.16
 Nodes (17): KB Folder Schema Plan, KB Folder Schema Result, KB Folder Actions Plan, KB Folder Actions Result, Chapter Folders Plan, Chapter Folders Result, Cross-Scope Mentions Plan, Cross-Scope Mentions Result (+9 more)
 
-### Community 16 - "AiPanel.tsx"
-Cohesion: 0.13
-Nodes (17): MentionedNode, PRESET_LEVEL_META, PRESET_LEVELS, STYLE_IDS, DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuGroup() (+9 more)
+### Community 16 - "cn"
+Cohesion: 0.06
+Nodes (48): CATEGORY_ICON, MentionAutocomplete(), MentionAutocompleteProps, mentionTrailingText(), QuickAddDialog(), submit(), Command(), CommandDialog() (+40 more)
 
 ### Community 17 - "queries.ts"
-Cohesion: 0.21
-Nodes (22): getReportDetail(), getReviewRequestDetail(), idSchema, listReportGroups(), mapAction(), mapActions(), mapReport(), mapReviewSummary() (+14 more)
+Cohesion: 0.20
+Nodes (22): getReportDetail(), idSchema, listReportGroups(), mapAction(), mapActions(), mapReport(), mapReviewSummary(), num() (+14 more)
 
 ### Community 18 - "Workspace Work Entity"
 Cohesion: 0.16
@@ -334,17 +353,17 @@ Nodes (15): Workspace Work Entity, Work Workspace Data Dictionary, Work Workspac
 Cohesion: 0.22
 Nodes (9): Real Payment Integration Decisions, Real Payment Architecture Research, Payment UI Design Contract, Payment Validation Strategy, NovelScript Platform Architecture, MVP Feature Set, Critical Product and Architecture Pitfalls, Recommended Technology Stack (+1 more)
 
-### Community 20 - "cn"
-Cohesion: 0.08
-Nodes (40): searchMentionsAction(), CATEGORY_ICON, MentionAutocomplete(), MentionAutocompleteProps, MentionCandidate, mentionTrailingText(), Command(), CommandDialog() (+32 more)
+### Community 20 - "user-actions.ts"
+Cohesion: 0.13
+Nodes (17): LoadState, BLINDED_ENTITLED_NOTE, BLINDED_WORK_NOTE, NOTICE_ACK_ERROR, NOTICE_ACK_LABEL, NOTICE_LOAD_ERROR, NOTICE_TITLE, requestSchema (+9 more)
 
 ### Community 21 - "Graphify 후속 조사 질문"
 Cohesion: 0.09
 Nodes (21): Graphify 후속 조사 질문, Q1. AI 생성과 지갑 차감의 일관성, Q1 결과: 지갑 변경은 원자적, AI 요청 전체는 비원자적, Q2 결과: 인증 ID는 강제되지만 활성 계정·AI 대상 검사가 분산됨, Q2. 관리자 클라이언트의 권한 경계, Q3 결과: 발행·열람 흐름과 기록 무결성, Q3. 발행에서 독자 화면까지, Q4 결과: 앱 응답에서 제거하지만 공개 RLS에는 유료 구분이 없음 (+13 more)
 
-### Community 22 - "admin/page.tsx"
-Cohesion: 0.23
-Nodes (11): AdminQueuePage(), failLoad(), listReviewRequests(), AdminQueueState, AdminQueueTab, first(), parseQueueParams(), RawParams (+3 more)
+### Community 22 - "react"
+Cohesion: 0.24
+Nodes (7): submitCreateChapter(), NewChapterPage(), Button(), buttonVariants, Label(), Textarea(), react
 
 ### Community 23 - "devDependencies"
 Cohesion: 0.17
@@ -382,9 +401,9 @@ Nodes (18): ActionResult, asObject(), moderateReportGroupAction(), ModerateRepor
 Cohesion: 0.22
 Nodes (9): Graphify Pipeline, URL Ingestion and Watch, Graph Exports, Semantic Extraction Contract, Repository Merge Flow, Graphify Automation Hooks, Graph Query Traversal, Media Transcription (+1 more)
 
-### Community 32 - "user-flows.test.ts"
-Cohesion: 0.10
-Nodes (18): TocBadge(), requestReviewAction(), getReviewTargetState(), loadOwnedTarget(), requestReview(), reviewError(), tocRowBadge, CHAPTER (+10 more)
+### Community 32 - "lib/chapters/actions.ts"
+Cohesion: 0.17
+Nodes (15): reorderChaptersAction(), ChaptersPage(), ViewerPage(), ChapterList(), assertChapterFolder(), assertWorkOwnership(), ChapterAccessRow, createChapterSchema (+7 more)
 
 ### Community 33 - "Readable Chapter"
 Cohesion: 0.39
@@ -547,8 +566,8 @@ Cohesion: 0.25
 Nodes (7): Claude's Discretion, Deferred Ideas, Phase 5: Real Payment Integration - Discussion Log, 결제 실패·취소·미확정 처리, 논의 영역 선택, 충전 진입 및 결제중 UX, 토큰 충전 상품 구성
 
 ### Community 123 - "report-queue.tsx"
-Cohesion: 0.11
-Nodes (24): AdminReviewDetailPage(), ACTION_TYPE_LABELS, ActionHistoryList(), LocalTime(), Pagination(), QueueTabs(), REPORT_STATUS_LABELS, reporterSummary() (+16 more)
+Cohesion: 0.10
+Nodes (31): AdminReportDetailPage(), AdminReviewDetailPage(), ACTION_TYPE_LABELS, ActionHistoryList(), LocalTime(), Pagination(), QueueTabs(), REPORT_STATUS_LABELS (+23 more)
 
 ### Community 124 - "5-3 에셋 스토어 UI,UX 설계 및 정책.md"
 Cohesion: 0.29
@@ -622,13 +641,13 @@ Nodes (17): 1. Rich text editor: Tiptap over Lexical, 2. Streaming approach: SSE
 Cohesion: 0.13
 Nodes (14): Atomic moderation and audit (D-04, D-18, D-19), Authorization and administrator bootstrap (D-01 to D-05), Blinding, purchasing and correction (D-11 to D-16), Existing Implementation Evidence, Open Details and Limits, Phase 7: Admin Moderation Surface - Research, Plan Decomposition Recommendation, Recommended Architecture (+6 more)
 
-### Community 147 - "sanctions.test.ts"
-Cohesion: 0.09
-Nodes (35): ChatResult, assertCanWrite(), checkWriteAccess(), deny(), ToggleDenial, WRITE_FORBIDDEN_MESSAGE, WRITE_SUSPENDED_MESSAGE, WRITE_UNAVAILABLE_MESSAGE (+27 more)
+### Community 147 - "chat.ts"
+Cohesion: 0.14
+Nodes (26): ChatActionInput, SendPayload, AI_GENERATION_REFERENCE_TYPE, alreadyProcessed(), chat(), ChatInput, failed(), findGenerationEntry() (+18 more)
 
 ### Community 148 - "app/page.tsx"
 Cohesion: 0.14
-Nodes (18): HomePage(), VALID_BASES, FeedFilters(), PromoBanner(), RecentlyReadSection(), buttonVariants, averageNextChapterCtr(), computeTrendingScores() (+10 more)
+Nodes (17): HomePage(), VALID_BASES, FeedFilters(), PromoBanner(), RecentlyReadSection(), averageNextChapterCtr(), computeTrendingScores(), FEED_PAGE_SIZE (+9 more)
 
 ### Community 149 - "Phase 7 - UI Design Contract"
 Cohesion: 0.17
@@ -675,64 +694,64 @@ Cohesion: 0.22
 Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known Stubs, Phase 7 Plan 05: Admin Queue, Evidence Detail and Action UI Summary, Self-Check: PASSED, Verification (actual results), What was built
 
 ### Community 160 - "auth.ts"
-Cohesion: 0.14
-Nodes (18): AdminLayout(), AdminReportDetailPage(), AdminAccessDenied, AdminAuthDeps, AdminCheck, AdminContext, AdminDenialReason, checkAdmin() (+10 more)
+Cohesion: 0.15
+Nodes (17): AdminLayout(), AdminAccessDenied, AdminAuthDeps, AdminCheck, AdminContext, AdminDenialReason, checkAdmin(), defaultDeps (+9 more)
 
 ### Community 161 - "graphify"
 Cohesion: 0.40
 Nodes (4): Environment (verified on this machine), graphify, How to use this skill, Project rules
 
 ### Community 162 - "moderation-form.tsx"
-Cohesion: 0.11
-Nodes (19): ACTION_OPTIONS, describeFailure(), Field, FIELD_MESSAGES, FieldErrors, localInputToIso(), localTimeZone(), mapFieldErrors() (+11 more)
+Cohesion: 0.12
+Nodes (18): ACTION_OPTIONS, describeFailure(), Field, FIELD_MESSAGES, FieldErrors, localInputToIso(), localTimeZone(), mapFieldErrors() (+10 more)
 
 ### Community 163 - "Phase 7 Plan 01: Moderation Foundation and Admin Trust Boundary Summary"
 Cohesion: 0.22
 Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known Stubs, Phase 7 Plan 01: Moderation Foundation and Admin Trust Boundary Summary, Self-Check: PASSED, Verification (actual results), What was built
 
-### Community 173 - "types.ts"
-Cohesion: 0.13
-Nodes (15): ADMIN_ACTION_TYPES, AdminReportDetail, AdminReportItem, EffectiveSanction, ModerationTarget, ModerationTargetType, REVIEW_REQUEST_STATUSES, ReviewRequestDetail (+7 more)
+### Community 173 - "Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Context"
+Cohesion: 0.11
+Nodes (17): Canonical References, Claude's Discretion, Deferred Ideas, Established Patterns, Existing Code Insights, Implementation Decisions, Integration Points, Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Context (+9 more)
 
-### Community 174 - "ChapterEditorPage"
-Cohesion: 0.25
-Nodes (5): getChapterAction(), publishChapterAction(), saveChapterContentAction(), unpublishChapterAction(), ChapterEditorPage()
+### Community 174 - "moderation/actions.ts"
+Cohesion: 0.22
+Nodes (10): AccountNotices(), getAccountNoticesAction(), ReviewPanelState, AccountNoticesResult, AcknowledgeResult, getAccountNotices(), REVIEW_ERRORS, ReviewRequestResult (+2 more)
 
 ### Community 175 - "createClient"
-Cohesion: 0.24
-Nodes (10): StudioLayout(), submitCreateChapter(), NewChapterPage(), submitCreateWork(), NewWorkPage(), submitWriterUpgrade(), WriteStartPage(), SiteHeader() (+2 more)
+Cohesion: 0.10
+Nodes (28): deleteAccountAction(), AccountPage(), submitEmail(), StudioLayout(), WorkListPage(), submitCreateWork(), submitReportAction(), toggleBookmarkAction() (+20 more)
 
-### Community 176 - "studio/[workId]/chapters/[chapterId]/actions.ts"
-Cohesion: 0.06
-Nodes (59): chatAction(), ChatActionInput, getGeminiClientOrError(), AiPanel(), handleRegenerate(), handleSaveProposal(), handleSend(), sendMessage() (+51 more)
+### Community 176 - "getReviewPanelStateAction"
+Cohesion: 0.43
+Nodes (7): WorkHomePage(), ReviewRequestPanel(), submit(), getReviewPanelStateAction(), requestReviewAction(), session(), getWork()
 
-### Community 177 - "lib/chapters/actions.ts"
-Cohesion: 0.28
-Nodes (14): writeDenial(), assertChapterFolder(), assertWorkOwnership(), ChapterAccessRow, createChapter(), createChapterSchema, findOwnedChapter(), publishChapter() (+6 more)
+### Community 177 - "Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 — Research"
+Cohesion: 0.12
+Nodes (16): Architecture and File Responsibilities, Concurrent requests and existing RPC trap, Don't Hand-Roll / Pitfalls, Error Boundary and Retry Policy, Gemini Refusal and Usage, Idempotency and Settlement, Local estimate and insufficient funds, Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 — Research (+8 more)
 
-### Community 178 - "viewer-shell.tsx"
-Cohesion: 0.16
-Nodes (15): trackChapterOpenAction(), ViewTracker(), THEME_CLASS, ViewerShell(), purchase(), BLINDED_CONTENT_MESSAGE, canView(), ChapterAccessState (+7 more)
+### Community 178 - "Phase 8 Plan 08: Dev-only Provider Fixture Summary"
+Cohesion: 0.29
+Nodes (6): Deviations from Plan, Known Stubs, Phase 8 Plan 08: Dev-only Provider Fixture Summary, Self-Check: PASSED, Tasks, Verification
 
-### Community 179 - "chapter-list.tsx"
-Cohesion: 0.23
-Nodes (8): reorderChaptersAction(), ChaptersPage(), ChapterList(), ChapterListItem, listChapters(), @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities
+### Community 179 - "chat-request.ts"
+Cohesion: 0.08
+Nodes (36): AiPanel(), buildPayload(), handleRegenerate(), handleRetry(), handleSaveProposal(), handleSend(), runAttempt(), showNotice() (+28 more)
 
-### Community 180 - "account/page.tsx"
-Cohesion: 0.38
-Nodes (6): deleteAccountAction(), AccountPage(), isAccountActive(), ProfileActiveCheck, softDeleteAccount(), createAdminClient()
+### Community 180 - "studio/[workId]/chapters/[chapterId]/actions.ts"
+Cohesion: 0.08
+Nodes (38): chatActionSchema, droppedFixtureKeys, getChapterAction(), publishChapterAction(), quickAddMentionAction(), saveChapterContentAction(), saveDocumentProposalAction(), searchMentionsAction() (+30 more)
 
 ### Community 181 - "Phase 7 Plan 02: Transactional Moderation and Grouped Queue Services Summary"
 Cohesion: 0.22
 Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known Stubs, Phase 7 Plan 02: Transactional Moderation and Grouped Queue Services Summary, Self-Check: PASSED, Verification (actual results), What was built
 
-### Community 182 - "popover.tsx"
-Cohesion: 0.31
-Nodes (7): AccountPanel(), Popover(), PopoverContent(), PopoverDescription(), PopoverHeader(), PopoverTitle(), PopoverTrigger()
+### Community 182 - "Phase 8 — Validation Strategy"
+Cohesion: 0.22
+Nodes (8): Manual-Only Verifications, Per-Task Verification Map, Phase 8 — Validation Strategy, Sampling Rate, Test Infrastructure, Validation Sign-Off, Wave 0 Requirements, Wave Structure
 
-### Community 183 - "kb-node-dialogs.tsx"
+### Community 183 - "AiPanel.tsx"
 Cohesion: 0.12
-Nodes (29): createFolderAction(), deleteNodeAction(), getNodeContentAction(), renameNodeAction(), KbNodeEditorPage(), RANKING_BASIS_LABEL, CreateFolderDialog(), DeleteNodeDialog() (+21 more)
+Nodes (29): MentionedNode, PRESET_LEVEL_META, PRESET_LEVELS, STYLE_IDS, deleteNodeAction(), NewWorkPage(), RANKING_BASIS_LABEL, CreateFolderDialog() (+21 more)
 
 ### Community 184 - "Admin moderation: deployment and verification record (07-07)"
 Cohesion: 0.29
@@ -742,29 +761,29 @@ Nodes (6): 1. Target, 2. Schema state (task 07-01), 3. Two-session races (task 0
 Cohesion: 0.22
 Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known Stubs, Phase 7 Plan 03: Suspension Enforcement Without Losing Purchased Reading Summary, Self-Check: PASSED, Verification (actual results), What was built
 
-### Community 187 - "user-actions.ts"
+### Community 187 - "user-flows.test.ts"
 Cohesion: 0.10
-Nodes (32): AccountNotices(), LoadState, WarningItem(), acknowledge(), acknowledgeWarningAction(), getAccountNoticesAction(), ReviewPanelState, AccountNoticesResult (+24 more)
+Nodes (17): TocBadge(), ReaderAccessState, PublicChapter, PublicChapterListItem, BLINDED_VIEWER_TITLE, tocRowBadge, CHAPTER, FakeDb (+9 more)
 
-### Community 188 - "[workId]/layout.tsx"
+### Community 188 - "providers/types.ts"
+Cohesion: 0.17
+Nodes (13): readStatus(), STATUS_TO_CODE, toSanitizedProviderError(), MODEL_TIER_TO_ID, GenerateParams, NormalizedFinishReason, PROVIDER_ERROR_CODES, ProviderErrorCode (+5 more)
+
+### Community 189 - "Phase 8 Plan 02: Gemini Provider Adapter + Platform Registry Summary"
+Cohesion: 0.29
+Nodes (6): Deferred Issues, Deviations from Plan, Known Stubs, Phase 8 Plan 02: Gemini Provider Adapter + Platform Registry Summary, Self-Check: PASSED, Tasks
+
+### Community 190 - "chat-refusal.test.ts"
+Cohesion: 0.11
+Nodes (17): GenerateResult, ProviderClient, provider(), adminState, input, session, setup(), adminState (+9 more)
+
+### Community 191 - "lucide-react"
 Cohesion: 0.20
-Nodes (11): WorkLayout(), CreateRootFolderButton(), KbTreeActions(), KbTree(), getAccountSharedNodes(), getWorkKbNodes(), buildTree(), ChapterLeaf (+3 more)
+Nodes (10): FeedCard(), ViewTracker(), THEME_CLASS, Badge(), badgeVariants, Tooltip(), TooltipContent(), TooltipTrigger() (+2 more)
 
-### Community 189 - "session"
-Cohesion: 0.43
-Nodes (7): session(), fakeClient(), canWrite(), doInsert(), from(), visible(), useSession()
-
-### Community 190 - "route.ts"
-Cohesion: 0.53
-Nodes (3): GET(), needsEmailCompletion(), OAuthUserLike
-
-### Community 191 - "utils.ts"
-Cohesion: 0.35
-Nodes (5): FeedCard(), Tooltip(), TooltipContent(), TooltipTrigger(), formatKoreanCount()
-
-### Community 192 - "getReviewPanelStateAction"
-Cohesion: 0.60
-Nodes (5): WorkHomePage(), ReviewRequestPanel(), submit(), getReviewPanelStateAction(), getWork()
+### Community 192 - "Phase 8 Plan 04: Client Send Lifecycle and AiPanelNotice Summary"
+Cohesion: 0.29
+Nodes (6): Deferred Issues, Deviations from Plan, Known Stubs, Phase 8 Plan 04: Client Send Lifecycle and AiPanelNotice Summary, Self-Check: PASSED, Tasks
 
 ### Community 193 - "Phase 7 Plan 04: Blinding Throughout Reader Access and Purchases Summary"
 Cohesion: 0.22
@@ -772,27 +791,111 @@ Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known
 
 ### Community 194 - "Phase 7 UAT — browser acceptance (07-07 task 3)"
 Cohesion: 0.33
-Nodes (5): 4. Pending manual acceptance (blocks Phase 7 completion), Findings, Phase 7 UAT — browser acceptance (07-07 task 3), Results, Setup
+Nodes (5): 4. Deferred manual acceptance (사용자 결정으로 완료 처리 — 반드시 추후 확인), Findings, Phase 7 UAT — browser acceptance (07-07 task 3), Results, Setup
+
+### Community 195 - "SEED-001: 안전 거절 검토·환불 루프 + 사전 필터 (자체 LLM 데이터셋 기반)"
+Cohesion: 0.22
+Nodes (8): Breadcrumbs, Design (합의된 변형안), Notes, Open Questions, Scope Estimate, SEED-001: 안전 거절 검토·환불 루프 + 사전 필터 (자체 LLM 데이터셋 기반), When to Surface, Why This Matters
+
+### Community 196 - "07-07 Summary: real DB, concurrency and browser verification"
+Cohesion: 0.25
+Nodes (7): 07-07 Summary: real DB, concurrency and browser verification, Checks actually run, Commits, Deferred / known issues, Deviations, Result, Tasks
+
+### Community 197 - "Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Discussion Log"
+Cohesion: 0.29
+Nodes (6): Claude's Discretion, Deferred Ideas, Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Discussion Log, 같은 호출 판정 기준, 실패 시 작가 안내, 안전 거절 UX·과금
+
+### Community 198 - "fakeClient"
+Cohesion: 0.53
+Nodes (6): fakeClient(), canWrite(), doInsert(), from(), visible(), useSession()
+
+### Community 199 - "Problem"
+Cohesion: 0.40
+Nodes (4): Problem, Solution, 반드시 확인할 것 (미검증), 알려진 사소한 이슈 (미수정)
+
+### Community 200 - "route.ts"
+Cohesion: 0.53
+Nodes (3): GET(), needsEmailCompletion(), OAuthUserLike
+
+### Community 201 - "chat-result.ts"
+Cohesion: 0.12
+Nodes (17): AiPanelProps, ChatMessage, ChatMessageBubble(), ChatMessageBubbleProps, MentionCandidate, QuickAddDialogProps, ParsedChatResponse, ChatFailureKind (+9 more)
+
+### Community 211 - "admin/types.ts"
+Cohesion: 0.14
+Nodes (14): ADMIN_ACTION_TYPES, AdminActionRecord, EffectiveSanction, ModerationTarget, ModerationTargetType, REVIEW_REQUEST_STATUSES, ReviewRequestDetail, ReviewRequestSummary (+6 more)
+
+### Community 212 - "cost.ts"
+Cohesion: 0.29
+Nodes (11): computeDebitAmount(), ComputeDebitInput, computeMaxOutputTokens(), ComputeMaxOutputTokensInput, GEMINI_PRICING_USD_PER_MILLION, geminiTokensPerWalletToken(), KRW_PER_WALLET_TOKEN, ModelTier (+3 more)
+
+### Community 213 - "[workId]/layout.tsx"
+Cohesion: 0.17
+Nodes (13): WorkLayout(), CreateRootFolderButton(), KbTree(), ScrollArea(), ScrollBar(), Separator(), getAccountSharedNodes(), getWorkKbNodes() (+5 more)
+
+### Community 214 - "admin/page.tsx"
+Cohesion: 0.60
+Nodes (4): AdminQueuePage(), failLoad(), listReviewRequests(), AdminErrorCode
+
+### Community 215 - "Phase 8 Plan 01: Provider Contracts, Error Scrubbing, Token Estimator Summary"
+Cohesion: 0.29
+Nodes (6): Deferred Issues, Deviations from Plan, Known Stubs, Phase 8 Plan 01: Provider Contracts, Error Scrubbing, Token Estimator Summary, Self-Check: PASSED, Tasks
+
+### Community 216 - "chapter-list.tsx"
+Cohesion: 0.33
+Nodes (4): ChapterListItem, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities
+
+### Community 217 - "acknowledgeWarningAction"
+Cohesion: 0.67
+Nodes (4): WarningItem(), acknowledge(), acknowledgeWarningAction(), acknowledgeWarning()
+
+### Community 218 - "Phase 8 Plan 03: Idempotent Chat Orchestration Summary"
+Cohesion: 0.25
+Nodes (7): Deviations from Plan, Known Stubs, Notes, Phase 8 Plan 03: Idempotent Chat Orchestration Summary, Self-Check: PASSED, Tasks, Verification
+
+### Community 219 - "Phase 8 Plan 06: Real-DB Idempotent Debit Evidence Summary"
+Cohesion: 0.25
+Nodes (7): Deviations from Plan, Full-suite failure investigation (out of scope, not fixed), Known Stubs, Phase 8 Plan 06: Real-DB Idempotent Debit Evidence Summary, Self-Check: PASSED, Tasks, Verification
+
+### Community 220 - "WorkHeaderActions"
+Cohesion: 0.83
+Nodes (4): WorkHeaderActions(), onToggleBookmark(), onToggleSubscription(), requireLogin()
+
+### Community 221 - "requestReview"
+Cohesion: 0.50
+Nodes (4): getReviewTargetState(), loadOwnedTarget(), requestReview(), reviewError()
+
+### Community 222 - "ViewerShell"
+Cohesion: 0.67
+Nodes (3): ViewerShell(), purchase(), viewerLockModel
+
+### Community 223 - "popover.tsx"
+Cohesion: 0.31
+Nodes (7): AccountPanel(), Popover(), PopoverContent(), PopoverDescription(), PopoverHeader(), PopoverTitle(), PopoverTrigger()
+
+### Community 224 - "Phase 8 Plan 05: chatAction Server Action Boundary Summary"
+Cohesion: 0.22
+Nodes (8): Accomplishments, Deviations from Plan, Known Stubs, Performance, Phase 8 Plan 05: chatAction Server Action Boundary Summary, Self-Check: PASSED, Task Commits, Verification
 
 ## Knowledge Gaps
-- **854 isolated node(s):** `UnblindTargetFormInput`, `ActionResult`, `geistSans`, `geistMono`, `metadata` (+849 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1009 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **997 isolated node(s):** `UnblindTargetFormInput`, `ActionResult`, `geistSans`, `geistMono`, `metadata` (+992 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1194 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **50 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `vitest` connect `vitest` to `auth.ts`, `blinding.test.ts`, `user-flows.test.ts`, `kb/actions.ts`, `works/[workId]/page.tsx`, `package.json`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `lib/chapters/actions.ts`, `[workId]/layout.tsx`, `sanctions.test.ts`, `operations.database.test.ts`, `session-refresh.test.ts`, `route.ts`, `lib/admin/actions.ts`, `app/admin/actions.ts`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
-- **Why does `@supabase/supabase-js` connect `sanctions.test.ts` to `auth.ts`, `blinding.test.ts`, `user-flows.test.ts`, `kb/actions.ts`, `works/[workId]/page.tsx`, `vitest`, `package.json`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `lib/chapters/actions.ts`, `viewer-shell.tsx`, `account/page.tsx`, `app/page.tsx`, `user-actions.ts`, `lib/admin/actions.ts`?**
+- **Why does `vitest` connect `vitest` to `blinding.test.ts`, `providers/gemini.ts`, `sanctions.test.ts`, `package.json`, `chat.ts`, `session-refresh.test.ts`, `lib/admin/actions.ts`, `app/admin/actions.ts`, `auth.ts`, `lib/chapters/actions.ts`, `chat-request.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `operations.database.test.ts`, `user-flows.test.ts`, `providers/types.ts`, `chat-refusal.test.ts`, `route.ts`, `cost.ts`, `[workId]/layout.tsx`?**
+  _High betweenness centrality (0.052) - this node is a cross-community bridge._
+- **Why does `@supabase/supabase-js` connect `sanctions.test.ts` to `blinding.test.ts`, `auth.ts`, `lib/chapters/actions.ts`, `vitest`, `package.json`, `createClient`, `chat.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `app/page.tsx`, `user-actions.ts`, `user-flows.test.ts`, `lib/admin/actions.ts`, `chat-refusal.test.ts`?**
   _High betweenness centrality (0.023) - this node is a cross-community bridge._
-- **Why does `lucide-react` connect `lucide-react` to `moderation-form.tsx`, `works/[workId]/page.tsx`, `package.json`, `user-actions.ts`, `AiPanel.tsx`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `viewer-shell.tsx`, `chapter-list.tsx`, `cn`, `popover.tsx`, `kb-node-dialogs.tsx`, `app/layout.tsx`, `report-queue.tsx`, `[workId]/layout.tsx`, `utils.ts`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `createClient()` connect `createClient` to `lib/chapters/actions.ts`, `blinding.test.ts`, `auth.ts`, `providers/gemini.ts`, `sanctions.test.ts`, `route.ts`, `moderation/actions.ts`, `getReviewPanelStateAction`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `app/page.tsx`, `react`, `AiPanel.tsx`, `[workId]/layout.tsx`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **What connects `UnblindTargetFormInput`, `ActionResult`, `geistSans` to the rest of the system?**
-  _854 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _997 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `blinding.test.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.1452991452991453 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._
 - **Should `vitest` be split into smaller, more focused modules?**
-  _Cohesion score 0.14589371980676327 - nodes in this community are weakly interconnected._
-- **Should `lucide-react` be split into smaller, more focused modules?**
-  _Cohesion score 0.13230769230769232 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1080389144905274 - nodes in this community are weakly interconnected._
+- **Should `sheet.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.12554112554112554 - nodes in this community are weakly interconnected._
