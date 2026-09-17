@@ -47,7 +47,7 @@ export function ReviewRequestPanel({
   const open = latestRequest?.status === 'open';
   if (!blinded && !open) return null;
 
-  const target = chapterId ? '이 회차' : '이 작품';
+  const target = chapterId ? '이 회차는' : '이 작품은';
 
   function submit() {
     startTransition(async () => {
@@ -73,7 +73,7 @@ export function ReviewRequestPanel({
     <section aria-label="재검토" className="flex flex-col gap-2 rounded-lg border border-border bg-muted/40 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary"><EyeOff aria-hidden /> {REVIEW_BADGE}</Badge>
-        <span className="text-sm text-muted-foreground">{target}은 운영 검토로 독자에게 보이지 않아요.</span>
+        <span className="text-sm text-muted-foreground">{target} 운영 검토로 독자에게 보이지 않아요.</span>
       </div>
       {blindReason && <p className="text-sm whitespace-pre-wrap break-words">사유: {blindReason}</p>}
       <p className="text-xs text-muted-foreground">
