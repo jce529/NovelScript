@@ -50,6 +50,7 @@ Exceptions:
 - 12px 알림 padding(위 기존 패턴 일치, 4의 배수).
 - 아이콘 버튼(알림 닫기)은 32x32px(`size-8`) — 패널의 기존 프리셋 설정 아이콘 버튼과 동일. 패널 폭(384px) 제약상 44px 규칙의 예외로 기존 관례를 따른다. 사유 토글·다시 시도 버튼은 텍스트 버튼(`Button size="sm"`, 높이 28px 이상)으로 hit area는 텍스트 전체 폭.
 - 알림 박스 border radius는 `rounded-lg`(기존 토큰).
+- 아이콘 `mt-0.5`(2px) — 16px 아이콘을 14px/20px 첫 줄에 맞추는 시각 보정, 기존 ChatMessageBubble wasCapped 알림과 동일, 레이아웃 간격 아님.
 
 ---
 
@@ -59,12 +60,13 @@ AI 패널은 이미 compact scale을 쓴다(`text-xl` 제목, `text-sm` 말풍�
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body (알림 본문 문장) | 14px (`text-sm`) | 400 | 1.5 |
-| Label (알림 제목, 버튼, 토글) | 14px (`text-sm`) | 500 (`font-medium`) | 1.5 |
-| Meta (토큰 사용·잔액, 사유 설명, 사유 코드) | 12px (`text-xs`) | 400 | 1.5 |
-| Heading (패널 제목 `AI 어시스턴트`, 기존 유지) | 20px (`text-xl`) | 600 (기존, 변경 금지) | 1.4 |
+| Body (알림 본문 문장) | 14px (`text-sm`) | 400 | 20px (Tailwind 기본) |
+| Label (알림 제목, 버튼, 토글) | 14px (`text-sm`) | 500 (`font-medium`) | 20px (Tailwind 기본) |
+| Meta (토큰 사용·잔액, 사유 설명, 사유 코드) | 12px (`text-xs`) | 400 | 16px (Tailwind 기본) |
 
-신규 요소의 weight는 400·500 두 가지뿐이다. 600은 기존 패널 제목에만 남는다. 숫자는 `tabular-nums`, 천 단위 구분은 `toLocaleString('ko-KR')`. 사유 코드(`SAFETY` 등)는 12px `font-mono`, 대문자 그대로. 긴 한국어 문장은 줄바꿈되며 `break-keep`을 적용한다.
+Note: 패널 제목 `AI 어시스턴트`(20px `text-xl` / 600 / 28px)는 기존 요소, 이번 계약 범위 밖(PROV-01) — 변경 금지.
+
+신규 요소의 weight는 400·500 두 가지뿐이다. line-height는 별도 `leading-*`를 지정하지 않고 Tailwind 기본값을 따른다. 숫자는 `tabular-nums`, 천 단위 구분은 `toLocaleString('ko-KR')`. 사유 코드(`SAFETY` 등)는 12px `font-mono`, 대문자 그대로. 긴 한국어 문장은 줄바꿈되며 `break-keep`을 적용한다.
 
 ---
 
