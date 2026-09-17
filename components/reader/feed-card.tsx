@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Eye, Heart, Flame } from 'lucide-react';
 import { formatKoreanCount } from '@/lib/format/korean-count';
@@ -25,14 +26,12 @@ export function FeedCard({ work }: { work: FeedWork }) {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           {work.genre && <Badge variant="secondary">{work.genre}</Badge>}
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <Badge variant="secondary" className="gap-1">
-                  <Flame className="text-primary" />
-                  인기 {work.trendingScore}
-                </Badge>
-              }
-            />
+            {/* Plain span with badge styling: rendering <Badge> through the client trigger
+                merged two data-slot values differently on server and client (hydration mismatch). */}
+            <TooltipTrigger render={<span className={cn(badgeVariants({ variant: 'secondary' }), 'gap-1')} />}>
+              <Flame className="text-primary" />
+              인기 {work.trendingScore}
+            </TooltipTrigger>
             <TooltipContent>조회수·좋아요·다음화 이동률을 종합한 점수예요</TooltipContent>
           </Tooltip>
         </div>
