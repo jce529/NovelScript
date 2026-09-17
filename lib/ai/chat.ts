@@ -6,12 +6,14 @@ import {
   composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal,
 } from '@/lib/ai/prompt';
 import { computeMaxOutputTokens, computeDebitAmount } from '@/lib/ai/cost';
-import { MODEL_TIER_TO_ID, type ModelTier, type GeminiClient } from '@/lib/ai/gemini';
+import type { ModelTier, ProviderClient, GenerateResult } from '@/lib/ai/providers/types';
+import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
+import { CHAT_COPY, type ChatResult, type ChatFailureKind } from '@/lib/ai/chat-result';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
-import { checkWriteAccess, type WriteDenialCode } from '@/lib/auth/write-access';
+import { checkWriteAccess } from '@/lib/auth/write-access';
 
 export const AI_GENERATION_REFERENCE_TYPE = 'ai_generation';
-export type { DocumentProposal };
+export type { ChatResult, DocumentProposal };
 
 export interface ParsedChatResponse {
   reply: string;
@@ -60,22 +62,39 @@ export interface ChatInput {
   /** Full chat session so far, oldest first, INCLUDING the newest user
    * message as the last entry (caller appends it before calling). */
   chatHistory: ChatTurn[];
+  /** D-01: one per writer send; validated as UUID by chatAction. Ledger reference_id. */
+  idempotencyKey: string;
 }
 
-export interface ChatResult {
-  ok: boolean;
-  error?: string;
-  reply?: string;
-  /** Chapter-prose draft, insertable into 본문 — null when this turn didn't produce one. */
-  draft?: string | null;
-  /** KB(설정집) document proposal, savable — null when this turn didn't produce one. */
-  proposal?: DocumentProposal | null;
-  /** true when the call was cut short by D-13's cap (either before the call fired,
-   * because balance was already exhausted, or because finishReason === 'MAX_TOKENS'). */
-  wasCapped?: boolean;
-  remainingBalance?: number;
-  /** Set when D-07 write access was refused (suspension or failed permission lookup). */
-  code?: WriteDenialCode;
+async function findGenerationEntry(admin: SupabaseClient, ownerId: string, key: string): Promise<'found' | 'absent' | 'error'> {
+  try {
+    const { data, error } = await admin.from('ledger_entries').select('id').eq('wallet_id', ownerId).eq('reference_type', AI_GENERATION_REFERENCE_TYPE).eq('reference_id', key).maybeSingle();
+    if (error) return 'error';
+    return data ? 'found' : 'absent';
+  } catch {
+    return 'error';
+  }
+}
+
+async function readBalance(admin: SupabaseClient, ownerId: string): Promise<number | undefined> {
+  try {
+    const { data, error } = await admin.from('wallets').select('balance').eq('id', ownerId).maybeSingle();
+    if (error || !data) return undefined;
+    return Number(data.balance);
+  } catch {
+    return undefined;
+  }
+}
+
+function failed(kind: ChatFailureKind, error: string, extra: Partial<ChatResult> = {}): ChatResult {
+  return { ok: false, status: 'failed', failureKind: kind, error, ...extra };
+}
+
+async function alreadyProcessed(admin: SupabaseClient, ownerId: string): Promise<ChatResult> {
+  const result: ChatResult = { ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle };
+  const balance = await readBalance(admin, ownerId);
+  if (balance !== undefined) result.remainingBalance = balance;
+  return result;
 }
 
 /**
@@ -91,74 +110,110 @@ export interface ChatResult {
  * this function.
  *
  * D-07 (07-03): generation is a user-initiated write. Write access is checked with the session
- * client BEFORE the wallet read and any provider call (no token counting, no generation, no
+ * client BEFORE the wallet read and any provider call (no token estimate, no generation, no
  * charge for a suspended writer). A suspension can still land while the provider call is in
  * flight, so access is checked again with the service-role client immediately before the
  * wallet debit: if it is now refused, the completed output is discarded and nothing is charged.
  * A suspension committed after that second check is treated like any write that finished just
  * before the sanction.
+ *
+ * Phase 8 (COST-01, D-02/D-03): the debit uses reference_type 'ai_generation' and
+ * reference_id = input.idempotencyKey, so the ledger unique constraint
+ * (wallet_id, reference_type, reference_id) guarantees one debit per writer send. A key already
+ * recorded for this wallet returns 'already_processed' before the cap and the provider call.
+ * Ledger lookup failures fail closed. A debit error is followed by a scoped ledger re-read:
+ * row present → 'already_processed'; absent → settlement failure with no body exposed.
+ * Residual risk (accepted): two same-key requests that both pass the precheck before either
+ * debits may both call the provider (D-03 only blocks recorded keys); the unique constraint
+ * still guarantees a single debit. No process-local lock, no new table.
+ *
+ * D-05..D-08: a structured provider refusal is debited by provider-reported usage with the same
+ * key and returned as 'refused' with normalized reason info only (no reply/draft/proposal).
+ * D-10..D-12: provider failures map to rate_limited / unavailable / config, never charge, and
+ * log only { provider, status, kind, idempotencyKey }.
  */
-export async function chat(supabase: SupabaseClient, client: GeminiClient, input: ChatInput): Promise<ChatResult> {
-  const access = await checkWriteAccess(supabase, input.ownerId);
-  if (!access.ok) return { ok: false, error: access.error, code: access.code };
+export async function chat(supabase: SupabaseClient, client: ProviderClient, input: ChatInput): Promise<ChatResult> {
+  const ownerId = input.ownerId;
+  const key = input.idempotencyKey;
+
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return failed('write_denied', access.error, { code: access.code });
 
   const admin = createAdminClient();
 
-  const { data: wallet } = await admin.from('wallets').select('balance').eq('id', input.ownerId).maybeSingle();
-  if (!wallet) return { ok: false, error: '지갑을 찾을 수 없어요.' };
+  const pre = await findGenerationEntry(admin, ownerId, key);
+  if (pre === 'error') return failed('unavailable', CHAT_COPY.unavailable);
+  if (pre === 'found') return alreadyProcessed(admin, ownerId);
+
+  const { data: wallet } = await admin.from('wallets').select('balance').eq('id', ownerId).maybeSingle();
+  if (!wallet) return failed('unknown', CHAT_COPY.walletMissing);
   const walletBalance = Number(wallet.balance);
 
-  const mentionedDocs = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
+  const mentionedDocs = await getMentionedNodesContent(supabase, { ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
   const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
   const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory });
   const model = MODEL_TIER_TO_ID[input.modelTier];
 
-  // Gemini SDK throws on any non-2xx (rate limits, transient 503s, network
-  // blips) instead of returning a result — without these try/catches, a
-  // Gemini outage 500s the whole server action instead of a friendly inline
-  // error. Both thrown BEFORE any wallet debit, so a failed call never
-  // charges the writer.
-  let inputTokenCount: number;
-  try {
-    ({ totalTokens: inputTokenCount } = await client.countTokens({ model, contents: `${systemInstruction}\n\n${contents}` }));
-  } catch {
-    return { ok: false, error: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해주세요.' };
-  }
+  // Local, synchronous estimate (no network) — D-13 reserves the input cost before the call.
+  const inputTokenCount = client.estimateInputTokens(systemInstruction, contents);
   const maxOutputTokens = computeMaxOutputTokens({ walletBalance, modelTier: input.modelTier, inputTokenCount });
-
   if (maxOutputTokens <= 0) {
-    return { ok: false, error: '보유 토큰을 모두 사용해서 대화할 수 없어요.', wasCapped: true, remainingBalance: walletBalance };
+    return failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: walletBalance });
   }
 
-  let result: Awaited<ReturnType<GeminiClient['generateContent']>>;
+  // Provider failures happen BEFORE any debit: never charged, no ledger row, so the same key
+  // may be resent (D-04).
+  let result: GenerateResult;
   try {
     result = await client.generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature: 0.9 });
   } catch {
-    return { ok: false, error: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해주세요.' };
+    return failed('unavailable', CHAT_COPY.unavailable);
   }
 
-  const stillAllowed = await checkWriteAccess(admin, input.ownerId);
-  if (!stillAllowed.ok) return { ok: false, error: stillAllowed.error, code: stillAllowed.code };
+  const stillAllowed = await checkWriteAccess(admin, ownerId);
+  if (!stillAllowed.ok) return failed('write_denied', stillAllowed.error, { code: stillAllowed.code });
 
   const debitAmount = computeDebitAmount({
-    modelTier: input.modelTier, promptTokenCount: result.promptTokenCount, candidatesTokenCount: result.candidatesTokenCount,
+    modelTier: input.modelTier, promptTokenCount: result.usage.inputTokens, candidatesTokenCount: result.usage.outputTokens,
   });
-  const { data: newBalance, error: debitError } = await admin.rpc('apply_wallet_delta', {
-    p_wallet_id: input.ownerId,
-    p_delta: -debitAmount,
-    p_reference_type: AI_GENERATION_REFERENCE_TYPE,
-    p_reference_id: crypto.randomUUID(),
-    p_reason: `chapter:${input.chapterId}`,
-  });
-  if (debitError) return { ok: false, error: '토큰 차감에 실패했어요. 잠시 후 다시 시도해주세요.' };
+
+  // Pre-debit recheck narrows the concurrent window so a racing duplicate gets no free body.
+  const recheck = await findGenerationEntry(admin, ownerId, key);
+  if (recheck === 'found') return alreadyProcessed(admin, ownerId);
+  if (recheck === 'error') return failed('settlement', CHAT_COPY.settlement);
+
+  let newBalance: unknown = null;
+  let debitFailed = false;
+  try {
+    const { data, error } = await admin.rpc('apply_wallet_delta', {
+      p_wallet_id: ownerId,
+      p_delta: 0 - debitAmount,
+      p_reference_type: AI_GENERATION_REFERENCE_TYPE,
+      p_reference_id: input.idempotencyKey,
+      p_reason: `chapter:${input.chapterId}`,
+    });
+    if (error) debitFailed = true;
+    else newBalance = data;
+  } catch {
+    debitFailed = true;
+  }
+
+  if (debitFailed) {
+    // Never log the DB error itself; never clamp the amount or retry with another key.
+    console.error('[ai] wallet settlement failed', { provider: client.provider, stage: 'settlement', idempotencyKey: key });
+    const post = await findGenerationEntry(admin, ownerId, key);
+    if (post === 'found') return alreadyProcessed(admin, ownerId);
+    return failed('settlement', CHAT_COPY.settlement);
+  }
 
   const { reply, draft, proposal } = parseChatResponse(result.text);
   return {
     ok: true,
+    status: 'completed',
     reply,
     draft,
     proposal,
-    wasCapped: result.finishReason === 'MAX_TOKENS',
+    wasCapped: result.finishReason === 'max_tokens',
     remainingBalance: Number(newBalance),
   };
 }

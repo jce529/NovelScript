@@ -13,7 +13,7 @@ export const USD_TO_KRW = 1400; // provisional FX rate
 
 /** Gemini list pricing, USD per 1,000,000 tokens (verified against
  * https://ai.google.dev/gemini-api/docs/pricing 2026-08-31). Both tiers currently
- * call gemini-3.5-flash (see lib/ai/gemini.ts MODEL_TIER_TO_ID) since gemini-2.5-flash/pro
+ * call gemini-3.5-flash (see lib/ai/providers/models.ts MODEL_TIER_TO_ID) since gemini-2.5-flash/pro
  * were retired for new API keys — re-split this table once 프로 moves to a real
  * pro-tier model. Re-verify before further changes if this pricing goes stale —
  * Gemini pricing changes monthly. */
@@ -48,7 +48,7 @@ export interface ComputeMaxOutputTokensInput {
 /**
  * D-13: "잔여 토큰까지만 생성. 이후 토큰이 전부 소모됐더라도 알리고 작업 중단."
  * Reserves the input cost first (Open Question 2: input tokens are billed too, per
- * countTokens run before this is called), converts whatever wallet balance remains
+ * the local input-token estimate (lib/ai/token-estimate.ts) computed before this is called), converts whatever wallet balance remains
  * into an output-token budget, then applies PER_REQUEST_MAX_OUTPUT_TOKENS on top.
  * Returns 0 when the balance can't cover even the input cost — lib/ai/generate.ts
  * MUST treat 0 as "stop before calling generateContent at all", never call the API
@@ -70,7 +70,7 @@ export interface ComputeDebitInput {
 /**
  * Open Question 2 resolution: debit BOTH input and output tokens, because the
  * platform pays Gemini for input tokens too. MUST be called with the ACTUAL
- * post-call usageMetadata values (Pitfall 2) — never the pre-call countTokens
+ * post-call usageMetadata values (Pitfall 2) — never the pre-call local input-token
  * estimate. Rounds up so the platform never under-charges by a fraction.
  */
 export function computeDebitAmount({ modelTier, promptTokenCount, candidatesTokenCount }: ComputeDebitInput): number {
