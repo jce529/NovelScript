@@ -1,9 +1,9 @@
 ---
 phase: 07
 slug: admin-moderation-surface
-status: draft
+status: partial
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-09-16
 ---
 
@@ -74,10 +74,10 @@ Apply the new moderation migration to the verified test target using the reposit
 
 - [x] UI-SPEC and executable plans exist; each task maps to an automated check or documented UI acceptance.
 - [x] All ADMIN requirements and D-01 through D-20 are covered.
-- [ ] Focused tests pass with no empty-suite success.
-- [ ] DB role, migration, rollback and true concurrency tests pass without skips.
-- [ ] Reader/writer/commerce regressions and browser acceptance pass.
-- [ ] Actual execution time and remaining limitations recorded.
+- [x] Focused tests pass with no empty-suite success. (tests/admin: 11 files / 275 passed, 2026-09-17)
+- [x] DB role, migration, rollback and true concurrency tests pass without skips. (4 DB suites 44/44 + concurrency 8/8 x3 on live test target; see docs/admin-moderation.md)
+- [ ] Reader/writer/commerce regressions and browser acceptance pass. (Regressions: full suite 483/483 serial. Browser: 22/22 observed journeys pass; **2 pending**: warning acknowledgement and suspended-user UI need a second login, see 07-UAT.md section 4)
+- [x] Actual execution time and remaining limitations recorded. (DB suites ~24s, concurrency ~5s; limitations in docs/admin-moderation.md and 07-UAT.md)
 - [x] Planning coverage review complete; nyquist_compliant does not assert test execution.
 
-**Approval:** Planning coverage reviewed 2026-09-16. Runtime verification remains pending; no implementation tests executed during planning.
+**Approval:** Planning coverage reviewed 2026-09-16. Runtime verification 2026-09-17 (07-07): automated and DB checks pass; browser acceptance partial with 2 manual items pending, so Phase 7 is not signed off.
