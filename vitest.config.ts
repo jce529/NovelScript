@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
         // `server-only` throws unconditionally outside the `react-server` export
         // condition (Next.js sets it; plain Node/Vitest doesn't). Alias it to a
         // no-op stub so files using the repo-wide `import 'server-only'` marker
-        // convention (lib/supabase/admin.ts, lib/ai/gemini.ts) can be unit-tested
+        // convention (lib/supabase/admin.ts, lib/ai/providers/gemini.ts) can be unit-tested
         // directly without every test file crashing at import time.
         'server-only': path.resolve(__dirname, 'tests/helpers/server-only-stub.ts'),
       },
