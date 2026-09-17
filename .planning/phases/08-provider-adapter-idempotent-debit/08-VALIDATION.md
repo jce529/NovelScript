@@ -41,6 +41,8 @@ Research-derived strategy. Task IDs and waves mapped to PLAN.md files on 2026-09
 | 4 | 08-07, 08-08 | AiPanel wiring + legacy removal / dev fixtures (parallel) |
 | 5 | 08-09 | Full gate + human browser/live verification (checkpoint) |
 
+Execution note: plans in the same wave have no shared files and may run in parallel under /gsd:execute-phase, but under codex-tdd-pipeline run same-wave plans **sequentially** (one `codex exec` at a time) so intermediate `tsc`/test runs do not observe another plan's half-applied edits.
+
 ## Per-Task Verification Map
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
@@ -51,7 +53,7 @@ Research-derived strategy. Task IDs and waves mapped to PLAN.md files on 2026-09
 | 08-02-T1 | 08-02 | 2 | PROV-01 | T-08-01 | Refusal A/B normalized; no partial/blocked text; usage mapping | SDK mock | `npm test -- tests/ai/provider-gemini.test.ts` | No; created by task | pending |
 | 08-02-T2 | 08-02 | 2 | PROV-01 | T-08-01 | One SDK attempt; sanitized throw; no countTokens; registry config error | SDK mock | `npm test -- tests/ai/provider-gemini.test.ts tests/ai/provider-errors.test.ts` | No; created by task | pending |
 | 08-03-T1 | 08-03 | 2 | COST-01 | T-08-03 | Stable key, scoped fail-closed precheck, settlement recovery, barrier concurrency, local cap | unit (fake ledger) | `npm test -- tests/ai/chat-idempotency.test.ts` | No; created by task | pending |
-| 08-03-T2 | 08-03 | 2 | PROV-01 | T-08-01 | Refusal debited then returned without body; error kinds; scrubbed logs | unit | `npm test -- tests/ai/chat-refusal.test.ts` | No; created by task | pending |
+| 08-03-T2 | 08-03 | 2 | PROV-01, COST-01 | T-08-01 | Refusal debited then returned without body; error kinds; scrubbed logs; D-04 same-key resend after failure debits once | unit | `npm test -- tests/ai/chat-refusal.test.ts` | No; created by task | pending |
 | 08-03-T3 | 08-03 | 2 | PROV-01 | T-08-04 | Deny before provider, recheck before debit (unchanged) | unit | `npm test -- tests/admin/sanctions.test.ts` | Yes; update | pending |
 | 08-04-T1 | 08-04 | 2 | COST-01 | T-08-03 | Same send keeps key/payload; lock; result→notice decision table | unit | `npm test -- tests/ai/chat-request-lifecycle.test.ts` | No; created by task | pending |
 | 08-04-T2 | 08-04 | 2 | PROV-01 | T-08-01 | Notice markup/copy/aria; no provider/status/key shown | static markup | `npm test -- tests/ai/ai-panel-notice.test.ts` | No; created by task | pending |
