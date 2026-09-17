@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
 - [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (partially shipped outside GSD — see Phase 6 detail)
-- [ ] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports
+- [x] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports (completed 2026-09-17)
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
 
@@ -204,11 +204,11 @@ Residual (stays in v1.0, not yet done):
 - [x] 07-06-PLAN.md — 경고 확인·작가 재검토 요청·독자 잠금 상태
 
 **Wave 6 (blocked on Wave 5)**
-- [ ] 07-07-PLAN.md — 실제 DB 적용·동시성·브라우저 통합 검증
+- [x] 07-07-PLAN.md — 실제 DB 적용·동시성·브라우저 통합 검증
 
 **Cross-cutting constraints:** 세션 기반 관리자 판정; 조치/감사 기록의 원자성; 제재 중 기존 읽기 유지; 블라인드와 발행 상태 분리; 기존 구매권 보존; DB 검사 skip은 통과로 인정하지 않음.
 **UI hint**: yes
-**Status**: Planned 2026-09-16 — 7 plans / 15 tasks, ADMIN-01~04 및 D-01~D-20 포함. 구현과 런타임 검증은 미실행.
+**Status**: Complete 2026-09-17 — 7/7 plans. 실제 DB(44/44)·2세션 동시성(8/8)·브라우저 UAT 22건 통과. **미확인 브라우저 검수 2건(경고 확인 유지, 정지 사용자 화면)은 사용자 결정으로 보류 → `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`에서 반드시 확인.**
 **논의에서 확정된 범위 확장 2건** (Success Criteria 문면을 넘어섬 — 플랜이 커지면 여기부터 조절):
   - **D-12 작품 전체 블라인드** — ADMIN-02는 "특정 회차"만 명시. `reports.work_id`가 필수라 작품 단위 신고가 이미 존재해 추가함. 피드·상세·목록·뷰어 쿼리 분기가 늘어남
   - **D-16 작가 재검토 요청 + 별도 탭** — 작가측 진입점과 요청 상태 모델이 추가됨. 최종 해제 권한은 운영자에게 고정
@@ -331,7 +331,7 @@ Residual (stays in v1.0, not yet done):
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
-| 7. Admin Moderation Surface | 6/7 | In Progress | - |
+| 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/TBD | Not started | - |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |

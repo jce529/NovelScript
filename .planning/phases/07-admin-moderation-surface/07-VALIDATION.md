@@ -1,7 +1,7 @@
 ---
 phase: 07
 slug: admin-moderation-surface
-status: partial
+status: accepted-with-deferred
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-09-16
@@ -80,4 +80,4 @@ Apply the new moderation migration to the verified test target using the reposit
 - [x] Actual execution time and remaining limitations recorded. (DB suites ~24s, concurrency ~5s; limitations in docs/admin-moderation.md and 07-UAT.md)
 - [x] Planning coverage review complete; nyquist_compliant does not assert test execution.
 
-**Approval:** Planning coverage reviewed 2026-09-16. Runtime verification 2026-09-17 (07-07): automated and DB checks pass; browser acceptance partial with 2 manual items pending, so Phase 7 is not signed off.
+**Approval:** Planning coverage reviewed 2026-09-16. Runtime verification 2026-09-17 (07-07): automated and DB checks pass; browser acceptance partial with 2 manual items pending, Phase 7 marked complete by user decision on 2026-09-17 with those 2 items deferred to `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`.

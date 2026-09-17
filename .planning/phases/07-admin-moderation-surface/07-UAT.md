@@ -2,7 +2,7 @@
 phase: 07
 plan: 07-07
 type: uat
-status: partial   # 2 items pending manual acceptance (see §4)
+status: accepted-with-deferred   # Phase 7 완료 처리(사용자 결정 2026-09-17), §4 2건은 todo로 추적
 date: 2026-09-17
 ---
 
@@ -59,7 +59,9 @@ Note: two earlier actions in the audit log (07:34 `report_dismiss` and `work_bli
 | F-2 | Low (UX) | Self-sanction attempt shows generic validation copy instead of a specific message | Open — not blocking |
 | F-3 | Low (hygiene) | Existing reader DB tests leave "테스트 작품" reports in the shared test DB (12 open reports appeared from today's runs) | Open — pre-Phase-7 test hygiene |
 
-## 4. Pending manual acceptance (blocks Phase 7 completion)
+## 4. Deferred manual acceptance (사용자 결정으로 완료 처리 — 반드시 추후 확인)
+
+Tracked in `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`.
 
 Both require logging in as the *sanctioned* user, which the single OAuth admin account cannot be (self-sanction is forbidden by design). Automated coverage exists (`tests/admin/user-flows.test.ts`, `sanctions*.test.ts`), but browser acceptance is not yet observed:
 
