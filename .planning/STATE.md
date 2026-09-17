@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: planning
-stopped_at: Phase 8 context gathered
-last_updated: "2026-09-17T09:57:34.489Z"
-last_activity: 2026-09-17
+status: executing
+stopped_at: Phase 8 UI-SPEC approved
+last_updated: "2026-09-17T11:41:22.794Z"
+last_activity: 2026-09-17 -- Phase 08 execution started
 progress:
   total_phases: 8
   completed_phases: 6
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 07 — admin-moderation-surface
+**Current focus:** Phase 08 — provider-adapter-idempotent-debit
 
 ## Current Position
 
-Phase: 07 (admin-moderation-surface) — COMPLETE (2 deferred browser checks)
-Plan: 7 of 7 (all complete)
-Status: Phase 7 complete — deferred checks tracked in .planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md
-Last activity: 2026-09-17
+Phase: 08 (provider-adapter-idempotent-debit) — EXECUTING
+Plan: 1 of 9
+Status: Executing Phase 08
+Last activity: 2026-09-17 -- Phase 08 execution started
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
@@ -183,11 +183,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-17T09:57:34.480Z
-Stopped at: Phase 8 context gathered
+Last session: 2026-09-17T11:12:55.280Z
+Stopped at: Phase 8 UI-SPEC approved
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
-Resume file: .planning/phases/08-provider-adapter-idempotent-debit/08-CONTEXT.md
+Resume file: .planning/phases/08-provider-adapter-idempotent-debit/08-UI-SPEC.md

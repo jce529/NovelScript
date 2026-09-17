@@ -229,20 +229,20 @@ Residual (stays in v1.0, not yet done):
 **Plans**: 9 plans
 
 **Wave 1**
-- [ ] 08-01-PLAN.md — ProviderClient·ChatResult 계약, 에러 스크러빙 choke point, 로컬 토큰 추정
+- [x] 08-01-PLAN.md — ProviderClient·ChatResult 계약, 에러 스크러빙 choke point, 로컬 토큰 추정
 
 **Wave 2** *(blocked on 08-01)*
-- [ ] 08-02-PLAN.md — Gemini 어댑터(거절·사용량 정규화, 단일 시도) + 플랫폼 registry
-- [ ] 08-03-PLAN.md — chat() 오케스트레이션: 원장 사전확인·안정 reference_id·정산 복구·거절 차감·원인별 에러
-- [ ] 08-04-PLAN.md — 클라이언트 전송 키 수명·전송 잠금·결과→알림 매핑 + AiPanelNotice
+- [x] 08-02-PLAN.md — Gemini 어댑터(거절·사용량 정규화, 단일 시도) + 플랫폼 registry
+- [x] 08-03-PLAN.md — chat() 오케스트레이션: 원장 사전확인·안정 reference_id·정산 복구·거절 차감·원인별 에러
+- [x] 08-04-PLAN.md — 클라이언트 전송 키 수명·전송 잠금·결과→알림 매핑 + AiPanelNotice
 
 **Wave 3**
-- [ ] 08-05-PLAN.md — chatAction idempotencyKey 검증·세션 owner·registry 연결 (blocked on 08-02, 08-03)
-- [ ] 08-06-PLAN.md — 실제 PostgreSQL 동일 키 동시성·재전송 증명 (blocked on 08-03)
+- [x] 08-05-PLAN.md — chatAction idempotencyKey 검증·세션 owner·registry 연결 (blocked on 08-02, 08-03)
+- [x] 08-06-PLAN.md — 실제 PostgreSQL 동일 키 동시성·재전송 증명 (blocked on 08-03)
 
 **Wave 4**
-- [ ] 08-07-PLAN.md — AiPanel 알림 슬롯·재시도·잔액 갱신 연결 + lib/ai/gemini.ts 제거 (blocked on 08-04, 08-05)
-- [ ] 08-08-PLAN.md — 개발 전용 프로바이더 fixture (blocked on 08-02, 08-05)
+- [x] 08-07-PLAN.md — AiPanel 알림 슬롯·재시도·잔액 갱신 연결 + lib/ai/gemini.ts 제거 (blocked on 08-04, 08-05)
+- [x] 08-08-PLAN.md — 개발 전용 프로바이더 fixture (blocked on 08-02, 08-05)
 
 **Wave 5**
 - [ ] 08-09-PLAN.md — 전체 게이트 + 브라우저·라이브 Gemini 검수 체크포인트 (blocked on 08-06, 08-07, 08-08)
