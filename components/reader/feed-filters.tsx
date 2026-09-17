@@ -19,6 +19,8 @@ export function FeedFilters({
 
   function updateParams(next: Record<string, string | undefined>) {
     const params = new URLSearchParams(searchParams.toString());
+    // Changing a filter or sort starts again from the first page.
+    params.delete('limit');
     for (const [key, value] of Object.entries(next)) {
       if (value) params.set(key, value); else params.delete(key);
     }

@@ -72,24 +72,37 @@ function sortFeed(rows: FeedWork[], sortMode: FeedSortMode, sortBasis: FeedSortB
   return [...rows].sort((a, b) => (b[key] as number) - (a[key] as number));
 }
 
+/** Feed cards shown per "더보기" step on the home page. */
+export const FEED_PAGE_SIZE = 100;
+
+// PostgREST caps each response at 1000 rows by default.
+const WORK_QUERY_PAGE_SIZE = 1000;
+
 /** READ-01: only surfaces works with >=1 published chapter. D-04: genre filter reuses
  * GENRES from lib/works/genres.ts verbatim — callers must pass a value from that array. */
 export async function listFeed(
   supabase: SupabaseClient,
   params: { genre?: string | null; sortMode: FeedSortMode; sortBasis?: FeedSortBasis }
 ): Promise<FeedWork[]> {
-  let query = supabase
-    .from('works')
-    .select('id, title, synopsis, cover_image_url, genre, created_at, chapters(view_count, order_index, is_published, deleted_at)')
-    .is('deleted_at', null)
-    // D-12: work-wide blinds are absent from discovery.
-    .eq('admin_blinded', false);
-  if (params.genre) query = query.eq('genre', params.genre);
+  // A single unordered query silently drops works past the 1000-row cap, so ranking would
+  // only cover an arbitrary subset. Page through with a stable order until exhausted.
+  const works: Record<string, unknown>[] = [];
+  for (let from = 0; ; from += WORK_QUERY_PAGE_SIZE) {
+    let query = supabase
+      .from('works')
+      .select('id, title, synopsis, cover_image_url, genre, created_at, chapters(view_count, order_index, is_published, deleted_at)')
+      .is('deleted_at', null)
+      // D-12: work-wide blinds are absent from discovery.
+      .eq('admin_blinded', false);
+    if (params.genre) query = query.eq('genre', params.genre);
 
-  const { data: works, error } = await query;
-  if (error) throw new Error(error.message);
+    const { data, error } = await query.order('id').range(from, from + WORK_QUERY_PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    works.push(...(data ?? []));
+    if (!data || data.length < WORK_QUERY_PAGE_SIZE) break;
+  }
 
-  const workIds = (works ?? []).map((w) => w.id as string);
+  const workIds = works.map((w) => w.id as string);
   const likeCounts = new Map<string, number>();
   // Batched to avoid HTTP header/URL overflow once workIds grows large — a single
   // `.in('work_id', workIds)` call with 200+ UUIDs can exceed the 16KB header limit
@@ -106,7 +119,7 @@ export async function listFeed(
     for (const row of likeRows ?? []) likeCounts.set(row.work_id, (likeCounts.get(row.work_id) ?? 0) + 1);
   }
 
-  const staged = (works ?? [])
+  const staged = works
     .map((w) => {
       const chapters = ((w.chapters ?? []) as RawChapterRow[])
         .filter((c) => c.is_published && !c.deleted_at)
