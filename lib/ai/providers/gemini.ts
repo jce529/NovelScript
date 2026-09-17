@@ -1,6 +1,8 @@
 import 'server-only';
 import { GoogleGenAI, type GenerateContentResponse } from '@google/genai';
-import type { GenerateResult, RefusalReasonCode, UsageReport } from './types';
+import type { GenerateResult, ProviderClient, RefusalReasonCode, UsageReport } from './types';
+import { ProviderCallError, toSanitizedProviderError } from './errors';
+import { estimateGeminiInputTokens } from '../token-estimate';
 
 /** D-05 (B): safety-family finish reasons. Partial text is dropped, never surfaced. */
 const OUTPUT_REFUSAL_FINISH = new Set([
@@ -62,5 +64,26 @@ export function mapGeminiResponse(response: GenerateContentResponse): GenerateRe
   return { text, finishReason, usage, refusal: null };
 }
 
-// GoogleGenAI is consumed by createGeminiProvider (Task 2).
-void GoogleGenAI;
+export interface GeminiProviderOptions {
+  apiKey: string;
+}
+
+/** The only Gemini SDK construction site. Retry attempts pinned to one HTTP attempt; Phase 11 owns retry policy. */
+export function createGeminiProvider({ apiKey }: GeminiProviderOptions): ProviderClient {
+  const ai = new GoogleGenAI({ apiKey, httpOptions: { retryOptions: { attempts: 1 } } });
+  return {
+    provider: 'gemini',
+    async generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature }) {
+      let response: GenerateContentResponse;
+      try {
+        response = await ai.models.generateContent({ model, contents, config: { systemInstruction, maxOutputTokens, temperature } });
+      } catch (err) {
+        throw new ProviderCallError(toSanitizedProviderError('gemini', err));
+      }
+      return mapGeminiResponse(response);
+    },
+    estimateInputTokens(systemInstruction, contents) {
+      return estimateGeminiInputTokens(systemInstruction, contents);
+    },
+  };
+}
