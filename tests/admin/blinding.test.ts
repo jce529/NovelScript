@@ -41,7 +41,7 @@ function fakeClient({ rows = {}, rpcData = {}, rpcErrors = {} }: FakeOptions = {
     const chain: Record<string, unknown> = {};
     const result = () => Promise.resolve({ data: op === 'select' ? rows[table] ?? null : null, error: null });
     chain.select = (columns: string) => { if (op === 'select') selects.push({ table, columns }); return chain; };
-    for (const method of ['eq', 'is', 'in', 'order', 'limit']) {
+    for (const method of ['eq', 'is', 'in', 'order', 'limit', 'range']) {
       chain[method] = (...args: unknown[]) => { filters.push(`${table}.${method}(${args.map(String).join(',')})`); return chain; };
     }
     for (const method of ['insert', 'update', 'upsert', 'delete']) {
