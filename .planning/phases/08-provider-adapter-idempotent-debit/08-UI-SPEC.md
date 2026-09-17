@@ -1,7 +1,8 @@
 ---
 phase: 08
 slug: provider-adapter-idempotent-debit
-status: draft
+status: approved
+reviewed_at: 2026-09-17
 shadcn_initialized: true
 preset: base-nova
 created: 2026-09-17
