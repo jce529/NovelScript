@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { chat, parseChatResponse } from '../../lib/ai/chat';
-import { createMockProvider } from '../helpers/mock-provider';
+import { createMockProvider, okResult } from '../helpers/mock-provider';
 import { CHAT_COPY } from '../../lib/ai/chat-result';
 import { createChapter } from '../../lib/chapters/actions';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
@@ -182,5 +182,158 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     expect(result.ok).toBe(true);
     expect(result.draft).toBeNull();
     expect(result.proposal).toEqual({ category: '인물', name: '오수진', content: '다정한 동료.' });
+  });
+
+  describe('chat() idempotent debit against the real ledger (COST-01)', () => {
+    async function grantedUser() {
+      const user = await createTestUser();
+      await admin.rpc('apply_wallet_delta', {
+        p_wallet_id: user.id, p_delta: 1000, p_reference_type: 'test_grant', p_reference_id: 'grant', p_reason: 'test',
+      });
+      return user;
+    }
+
+    function input(userId: string, key: string) {
+      return {
+        ownerId: userId, workId, chapterId, modelTier: 'lite' as const,
+        mentionedNodeIds: [], presetLevel: 'intermediate' as const, styleId: 'concise-hemingway' as const, genre: '판타지',
+        precedingText: '', chatHistory: [{ role: 'user' as const, content: '이어서 써줘' }],
+        idempotencyKey: key,
+      };
+    }
+
+    async function ledgerRows(userId: string, key: string) {
+      const { data, count, error } = await admin
+        .from('ledger_entries')
+        .select('delta', { count: 'exact' })
+        .eq('wallet_id', userId)
+        .eq('reference_type', 'ai_generation')
+        .eq('reference_id', key);
+      if (error) throw error;
+      return { rows: data ?? [], count: count ?? 0 };
+    }
+
+    async function balanceOf(userId: string) {
+      const { data } = await admin.from('wallets').select('balance').eq('id', userId).single();
+      return Number(data!.balance);
+    }
+
+    it('replay with the same key calls the provider once and leaves one ai_generation row', async () => {
+      const user = await grantedUser();
+      try {
+        const KEY = crypto.randomUUID();
+        const client = createMockProvider({ generateContent: async () => okResult('[REPLY]\n첫 응답', 100, 200) });
+
+        const first = await chat(admin, client, input(user.id, KEY));
+        expect(first.status).toBe('completed');
+        expect(first.remainingBalance).toBe(999);
+
+        const second = await chat(admin, client, input(user.id, KEY));
+        expect(second.status).toBe('already_processed');
+        expect(second.remainingBalance).toBe(999);
+
+        expect(client.generateContent).toHaveBeenCalledTimes(1);
+        expect((await ledgerRows(user.id, KEY)).count).toBe(1);
+      } finally {
+        await deleteTestUser(user.id);
+      }
+    });
+
+    it('concurrent same-key calls debit once', async () => {
+      const user = await grantedUser();
+      try {
+        const KEY = crypto.randomUUID();
+        let release!: () => void;
+        const gate = new Promise<void>((r) => { release = r; });
+        const client = createMockProvider({
+          generateContent: async () => { await gate; return okResult('[REPLY]\n동시 응답', 100, 200); },
+        });
+
+        const both = Promise.all([chat(admin, client, input(user.id, KEY)), chat(admin, client, input(user.id, KEY))]);
+        setTimeout(release, 50);
+        const results = await both;
+
+        for (const r of results) expect(['completed', 'already_processed']).toContain(r.status);
+        expect((await ledgerRows(user.id, KEY)).count).toBe(1);
+        expect(await balanceOf(user.id)).toBe(999);
+      } finally {
+        await deleteTestUser(user.id);
+      }
+    });
+
+    it('zero-usage completion writes a delta-0 row that blocks replay', async () => {
+      const user = await grantedUser();
+      try {
+        const KEY = crypto.randomUUID();
+        const client = createMockProvider({ generateContent: async () => okResult('[REPLY]\nx', 0, 0) });
+
+        const first = await chat(admin, client, input(user.id, KEY));
+        expect(first.status).toBe('completed');
+        const ledger = await ledgerRows(user.id, KEY);
+        expect(ledger.count).toBe(1);
+        expect(Number(ledger.rows[0].delta)).toBe(0);
+
+        const replay = await chat(admin, client, input(user.id, KEY));
+        expect(replay.status).toBe('already_processed');
+        expect(client.generateContent).toHaveBeenCalledTimes(1);
+        expect(await balanceOf(user.id)).toBe(1000);
+      } finally {
+        await deleteTestUser(user.id);
+      }
+    });
+
+    it('a row for the same key on another wallet does not block this wallet', async () => {
+      const userA = await grantedUser();
+      const userB = await grantedUser();
+      try {
+        const KEY = crypto.randomUUID();
+        const clientB = createMockProvider({ generateContent: async () => okResult('[REPLY]\nB', 100, 200) });
+        const resultB = await chat(admin, clientB, input(userB.id, KEY));
+        expect(resultB.status).toBe('completed');
+
+        const clientA = createMockProvider({ generateContent: async () => okResult('[REPLY]\nA', 100, 200) });
+        const resultA = await chat(admin, clientA, input(userA.id, KEY));
+        expect(resultA.status).toBe('completed');
+        expect(resultA.status).not.toBe('already_processed');
+        expect(clientA.generateContent).toHaveBeenCalledTimes(1);
+
+        expect((await ledgerRows(userA.id, KEY)).count).toBe(1);
+        expect((await ledgerRows(userB.id, KEY)).count).toBe(1);
+      } finally {
+        await deleteTestUser(userA.id);
+        await deleteTestUser(userB.id);
+      }
+    });
+
+    it('structured refusal is debited by reported usage and returns no body', async () => {
+      const user = await grantedUser();
+      try {
+        const KEY = crypto.randomUUID();
+        const client = createMockProvider({
+          generateContent: async () => ({
+            text: '', finishReason: 'refusal', refusal: { stage: 'input', reasonCode: 'SAFETY' },
+            usage: { inputTokens: 5000, outputTokens: 0, thoughtsTokens: null, reported: { input: true, output: false } },
+          }),
+        });
+
+        const result = await chat(admin, client, input(user.id, KEY));
+        expect(result.status).toBe('refused');
+        expect(result.refusal?.debitAmount).toBe(2);
+        expect(result.remainingBalance).toBe(998);
+        expect('reply' in result).toBe(false);
+
+        const { data: rows, count, error } = await admin
+          .from('ledger_entries')
+          .select('delta', { count: 'exact' })
+          .eq('wallet_id', user.id)
+          .eq('reference_type', 'ai_generation')
+          .eq('reference_id', KEY);
+        expect(error).toBeNull();
+        expect(count).toBe(1);
+        expect(Number(rows![0].delta)).toBe(-2);
+      } finally {
+        await deleteTestUser(user.id);
+      }
+    });
   });
 });
