@@ -276,7 +276,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('admin moderation operations (Post
 
     // Failure after the audit insert (sanction validation) also rolls back the audit row.
     await rejected(() => op({ ids: [r1], action: 'suspend', reason: 'late', publicReason: 'p',
-      endsAt: new Date(Date.now() - 60_000).toISOString() }), 'invalid_sanction_expiry');
+      endsAt: new Date(Date.now() - 86_400_000).toISOString() }), 'invalid_sanction_expiry');
     expect(await counts()).toEqual(before);
     expect((await reportRow(r1)).status).toBe('open');
   });

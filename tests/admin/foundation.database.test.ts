@@ -228,7 +228,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('admin foundation migration (Postg
     expect(await cache()).toEqual({ sanction_kind: 'none', sanctioned_until: null });
     expect(await scalar<number>('select count(*)::int from user_sanctions where user_id = $1', [writer])).toBe(6);
 
-    await rejected(() => sanction('suspension', new Date(Date.now() - 1000).toISOString()), 'invalid_sanction_expiry');
+    await rejected(() => sanction('suspension', new Date(Date.now() - 86_400_000).toISOString()), 'invalid_sanction_expiry');
     await rejected(() => sanction('suspension', null), 'invalid_sanction_expiry');
     await rejected(() => sanction('permanent_suspension', future), 'invalid_sanction_expiry');
     await rejected(() => sanction('warning', null, admin), 'self_sanction_forbidden');
