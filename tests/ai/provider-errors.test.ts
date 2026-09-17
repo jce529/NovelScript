@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { REFUSAL_REASON_CODES } from '@/lib/ai/providers/types';
 import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
+import { toSanitizedProviderError, ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
+import type { SanitizedProviderError } from '@/lib/ai/providers/types';
 
 describe('contracts', () => {
   it('REFUSAL_REASON_CODES covers the safety-family finish reasons', () => {
@@ -30,5 +32,107 @@ describe('contracts', () => {
     expect(CHAT_COPY.processedBody).toBe(
       '같은 요청이 두 번 전송돼 한 번만 처리했어요. 이전 응답은 다시 불러올 수 없으니, 필요하면 새로 요청해주세요.',
     );
+  });
+});
+
+describe('toSanitizedProviderError', () => {
+  it.each([
+    [429, 'rate_limited', 'RESOURCE_EXHAUSTED'],
+    [500, 'unavailable', 'INTERNAL'],
+    [503, 'unavailable', 'UNAVAILABLE'],
+    [504, 'unavailable', 'DEADLINE_EXCEEDED'],
+    [502, 'unavailable', null],
+    [400, 'config', 'INVALID_ARGUMENT'],
+    [401, 'config', 'UNAUTHENTICATED'],
+    [403, 'config', 'PERMISSION_DENIED'],
+    [404, 'config', 'NOT_FOUND'],
+    [409, 'config', null],
+  ])('status %i -> %s / %s', (status, kind, code) => {
+    const err = Object.assign(new Error('boom'), { status });
+    expect(toSanitizedProviderError('gemini', err)).toEqual({
+      provider: 'gemini',
+      status,
+      kind,
+      providerErrorCode: code,
+    });
+  });
+
+  const abort = Object.assign(new Error('aborted'), { name: 'AbortError' });
+  it.each([
+    ['TypeError', new TypeError('fetch failed')],
+    ['AbortError', abort],
+    ['string', 'oops'],
+    ['null', null],
+    ['undefined', undefined],
+    ['string status', { status: '429' }],
+    ['NaN status', { status: NaN }],
+    ['status 42', { status: 42 }],
+    ['status 700', { status: 700 }],
+    ['status 429.5', { status: 429.5 }],
+  ])('no usable status (%s) -> unavailable/null', (_label, err) => {
+    expect(toSanitizedProviderError('gemini', err)).toEqual({
+      provider: 'gemini',
+      status: null,
+      kind: 'unavailable',
+      providerErrorCode: null,
+    });
+  });
+
+  const SENTINEL = 'sk-SENTINEL-abc123';
+  function sentinelError() {
+    const err = new Error(`request failed key=${SENTINEL}`, { cause: new Error(SENTINEL) });
+    err.stack = `Error: ${SENTINEL}\n at x`;
+    return Object.assign(err, {
+      status: 401,
+      config: { headers: { Authorization: `Bearer ${SENTINEL}` } },
+      request: { body: `prompt ${SENTINEL}` },
+      headers: { 'x-goog-api-key': SENTINEL },
+      code: SENTINEL,
+      providerErrorCode: SENTINEL,
+      details: [{ reason: SENTINEL }],
+    });
+  }
+
+  it('never leaks secrets from the raw error (SENTINEL)', () => {
+    const result = toSanitizedProviderError('gemini', sentinelError());
+    expect(JSON.stringify(result)).not.toContain(SENTINEL);
+    expect(Object.keys(result).sort()).toEqual(['kind', 'provider', 'providerErrorCode', 'status']);
+    expect(result).toEqual({ provider: 'gemini', status: 401, kind: 'config', providerErrorCode: 'UNAUTHENTICATED' });
+  });
+
+  describe('ProviderCallError', () => {
+    it('carries only sanitized info', () => {
+      const info: SanitizedProviderError = toSanitizedProviderError('gemini', sentinelError());
+      const e = new ProviderCallError(info);
+      expect(e).toBeInstanceOf(Error);
+      expect(e.name).toBe('ProviderCallError');
+      expect(e.message).toBe('provider_call_failed:gemini:config');
+      expect(e.info).toEqual(info);
+      expect(e.cause).toBeUndefined();
+      expect(Object.keys(JSON.parse(JSON.stringify(e.info))).sort()).toEqual([
+        'kind',
+        'provider',
+        'providerErrorCode',
+        'status',
+      ]);
+      expect(JSON.stringify(e.info)).not.toContain(SENTINEL);
+    });
+  });
+
+  describe('logProviderFailure', () => {
+    afterEach(() => vi.restoreAllMocks());
+    it('logs once with allowlisted fields', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const info = toSanitizedProviderError('gemini', sentinelError());
+      logProviderFailure(info, 'k-uuid');
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('[ai] provider call failed', {
+        provider: 'gemini',
+        status: 401,
+        kind: 'config',
+        idempotencyKey: 'k-uuid',
+      });
+      expect(JSON.stringify(spy.mock.calls)).not.toContain(SENTINEL);
+    });
   });
 });
