@@ -8,6 +8,7 @@ import {
 import { computeMaxOutputTokens, computeDebitAmount } from '@/lib/ai/cost';
 import type { ModelTier, ProviderClient, GenerateResult } from '@/lib/ai/providers/types';
 import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
+import { ProviderCallError, toSanitizedProviderError, logProviderFailure } from '@/lib/ai/providers/errors';
 import { CHAT_COPY, type ChatResult, type ChatFailureKind } from '@/lib/ai/chat-result';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import { checkWriteAccess } from '@/lib/auth/write-access';
@@ -166,8 +167,12 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   let result: GenerateResult;
   try {
     result = await client.generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature: 0.9 });
-  } catch {
-    return failed('unavailable', CHAT_COPY.unavailable);
+  } catch (err) {
+    // D-11/D-12: only the sanitized allowlist crosses into logs/results — never the raw error,
+    // the prompt, the contents or the system instruction.
+    const info = err instanceof ProviderCallError ? err.info : toSanitizedProviderError(client.provider, err);
+    logProviderFailure(info, input.idempotencyKey);
+    return failed(info.kind, CHAT_COPY[info.kind]);
   }
 
   const stillAllowed = await checkWriteAccess(admin, ownerId);
@@ -204,6 +209,15 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
     const post = await findGenerationEntry(admin, ownerId, key);
     if (post === 'found') return alreadyProcessed(admin, ownerId);
     return failed('settlement', CHAT_COPY.settlement);
+  }
+
+  // D-05..D-08: structured refusal — charged above like any completion (actual reported usage,
+  // same key), but the body is never returned. Prose refusals are not detected (D-05 C).
+  if (result.refusal) {
+    return {
+      ok: false, status: 'refused', error: CHAT_COPY.refusedTitle, remainingBalance: Number(newBalance),
+      refusal: { stage: result.refusal.stage, reasonCode: result.refusal.reasonCode, debitAmount },
+    };
   }
 
   const { reply, draft, proposal } = parseChatResponse(result.text);
