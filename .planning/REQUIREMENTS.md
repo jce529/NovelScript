@@ -63,7 +63,7 @@
 
 ### 프로바이더 추상화 · 선택 (PROV)
 
-- [ ] **PROV-01**: 작가가 공통 프로바이더 어댑터로 이관된 뒤에도 기존과 똑같이 Gemini로 생성할 수 있다 — 멘션 주입, 3단계 프리셋, 4종 문체, `[REPLY]/[DRAFT]/[DOCUMENT]` 초안·제안 파싱이 모두 그대로 동작한다
+- [x] **PROV-01**: 작가가 공통 프로바이더 어댑터로 이관된 뒤에도 기존과 똑같이 Gemini로 생성할 수 있다 — 멘션 주입, 3단계 프리셋, 4종 문체, `[REPLY]/[DRAFT]/[DOCUMENT]` 초안·제안 파싱이 모두 그대로 동작한다
 - [ ] **PROV-02**: 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [ ] **PROV-03**: 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [ ] **PROV-04**: 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
@@ -85,7 +85,7 @@
 
 ### AI 과금 경로 (COST)
 
-- [ ] **COST-01**: 서비스 키 호출의 토큰 차감이 멱등하다 — 같은 호출이 재시도돼도 두 번 차감되지 않는다 (현재 매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지가 무력화된 상태를 수정)
+- [x] **COST-01**: 서비스 키 호출의 토큰 차감이 멱등하다 — 같은 호출이 재시도돼도 두 번 차감되지 않는다 (현재 매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지가 무력화된 상태를 수정)
 - [ ] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
 
 ### MCP 서버 (MCP)
@@ -200,7 +200,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROV-01 | Phase 8 | Mapped |
+| PROV-01 | Phase 8 | Complete |
 | PROV-02 | Phase 9 | Mapped |
 | PROV-03 | Phase 9 | Mapped |
 | PROV-04 | Phase 9 | Mapped |
@@ -216,7 +216,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-07 | Phase 11 | Mapped |
 | BYOK-08 | Phase 11 | Mapped |
 | BYOK-09 | Phase 11 | Mapped |
-| COST-01 | Phase 8 | Mapped |
+| COST-01 | Phase 8 | Complete |
 | COST-02 | Phase 11 | Mapped |
 | MCP-01 | Phase 12 | Mapped |
 | MCP-02 | Phase 13 | Mapped |

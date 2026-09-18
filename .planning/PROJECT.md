@@ -34,6 +34,8 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 - [x] 작가가 회차를 등록/발행할 수 있다 — Validated in Phase 2: studio-core-writer-loop-no-ai
 - [x] 독자가 작품을 탐색(디스커버리)하고 회차를 읽을 수 있는 뷰어가 있다 — Validated in Phase 3: reader-core-reading-loop-no-payment
 - [x] 독자 디스커버리에 간소화된 인기/추천 지표(조회수·좋아요·다음화 이동률 등)가 반영된다 — Validated in Phase 3: reader-core-reading-loop-no-payment
+- [x] Gemini 생성이 공통 프로바이더 어댑터(`ProviderClient`)로 이관된 뒤에도 멘션·프리셋·문체·초안/제안 파싱이 그대로 동작한다 (PROV-01) — Validated in Phase 8: provider-adapter-idempotent-debit
+- [x] 같은 AI 호출을 재시도해도 지갑 토큰이 한 번만 차감된다 — 전송마다 고정 idempotencyKey (COST-01) — Validated in Phase 8: provider-adapter-idempotent-debit
 
 ### Active
 
@@ -82,6 +84,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 | BYOK 키 암호화 저장 방식은 리서치 단계에서 결정 | Supabase Vault와 앱 레벨 AES-GCM의 현재 지원 상태·운영 부담 비교 필요 | — Pending |
 | 랭킹/큐레이션은 간소화 지표로 시작 | 스크롤 심도 알고리즘은 정밀 설계·튜닝 비용이 크고, 베타에서는 반응 확인이 우선 | — Pending |
 | SLM 자동 사전검수 대신 운영자 수동 검토 | 베타 규모에서는 자동화 인프라(Cloud Run 큐 등) 구축 비용 대비 효용이 낮음 | — Pending |
+| 비용 상한에 로컬 입력 토큰 추정을 쓰지 않는다 — 출력 상한은 잔액 전체 기준, 차감은 실사용량을 호출 전 잔액까지만 | 실측에서 로컬 추정이 실제의 약 3배로 부정확했고, 호출 전 입력 비용 예약은 잔액이 바닥난 사용자에게만 의미가 있음 (2026-09-18) | 결정됨 — 사고 토큰 차감 여부는 미결(Phase 8 bugs/BUG-04) |
 | 에셋 스토어는 v1 범위 밖 | 집필-열람-결제 핵심 루프 검증이 먼저 | — Pending |
 | 실제 코드 구현은 GSD 표준 executor 대신 Antigravity CLI(`agy`)로 위임 | 사용자가 이미 사용 중인 별도 코딩 에이전트 CLI를 구현 단계에 활용하고 싶어함. `agy --print --dangerously-skip-permissions --output-format json`으로 비대화형 호출 가능함을 확인 | — Pending |
 
@@ -103,5 +106,5 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-15 — v1.1 마일스톤 개시 (멀티 프로바이더 AI + BYOK + 구독형 AI MCP)*
+*Last updated: 2026-09-18 — Phase 8 완료 (프로바이더 어댑터 + 멱등 차감, 로컬 토큰 추정 제거)*
 *Previously updated: 2026-09-08 — added 구독제(월정액) to Out of Scope as an explicit v2 candidate (per Phase 6 discussion follow-up)*

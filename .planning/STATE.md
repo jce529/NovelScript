@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: executing
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-09-17T11:41:22.794Z"
-last_activity: 2026-09-17 -- Phase 08 execution started
+status: ready
+stopped_at: Phase 8 complete (verified, user-approved)
+last_updated: "2026-09-18T07:17:43.438Z"
+last_activity: 2026-09-18
 progress:
   total_phases: 8
   completed_phases: 6
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 08 — provider-adapter-idempotent-debit
+**Current focus:** Phase 09 — OpenAI · Anthropic 어댑터 + 제공자별 단가 (next)
 
 ## Current Position
 
-Phase: 08 (provider-adapter-idempotent-debit) — EXECUTING
-Plan: 1 of 9
-Status: Executing Phase 08
-Last activity: 2026-09-17 -- Phase 08 execution started
+Phase: 08 complete → next 09
+Plan: —
+Status: Phase 08 complete 2026-09-18 (9/9, VERIFICATION passed). Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01..06; BUG-04 thinking-token billing decision pending)
+Last activity: 2026-09-18
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 

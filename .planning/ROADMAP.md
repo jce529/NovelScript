@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
 
-- [ ] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
+- [x] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
 - [ ] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
 - [ ] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다
 - [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다
@@ -224,7 +224,7 @@ Residual (stays in v1.0, not yet done):
 **Success Criteria** (what must be TRUE):
   1. 작가가 어댑터 이관 전과 똑같이 Gemini로 생성한다 — `@`멘션 주입, 3단계 프리셋, 4종 문체, `[REPLY]/[DRAFT]/[DOCUMENT]` 초안·제안 파싱이 모두 이전과 동일하게 동작한다
   2. 같은 생성 호출이 재시도돼도 지갑에서 토큰이 한 번만 차감된다 (매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지를 무력화하던 현재 동작이 고쳐진다)
-  3. 생성 전 비용 상한 계산이 원격 `countTokens` 호출 없이도 이전과 같은 수준으로 동작한다 (로컬 추정으로 전환 — 실제 차감은 여전히 제공자가 돌려준 실사용량 기준)
+  3. 생성 전 비용 상한 계산이 원격 `countTokens` 호출 없이도 이전과 같은 수준으로 동작한다 (2026-09-18 결정: 로컬 입력 추정도 제거 — 출력 상한은 잔액 전체 기준, 차감은 실사용량을 호출 전 잔액까지만)
   4. 제공자가 안전 거절(safety refusal)을 반환하면 작가는 영어 거절문이 창작 결과물처럼 렌더링되는 대신 한국어 안내를 본다
 **Plans**: 9 plans
 
@@ -245,7 +245,7 @@ Residual (stays in v1.0, not yet done):
 - [x] 08-08-PLAN.md — 개발 전용 프로바이더 fixture (blocked on 08-02, 08-05)
 
 **Wave 5**
-- [ ] 08-09-PLAN.md — 전체 게이트 + 브라우저·라이브 Gemini 검수 체크포인트 (blocked on 08-06, 08-07, 08-08)
+- [x] 08-09-PLAN.md — 전체 게이트 + 브라우저·라이브 Gemini 검수 체크포인트 (blocked on 08-06, 08-07, 08-08)
 
 **Notes**: 스키마 변경 없음(중복 방지 제약은 이미 존재). BYOK 키가 로그로 새는 유일한 경로인 **에러 스크러빙 choke point를 어댑터 인터페이스와 같이 출하**한다 — 세 번째 어댑터에서 잊히면 늦는다. 킥오프 체크리스트에 **OpenAI Organization Verification / Anthropic 빌링·tier 신청**을 넣어 병행 착수한다(외부 리드타임).
 
@@ -260,7 +260,7 @@ Residual (stays in v1.0, not yet done):
   4. 서비스 키 모드에서 작가가 보는 비용 추정치가 선택한 제공자·모델의 실제 단가를 반영한다 (Gemini 단가가 GPT 호출에 재사용되지 않는다)
 **Plans**: TBD
 **UI hint**: yes
-**Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. 한국어 토큰 추정 상수는 provider별로 분리해 한국어 산문 샘플로 보정한다(단일 상수는 같은 잔액에 대해 제공자마다 출력 예산이 달라지는 체감 문제를 만든다).
+**Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. ~~한국어 토큰 추정 상수는 provider별로 분리해 보정한다~~ — Phase 8에서 로컬 입력 추정을 제거했으므로(2026-09-18) 해당 없음. 출력 상한은 provider별 출력 단가로만 환산한다.
 
 ### Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지
 **Goal**: 작가가 자신의 API 키를 플랫폼에 맡기고, 그 키 검증이 돌려준 모델 목록이 곧 피커가 보여주는 "내가 실제로 쓸 수 있는 모델"이 된다 — 누가 비용을 내는지가 선택 시점에 보인다.
@@ -352,7 +352,7 @@ Residual (stays in v1.0, not yet done):
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
-| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 0/9 | Planned | - |
+| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
