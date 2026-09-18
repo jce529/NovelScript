@@ -1,7 +1,6 @@
 import 'server-only';
 import type { GenerateResult, ProviderClient } from './types';
 import { ProviderCallError } from './errors';
-import { estimateGeminiInputTokens } from '../token-estimate';
 
 /**
  * Canned provider for browser verification of refusal / error / lifecycle states
@@ -36,7 +35,6 @@ export function createFixtureProvider(mode: ProviderFixtureMode, opts: { delayMs
   const delayMs = opts.delayMs ?? 3000;
   return {
     provider: 'gemini',
-    estimateInputTokens: (systemInstruction, contents) => estimateGeminiInputTokens(systemInstruction, contents),
     async generateContent(): Promise<GenerateResult> {
       switch (mode) {
         case 'refusal-input':

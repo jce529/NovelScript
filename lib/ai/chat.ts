@@ -111,7 +111,7 @@ async function alreadyProcessed(admin: SupabaseClient, ownerId: string): Promise
  * this function.
  *
  * D-07 (07-03): generation is a user-initiated write. Write access is checked with the session
- * client BEFORE the wallet read and any provider call (no token estimate, no generation, no
+ * client BEFORE the wallet read and any provider call (no generation, no
  * charge for a suspended writer). A suspension can still land while the provider call is in
  * flight, so access is checked again with the service-role client immediately before the
  * wallet debit: if it is now refused, the completed output is discarded and nothing is charged.
@@ -155,9 +155,9 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory });
   const model = MODEL_TIER_TO_ID[input.modelTier];
 
-  // Local, synchronous estimate (no network) — D-13 reserves the input cost before the call.
-  const inputTokenCount = client.estimateInputTokens(systemInstruction, contents);
-  const maxOutputTokens = computeMaxOutputTokens({ walletBalance, modelTier: input.modelTier, inputTokenCount });
+  // No input-token estimate: the output cap comes from the whole balance. Actual input+output
+  // usage is debited after the call, clamped to the balance read above.
+  const maxOutputTokens = computeMaxOutputTokens({ walletBalance, modelTier: input.modelTier });
   if (maxOutputTokens <= 0) {
     return failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: walletBalance });
   }
@@ -178,9 +178,11 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   const stillAllowed = await checkWriteAccess(admin, ownerId);
   if (!stillAllowed.ok) return failed('write_denied', stillAllowed.error, { code: stillAllowed.code });
 
-  const debitAmount = computeDebitAmount({
+  // With no pre-call input estimate, actual usage can exceed the balance by a fraction of a
+  // token; charge at most what the wallet held so the writer still gets the capped body (D-13).
+  const debitAmount = Math.min(walletBalance, computeDebitAmount({
     modelTier: input.modelTier, promptTokenCount: result.usage.inputTokens, candidatesTokenCount: result.usage.outputTokens,
-  });
+  }));
 
   // Pre-debit recheck narrows the concurrent window so a racing duplicate gets no free body.
   const recheck = await findGenerationEntry(admin, ownerId, key);

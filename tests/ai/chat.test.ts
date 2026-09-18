@@ -68,7 +68,6 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     const { data: before } = await admin.from('wallets').select('balance').eq('id', owner.id).single();
 
     const client = createMockProvider({
-      estimateInputTokens: () => 50,
       generateContent: async () => ({
         text: '[REPLY]\n이렇게 이어봤어요.\n[DRAFT]\n생성된 문단\n[/DRAFT]',
         finishReason: 'stop', refusal: null, usage: { inputTokens: 100, outputTokens: 200, thoughtsTokens: null, reported: { input: true, output: true } },
@@ -97,7 +96,6 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     const freshUser = await createTestUser();
     await admin.rpc('apply_wallet_delta', { p_wallet_id: freshUser.id, p_delta: 1000, p_reference_type: 'test_grant', p_reference_id: 'grant-2', p_reason: 'test' });
     const client = createMockProvider({
-      estimateInputTokens: () => 50,
       generateContent: async () => { throw new Error('503 UNAVAILABLE'); },
     });
 
@@ -118,7 +116,6 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     const freshUser = await createTestUser();
     let called = false;
     const client = createMockProvider({
-      estimateInputTokens: () => 10,
       generateContent: async () => { called = true; return { text: 'x', finishReason: 'stop', refusal: null, usage: { inputTokens: 1, outputTokens: 1, thoughtsTokens: null, reported: { input: true, output: true } } }; },
     });
 
@@ -142,7 +139,6 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
 
     let capturedMaxOutputTokens: number | null = null;
     const client = createMockProvider({
-      estimateInputTokens: () => 500,
       generateContent: async (params) => {
         capturedMaxOutputTokens = params.maxOutputTokens;
         return { text: `[REPLY]\n일부만 생성됨\n[/REPLY]`, finishReason: 'max_tokens', refusal: null, usage: { inputTokens: 500, outputTokens: params.maxOutputTokens, thoughtsTokens: null, reported: { input: true, output: true } } };
@@ -156,7 +152,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       idempotencyKey: crypto.randomUUID(),
     });
 
-    expect(capturedMaxOutputTokens).toBe(710);
+    expect(capturedMaxOutputTokens).toBe(793);
     expect(result.ok).toBe(true);
     expect(result.wasCapped).toBe(true);
     expect(result.reply).toBe('일부만 생성됨');
@@ -165,7 +161,6 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
 
   it('returns a document proposal (not a draft) when the AI decides to propose a KB document', async () => {
     const client = createMockProvider({
-      estimateInputTokens: () => 50,
       generateContent: async () => ({
         text: '[REPLY]\n이런 인물은 어떨까요?\n[DOCUMENT]\n카테고리: 인물\n이름: 오수진\n내용:\n다정한 동료.\n[/DOCUMENT]',
         finishReason: 'stop', refusal: null, usage: { inputTokens: 100, outputTokens: 200, thoughtsTokens: null, reported: { input: true, output: true } },

@@ -284,7 +284,6 @@ describe('AI generation checks write access before provider work and before char
       expect(result).toMatchObject({ ok: false });
       expect(result.code).toBeDefined();
       expect(adminState.created).toBe(0);
-      expect(gemini.estimateInputTokens).not.toHaveBeenCalled();
       expect(gemini.generateContent).not.toHaveBeenCalled();
       expect(admin.rpcCalls).not.toContain('apply_wallet_delta');
     });

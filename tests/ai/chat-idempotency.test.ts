@@ -61,7 +61,6 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const result = await chat(session, asClient(provider), input);
     expect(result).toEqual({ ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 500 });
     expect(provider.generateContent).not.toHaveBeenCalled();
-    expect(provider.estimateInputTokens).not.toHaveBeenCalled();
     expect(debitCalls(admin)).toHaveLength(0);
   });
 
@@ -108,14 +107,10 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     expect(JSON.stringify(result)).not.toContain('DB-SENTINEL');
   });
 
-  it('uses the local estimate once and stops before the provider when the cap is 0', async () => {
+  it('stops before the provider when the balance is 0 (no input estimate)', async () => {
     setup({ balances: { [OWNER]: 0 } });
     const provider = createMockProvider();
     const result = await chat(session, asClient(provider), input);
-    expect(provider.estimateInputTokens).toHaveBeenCalledTimes(1);
-    const [sys, contents] = provider.estimateInputTokens.mock.calls[0];
-    expect(typeof sys).toBe('string');
-    expect(contents).toContain('이어서 써줘');
     expect(result).toEqual({
       ok: false, status: 'failed', failureKind: 'insufficient_balance', error: CHAT_COPY.insufficient_balance,
       wasCapped: true, remainingBalance: 0,
@@ -123,24 +118,24 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     expect(provider.generateContent).not.toHaveBeenCalled();
   });
 
-  it('passes the same (systemInstruction, contents) to the estimate and the provider', async () => {
-    setup({ balances: { [OWNER]: 1000 } });
+  it('caps output from the whole balance with no input estimate', async () => {
+    setup({ balances: { [OWNER]: 1 } });
     const provider = createMockProvider();
     await chat(session, asClient(provider), input);
-    const [sys, contents] = provider.estimateInputTokens.mock.calls[0];
-    expect(provider.generateContent.mock.calls[0][0]).toMatchObject({ systemInstruction: sys, contents, temperature: 0.9 });
+    const params = provider.generateContent.mock.calls[0][0];
+    expect(params).toMatchObject({ maxOutputTokens: 793, temperature: 0.9 });
+    expect(params.contents).toContain('이어서 써줘');
+    expect(provider).not.toHaveProperty('estimateInputTokens');
   });
 
-  it('settlement failure when actual usage exceeds the balance: no body, no negative balance', async () => {
+  it('actual usage above the balance debits only the remaining balance and still returns the body', async () => {
     const admin = setup({ balances: { [OWNER]: 1 } });
-    const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\nSECRET-BODY\n[DRAFT]\n본문\n[/DRAFT]', 100000, 100000) });
+    const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\n응답 본문', 100000, 100000) });
     const result = await chat(session, asClient(provider), input);
-    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement });
-    expect(result).not.toHaveProperty('reply');
-    expect(result).not.toHaveProperty('draft');
-    expect(result).not.toHaveProperty('proposal');
-    expect(admin.state.balances[OWNER]).toBe(1);
-    expect(keyRows(admin)).toHaveLength(0);
+    expect(result).toMatchObject({ ok: true, status: 'completed', reply: '응답 본문', remainingBalance: 0 });
+    expect(admin.state.balances[OWNER]).toBe(0);
+    expect(keyRows(admin)).toHaveLength(1);
+    expect((debitCalls(admin)[0][1] as { p_delta: number }).p_delta).toBe(-1);
   });
 
   it('debit error but another request already recorded the key → already_processed', async () => {
@@ -206,9 +201,9 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     expect(replay.status).toBe('already_processed');
   });
 
-  it('debits actual provider-reported usage, not the estimate', async () => {
+  it('debits actual provider-reported usage', async () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
-    const provider = createMockProvider({ estimateInputTokens: () => 5, generateContent: async () => okResult('[REPLY]\nx', 12345, 6789) });
+    const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\nx', 12345, 6789) });
     await chat(session, asClient(provider), input);
     const p = debitCalls(admin)[0][1] as { p_delta: number };
     expect(p.p_delta).toBe(-computeDebitAmount({ modelTier: 'lite', promptTokenCount: 12345, candidatesTokenCount: 6789 }));

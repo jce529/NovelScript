@@ -2,7 +2,6 @@ import 'server-only';
 import { GoogleGenAI, type GenerateContentResponse } from '@google/genai';
 import type { GenerateResult, ProviderClient, RefusalReasonCode, UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
-import { estimateGeminiInputTokens } from '../token-estimate';
 
 /** D-05 (B): safety-family finish reasons. Partial text is dropped, never surfaced. */
 const OUTPUT_REFUSAL_FINISH = new Set([
@@ -81,9 +80,6 @@ export function createGeminiProvider({ apiKey }: GeminiProviderOptions): Provide
         throw new ProviderCallError(toSanitizedProviderError('gemini', err));
       }
       return mapGeminiResponse(response);
-    },
-    estimateInputTokens(systemInstruction, contents) {
-      return estimateGeminiInputTokens(systemInstruction, contents);
     },
   };
 }

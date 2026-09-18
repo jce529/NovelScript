@@ -26,7 +26,6 @@ vi.mock('@/lib/kb/actions', () => ({ saveNodeContent: vi.fn() }));
 import { createFixtureProvider, readProviderFixture, PROVIDER_FIXTURE_MODES } from '@/lib/ai/providers/fixture';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError } from '@/lib/ai/providers/errors';
-import { estimateGeminiInputTokens } from '@/lib/ai/token-estimate';
 import { chatAction } from '@/app/studio/[workId]/chapters/[chapterId]/actions';
 
 const PARAMS = { model: 'm', systemInstruction: 'sys', contents: 'hello', maxOutputTokens: 100, temperature: 0.7 };
@@ -111,11 +110,9 @@ describe('createFixtureProvider', () => {
     expect(r.finishReason).toBe('stop');
   });
 
-  it('estimateInputTokens matches Gemini estimator for all modes', () => {
+  it('exposes no input-token estimator in any mode', () => {
     for (const mode of PROVIDER_FIXTURE_MODES) {
-      expect(createFixtureProvider(mode).estimateInputTokens('sys', 'contents text')).toBe(
-        estimateGeminiInputTokens('sys', 'contents text'),
-      );
+      expect(createFixtureProvider(mode)).not.toHaveProperty('estimateInputTokens');
     }
   });
 });

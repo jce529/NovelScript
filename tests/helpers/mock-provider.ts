@@ -11,11 +11,10 @@ export function okResult(text = '[REPLY]\n(mock) 응답', inputTokens = 10, outp
 }
 
 export function createMockProvider(
-  overrides: Partial<Pick<ProviderClient, 'generateContent' | 'estimateInputTokens'>> = {},
+  overrides: Partial<Pick<ProviderClient, 'generateContent'>> = {},
 ) {
   return {
     provider: 'gemini' as const,
     generateContent: vi.fn(overrides.generateContent ?? (async () => okResult())),
-    estimateInputTokens: vi.fn(overrides.estimateInputTokens ?? (() => 10)),
   };
 }

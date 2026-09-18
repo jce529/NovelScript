@@ -3,7 +3,6 @@ import type { GenerateContentResponse } from '@google/genai';
 import { createGeminiProvider, mapGeminiResponse } from '@/lib/ai/providers/gemini';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, toSanitizedProviderError } from '@/lib/ai/providers/errors';
-import { estimateGeminiInputTokens } from '@/lib/ai/token-estimate';
 
 const sdk = vi.hoisted(() => ({
   ctorOptions: [] as unknown[],
@@ -153,9 +152,9 @@ describe('createGeminiProvider', () => {
     expect(result).toEqual(mapGeminiResponse(sdkResponse));
   });
 
-  it('estimateInputTokens is offline and matches the estimator', () => {
+  it('has no input-token estimator and never calls remote countTokens', () => {
     const provider = createGeminiProvider({ apiKey: 'k' });
-    expect(provider.estimateInputTokens('S', 'C')).toBe(estimateGeminiInputTokens('S', 'C'));
+    expect(provider).not.toHaveProperty('estimateInputTokens');
     expect(sdk.countTokens).not.toHaveBeenCalled();
   });
 

@@ -42,22 +42,20 @@ export const PER_REQUEST_MAX_OUTPUT_TOKENS = 2048;
 export interface ComputeMaxOutputTokensInput {
   walletBalance: number;
   modelTier: ModelTier;
-  inputTokenCount: number;
 }
 
 /**
  * D-13: "잔여 토큰까지만 생성. 이후 토큰이 전부 소모됐더라도 알리고 작업 중단."
- * Reserves the input cost first (Open Question 2: input tokens are billed too, per
- * the local input-token estimate (lib/ai/token-estimate.ts) computed before this is called), converts whatever wallet balance remains
- * into an output-token budget, then applies PER_REQUEST_MAX_OUTPUT_TOKENS on top.
- * Returns 0 when the balance can't cover even the input cost — lib/ai/generate.ts
+ * Converts the whole wallet balance into an output-token budget, then applies
+ * PER_REQUEST_MAX_OUTPUT_TOKENS on top. There is deliberately no pre-call input-token
+ * estimate (Phase 8 decision): input is billed from actual post-call usage, so a
+ * near-empty wallet may overshoot by a fraction of a token and hit settlement.
+ * Returns 0 when the balance is 0 or less — lib/ai/chat.ts
  * MUST treat 0 as "stop before calling generateContent at all", never call the API
  * with maxOutputTokens: 0.
  */
-export function computeMaxOutputTokens({ walletBalance, modelTier, inputTokenCount }: ComputeMaxOutputTokensInput): number {
-  const inputCostInWalletTokens = inputTokenCount * walletTokensPerGeminiToken(modelTier, 'input');
-  const remainingForOutput = Math.max(0, walletBalance - inputCostInWalletTokens);
-  const outputBudget = Math.floor(remainingForOutput * geminiTokensPerWalletToken(modelTier, 'output'));
+export function computeMaxOutputTokens({ walletBalance, modelTier }: ComputeMaxOutputTokensInput): number {
+  const outputBudget = Math.floor(Math.max(0, walletBalance) * geminiTokensPerWalletToken(modelTier, 'output'));
   return Math.max(0, Math.min(outputBudget, PER_REQUEST_MAX_OUTPUT_TOKENS));
 }
 
@@ -70,8 +68,7 @@ export interface ComputeDebitInput {
 /**
  * Open Question 2 resolution: debit BOTH input and output tokens, because the
  * platform pays Gemini for input tokens too. MUST be called with the ACTUAL
- * post-call usageMetadata values (Pitfall 2) — never the pre-call local input-token
- * estimate. Rounds up so the platform never under-charges by a fraction.
+ * post-call usageMetadata values (Pitfall 2). Rounds up so the platform never under-charges by a fraction.
  */
 export function computeDebitAmount({ modelTier, promptTokenCount, candidatesTokenCount }: ComputeDebitInput): number {
   const inputCost = promptTokenCount * walletTokensPerGeminiToken(modelTier, 'input');

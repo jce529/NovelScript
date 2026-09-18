@@ -18,18 +18,18 @@ describe('lib/ai/cost.ts — wallet-token <-> Gemini-token conversion (Open Ques
   });
 
   it('caps output at 0 when the wallet balance is exhausted (D-13 hard-stop case)', () => {
-    expect(computeMaxOutputTokens({ walletBalance: 0, modelTier: 'lite', inputTokenCount: 0 })).toBe(0);
+    expect(computeMaxOutputTokens({ walletBalance: 0, modelTier: 'lite' })).toBe(0);
   });
 
   it('caps output at PER_REQUEST_MAX_OUTPUT_TOKENS for a healthy balance (request ceiling binds, not the balance)', () => {
-    const cap = computeMaxOutputTokens({ walletBalance: 100, modelTier: 'lite', inputTokenCount: 500 });
+    const cap = computeMaxOutputTokens({ walletBalance: 100, modelTier: 'lite' });
     expect(cap).toBe(2048);
     expect(cap).toBe(PER_REQUEST_MAX_OUTPUT_TOKENS);
   });
 
-  it('caps output below the request ceiling for a low balance + large context (D-13 partial-generation case)', () => {
-    const cap = computeMaxOutputTokens({ walletBalance: 1, modelTier: 'pro', inputTokenCount: 500 });
-    expect(cap).toBe(710);
+  it('caps output below the request ceiling for a low balance, from the whole balance with no input estimate', () => {
+    const cap = computeMaxOutputTokens({ walletBalance: 1, modelTier: 'pro' });
+    expect(cap).toBe(793);
     expect(cap).toBeLessThan(PER_REQUEST_MAX_OUTPUT_TOKENS);
   });
 

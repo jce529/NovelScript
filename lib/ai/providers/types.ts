@@ -30,7 +30,7 @@ export interface ProviderRefusal {
   reasonCode: RefusalReasonCode;
 }
 
-/** Provider-reported usage only. Missing fields become 0 with reported flag false — never filled from the local estimate. */
+/** Provider-reported usage only. Missing fields become 0 with reported flag false — never estimated locally. */
 export interface UsageReport {
   inputTokens: number;
   outputTokens: number;
@@ -57,8 +57,6 @@ export interface ProviderClient {
   readonly provider: ProviderId;
   /** Throws ONLY ProviderCallError (sanitized). Never throws a raw SDK error. */
   generateContent(params: GenerateParams): Promise<GenerateResult>;
-  /** Synchronous, offline. No network call. */
-  estimateInputTokens(systemInstruction: string, contents: string): number;
 }
 
 export type ProviderErrorKind = 'rate_limited' | 'unavailable' | 'config';
