@@ -1,8 +1,8 @@
 ---
 phase: 08
 slug: provider-adapter-idempotent-debit
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-17
 ---
@@ -114,4 +114,4 @@ Live refusal accounting remains unverified; do not infer invoice semantics from 
 - [ ] No watch-mode flags; feedback latency measured.
 - [ ] `nyquist_compliant: true` only after plan coverage validation.
 
-**Approval:** pending. This document records a strategy, not completed feature verification.
+**Approval:** approved by user 2026-09-18 after browser checkpoint (B–F fixtures, live Gemini A, balance refresh, layout). Known issues tracked in bugs/ (BUG-01..06); build failure BUG-03 is pre-existing (phase 7) and deferred.
