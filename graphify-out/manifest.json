@@ -432,15 +432,15 @@
     "semantic_hash": ""
   },
   "lib/ai/chat.ts": {
-    "mtime": 1789645789.1654701,
-    "seen": 1789645863.5554225,
-    "ast_hash": "73db662510bfc4974a86fc4e87e071c2",
+    "mtime": 1789712696.897925,
+    "seen": 1789712807.601652,
+    "ast_hash": "3b494e8fc80d642ce375edc56a23f9a9",
     "semantic_hash": ""
   },
   "lib/ai/cost.ts": {
-    "mtime": 1789645737.2353654,
-    "seen": 1789645863.5554242,
-    "ast_hash": "812089592c85955338df98f8dc267309",
+    "mtime": 1789712562.618027,
+    "seen": 1789712807.601654,
+    "ast_hash": "d66f56f5205405b4b455f038bd3bcc1d",
     "semantic_hash": ""
   },
   "lib/ai/mentions.ts": {
@@ -654,16 +654,16 @@
     "semantic_hash": ""
   },
   "tests/ai/chat.test.ts": {
-    "mtime": 1789646036.1154997,
-    "seen": 1789646047.5533636,
-    "ast_hash": "bc3f659adb116be7d0ffa6a8f6d83bd1",
+    "mtime": 1789712527.6576133,
+    "seen": 1789712807.6018052,
+    "ast_hash": "bde3f9649c373b7dfdc91e638c4e0836",
     "semantic_hash": ""
   },
   "tests/ai/cost-estimate.test.ts": {
-    "mtime": 1788146214.421716,
-    "seen": 1789558930.6117508,
-    "ast_hash": "66d873b54f84f5f1b6ee1a7cae1a71d2",
-    "semantic_hash": "66d873b54f84f5f1b6ee1a7cae1a71d2"
+    "mtime": 1789712527.6536114,
+    "seen": 1789712807.6018066,
+    "ast_hash": "bdc1b32c0eb0aa71812820189ad4a30a",
+    "semantic_hash": ""
   },
   "tests/ai/mention-context.test.ts": {
     "mtime": 1788070657.775268,
@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1789646204.155167,
-    "seen": 1789646317.2340314,
-    "ast_hash": "795d9031241ae3980eae9b3b5fabc761",
+    "mtime": 1789646492.6873224,
+    "seen": 1789712807.6018999,
+    "ast_hash": "2cb2ef0bd65368f6a000ce782d23a8a1",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
@@ -3252,9 +3252,9 @@
     "semantic_hash": ""
   },
   "tests/admin/sanctions.test.ts": {
-    "mtime": 1789645832.7351172,
-    "seen": 1789645863.5554976,
-    "ast_hash": "643538a15dcbcde1baef26de21bce43b",
+    "mtime": 1789712527.6546116,
+    "seen": 1789712807.601792,
+    "ast_hash": "8a1053cffaa266e434fc6a81bafa6094",
     "semantic_hash": ""
   },
   ".planning/phases/07-admin-moderation-surface/07-05-SUMMARY.md": {
@@ -3378,27 +3378,15 @@
     "semantic_hash": ""
   },
   "lib/ai/providers/types.ts": {
-    "mtime": 1789645348.273371,
-    "seen": 1789645529.7506824,
-    "ast_hash": "58133f67b1843568b6dd68de8e7cdf8c",
-    "semantic_hash": ""
-  },
-  "lib/ai/token-estimate.ts": {
-    "mtime": 1789645410.771624,
-    "seen": 1789645529.7506833,
-    "ast_hash": "b1c03fe1ef0eb2553524af7f2d7e5266",
+    "mtime": 1789712550.9538167,
+    "seen": 1789712807.6016648,
+    "ast_hash": "3843ca6ee82185dbc0d9ece85df09f94",
     "semantic_hash": ""
   },
   "tests/ai/provider-errors.test.ts": {
     "mtime": 1789645366.5618203,
     "seen": 1789645529.7507558,
     "ast_hash": "af567f4be7063352ad26572bbb6bf757",
-    "semantic_hash": ""
-  },
-  "tests/ai/token-estimate.test.ts": {
-    "mtime": 1789645392.3487868,
-    "seen": 1789645529.750757,
-    "ast_hash": "81faca32f547a9fe51f39fc59c6e9fe5",
     "semantic_hash": ""
   },
   ".planning/phases/07-admin-moderation-surface/07-07-SUMMARY.md": {
@@ -3486,9 +3474,9 @@
     "semantic_hash": ""
   },
   ".planning/phases/08-provider-adapter-idempotent-debit/08-VALIDATION.md": {
-    "mtime": 1789645020.2573137,
-    "seen": 1789645529.7509818,
-    "ast_hash": "dc26c37f38178aaa9c010de8b0ebae6c",
+    "mtime": 1789712775.4169607,
+    "seen": 1789712807.6021047,
+    "ast_hash": "289d84f6fef83ca21736fce2bcdd355c",
     "semantic_hash": ""
   },
   ".planning/seeds/SEED-001-refusal-review-refund-prefilter.md": {
@@ -3516,9 +3504,9 @@
     "semantic_hash": ""
   },
   "lib/ai/providers/gemini.ts": {
-    "mtime": 1789645692.1941388,
-    "seen": 1789645705.8377707,
-    "ast_hash": "d287a2e78d3622654c02b2346db572f4",
+    "mtime": 1789712550.9518068,
+    "seen": 1789712807.601661,
+    "ast_hash": "37b5889191e2751ab967931a1fc9cde5",
     "semantic_hash": ""
   },
   "lib/ai/providers/registry.ts": {
@@ -3534,9 +3522,9 @@
     "semantic_hash": ""
   },
   "tests/ai/chat-idempotency.test.ts": {
-    "mtime": 1789645659.9368365,
-    "seen": 1789645705.8378456,
-    "ast_hash": "64ec077e980ce07ca532c04903ea503f",
+    "mtime": 1789712685.3531418,
+    "seen": 1789712807.6018002,
+    "ast_hash": "7f416909c090ca9e6d31192be7ebe2de",
     "semantic_hash": ""
   },
   "tests/ai/chat-request-lifecycle.test.ts": {
@@ -3546,9 +3534,9 @@
     "semantic_hash": ""
   },
   "tests/ai/provider-gemini.test.ts": {
-    "mtime": 1789645665.041429,
-    "seen": 1789645705.8378565,
-    "ast_hash": "0df34ac984e7b1b5e0e8d26a2805f387",
+    "mtime": 1789712527.6566105,
+    "seen": 1789712807.6018155,
+    "ast_hash": "ec397c782568b7a16335564b6c5cdaa6",
     "semantic_hash": ""
   },
   "tests/helpers/fake-ledger-admin.ts": {
@@ -3558,9 +3546,9 @@
     "semantic_hash": ""
   },
   "tests/helpers/mock-provider.ts": {
-    "mtime": 1789645611.0420232,
-    "seen": 1789645705.8378797,
-    "ast_hash": "91c6bf8ffa689bd547d7ea64d2c87946",
+    "mtime": 1789712527.6536114,
+    "seen": 1789712807.601848,
+    "ast_hash": "a3b405d21acaf187710166f603f08197",
     "semantic_hash": ""
   },
   ".planning/phases/08-provider-adapter-idempotent-debit/08-01-SUMMARY.md": {
@@ -3606,15 +3594,15 @@
     "semantic_hash": ""
   },
   "lib/ai/providers/fixture.ts": {
-    "mtime": 1789646267.5529108,
-    "seen": 1789646317.2338715,
-    "ast_hash": "cb73427dd9a397b367f9658a3e7eb810",
+    "mtime": 1789712550.9528153,
+    "seen": 1789712807.6016593,
+    "ast_hash": "8b8dd5c0beb6c36a520c6f86694e67dc",
     "semantic_hash": ""
   },
   "tests/ai/provider-fixture.test.ts": {
-    "mtime": 1789646252.0750098,
-    "seen": 1789646317.2339604,
-    "ast_hash": "1d1d105899c33dd1c4b3e5086253f670",
+    "mtime": 1789712527.655613,
+    "seen": 1789712807.6018145,
+    "ast_hash": "5422183a2cd9d2634851d541b4b9cd33",
     "semantic_hash": ""
   },
   ".planning/phases/08-provider-adapter-idempotent-debit/08-06-SUMMARY.md": {
@@ -3627,6 +3615,18 @@
     "mtime": 1789646329.1839638,
     "seen": 1789646408.7974756,
     "ast_hash": "d2906ff0aa419395a0305e741ef9bca5",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/08-07-SUMMARY.md": {
+    "mtime": 1789646424.9138873,
+    "seen": 1789712807.6020935,
+    "ast_hash": "a2435ee69d800d570b58cd5fd9f9d82b",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/deferred-items.md": {
+    "mtime": 1789646584.8112361,
+    "seen": 1789712807.6021056,
+    "ast_hash": "15d9b77312aa09caeb9be82f10ae5a1d",
     "semantic_hash": ""
   }
 }
