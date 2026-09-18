@@ -48,8 +48,9 @@ export interface ComputeMaxOutputTokensInput {
  * D-13: "잔여 토큰까지만 생성. 이후 토큰이 전부 소모됐더라도 알리고 작업 중단."
  * Converts the whole wallet balance into an output-token budget, then applies
  * PER_REQUEST_MAX_OUTPUT_TOKENS on top. There is deliberately no pre-call input-token
- * estimate (Phase 8 decision): input is billed from actual post-call usage, so a
- * near-empty wallet may overshoot by a fraction of a token and hit settlement.
+ * estimate (Phase 8 decision): input is billed from actual post-call usage, and
+ * lib/ai/chat.ts clamps that debit to the pre-call balance, so a near-empty wallet
+ * still gets the capped body and the platform absorbs the fractional overshoot.
  * Returns 0 when the balance is 0 or less — lib/ai/chat.ts
  * MUST treat 0 as "stop before calling generateContent at all", never call the API
  * with maxOutputTokens: 0.
