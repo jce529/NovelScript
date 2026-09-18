@@ -438,9 +438,9 @@
     "semantic_hash": ""
   },
   "lib/ai/cost.ts": {
-    "mtime": 1789712562.618027,
-    "seen": 1789712807.601654,
-    "ast_hash": "d66f56f5205405b4b455f038bd3bcc1d",
+    "mtime": 1789715858.9373686,
+    "seen": 1789715929.2907698,
+    "ast_hash": "1f62987ec0d04574b6227b055261ae06",
     "semantic_hash": ""
   },
   "lib/ai/mentions.ts": {
@@ -966,27 +966,27 @@
     "semantic_hash": ""
   },
   ".planning/PROJECT.md": {
-    "mtime": 1789554388.5728593,
-    "seen": 1789558930.6118114,
-    "ast_hash": "facb22eaae70f1e63586a789a7e19e8a",
+    "mtime": 1789715907.200535,
+    "seen": 1789715929.2910438,
+    "ast_hash": "8816705fffb679dc664923b97aa77b45",
     "semantic_hash": ""
   },
   ".planning/REQUIREMENTS.md": {
-    "mtime": 1789558993.1969042,
-    "seen": 1789559813.6632545,
-    "ast_hash": "1553f5be91e20071fb40f2608e7eb660",
+    "mtime": 1789715886.0593872,
+    "seen": 1789715929.2910452,
+    "ast_hash": "8253c6cfc5f0557e9084869ddce571db",
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1789646492.6873224,
-    "seen": 1789712807.6018999,
-    "ast_hash": "2cb2ef0bd65368f6a000ce782d23a8a1",
+    "mtime": 1789715886.5034332,
+    "seen": 1789715929.2910461,
+    "ast_hash": "8b158f26cd3db3025ea444cb2934877f",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
-    "mtime": 1789645282.795471,
-    "seen": 1789645529.750821,
-    "ast_hash": "4ae311c6a6e608dbb7fd780bca1eb521",
+    "mtime": 1789715886.0593872,
+    "seen": 1789715929.2910476,
+    "ast_hash": "8e8677f9f56fb9de9f503491af1f7d28",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-01-PLAN.md": {
@@ -3474,9 +3474,9 @@
     "semantic_hash": ""
   },
   ".planning/phases/08-provider-adapter-idempotent-debit/08-VALIDATION.md": {
-    "mtime": 1789712775.4169607,
-    "seen": 1789712807.6021047,
-    "ast_hash": "289d84f6fef83ca21736fce2bcdd355c",
+    "mtime": 1789715679.0784087,
+    "seen": 1789715929.2912602,
+    "ast_hash": "e0965c4f7c7974a40292359a973ef4e4",
     "semantic_hash": ""
   },
   ".planning/seeds/SEED-001-refusal-review-refund-prefilter.md": {
@@ -3627,6 +3627,60 @@
     "mtime": 1789646584.8112361,
     "seen": 1789712807.6021056,
     "ast_hash": "15d9b77312aa09caeb9be82f10ae5a1d",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/08-09-SUMMARY.md": {
+    "mtime": 1789715679.1171286,
+    "seen": 1789715929.2912538,
+    "ast_hash": "5f334bb1e081ae3f0b085445214585f4",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/08-VERIFICATION.md": {
+    "mtime": 1789715827.068925,
+    "seen": 1789715929.2912614,
+    "ast_hash": "0bc8773e9a5783491c7ae811b347eb34",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/BUG-01-proposal-save-nested-category-folder.md": {
+    "mtime": 1789715571.3906915,
+    "seen": 1789715929.2912629,
+    "ast_hash": "bd94aee6d16c976a12cad65668543918",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/BUG-02-mention-enter-inserts-newline.md": {
+    "mtime": 1789715581.947273,
+    "seen": 1789715929.2912643,
+    "ast_hash": "bbce6704ab88267236ebf4d6cbcf0184",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/BUG-03-admin-prerender-build-failure.md": {
+    "mtime": 1789715592.0804832,
+    "seen": 1789715929.2912657,
+    "ast_hash": "683dece8eb19dd10b6e7a8c1976718ae",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/BUG-04-thinking-tokens-not-debited.md": {
+    "mtime": 1789715605.8840256,
+    "seen": 1789715929.291267,
+    "ast_hash": "3d49cbda9fb04a8eb9fdf6c7cbc3660a",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/BUG-05-fixture-env-requires-restart.md": {
+    "mtime": 1789715616.454401,
+    "seen": 1789715929.2912679,
+    "ast_hash": "5a73a19111c805ad3fbd5abbf2cafd56",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/BUG-06-editor-horizontal-overflow.md": {
+    "mtime": 1789715624.389079,
+    "seen": 1789715929.291269,
+    "ast_hash": "a60c8e4b05e042f2da9e69934a5d7179",
+    "semantic_hash": ""
+  },
+  ".planning/phases/08-provider-adapter-idempotent-debit/bugs/README.md": {
+    "mtime": 1789715557.3904903,
+    "seen": 1789715929.2912703,
+    "ast_hash": "1113e1f5ac63a6416e4efd77e90a3e81",
     "semantic_hash": ""
   }
 }
