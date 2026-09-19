@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 ## Current Position
 
-Phase: 08 complete → next 09
+Phase: 09 — context gathered (09-CONTEXT.md)
 Plan: —
-Status: Phase 08 complete 2026-09-18 (9/9, VERIFICATION passed). Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01..06; BUG-04 thinking-token billing decision pending)
-Last activity: 2026-09-18
+Status: Phase 09 discuss 완료 2026-09-19. BUG-04 정책 확정(사고 토큰 출력 단가 차감) → Phase 9 착수 전 /gsd:quick으로 수정. Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01..06)
+Last activity: 2026-09-19
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
