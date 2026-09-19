@@ -19,7 +19,14 @@ node -e "const j=require(require('os').homedir()+'/.codex/auth.json');const p=JS
 - `EXPIRED`가 나오면 진행하지 말고 사용자에게 `!codex login`을 요청한다 (브라우저 인증이 필요해 Codex가 대신 못 함).
 - `~/.codex/hooks.json`이 파싱 에러를 내면 최상위 키가 `hooks`로 감싸져 있는지 확인한다 (`{"hooks": {"SessionStart": [...]}}`) — Codex용 형식과 혼동하기 쉬운 지점.
 
-**실행 권한 기본값**: `-s workspace-write --approve-for-me` (레포 안에서만 파일 쓰기/명령 실행 자동승인, 외부 네트워크·레포 밖 접근은 불가). 사용자가 다른 수준(완전 자동 `danger-full-access` 또는 플랜마다 수동 승인)을 요청하지 않는 한 이 기본값을 쓴다.
+**모델 명시 (필수)**: `codex exec`는 매번 `-m <모델>`과 `-c model_reasoning_effort=<low|medium|high>`를 붙여 호출한다. `~/.codex/config.toml` 기본값에 맡기지 않는다(AGENTS.md "외부 AI 호출 시 모델 명시"). 사용자가 지정한 모델이 최우선이고, 지정이 없으면 GSD `executor_model`을 쓴다. 호출 직전에 사용자에게 모델·추론 강도를 한 줄로 알리고, 실행 로그 첫머리의 `model:` 줄이 명시한 값과 다르면 즉시 중단한다.
+
+**실행 권한 기본값**: `-s workspace-write` (레포 안에서만 파일 쓰기, 외부 네트워크·레포 밖 접근 불가, exec 모드라 승인 요청은 `never`로 자동 거절). 주의:
+- `--approve-for-me`는 그 자체로 workspace-write 샌드박스를 쓰므로 `-s`와 **함께 쓸 수 없다**(`cannot be used with '--approve-for-me'` 오류).
+- `--approve-for-me`는 auto mode 분류기가 막을 수 있다. 사용자가 명시적으로 요청할 때만 쓴다.
+- 샌드박스는 네트워크를 막으므로 원격 DB(Supabase) 통합 테스트는 Codex 안에서 실패한다. Codex 자체 검증은 단위 테스트 범위(예: `npx vitest run tests/ai`)와 `npx tsc --noEmit`로 한정하고, 전체 `npm test`는 3단계에서 샌드박스 밖에서 돌린다.
+
+사용자가 다른 수준(완전 자동 `danger-full-access` 등)을 요청하지 않는 한 이 기본값을 쓴다.
 
 ## 1단계 — 계획 (Codex / GSD)
 
@@ -39,8 +46,10 @@ GSD 플랜 템플릿은 이미 task마다 `<acceptance_criteria>`(grep/테스트
 
 ```bash
 codex exec \
-  -C "C:/Users/MSI/NovelScript" \
-  -s workspace-write --approve-for-me \
+  -C "C:/Users/chang/novelscript-mvp" \
+  -m gpt-5.6-terra \
+  -c model_reasoning_effort=medium \
+  -s workspace-write \
   -o "<scratchpad>/codex-<plan-id>-result.txt" \
   - <<'PROMPT'
 아래 계획을 TDD로 실행하라.
@@ -58,6 +67,8 @@ codex exec \
 PROMPT
 ```
 
+- `-m`·`model_reasoning_effort` 값은 예시다. 위 "모델 명시" 규칙에 따라 매번 실제로 쓸 값으로 채우고, 실행 후 로그의 `model:` 줄로 확인한다.
+- ChatGPT 사용 한도 초과(`You've hit your usage limit`)로 실패하면 재시도하지 말고 해제 시각과 함께 사용자에게 알려, 기다릴지 직접 진행할지 묻는다.
 - `-o`로 마지막 응답을 파일로 받아 결과 요약을 빠르게 확인한다. 필요하면 `--json`으로 이벤트 스트림을 받아 실패한 커맨드를 추적한다.
 - 이 호출은 Bash 도구로 동기 실행한다 (완료까지 대기 후 다음 단계로).
 - Codex가 인증/샌드박스 오류를 내면 사전 조건 섹션으로 돌아가 재확인한다.
