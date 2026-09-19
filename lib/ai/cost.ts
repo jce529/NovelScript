@@ -64,15 +64,18 @@ export interface ComputeDebitInput {
   modelTier: ModelTier;
   promptTokenCount: number;
   candidatesTokenCount: number;
+  thoughtsTokenCount?: number | null;
 }
 
 /**
  * Open Question 2 resolution: debit BOTH input and output tokens, because the
  * platform pays Gemini for input tokens too. MUST be called with the ACTUAL
  * post-call usageMetadata values (Pitfall 2). Rounds up so the platform never under-charges by a fraction.
+ * 사고(thinking) 토큰은 제공자가 출력 요금으로 청구하므로 출력 단가로 합산 (BUG-04, 09-CONTEXT D-12). null/미지정 = 0.
  */
-export function computeDebitAmount({ modelTier, promptTokenCount, candidatesTokenCount }: ComputeDebitInput): number {
+export function computeDebitAmount({ modelTier, promptTokenCount, candidatesTokenCount, thoughtsTokenCount }: ComputeDebitInput): number {
   const inputCost = promptTokenCount * walletTokensPerGeminiToken(modelTier, 'input');
-  const outputCost = candidatesTokenCount * walletTokensPerGeminiToken(modelTier, 'output');
+  const thoughts = thoughtsTokenCount ?? 0;
+  const outputCost = (candidatesTokenCount + thoughts) * walletTokensPerGeminiToken(modelTier, 'output');
   return Math.max(0, Math.ceil(inputCost + outputCost));
 }

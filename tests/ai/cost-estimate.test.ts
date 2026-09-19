@@ -38,6 +38,29 @@ describe('lib/ai/cost.ts — wallet-token <-> Gemini-token conversion (Open Ques
     expect(debit).toBe(3);
   });
 
+  it('adds thinking tokens at the output rate', () => {
+    expect(computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2048, thoughtsTokenCount: 2000 })).toBe(6);
+  });
+
+  it('preserves the debit when thinking tokens are omitted', () => {
+    expect(computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2048 })).toBe(3);
+  });
+
+  it('treats unreported thinking tokens as zero', () => {
+    expect(computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2048, thoughtsTokenCount: null })).toBe(3);
+  });
+
+  it('charges thinking-only usage at the output rather than input rate', () => {
+    expect(computeDebitAmount({ modelTier: 'lite', promptTokenCount: 0, candidatesTokenCount: 0, thoughtsTokenCount: 1000 })).toBe(2);
+  });
+
+  it('returns a nonnegative integer positive zero for zero usage', () => {
+    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 0, candidatesTokenCount: 0, thoughtsTokenCount: 0 });
+    expect(debit).toBe(0);
+    expect(Number.isInteger(debit)).toBe(true);
+    expect(Object.is(debit, -0)).toBe(false);
+  });
+
   it('exposes the conversion constants as named, tunable exports (not inlined magic numbers)', () => {
     expect(typeof KRW_PER_WALLET_TOKEN).toBe('number');
     expect(typeof USD_TO_KRW).toBe('number');
