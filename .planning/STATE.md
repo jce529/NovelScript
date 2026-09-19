@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: ready
-stopped_at: Phase 8 complete (verified, user-approved)
-last_updated: "2026-09-18T07:17:43.438Z"
+status: planning
+stopped_at: Phase 9 context gathered
+last_updated: "2026-09-19T12:40:02.434Z"
 last_activity: 2026-09-18
 progress:
   total_phases: 8
@@ -170,6 +170,7 @@ Recent decisions affecting current work:
 ### Blockers/Concerns
 
 - **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
+- **[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).
 - **[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.
 - **[v1.1] BYOK 키는 응답 본문이 아니라 Error 객체의 request config(`Authorization` 헤더)를 통해 새난다.** 관찰성 목적의 `console.error(err)` 한 줄이면 끝이고 로그는 회수 불가능하다. 스크러밍 choke point를 어댑터 인터페이스와 **같이** 출하한다(Phase 8).
 - **[v1.1] MCP 도구가 `createAdminClient()` 관행을 복사하면 confused deputy가 된다.** Server Action에서 옆았던 패턴이 bearer 토큰 호출에서는 교차 사용자 읽기/쓰기를 열어준다(Phase 13/14).
@@ -183,11 +184,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-17T11:12:55.280Z
-Stopped at: Phase 8 UI-SPEC approved
+Last session: 2026-09-19T12:40:02.427Z
+Stopped at: Phase 9 context gathered
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
-Resume file: .planning/phases/08-provider-adapter-idempotent-debit/08-UI-SPEC.md
+Resume file: .planning/phases/09-openai-anthropic-adapters-pricing/09-CONTEXT.md
