@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: planning
+status: verifying
 stopped_at: Phase 9 context gathered
-last_updated: "2026-09-19T12:40:02.434Z"
-last_activity: 2026-09-18
+last_updated: "2026-09-22T04:33:30.959Z"
+last_activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04 매핑
 progress:
-  total_phases: 8
-  completed_phases: 6
-  total_plans: 36
-  completed_plans: 37
+  total_phases: 16
+  completed_phases: 7
+  total_plans: 45
+  completed_plans: 46
 ---
 
 # Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 Phase: 09 — context gathered (09-CONTEXT.md)
 Plan: —
-Status: Phase 09 discuss 완료 2026-09-19. BUG-04 정책 확정(사고 토큰 출력 단가 차감) 및 수정 완료 2026-09-22. Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01, 02, 03, 05, 06 open; BUG-04 fixed, output-truncation half deferred pending real-usage data)
-Last activity: 2026-09-22 — BUG-04 사고 토큰 차감 누락 수정 (lib/ai/cost.ts, lib/ai/chat.ts)
+Status: Phase 09 discuss 완료 2026-09-19. BUG-04 정책 확정(사고 토큰 출력 단가 차감) 및 수정 완료 2026-09-22. Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01, 02, 03, 05, 06 open; BUG-04 fixed, output-truncation half deferred pending real-usage data). BUG-01은 Phase 4 원인 버그로 확인되어 Phase 15로 승격됨.
+Last activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04 매핑, BUG-04 사고 토큰 차감 누락 수정 (lib/ai/cost.ts, lib/ai/chat.ts)
 
-> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~14 기준 0/7, 계획 0개. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
+> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 1/8 완료. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
@@ -45,6 +45,7 @@ Last activity: 2026-09-22 — BUG-04 사고 토큰 차감 누락 수정 (lib/ai/
 | 12 | MCP OAuth 기반 · 연결/해제 | MCP-01, MCP-08 |
 | 13 | MCP 읽기 도구 + 집필 컨텍스트 번들 | MCP-02, MCP-03, MCP-04, MCP-09 |
 | 14 | MCP 쓰기 도구 + 스튜디오 리뷰 큐 | MCP-05, MCP-06, MCP-07 |
+| 15 | Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | AIDOC-01~04 |
 
 **v1.0 잔여 (별도 트랙, v1.1 로드맵에 포함하지 않음):**
 
@@ -154,6 +155,7 @@ Recent decisions affecting current work:
 - Phase 6 executed ahead of Phase 5 and outside GSD (2026-09-15 discovery) — roadmap order 5→6 no longer reflects build order; Phase 5 now layers real top-up onto an already-shipped unlock flow
 - v1.1 milestone planned for multi-provider AI + BYOK (branch `codex/multi-provider-byok`, goals in `docs/ai-integration-roadmap.md`) — deliberately NOT folded into Phase 4, whose EDIT-01~05 success criteria are Gemini-single-provider
 - 2026-09-16: v1.1 로드맵 추가 — Phase 8~14 (7개), v1.1 요구사항 27개 전수 매핑. v1.0 잔여 Phase 5/6/7은 별도 트랙으로 그대로 남아 있으며 v1.1 범위가 아니다
+- 2026-09-22: Phase 4 BUG-01의 수정 범위가 Jev 평가·선계획, Gemini 템플릿 생성, 폴더/템플릿 선택 UI와 저장 권한 검증까지 확장되어 단일 버그 수정 단위를 초과함. v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04를 배정함
 - 로드맵 순서 고정 제약(편의로 재배열하지 않을 것): (1) 로컬 토큰 추정이 어댑터 시그니처의 선행 조건(원격 countTokens는 Gemini 전용), (2) 어댑터+Gemini 이관(P8) 이 OpenAI/Anthropic(P9)보다 먼저 회귀 증명돼야 함, (3) 멱등 차감(COST-01, P8)이 재시도/백오프 로직(P11)보다 먼저, (4) BYOK 키 검증과 모델 피커 배지는 같은 페이즈(P10), (5) MCP OAuth는 BYOK와 코드를 공유하지 않으므로 합치지 않음, (6) MCP 리뷰 큐 UI는 실제 스코프(축소 금지)
 
 ### Pending Todos
@@ -162,6 +164,7 @@ Recent decisions affecting current work:
 - **[v1.1 Phase 10 계획 시점 결정]** BYOK 키 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)을 페이즈 **계획 시점에** 확정한다 — 구현 중 미루면 데이터 마이그레이션이 된다. (PROJECT.md Key Decisions의 Pending 항목)
 - **[v1.1 Phase 12 선행 스파이크]** 실제 Claude 커스텀 커넥터로 discovery → 등록 → 토큰 교환 왕복을 먼저 성공시켜 authorization server를 확정(Supabase Auth OAuth 2.1 Server vs WorkOS AuthKit). 실패하면 페이즈 내용 자체가 바뀜다. `/gsd:research-phase` 필수.
 - **[v1.1 정리]** 워크트리의 `mcpres/`(수동 다운로드한 tarball + 추출 디렉터리)는 커밋 대상이 아니다 — 채택 시 npm registry에서 정식 설치하고 `mcpres/`는 삭제한다.
+- **[v1.1 Phase 15 계획 전]** BUG-01 문서의 해결 설계를 입력으로 `/gsd:discuss-phase 15`와 `/gsd:research-phase 15`를 수행한다. Jev 데이터 처리 정책과 평가 기준이 확정되기 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다.
 
 - Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end. (Phase 4 is marked Complete on the roadmap; this is the one outstanding human UAT item — see 04-VERIFICATION.md `human_verification`.)
 - **[Phase 06, v1.0 residual]** Implement the author 90/10 credit split with the 10% platform fee behind a single adjustable constant (ROADMAP Phase 6 success criterion 3, provisional per 06-CONTEXT.md D-10). Confirmed absent from lib/commerce/actions.ts and 0005_commerce.sql on 2026-09-15. Decision: keep in v1.0, handle alongside Phase 5 when the Toss keys arrive.
@@ -184,11 +187,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-19T12:40:02.427Z
+Last session: 2026-09-22T04:33:30.955Z
 Stopped at: Phase 9 context gathered
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
-Resume file: .planning/phases/09-openai-anthropic-adapters-pricing/09-CONTEXT.md
+Resume file: .planning/phases/09-openai-anthropic/09-CONTEXT.md
