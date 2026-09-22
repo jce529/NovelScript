@@ -22,12 +22,8 @@ UI 관련 phase(`/gsd:ui-phase` 등)에서 UI-SPEC.md 작성/검증이 끝나면
 2. Artifact로 발행해 링크를 전달한다 — 사용자가 클릭해서 바로 확인할 수 있어야 한다.
 3. UI-SPEC.md 승인만으로 phase의 UI 산출물을 끝냈다고 보지 않는다 — 목업 제공까지가 완료 조건이다.
 
-# 버그 문서화 규칙
+# 버그 워크플로
 
-버그를 발견하면 해당 phase 폴더 안의 `bugs/` 폴더에 `BUG-NN-짧은-슬러그.md`로 기록한다 (`.planning/phases/{padded_phase}-{slug}/bugs/BUG-NN-....md`). `bugs/README.md` 인덱스 표에도 한 줄 추가한다. 이미 있는 phase의 `bugs/` 폴더·템플릿 형식을 그대로 따른다.
+버그를 발견/조사/수정/정리하는 전 과정은 `bug-plan` → `bug-execute` → `bug-complete` 세 스킬로 한다 (사용자가 `/bug-plan`, `/bug-execute`, `/bug-complete`로 직접 부를 수도 있다). 세 스킬 모두 `.claude/skills/`, `.codex/skills/`, `.agents/skills/`에 동일하게 있고, 실제 절차는 `.planning/skills/bug-plan.md` / `bug-execute.md` / `bug-complete.md`에 있다 — 이 문서들이 규칙의 원본이므로 버그 처리 절차를 바꿀 때는 거기를 고친다.
 
-버그가 **완전히 고쳐지면**:
-
-1. 해당 `bugs/BUG-NN-....md` 파일을 그 phase의 `bugs/` 폴더에서 삭제하고, `bugs/README.md` 표에서도 해당 행을 지운다.
-2. `.planning/fixed/` 폴더(없으면 생성)에 `{padded_phase}-{NN} 간단한 정리.md` 이름으로 새 문서를 만든다 — 예: `08-04 사고 토큰 차감 누락 수정.md`. 내용은 원래 버그 문서를 그대로 옮기지 않고, 증상·원인·수정 내용·관련 커밋을 간단히 정리한다.
-3. 일부만 고쳐지고 나머지가 보류/분리된 경우(예: 정책 결정이 반반 나뉜 경우) 고쳐진 부분만 `fixed/`로 옮기고, 남은 부분은 원래 `bugs/BUG-NN-....md`에 남겨 상태를 갱신한다(파일을 통째로 삭제하지 않는다).
+요약: 버그 발견 시 `bug-plan`이 원인 phase의 `bugs/` 폴더에 `BUG-NN-....md`를 만들고(정책 결정이 필요하면 사용자에게 먼저 확인), `bug-execute`가 그 방향대로 고치고 커밋하고, `bug-complete`가 검증된 수정만 `.planning/fixed/{phase}-{NN} 간단한 정리.md`로 옮기고 원본 문서/인덱스를 정리한다.
