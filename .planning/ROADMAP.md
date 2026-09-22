@@ -262,7 +262,24 @@ Residual (stays in v1.0, not yet done):
   2. 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받고, 결과가 기존 초안·제안 UI로 동일하게 들어온다
   3. 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
   4. 서비스 키 모드에서 작가가 보는 비용 추정치가 선택한 제공자·모델의 실제 단가를 반영한다 (Gemini 단가가 GPT 호출에 재사용되지 않는다)
-**Plans**: TBD
+**Plans**: 6 plans, 5 waves
+
+**Wave 0**
+- [ ] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
+
+**Wave 1** *(blocked on 09-00)*
+- [ ] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
+- [ ] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
+
+**Wave 2** *(blocked on 09-01, 09-02)*
+- [ ] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
+
+**Wave 3** *(blocked on 09-03)*
+- [ ] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
+
+**Wave 4** *(blocked on 09-04)*
+- [ ] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
+
 **UI hint**: yes
 **Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. ~~한국어 토큰 추정 상수는 provider별로 분리해 보정한다~~ — Phase 8에서 로컬 입력 추정을 제거했으므로(2026-09-18) 해당 없음. 출력 상한은 provider별 출력 단가로만 환산한다.
 
@@ -371,8 +388,8 @@ Residual (stays in v1.0, not yet done):
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
-| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete | 2026-09-18 |
-| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
+| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/6 | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
