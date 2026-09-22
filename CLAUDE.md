@@ -24,6 +24,6 @@ UI 관련 phase(`/gsd:ui-phase` 등)에서 UI-SPEC.md 작성/검증이 끝나면
 
 # 버그 워크플로
 
-버그를 발견/조사/수정/정리하는 전 과정은 `bug-plan` → `bug-execute` → `bug-complete` 세 스킬로 한다 (사용자가 `/bug-plan`, `/bug-execute`, `/bug-complete`로 직접 부를 수도 있다). 세 스킬 모두 `.claude/skills/`, `.codex/skills/`, `.agents/skills/`에 동일하게 있고, 실제 절차는 `.planning/skills/bug-plan.md` / `bug-execute.md` / `bug-complete.md`에 있다 — 이 문서들이 규칙의 원본이므로 버그 처리 절차를 바꿀 때는 거기를 고친다.
+버그를 발견/조사/수정/정리하는 전 과정은 `bug-plan` → `bug-execute` → `bug-complete` 세 스킬로 한다 (사용자가 `/bug-plan`, `/bug-execute`, `/bug-complete`로 직접 부를 수도 있다). 세 스킬 모두 `.claude/skills/`와 `.codex/skills/`에 동일하게 있고(각 에이전트가 자기 폴더만 읽으므로 `.agents/skills/`에는 중복 배치하지 않는다 — Codex가 `.agents/`도 같이 읽어서 명령이 두 번 뜨는 문제가 있었음), 실제 절차는 `.planning/skills/bug-plan.md` / `bug-execute.md` / `bug-complete.md`에 있다 — 이 문서들이 규칙의 원본이므로 버그 처리 절차를 바꿀 때는 거기를 고친다.
 
 요약: 버그 발견 시 `bug-plan`이 원인 phase의 `bugs/` 폴더에 `BUG-NN-....md`를 만들고(정책 결정이 필요하면 사용자에게 먼저 확인), `bug-execute`가 그 방향대로 고치고 커밋하고, `bug-complete`가 검증된 수정만 `.planning/fixed/{phase}-{NN} 간단한 정리.md`로 옮기고 원본 문서/인덱스를 정리한다.
