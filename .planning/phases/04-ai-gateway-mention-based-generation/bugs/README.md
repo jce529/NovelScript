@@ -5,7 +5,7 @@ Phase 4(AI Gateway) 코드에서 원인이 발생한 버그를 모았다. 발견
 | ID | 제목 | 심각도 | 발견 | 상태 |
 |---|---|---|---|---|
 | [BUG-01](BUG-01-proposal-save-nested-category-folder.md) | 하위 폴더가 있는 카테고리에서 AI 문서 제안 저장·빠른 추가 실패 | High | 2026-09-18 | open (작업 칩 생성됨) |
-| [BUG-02](BUG-02-mention-enter-inserts-newline.md) | @멘션 자동완성에서 Enter가 선택 대신 줄바꿈 | Medium | 2026-09-18 | open |
+| [BUG-02](BUG-02-mention-enter-inserts-newline.md) | @멘션 자동완성에서 Enter가 선택 대신 줄바꿈 | Medium | 2026-09-18 | open (다른 디바이스 확인 대기) |
 
 ## 템플릿
 
