@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T06:18:31.388948+00:00",
+  "generated_at": "2026-09-22T00:36:45.242534+00:00",
   "nodes": {
     "_planning_phases_05_real_payment_integration_05_context_payment_decisions": {
       "code_fingerprint": "ab4b1f3cd7f60ab5468dac0a01e64295e21f8c263380eb3a3846a870c547be9c",
@@ -12,13 +12,45 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.999447424,
+      "score": 0.72721166,
       "source_file": ".planning/phases/05-real-payment-integration/05-CONTEXT.md",
       "status": "tentative",
       "uses": 1
     },
+    "app_login_page": {
+      "code_fingerprint": "17e3cf8ca92f6a6b4bcda691129a3ec18d71adb7d63a4debca38c685b8b9801d",
+      "label": "login/page.tsx",
+      "last": "2026-09-08T06:31:18.610313+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T06:31:18.610313+00:00",
+          "outcome": "useful",
+          "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
+        }
+      ],
+      "score": 0.727763021,
+      "source_file": "app/login/page.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "app_studio_workid_chapters_chapterid_actions_getchapteraction": {
+      "code_fingerprint": "1e0ad4d09aad42cb38ac8566bdc83fb744256789ef2824c70df15d346468d19b",
+      "label": "getChapterAction()",
+      "last": "2026-09-08T06:31:18.610313+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T06:31:18.610313+00:00",
+          "outcome": "useful",
+          "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
+        }
+      ],
+      "score": 0.727763021,
+      "source_file": "app/studio/[workId]/chapters/[chapterId]/actions.ts",
+      "status": "tentative",
+      "uses": 1
+    },
     "components_reader_toc_sheet": {
-      "code_fingerprint": "450ebe7214f2b88ae84185a65d087fdbee63d2634850c5d7f6c33e4b847288d0",
+      "code_fingerprint": "e45fbff285ad0b631970aa1c7d745ea33796dd5e223c0beaa63c4d66b1f48584",
       "label": "toc-sheet.tsx",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -28,13 +60,13 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.999447424,
+      "score": 0.72721166,
       "source_file": "components/reader/toc-sheet.tsx",
       "status": "tentative",
       "uses": 1
     },
     "components_reader_viewer_shell": {
-      "code_fingerprint": "fcbf29a4d9aec5418cfe4632c4cd1885d0a81c5b8fa8bf7ae7c69ab9f5487a32",
+      "code_fingerprint": "c77b41b952d07eba171de8460be5c7579a186cb201994aa7b021054a03d50989",
       "label": "viewer-shell.tsx",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -44,29 +76,66 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.999447424,
+      "score": 0.72721166,
       "source_file": "components/reader/viewer-shell.tsx",
       "status": "tentative",
       "uses": 1
     },
-    "lib_chapters_actions": {
-      "code_fingerprint": "776b6ac666599dd740c2fe7ebed977c50f35278303daaf1c2568638d92389772",
-      "label": "lib/chapters/actions.ts",
-      "last": "2026-09-08T05:44:04.478086+00:00",
+    "docs_ssot_epics_ddmjkqzqpk1w1e5hisfvy_overview_authentication_callback_overview": {
+      "code_fingerprint": "973c7c26e84e615fad6b4ff67d0100c26949b65c509793b5b25cab7cbce19055",
+      "label": "Authentication Callback Overview",
+      "last": "2026-09-08T06:31:18.610313+00:00",
       "provenance": [
+        {
+          "date": "2026-09-08T06:31:18.610313+00:00",
+          "outcome": "useful",
+          "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
+        }
+      ],
+      "score": 0.727763021,
+      "source_file": "docs/ssot/epics/ddmjKqZQPK1w1e5HiSfvy/overview.md",
+      "status": "tentative",
+      "uses": 1
+    },
+    "lib_chapters_actions": {
+      "code_fingerprint": "f492545308fc7e5172d1dd3fb760a62deda1f12d4f6b379c4b9920d1d0e20714",
+      "label": "lib/chapters/actions.ts",
+      "last": "2026-09-08T06:31:18.610313+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T06:31:18.610313+00:00",
+          "outcome": "useful",
+          "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
+        },
         {
           "date": "2026-09-08T05:44:04.478086+00:00",
           "outcome": "useful",
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.999447424,
+      "score": 1.45497468,
       "source_file": "lib/chapters/actions.ts",
+      "status": "preferred",
+      "uses": 2
+    },
+    "tests_discovery_public_read_rls_test": {
+      "code_fingerprint": "8a4216b49d6d0bc0a1c100267088bc87c0b58d6b6b1b500e7f366195bee69a03",
+      "label": "public-read-rls.test.ts",
+      "last": "2026-09-08T06:31:18.610313+00:00",
+      "provenance": [
+        {
+          "date": "2026-09-08T06:31:18.610313+00:00",
+          "outcome": "useful",
+          "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
+        }
+      ],
+      "score": 0.727763021,
+      "source_file": "tests/discovery/public-read-rls.test.ts",
       "status": "tentative",
       "uses": 1
     },
     "tests_wallet_ledger_concurrency_test": {
-      "code_fingerprint": "866b7212e3e92011f29f399e61ef2670f3eb0d2d6d54da26693a8d78a770113b",
+      "code_fingerprint": "943773b616b08fb431f9fc55a2b9f3e836eb6e9ce02f22770930c69907e1982d",
       "label": "ledger.concurrency.test.ts",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -76,7 +145,7 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.999447424,
+      "score": 0.72721166,
       "source_file": "tests/wallet/ledger.concurrency.test.ts",
       "status": "tentative",
       "uses": 1
