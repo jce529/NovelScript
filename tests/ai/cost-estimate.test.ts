@@ -38,6 +38,19 @@ describe('lib/ai/cost.ts — wallet-token <-> Gemini-token conversion (Open Ques
     expect(debit).toBe(3);
   });
 
+  it('BUG-04: folds reported thinking tokens into the output debit at the output rate', () => {
+    const withoutThoughts = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000 });
+    const withThoughts = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000, thoughtsTokenCount: 3000 });
+    expect(withThoughts).toBeGreaterThan(withoutThoughts);
+    expect(withThoughts).toBe(computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000 + 3000 }));
+  });
+
+  it('BUG-04: null thoughtsTokenCount (provider did not report thinking) debits the same as omitting it', () => {
+    const omitted = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000 });
+    const nulled = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000, thoughtsTokenCount: null });
+    expect(nulled).toBe(omitted);
+  });
+
   it('exposes the conversion constants as named, tunable exports (not inlined magic numbers)', () => {
     expect(typeof KRW_PER_WALLET_TOKEN).toBe('number');
     expect(typeof USD_TO_KRW).toBe('number');

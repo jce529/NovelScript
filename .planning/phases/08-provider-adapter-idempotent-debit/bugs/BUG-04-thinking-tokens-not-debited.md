@@ -1,7 +1,7 @@
 ---
 id: BUG-04
 title: Gemini 사고(thinking) 토큰이 지갑 차감에서 빠짐
-status: 결정 대기 (과금 정책)
+status: 차감 누락 수정 완료 (2026-09-22) — 출력 잘림(예산 배분)은 별도 이슈로 분리, 보류
 severity: medium (플랫폼 비용 손실)
 found: 2026-09-18
 found_during: 08-09 실제 Gemini 보정 측정
@@ -12,6 +12,19 @@ files:
   - lib/ai/chat.ts
   - lib/ai/cost.ts
 ---
+
+## 해결 (2026-09-22)
+
+**결정: A안 채택 — 사고 토큰을 출력 단가로 차감에 합산.** 사용자 논의 결과:
+- 차감 누락은 사용자 잔액과 무관한 플랫폼 회계 버그(실제 API 비용 > 사용자 청구액)이므로 근거 데이터 없이도 명백히 고쳐야 함 → 즉시 수정.
+- 출력 잘림(사고가 `maxOutputTokens` 예산을 먼저 소모해 본문이 짧아지는 문제)은 사고 예산을 인위적으로 줄이면 문체/설정 반영 품질이 나빠질 수 있어, 실사용 데이터 없이 지금 판단하지 않기로 함. BUG-04 원문의 245토큰 측정은 `maxOutputTokens: 256`으로 강제한 임시 실험 3건뿐이며 KB 멘션이 포함된 실제 생성 트래픽에서의 사고 토큰 소비량은 별도로 관측된 바 없음.
+
+**변경:**
+- `lib/ai/cost.ts` `computeDebitAmount`에 `thoughtsTokenCount?: number | null` 추가 — `candidatesTokenCount + (thoughtsTokenCount ?? 0)`를 출력 단가로 환산해 합산.
+- `lib/ai/chat.ts`가 `result.usage.thoughtsTokens`를 `computeDebitAmount` 호출에 전달 (정상 완료·거절 경로 공통 — 두 경로 모두 같은 호출 지점을 공유).
+- 테스트: `tests/ai/cost-estimate.test.ts`(사고 토큰 포함/`null` 케이스), `tests/ai/chat-idempotency.test.ts`(엔드투엔드 차감 검증), `tests/helpers/mock-provider.ts`의 `okResult`에 `thoughtsTokens` 파라미터 추가.
+
+**보류 — 출력 잘림:** 실사용에서 잘림 빈도가 실제로 유의미한지 관측 후 재논의. `thinkingConfig.thinkingBudget` 조정은 아직 손대지 않음.
 
 # BUG-04: Gemini 사고(thinking) 토큰이 지갑 차감에서 빠짐
 

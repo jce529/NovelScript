@@ -55,6 +55,19 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     }]]);
   });
 
+  it('BUG-04: folds reported thinking tokens into the debit at the output rate', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\n응답', 1000, 2000, 3000) });
+    const result = await chat(session, asClient(provider), input);
+    expect(result).toMatchObject({ ok: true, status: 'completed' });
+    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000, thoughtsTokenCount: 3000 });
+    const debitWithoutThoughts = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000 });
+    expect(debit).toBeGreaterThan(debitWithoutThoughts);
+    expect(debitCalls(admin)).toEqual([['apply_wallet_delta', {
+      p_wallet_id: OWNER, p_delta: -debit, p_reference_type: 'ai_generation', p_reference_id: KEY, p_reason: `chapter:${chapterId}`,
+    }]]);
+  });
+
   it('blocks a replay of a recorded key before the cap and the provider call', async () => {
     const admin = setup({ balances: { [OWNER]: 500 }, ledger: [{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY }] });
     const provider = createMockProvider();
