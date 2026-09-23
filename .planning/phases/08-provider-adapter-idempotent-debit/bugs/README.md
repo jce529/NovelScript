@@ -7,7 +7,6 @@ Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemin
 | ID | 제목 | 심각도 | 상태 |
 |---|---|---|---|
 | [BUG-04](BUG-04-thinking-tokens-not-debited.md) | 사고(thinking) 토큰이 maxOutputTokens 예산을 잠식해 본문이 잘림 | Low | open (보류 — 실사용 데이터 확보 후 재논의) |
-| [BUG-06](BUG-06-editor-horizontal-overflow.md) | 창 폭 약 958px에서 챕터 편집기 가로 스크롤 발생 (원인 phase 미상) | Low | needs-repro |
 
 ## 다른 phase로 옮긴 버그
 
@@ -16,6 +15,7 @@ Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemin
 - BUG-01 (문서 제안 저장 실패, 하위 폴더 카테고리) → [`04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md)
 - BUG-02 (@멘션 Enter 줄바꿈) → [`04-ai-gateway-mention-based-generation/bugs/BUG-02-mention-enter-inserts-newline.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-02-mention-enter-inserts-newline.md)
 - BUG-03 (`/admin` 빌드 실패) → 수정 완료, [`.planning/fixed/07-03 admin 빌드 프리렌더 실패 수정.md`](../../../fixed/07-03%20admin%20빌드%20프리렌더%20실패%20수정.md)
+- BUG-06 (창 폭 958px 가로 스크롤) → 원인이 Phase 4 AI 패널 고정폭 도입으로 확인되어 이동, [`04-ai-gateway-mention-based-generation/bugs/BUG-03-editor-horizontal-overflow.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-03-editor-horizontal-overflow.md)
 
 ## 기존 기록 (deferred-items.md 참조)
 

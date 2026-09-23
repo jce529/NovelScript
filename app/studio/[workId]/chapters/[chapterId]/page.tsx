@@ -97,8 +97,8 @@ export default function ChapterEditorPage({
   }
 
   return (
-    <div className="flex gap-8">
-      <div className="flex flex-1 flex-col gap-4">
+    <div className="flex flex-col gap-8 lg:flex-row">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         <ReviewRequestPanel workId={workId} chapterId={chapterId} />
         <Textarea
           ref={textareaRef}
@@ -107,7 +107,7 @@ export default function ChapterEditorPage({
           disabled={!loaded}
           className="min-h-[50vh] text-sm leading-[1.7]"
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" disabled={isPending || !loaded} onClick={save}>회차 저장</Button>
 
           <div className="flex items-center gap-2 ml-4">

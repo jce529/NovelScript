@@ -251,7 +251,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
   }
 
   return (
-    <aside className="sticky top-8 flex h-[calc(100vh-4rem)] w-96 shrink-0 flex-col gap-6 rounded-lg border border-border bg-background p-6">
+    <aside className="sticky top-8 flex h-[calc(100vh-4rem)] w-full flex-col gap-6 rounded-lg border border-border bg-background p-6 lg:w-96 lg:shrink-0">
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
       <div className="flex flex-col gap-2">
