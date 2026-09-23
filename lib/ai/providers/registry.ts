@@ -8,7 +8,10 @@ import { createFixtureProvider, readProviderFixture } from './fixture';
 export function createPlatformProvider(env: Record<string, string | undefined> = process.env): ProviderClient {
   // Dev-only canned provider (inert unless NODE_ENV=development).
   const fixture = readProviderFixture(env);
-  if (fixture) return createFixtureProvider(fixture);
+  if (fixture) {
+    console.warn(`[ai/providers] AI_PROVIDER_FIXTURE=${fixture} is active — serving canned responses instead of Gemini. Set AI_PROVIDER_FIXTURE=off (and restart dev) to disable.`);
+    return createFixtureProvider(fixture);
+  }
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new ProviderCallError({ provider: 'gemini', status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' });

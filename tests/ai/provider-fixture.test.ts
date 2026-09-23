@@ -44,6 +44,10 @@ describe('readProviderFixture', () => {
     expect(readProviderFixture({ NODE_ENV: 'development', AI_PROVIDER_FIXTURE: '' })).toBeNull();
     expect(readProviderFixture({ NODE_ENV: 'development' })).toBeNull();
   });
+
+  it('is null when explicitly set to off (BUG-05)', () => {
+    expect(readProviderFixture({ NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'off' })).toBeNull();
+  });
 });
 
 describe('createPlatformProvider with fixture', () => {

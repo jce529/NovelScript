@@ -21,6 +21,7 @@ export type ProviderFixtureMode = (typeof PROVIDER_FIXTURE_MODES)[number];
 export function readProviderFixture(env: Record<string, string | undefined>): ProviderFixtureMode | null {
   if (env.NODE_ENV !== 'development') return null;
   const v = env.AI_PROVIDER_FIXTURE;
+  if (v === 'off') return null;
   return (PROVIDER_FIXTURE_MODES as readonly string[]).includes(v ?? '') ? (v as ProviderFixtureMode) : null;
 }
 
