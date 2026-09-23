@@ -6,7 +6,7 @@ NovelScript ships as one Next.js app with two loops that must both work: writers
 
 ### v1.1 Overview (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)
 
-v1.1은 새 제품이 아니라 기존 `lib/ai/` 모듈의 증축 마일스톤이다 — 새 배포 단위도, 새 서비스도 없다. 마일스톤은 방향이 반대인 2단 구조를 가진다: 1단계(Phase 8~11)는 "NovelScript가 LLM을 호출한다"(멀티 프로바이더 어댑터 + BYOK), 2단계(Phase 12~14)는 "LLM이 NovelScript를 호출한다"(원격 MCP 서버). 두 단계는 공유 코드가 사실상 없으므로 하나의 '인증 페이즈'로 묶지 않는다. 빌드 순서는 리서치 4건이 독립적으로 도출한 동일한 결론을 따른다 — 벤더를 늘리기 전에 어댑터 추상화를 Gemini로 회귀 증명하고(Phase 8), 같은 페이즈에서 현존하는 멱등 차감 버그를 먼저 고친 뒤(재시도 로직이 이중 차감을 만들지 않도록), 플랫폼 키로 새 벤더를 증명하고(Phase 9), BYOK 키 보관·검증과 그 검증이 생산하는 모델 피커를 함께 올리고(Phase 10), BYOK 호출 경로를 엮은 뒤(Phase 11), 하드 경계를 넘어 MCP OAuth → 읽기 도구 → 쓰기 도구+리뷰 큐 순으로 간다(Phase 12~14). 외부 리드타임(OpenAI Organization Verification, Anthropic 빌링 tier)은 v1.0 Phase 5의 PG 심사와 같은 모양의 외부 큐이므로 Phase 8 킥오프와 **병행** 착수한다.
+v1.1은 새 제품이 아니라 기존 `lib/ai/` 모듈의 증축 마일스톤이다 — 새 배포 단위도, 새 서비스도 없다. 마일스톤은 방향이 반대인 2단 구조와 마무리 품질 페이즈를 가진다: 1단계(Phase 8~11)는 "NovelScript가 LLM을 호출한다"(멀티 프로바이더 어댑터 + BYOK), 2단계(Phase 12~14)는 "LLM이 NovelScript를 호출한다"(원격 MCP 서버), 마지막 Phase 15는 기존 AI 문서 제안 흐름을 Jev 선계획·템플릿 기반 생성·명시적 저장 위치 선택으로 재설계한다. 앞의 두 단계는 공유 코드가 사실상 없으므로 하나의 '인증 페이즈'로 묶지 않는다. 빌드 순서는 리서치 4건이 독립적으로 도출한 동일한 결론을 따른다 — 벤더를 늘리기 전에 어댑터 추상화를 Gemini로 회귀 증명하고(Phase 8), 같은 페이즈에서 현존하는 멱등 차감 버그를 먼저 고친 뒤(재시도 로직이 이중 차감을 만들지 않도록), 플랫폼 키로 새 벤더를 증명하고(Phase 9), BYOK 키 보관·검증과 그 검증이 생산하는 모델 피커를 함께 올리고(Phase 10), BYOK 호출 경로를 엮은 뒤(Phase 11), 하드 경계를 넘어 MCP OAuth → 읽기 도구 → 쓰기 도구+리뷰 큐 순으로 간 다음(Phase 12~14), BUG-01에서 드러난 문서 생성·분류·저장 경계 전체를 Phase 15에서 고친다. 외부 리드타임(OpenAI Organization Verification, Anthropic 빌링 tier)은 v1.0 Phase 5의 PG 심사와 같은 모양의 외부 큐이므로 Phase 8 킥오프와 **병행** 착수한다.
 
 **v1.0 잔여 트랙:** Phase 5(Toss 결제) / Phase 6(작가 90:10 정산) / Phase 7(운영자 도구)은 v1.0 트랙에 그대로 남으며 v1.1 범위가 아니다.
 
@@ -39,6 +39,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 12: MCP OAuth 기반 · 연결/해제** - 작가가 Claude에 NovelScript를 커넥터로 연결하고, 해제하면 그 즉시 접근이 실제로 끊긴다
 - [ ] **Phase 13: MCP 읽기 도구 + 집필 컨텍스트 번들** - 연결된 AI가 작가 본인의 작품·회차·설정집을 읽고, 앱과 동일한 구성의 집필 컨텍스트를 한 번에 받는다
 - [ ] **Phase 14: MCP 쓰기 도구 + 스튜디오 리뷰 큐** - 외부 AI가 '제안된 초안·설정 변경안'만 되돌리고, 작가가 스튜디오에서 출처와 함께 수락/거절한다
+
+**v1.1 — 마무리 품질 페이즈**
+
+- [ ] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다
 
 ## Phase Details
 
@@ -215,7 +219,7 @@ Residual (stays in v1.0, not yet done):
 
 ---
 
-## Phase Details — v1.1
+## Phase Details (continued)
 
 ### Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정
 **Goal**: Gemini 생성 경로가 공통 `ProviderClient` 어댑터 뒤로 이관되어도 작가 눈에는 아무것도 달라지지 않고, 동시에 현존하는 이중 차감 버그가 사라진다 — 이후 모든 제공자·재시도·BYOK 작업이 딛고 설 기반.
@@ -258,7 +262,24 @@ Residual (stays in v1.0, not yet done):
   2. 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받고, 결과가 기존 초안·제안 UI로 동일하게 들어온다
   3. 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
   4. 서비스 키 모드에서 작가가 보는 비용 추정치가 선택한 제공자·모델의 실제 단가를 반영한다 (Gemini 단가가 GPT 호출에 재사용되지 않는다)
-**Plans**: TBD
+**Plans**: 6 plans, 5 waves
+
+**Wave 0**
+- [ ] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
+
+**Wave 1** *(blocked on 09-00)*
+- [ ] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
+- [ ] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
+
+**Wave 2** *(blocked on 09-01, 09-02)*
+- [ ] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
+
+**Wave 3** *(blocked on 09-03)*
+- [ ] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
+
+**Wave 4** *(blocked on 09-04)*
+- [ ] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
+
 **UI hint**: yes
 **Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. ~~한국어 토큰 추정 상수는 provider별로 분리해 보정한다~~ — Phase 8에서 로컬 입력 추정을 제거했으므로(2026-09-18) 해당 없음. 출력 상한은 provider별 출력 단가로만 환산한다.
 
@@ -333,12 +354,27 @@ Residual (stays in v1.0, not yet done):
 **UI hint**: yes
 **Notes**: 리뷰 큐 UI는 "도구 몇 개 더"의 반올림 오차가 아니라 실제 UI 스코프다 — 마지막에 두되 축소하지 않는다. `save_draft` / `propose_kb_document` 둘 다 pending 상태 객체만 생성하며, "외부 AI가 제안하고 작가가 결정한다"를 UI 카피가 아니라 **데이터 접근 레이어에서** 강제한다(`mcp_drafts` / `mcp_kb_proposals`). LLM이 넘긴 `work_id`/`chapter_id`는 읽기 도구 결과를 거쳐 온 **비신뢰 입력**이므로 매 호출 서버에서 소유권을 재검증한다 — 초안/제안 전용 설계는 이 문제의 대체재가 아니라 짝이다. 주입된 도구 결과로 유도된 교차 사용자 쓰기 테스트를 포함한다.
 
+### Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택
+**Goal**: 작가가 AI에게 설정 문서를 요청하면 Jev가 먼저 작업 종류·문서 카테고리·저장 폴더·템플릿을 제한된 후보 안에서 계획하고, Gemini가 그 계획과 템플릿을 따라 문서를 생성하며, 작가는 결과와 저장 위치를 확인·변경한 뒤 권한이 검증된 폴더에 저장한다.
+**Depends on**: Phase 14 (v1.1 마무리 순서), Phase 4 (AI Gateway), Phase 04.1 (KB 폴더·템플릿)
+**Requirements**: AIDOC-01, AIDOC-02, AIDOC-03, AIDOC-04
+**Success Criteria** (what must be TRUE):
+  1. Jev가 Gemini 생성 전에 `reply`/`draft`/`document`/`clarify`와 문서 카테고리를 결정하고, 문서 생성일 때만 해당 카테고리의 폴더·템플릿 후보 중 추천안을 확률과 함께 반환한다
+  2. Gemini가 선택된 템플릿의 제목·필수 섹션·순서를 유지해 문서를 생성하고, 근거 없는 필드는 임의로 확정하지 않으며, 사용자는 추천 폴더와 템플릿을 확인하고 변경할 수 있다
+  3. 저장 시 서버가 `targetFolderId`와 템플릿 선택을 사용자·작품·범위·카테고리·삭제 상태 기준으로 다시 검증하며, 저장 전 위치가 바뀌었거나 권한이 없으면 다른 폴더에 조용히 저장하지 않는다
+  4. @멘션 빠른 추가는 Jev 호출 없이 카테고리별 실제 폴더 선택기를 제공하고, 기본값은 최상위 카테고리 폴더이며, 사용자가 고른 하위 폴더에 즉시 생성된다
+  5. Jev는 오프라인 평가와 그림자 계획을 거쳐 합의된 정확도·보정 기준을 충족한 뒤에만 실제 추천에 사용되고, 작품 데이터 보관·학습 사용·처리 지역·삭제 정책 검토 전에는 실제 작품 본문을 프로덕션 호출에 보내지 않는다
+**Plans**: TBD
+**UI hint**: yes
+**Source**: Phase 4 BUG-01 (`.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`)에서 페이즈로 승격 (2026-09-22)
+**Notes**: 단순 `parent_id IS NULL` 필터는 긴급 완화책일 뿐 최종 해결안이 아니다. Jev는 자유 형식 생성 모델이 아니라 서버가 제공한 불투명 후보 키 중 계획을 고르는 결정 계층이며, Gemini는 확정된 템플릿으로 생성한다. 확신도가 낮으면 `clarify`로 전환하고, 폴더·템플릿 판단 실패 시에만 문서화된 안전 기본값을 추천한다. 운영 전 100~300건 정답셋 평가, 후보 순서 교란 평가, 그림자 계획, 템플릿 생성 비교를 수행한다.
+
 
 ## Progress
 
 **Execution Order:**
 **v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
-**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -352,12 +388,13 @@ Residual (stays in v1.0, not yet done):
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
-| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete | 2026-09-18 |
-| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
+| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/6 | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/TBD | Not started | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
