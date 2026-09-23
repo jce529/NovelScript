@@ -364,7 +364,27 @@ Residual (stays in v1.0, not yet done):
   3. 저장 시 서버가 `targetFolderId`와 템플릿 선택을 사용자·작품·범위·카테고리·삭제 상태 기준으로 다시 검증하며, 저장 전 위치가 바뀌었거나 권한이 없으면 다른 폴더에 조용히 저장하지 않는다
   4. @멘션 빠른 추가는 Jev 호출 없이 카테고리별 실제 폴더 선택기를 제공하고, 기본값은 최상위 카테고리 폴더이며, 사용자가 고른 하위 폴더에 즉시 생성된다
   5. Jev는 오프라인 평가와 그림자 계획을 거쳐 합의된 정확도·보정 기준을 충족한 뒤에만 실제 추천에 사용되고, 작품 데이터 보관·학습 사용·처리 지역·삭제 정책 검토 전에는 실제 작품 본문을 프로덕션 호출에 보내지 않는다
-**Plans**: TBD
+**Plans**: 9 plans, 5 waves
+
+**Wave 1**
+- [ ] 15-01-PLAN.md — Jev(TypeSafe AI) 벤더 온보딩 스파이크 + DecisionClient 계약/에러 스크러빙 (checkpoint: 계정 발급)
+- [ ] 15-03-PLAN.md — BUG-01 근본 수정: 다건 카테고리 폴더 조회 + 저장 직전 서버 재검증(validateTargetFolder)
+- [ ] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출) *(blocked on 15-03)*
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 15-02-PLAN.md — Jev 2단계 계획 오케스트레이션(불투명 후보 키, 확신도 폴백) + fixture DecisionClient *(blocked on 15-01)*
+
+**Wave 3** *(blocked on 15-02, 15-03)*
+- [ ] 15-04-PLAN.md — Jev→Gemini 템플릿 기반 생성 오케스트레이션, AI_DOC_PLANNING_ACTIVE 플래그 뒤 연결
+- [ ] 15-05-PLAN.md — 오프라인 평가(합성 정답셋 + 순서 교란 스크립트, `npm run eval:jev`) *(blocked on 15-02)*
+
+**Wave 4** *(blocked on 15-04)*
+- [ ] 15-06-PLAN.md — 저장 직전 확인 모달(D-11) + AiPanel 배선
+- [ ] 15-08-PLAN.md — 그림자 계획(합성 메타데이터, D-06+D-08) + 운영 관측 지표 집계 *(blocked on 15-04, 15-05)*
+
+**Wave 5** *(blocked on 15-06, 15-08)*
+- [ ] 15-09-PLAN.md — 전체 게이트: 전체 스위트 + 브라우저 체크포인트 + STATE.md 데이터 정책 블로커 확정
+
 **UI hint**: yes
 **Source**: Phase 4 BUG-01 (`.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`)에서 페이즈로 승격 (2026-09-22)
 **Notes**: 단순 `parent_id IS NULL` 필터는 긴급 완화책일 뿐 최종 해결안이 아니다. Jev는 자유 형식 생성 모델이 아니라 서버가 제공한 불투명 후보 키 중 계획을 고르는 결정 계층이며, Gemini는 확정된 템플릿으로 생성한다. 확신도가 낮으면 `clarify`로 전환하고, 폴더·템플릿 판단 실패 시에만 문서화된 안전 기본값을 추천한다. 운영 전 100~300건 정답셋 평가, 후보 순서 교란 평가, 그림자 계획, 템플릿 생성 비교를 수행한다.
@@ -389,12 +409,12 @@ Residual (stays in v1.0, not yet done):
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
-| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/6 | Not started | - |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/6 | Planned    |  |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/TBD | Not started | - |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/9 | Planned | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
