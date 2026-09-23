@@ -59,7 +59,7 @@
 
 ## v1.1 Requirements (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)
 
-**Defined:** 2026-09-16 · **Milestone:** v1.1 · **Phases:** 8~ (v1.0 잔여 Phase 5/6/7은 별도 트랙)
+**Defined:** 2026-09-16 · **Milestone:** v1.1 · **Phases:** 8~15 (v1.0 잔여 Phase 5/6/7은 별도 트랙)
 
 ### 프로바이더 추상화 · 선택 (PROV)
 
@@ -99,6 +99,13 @@
 - [ ] **MCP-07**: 작가가 스튜디오에서 MCP로 도착한 초안·제안을 출처(어느 클라이언트에서, 언제)와 함께 검토하고 수락 또는 거절할 수 있다
 - [ ] **MCP-08**: 작가가 NovelScript에서 연결된 클라이언트 목록과 마지막 사용 시각을 보고 연결을 해제할 수 있으며, 해제 후에는 해당 토큰의 접근이 즉시 차단된다
 - [ ] **MCP-09**: 모든 MCP 툴에 읽기/쓰기 성격 annotation이 붙어, 클라이언트가 읽기 툴에 불필요한 확인을 요구하지 않는다
+
+### AI 문서 계획 · 저장 (AIDOC)
+
+- [ ] **AIDOC-01**: 설정 문서 생성 전에 Jev가 서버가 제공한 제한된 후보 안에서 작업 종류·문서 카테고리·저장 폴더·템플릿을 계획하고, 확신도가 낮으면 문서 생성을 강행하지 않고 추가 질문으로 전환한다
+- [ ] **AIDOC-02**: Gemini가 Jev가 선택한 템플릿의 제목·필수 섹션·순서를 유지해 문서를 생성하고, 작가는 생성 결과와 추천 저장 위치·템플릿을 확인하고 변경할 수 있다
+- [ ] **AIDOC-03**: AI 제안 저장과 @멘션 빠른 추가는 사용자가 선택한 실제 폴더를 서버에서 소유권·작품·범위·카테고리·삭제 상태까지 재검증한 뒤 저장하며, 위치가 유효하지 않으면 다른 폴더로 조용히 대체하지 않는다
+- [ ] **AIDOC-04**: Jev 계획은 정답셋 오프라인 평가·후보 순서 교란 평가·그림자 운영을 거쳐 품질 기준을 충족한 뒤 활성화되고, 데이터 처리 정책 검토 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다
 
 **v1.1 범위 노트**
 
@@ -227,14 +234,19 @@ Explicitly excluded. Documented to prevent scope creep.
 | MCP-07 | Phase 14 | Mapped |
 | MCP-08 | Phase 12 | Mapped |
 | MCP-09 | Phase 13 | Mapped |
+| AIDOC-01 | Phase 15 | Mapped |
+| AIDOC-02 | Phase 15 | Mapped |
+| AIDOC-03 | Phase 15 | Mapped |
+| AIDOC-04 | Phase 15 | Mapped |
 
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
-- v1.1 requirements: 27 total (PROV 7 + BYOK 9 + COST 2 + MCP 9) / mapped 27 / unmapped 0 ✓ (Phases 8–14)
-- 전체: 58 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- v1.1 requirements: 31 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4) / mapped 31 / unmapped 0 ✓ (Phases 8–15)
+- 전체: 62 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*
+*Last updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
+*Previously updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*
 *Previously updated: 2026-09-08 — PAY-02 amended: author-credit-on-unlock confirmed at 90/10 (provisional, D-10); added PAY-04 (구독제, v2 candidate) per Phase 6 discussion follow-up*
 *Previously updated: 2026-08-31 — added KB-03/04/05 (custom folder creation, account-shared folder restructure, 회차 folder tree) for inserted Phase 04.1*
