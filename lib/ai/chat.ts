@@ -181,7 +181,10 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   // With no pre-call input estimate, actual usage can exceed the balance by a fraction of a
   // token; charge at most what the wallet held so the writer still gets the capped body (D-13).
   const debitAmount = Math.min(walletBalance, computeDebitAmount({
-    modelTier: input.modelTier, promptTokenCount: result.usage.inputTokens, candidatesTokenCount: result.usage.outputTokens,
+    modelTier: input.modelTier,
+    promptTokenCount: result.usage.inputTokens,
+    candidatesTokenCount: result.usage.outputTokens,
+    thoughtsTokenCount: result.usage.thoughtsTokens,
   }));
 
   // Pre-debit recheck narrows the concurrent window so a racing duplicate gets no free body.

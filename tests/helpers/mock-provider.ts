@@ -1,12 +1,12 @@
 import { vi } from 'vitest';
 import type { GenerateResult, ProviderClient } from '@/lib/ai/providers/types';
 
-export function okResult(text = '[REPLY]\n(mock) 응답', inputTokens = 10, outputTokens = 10): GenerateResult {
+export function okResult(text = '[REPLY]\n(mock) 응답', inputTokens = 10, outputTokens = 10, thoughtsTokens: number | null = null): GenerateResult {
   return {
     text,
     finishReason: 'stop',
     refusal: null,
-    usage: { inputTokens, outputTokens, thoughtsTokens: null, reported: { input: true, output: true } },
+    usage: { inputTokens, outputTokens, thoughtsTokens, reported: { input: true, output: true } },
   };
 }
 

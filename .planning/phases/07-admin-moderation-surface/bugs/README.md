@@ -1,0 +1,11 @@
+# Phase 07 — 발견된 버그
+
+Phase 7(운영자 도구) 코드에서 원인이 발생한 버그를 모았다. 발견 자체는 08-09 체크포인트(2026-09-18)의 자동 게이트(`npm run build`)에서 이뤄졌지만, 코드 원인은 Phase 7에 있어 이 폴더로 옮겼다(`.planning/phases/08-provider-adapter-idempotent-debit/bugs/`에서 이동, 2026-09-22).
+
+| ID | 제목 | 심각도 | 발견 | 상태 |
+|---|---|---|---|---|
+| [BUG-03](BUG-03-admin-prerender-build-failure.md) | `npm run build`가 `/admin` 정적 프리렌더에서 실패 | High | 2026-09-18 | open (deferred) |
+
+## 템플릿
+
+새 버그는 `BUG-NN-짧은-슬러그.md`로 추가하고 위 표에 한 줄 넣는다. 필드: 상태·심각도·발견일·발생 phase / 재현 / 기대 / 실제 / 원인 / 수정 방향 / 검증 방법. 완전히 고쳐지면 이 폴더에서 삭제하고 `.planning/fixed/{phase}-{번호} 간단한 정리.md`로 옮긴다 (CLAUDE.md "버그 문서화 규칙" 참고).
