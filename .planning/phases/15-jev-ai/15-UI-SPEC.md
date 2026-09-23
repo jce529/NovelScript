@@ -1,7 +1,8 @@
 ---
 phase: 15
 slug: jev-ai
-status: draft
+status: approved
+reviewed_at: 2026-09-23
 shadcn_initialized: true
 preset: base-nova / neutral base / indigo primary (existing components.json, unchanged)
 created: 2026-09-23
