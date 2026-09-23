@@ -1,6 +1,6 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { notFound } from 'next/navigation';
+import { notFound, unstable_rethrow } from 'next/navigation';
 import type { AdminActor, AdminResult } from '@/lib/admin/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -46,7 +46,8 @@ export async function checkAdmin(deps: AdminAuthDeps = defaultDeps): Promise<Adm
     const { data, error } = await session.auth.getUser();
     if (error || !data?.user) return { ok: false, reason: 'unauthenticated' };
     userId = data.user.id;
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
     return { ok: false, reason: 'unavailable' };
   }
 
@@ -75,7 +76,8 @@ export async function checkAdmin(deps: AdminAuthDeps = defaultDeps): Promise<Adm
       actor: { userId, isWriter: profile.data.role === 'writer' },
       admin,
     };
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
     return { ok: false, reason: 'unavailable' };
   }
 }

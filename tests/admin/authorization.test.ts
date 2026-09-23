@@ -5,6 +5,7 @@ vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {
     throw new Error('NEXT_HTTP_ERROR_FALLBACK;404');
   }),
+  unstable_rethrow: vi.fn(),
 }));
 
 import { notFound } from 'next/navigation';
