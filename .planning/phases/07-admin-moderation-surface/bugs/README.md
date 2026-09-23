@@ -4,7 +4,8 @@ Phase 7(운영자 도구) 코드에서 원인이 발생한 버그를 모았다. 
 
 | ID | 제목 | 심각도 | 발견 | 상태 |
 |---|---|---|---|---|
-| [BUG-03](BUG-03-admin-prerender-build-failure.md) | `npm run build`가 `/admin` 정적 프리렌더에서 실패 | High | 2026-09-18 | open (deferred) |
+
+현재 열린 버그 없음. BUG-03은 수정 완료돼 `.planning/fixed/07-03 admin 빌드 프리렌더 실패 수정.md`로 옮겨졌다.
 
 ## 템플릿
 

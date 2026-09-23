@@ -352,7 +352,7 @@ Residual (stays in v1.0, not yet done):
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
-| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
+| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/TBD | Not started | - |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |

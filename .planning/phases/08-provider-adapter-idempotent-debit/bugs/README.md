@@ -16,7 +16,7 @@ Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemin
 
 - BUG-01 (문서 제안 저장 실패, 하위 폴더 카테고리) → [`04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md)
 - BUG-02 (@멘션 Enter 줄바꿈) → [`04-ai-gateway-mention-based-generation/bugs/BUG-02-mention-enter-inserts-newline.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-02-mention-enter-inserts-newline.md)
-- BUG-03 (`/admin` 빌드 실패) → [`07-admin-moderation-surface/bugs/BUG-03-admin-prerender-build-failure.md`](../../07-admin-moderation-surface/bugs/BUG-03-admin-prerender-build-failure.md)
+- BUG-03 (`/admin` 빌드 실패) → 수정 완료, [`.planning/fixed/07-03 admin 빌드 프리렌더 실패 수정.md`](../../../fixed/07-03%20admin%20빌드%20프리렌더%20실패%20수정.md)
 
 ## 기존 기록 (deferred-items.md 참조)
 
