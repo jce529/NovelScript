@@ -438,9 +438,9 @@
     "semantic_hash": ""
   },
   "lib/ai/cost.ts": {
-    "mtime": 1789715858.9373686,
-    "seen": 1789715929.2907698,
-    "ast_hash": "1f62987ec0d04574b6227b055261ae06",
+    "mtime": 1789826924.6070373,
+    "seen": 1789826995.8791883,
+    "ast_hash": "f292998275d449593345d058af05f1df",
     "semantic_hash": ""
   },
   "lib/ai/mentions.ts": {
@@ -660,9 +660,9 @@
     "semantic_hash": ""
   },
   "tests/ai/cost-estimate.test.ts": {
-    "mtime": 1789712527.6536114,
-    "seen": 1789712807.6018066,
-    "ast_hash": "bdc1b32c0eb0aa71812820189ad4a30a",
+    "mtime": 1789826910.0781538,
+    "seen": 1789826995.8792388,
+    "ast_hash": "ed3968b4c5bd333acf613ea85ee3df48",
     "semantic_hash": ""
   },
   "tests/ai/mention-context.test.ts": {
@@ -984,9 +984,9 @@
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
-    "mtime": 1789715886.0593872,
-    "seen": 1789715929.2910476,
-    "ast_hash": "8e8677f9f56fb9de9f503491af1f7d28",
+    "mtime": 1789821616.9896436,
+    "seen": 1789826995.8792863,
+    "ast_hash": "828d6c11311599f804b8d9eb84211de6",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-01-PLAN.md": {
@@ -3681,6 +3681,24 @@
     "mtime": 1789715557.3904903,
     "seen": 1789715929.2912703,
     "ast_hash": "1113e1f5ac63a6416e4efd77e90a3e81",
+    "semantic_hash": ""
+  },
+  ".planning/phases/09-openai-anthropic-adapters-pricing/09-CONTEXT.md": {
+    "mtime": 1789821577.681679,
+    "seen": 1789826995.8793983,
+    "ast_hash": "45d7ab9dd7bf7d75bd3e64468624557c",
+    "semantic_hash": ""
+  },
+  ".planning/phases/09-openai-anthropic-adapters-pricing/09-DISCUSSION-LOG.md": {
+    "mtime": 1789821593.7646856,
+    "seen": 1789826995.8793995,
+    "ast_hash": "00eb9c23622012220c1a3131a2336442",
+    "semantic_hash": ""
+  },
+  ".planning/quick/260919-w1m-bug-04-computedebitamount/260919-w1m-PLAN.md": {
+    "mtime": 1789826756.2453368,
+    "seen": 1789826995.8794,
+    "ast_hash": "b7420748ba7b03c00f89604f5ddebf48",
     "semantic_hash": ""
   }
 }
