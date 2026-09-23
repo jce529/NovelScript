@@ -15,7 +15,7 @@ Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemin
 - BUG-01 (문서 제안 저장 실패, 하위 폴더 카테고리) → [`04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md)
 - BUG-02 (@멘션 Enter 줄바꿈) → [`04-ai-gateway-mention-based-generation/bugs/BUG-02-mention-enter-inserts-newline.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-02-mention-enter-inserts-newline.md)
 - BUG-03 (`/admin` 빌드 실패) → 수정 완료, [`.planning/fixed/07-03 admin 빌드 프리렌더 실패 수정.md`](../../../fixed/07-03%20admin%20빌드%20프리렌더%20실패%20수정.md)
-- BUG-06 (창 폭 958px 가로 스크롤) → 원인이 Phase 4 AI 패널 고정폭 도입으로 확인되어 이동, [`04-ai-gateway-mention-based-generation/bugs/BUG-03-editor-horizontal-overflow.md`](../../04-ai-gateway-mention-based-generation/bugs/BUG-03-editor-horizontal-overflow.md)
+- BUG-06 (창 폭 958px 가로 스크롤) → 원인이 Phase 4 AI 패널 고정폭 도입으로 확인되어 이동, 수정 완료(04-03), [`.planning/fixed/04-03 챕터 편집기 가로 스크롤 수정.md`](../../../fixed/04-03%20챕터%20편집기%20가로%20스크롤%20수정.md)
 
 ## 기존 기록 (deferred-items.md 참조)
 

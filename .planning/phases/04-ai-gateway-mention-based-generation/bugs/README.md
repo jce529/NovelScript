@@ -6,7 +6,8 @@ Phase 4(AI Gateway) 코드에서 원인이 발생한 버그를 모았다. 발견
 |---|---|---|---|---|
 | [BUG-01](BUG-01-proposal-save-nested-category-folder.md) | 하위 폴더가 있는 카테고리에서 AI 문서 제안 저장·빠른 추가 실패 | High | 2026-09-18 | open (작업 칩 생성됨) |
 | [BUG-02](BUG-02-mention-enter-inserts-newline.md) | @멘션 자동완성에서 Enter가 선택 대신 줄바꿈 | Medium | 2026-09-18 | open (다른 디바이스 확인 대기) |
-| [BUG-03](BUG-03-editor-horizontal-overflow.md) | 창 폭 약 958px에서 챕터 편집기 가로 스크롤 발생 | Low | 2026-09-18 | open (수정 방향 확정, 실행 대기) |
+
+완전히 고쳐진 버그는 이 폴더에서 지우고 `.planning/fixed/`로 옮긴다 — 현재: [`04-03 챕터 편집기 가로 스크롤 수정.md`](../../../fixed/04-03%20챕터%20편집기%20가로%20스크롤%20수정.md) (BUG-03).
 
 ## 템플릿
 
