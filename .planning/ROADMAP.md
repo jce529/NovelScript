@@ -364,26 +364,30 @@ Residual (stays in v1.0, not yet done):
   3. 저장 시 서버가 `targetFolderId`와 템플릿 선택을 사용자·작품·범위·카테고리·삭제 상태 기준으로 다시 검증하며, 저장 전 위치가 바뀌었거나 권한이 없으면 다른 폴더에 조용히 저장하지 않는다
   4. @멘션 빠른 추가는 Jev 호출 없이 카테고리별 실제 폴더 선택기를 제공하고, 기본값은 최상위 카테고리 폴더이며, 사용자가 고른 하위 폴더에 즉시 생성된다
   5. Jev는 오프라인 평가와 그림자 계획을 거쳐 합의된 정확도·보정 기준을 충족한 뒤에만 실제 추천에 사용되고, 작품 데이터 보관·학습 사용·처리 지역·삭제 정책 검토 전에는 실제 작품 본문을 프로덕션 호출에 보내지 않는다
-**Plans**: 9 plans, 5 waves
+**Plans**: 11 plans, 6 waves (2026-09-24 cross-AI review 반영 재계획)
 
 **Wave 1**
-- [ ] 15-01-PLAN.md — Jev(TypeSafe AI) 벤더 온보딩 스파이크 + DecisionClient 계약/에러 스크러빙 (checkpoint: 계정 발급)
-- [ ] 15-03-PLAN.md — BUG-01 근본 수정: 다건 카테고리 폴더 조회 + 저장 직전 서버 재검증(validateTargetFolder)
-- [ ] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출) *(blocked on 15-03)*
+- [ ] 15-01-PLAN.md — Jev(TypeSafe AI) 온보딩 + DecisionClient 계약(Zod 응답 검증·후보 membership·타임아웃·단일 에러 경계) (checkpoint: 계정 발급)
+- [ ] 15-03-PLAN.md — BUG-01 근본 수정: 구조 루트(parent_id IS NULL) 판별 + 루트 유일성 index + version 기반 저장 직전 재검증
+- [ ] 15-10-PLAN.md — 공통 paid-generation lifecycle 추출(chat 무회귀) + 문서 계획 프롬프트 지시 + 결과 계약 검증기
 
 **Wave 2** *(blocked on Wave 1)*
-- [ ] 15-02-PLAN.md — Jev 2단계 계획 오케스트레이션(불투명 후보 키, 확신도 폴백) + fixture DecisionClient *(blocked on 15-01)*
+- [ ] 15-02-PLAN.md — Jev 2단계 계획(안정 정렬·membership·data_integrity·선별 폴백·순수 FromCandidates) *(blocked on 15-01, 15-03)*
+- [ ] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출, stale 응답 reducer) *(blocked on 15-03)*
+- [ ] 15-11-PLAN.md — 영속 활성화 게이트: getAiDocPlanningMode + 증거/승인/그림자/결정 로그 테이블 + 지표 *(blocked on 15-01)*
 
-**Wave 3** *(blocked on 15-02, 15-03)*
-- [ ] 15-04-PLAN.md — Jev→Gemini 템플릿 기반 생성 오케스트레이션, AI_DOC_PLANNING_ACTIVE 플래그 뒤 연결
-- [ ] 15-05-PLAN.md — 오프라인 평가(합성 정답셋 + 순서 교란 스크립트, `npm run eval:jev`) *(blocked on 15-02)*
+**Wave 3**
+- [ ] 15-04-PLAN.md — Jev→Gemini 생성 전략을 lifecycle 위에 연결 + chatAction resolver 주입 *(blocked on 15-02, 15-07, 15-10, 15-11)*
+- [ ] 15-05-PLAN.md — 오프라인 평가(버전 고정 JSONL 정답셋, calibration/holdout 분리, 순서 교란, DB 증거 기록) *(blocked on 15-02, 15-11)*
 
-**Wave 4** *(blocked on 15-04)*
-- [ ] 15-06-PLAN.md — 저장 직전 확인 모달(D-11) + AiPanel 배선
-- [ ] 15-08-PLAN.md — 그림자 계획(합성 메타데이터, D-06+D-08) + 운영 관측 지표 집계 *(blocked on 15-04, 15-05)*
+**Wave 4**
+- [ ] 15-06-PLAN.md — 저장 확인 모달(D-11) + 원자적 저장 + lifecycle 기반 템플릿 재생성 *(blocked on 15-04, 15-07, 15-10)*
 
-**Wave 5** *(blocked on 15-06, 15-08)*
-- [ ] 15-09-PLAN.md — 전체 게이트: 전체 스위트 + 브라우저 체크포인트 + STATE.md 데이터 정책 블로커 확정
+**Wave 5**
+- [ ] 15-08-PLAN.md — 그림자 계획(bucket별 합성 시나리오, after(), 샘플링·예산·회로 차단) + 저장 결정 로그 *(blocked on 15-04, 15-05, 15-06, 15-11)*
+
+**Wave 6**
+- [ ] 15-09-PLAN.md — 전체 게이트: 스위트 + off 경로 무호출 테스트 + 브라우저 UAT + Code complete / Activation blocked 기록 *(blocked on 15-01, 15-05, 15-06, 15-08)*
 
 **UI hint**: yes
 **Source**: Phase 4 BUG-01 (`.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`)에서 페이즈로 승격 (2026-09-22)
@@ -415,6 +419,6 @@ Residual (stays in v1.0, not yet done):
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/9 | Planned | - |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/11 | Planned | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
