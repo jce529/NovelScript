@@ -1,6 +1,6 @@
 ---
 name: codex-tdd-pipeline
-description: 사용자가 "GPT로 넘겨서 구현해줘", "Codex로 실행해줘", "TDD로 쪼개서 진행해줘", "코덱스한테 위임", "GPT Plus로 짜게 해줘" 등으로 계획-실행 분리 파이프라인을 요청할 때 사용한다. Claude가 GSD로 phase를 TDD 단위 계획으로 쪼개고, 실제 코드 작성/자체 검증은 로컬 Codex CLI(ChatGPT 로그인, GPT Plus)에 위임하고, Claude가 결과를 검수·로드맵 동기화한 뒤 phase 완료 시 Artifact 목업으로 전체 기능검사를 제공하는 절차를 정의한다.
+description: 사용자가 "GPT로 넘겨서 구현해줘", "Codex로 실행해줘", "TDD로 쪼개서 진행해줘", "코덱스한테 위임", "GPT Plus로 짜게 해줘" 등으로 계획-실행 분리 파이프라인을 요청할 때 사용한다. Claude가 GSD로 phase를 TDD 단위 계획으로 쪼개고, 실제 실행은 로컬 Codex CLI(ChatGPT 로그인, GPT Plus)에 2단계로 위임한다 — gpt-6-sol이 작은 TDD 단위 설계를, gpt-6-luna가 빠른 구현을 맡는다. Claude가 결과를 검수·로드맵 동기화한 뒤 phase 완료 시 Artifact 목업으로 전체 기능검사를 제공하는 절차를 정의한다.
 ---
 
 # Codex TDD 파이프라인
@@ -40,26 +40,30 @@ GSD 플랜 템플릿은 이미 task마다 `<acceptance_criteria>`(grep/테스트
 
 결과물: `.planning/phases/<NN>-<slug>/*-PLAN.md` (frontmatter에 `wave`, `depends_on`, `files_modified` 포함).
 
-## 2단계 — 실행 위임 (Codex CLI)
+## 2단계 — 실행 위임 (Codex CLI, Sol 설계 → Luna 구현 2단 호출)
 
 `depends_on`이 없는 wave부터 순서대로, plan 파일 하나씩 Codex에 넘긴다. 같은 wave 안에서 파일이 겹치지 않으면 병렬로 여러 `codex exec`를 동시에 실행해도 되지만, 기본은 순차 실행(레이스 컨디션·중복 커밋 방지).
+
+plan 하나당 Codex를 **두 번** 호출한다 — 설계는 `gpt-6-sol`, 구현은 `gpt-6-luna`로 모델을 분리한다(작은 목표 쪼개기는 Sol이, 빠른 실제 구현은 Luna가 담당). Sol의 출력(작은 TDD 단위 목록)을 그대로 Luna 프롬프트에 붙여 넣어 두 호출을 체이닝한다.
+
+### 2-a. Sol — 작은 TDD 단위 설계
 
 ```bash
 codex exec \
   -C "C:/Users/chang/novelscript-mvp" \
-  -m gpt-5.6-terra \
+  -m gpt-6-sol \
   -c model_reasoning_effort=medium \
-  -s workspace-write \
-  -o "<scratchpad>/codex-<plan-id>-result.txt" \
+  -s read-only \
+  -o "<scratchpad>/codex-<plan-id>-design.txt" \
   - <<'PROMPT'
-아래 계획을 TDD로 실행하라.
+아래 계획(plan)을 코드를 건드리지 않고 분석만 하라. 목표는 각 task를 "실패하는 테스트 하나 → 최소 구현 하나"로 쪼갠, 실행 가능한 아주 작은 TDD 스텝 목록을 만드는 것이다.
 
-절차 (모든 task에 대해 반복):
-1. acceptance_criteria를 검증하는 실패하는 테스트를 먼저 작성한다.
-2. 테스트를 통과시키는 최소 구현을 작성한다.
-3. 프로젝트 테스트 명령(package.json의 test 스크립트)을 실행해 그린인지 스스로 확인한다.
-4. 실패하면 원인을 고치고 3번부터 반복한다 — 통과 전까지 다음 task로 넘어가지 않는다.
-5. 모든 task가 끝나면 전체 테스트 스위트를 한 번 더 돌려 회귀가 없는지 확인한다.
+각 스텝에 다음을 명시한다:
+1. 작성할 실패하는 테스트(파일 경로, 테스트 이름, 무엇을 검증하는지)
+2. 그 테스트만 통과시키는 데 필요한 최소 구현 범위(건드릴 파일/함수)
+3. 이 스텝이 어떤 acceptance_criteria를 얼마나 충족하는지
+
+파일을 쓰지 말고, 이 스텝 목록만 텍스트로 출력하라.
 
 <plan>
 {PLAN.md 파일 내용 전체를 여기 붙여넣는다}
@@ -67,17 +71,50 @@ codex exec \
 PROMPT
 ```
 
-- `-m`·`model_reasoning_effort` 값은 예시다. 위 "모델 명시" 규칙에 따라 매번 실제로 쓸 값으로 채우고, 실행 후 로그의 `model:` 줄로 확인한다.
+- `-s read-only`로 고정한다 — 이 호출은 설계만 하고 코드를 건드리지 않는다.
+- 출력이 비었거나 스텝이 plan의 acceptance_criteria를 다 못 덮으면, 같은 프롬프트에 부족한 부분을 지적해 재호출한다. 통과할 때까지 2-b로 넘어가지 않는다.
+
+### 2-b. Luna — 빠른 구현
+
+```bash
+codex exec \
+  -C "C:/Users/chang/novelscript-mvp" \
+  -m gpt-6-luna \
+  -c model_reasoning_effort=medium \
+  -s workspace-write \
+  -o "<scratchpad>/codex-<plan-id>-result.txt" \
+  - <<'PROMPT'
+아래 TDD 스텝 목록을 순서대로 실행하라.
+
+절차 (모든 스텝에 대해 반복):
+1. 지정된 실패하는 테스트를 먼저 작성한다.
+2. 지정된 최소 구현 범위 안에서만 테스트를 통과시킨다.
+3. 프로젝트 테스트 명령(package.json의 test 스크립트)을 실행해 그린인지 스스로 확인한다.
+4. 실패하면 원인을 고치고 3번부터 반복한다 — 통과 전까지 다음 스텝으로 넘어가지 않는다.
+5. 모든 스텝이 끝나면 전체 테스트 스위트를 한 번 더 돌려 회귀가 없는지 확인한다.
+
+<tdd_steps>
+{2-a에서 받은 스텝 목록 전체를 여기 붙여넣는다}
+</tdd_steps>
+
+<plan>
+{PLAN.md 파일 내용 전체를 여기 붙여넣는다 — acceptance_criteria 원문 확인용}
+</plan>
+PROMPT
+```
+
+- 2-a/2-b 각각의 `-m`·`model_reasoning_effort` 값은 예시다. "모델 명시" 규칙에 따라 매번 실제로 쓸 값으로 채우고, 실행 후 로그의 `model:` 줄이 `gpt-6-sol`/`gpt-6-luna`인지 각각 확인한다.
 - ChatGPT 사용 한도 초과(`You've hit your usage limit`)로 실패하면 재시도하지 말고 해제 시각과 함께 사용자에게 알려, 기다릴지 Claude가 직접 진행할지 묻는다.
 - `-o`로 마지막 응답을 파일로 받아 결과 요약을 빠르게 확인한다. 필요하면 `--json`으로 이벤트 스트림을 받아 실패한 커맨드를 추적한다.
-- 이 호출은 Bash 도구로 동기 실행한다 (완료까지 대기 후 다음 단계로).
+- 두 호출 모두 Bash 도구로 동기 실행한다 (완료까지 대기 후 다음 단계로).
 - Codex가 인증/샌드박스 오류를 내면 사전 조건 섹션으로 돌아가 재확인한다.
+- Codex CLI가 `gpt-6-sol`/`gpt-6-luna`를 "not supported"로 거부하면 `codex --version` 확인 후 최신 안정 버전(`npm i -g @openai/codex@latest`)으로 업데이트한다 — 구버전 CLI는 이 모델들의 메타데이터를 모른다.
 
 ## 3단계 — 검수 및 로드맵 동기화 (Claude)
 
 Codex 실행이 끝날 때마다:
 
-1. `git status` / `git diff`로 실제 변경 내용을 확인한다 — Codex의 자체 보고를 그대로 믿지 않는다.
+1. `git status` / `git diff`로 실제 변경 내용을 확인한다 — Codex의 자체 보고를 그대로 믿지 않는다. 2-a(Sol) 설계 단계는 `read-only`라 diff가 없는 게 정상이며, 코드 변경은 2-b(Luna) 결과만 확인 대상이다.
 2. 프로젝트 테스트 명령을 Claude 쪽에서도 한 번 더 돌려 그린인지 재확인한다.
 3. plan의 `<acceptance_criteria>`를 grep/직접 확인으로 재검증한다.
 4. 문제없으면 plan 파일의 체크박스를 갱신하고, CLAUDE.md의 기존 규칙대로 로드맵을 동기화한다:
