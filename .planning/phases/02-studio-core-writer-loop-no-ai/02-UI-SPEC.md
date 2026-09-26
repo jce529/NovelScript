@@ -99,7 +99,7 @@ Accent reserved for: primary CTA buttons, active/selected tree-node indicator, c
 | Primary CTA — create chapter | "새 회차 추가" |
 | Primary CTA — create KB document (inside a category folder) | "새 문서 만들기" |
 | Primary CTA — create custom template | "새 템플릿 만들기" |
-| Primary CTA — publish chapter | "발행하기" |
+| Primary CTA — publish chapter | "발행하기" — from Phase 4 onward, if the chapter contains AI-accepted content not yet published, this click is intercepted by the AI 콘텐츠 검토 확인 모달 (D-16, legal requirement) before the publish actually fires; see `.planning/phases/04-ai-gateway-mention-based-generation/04-UI-SPEC.md` Copywriting Contract |
 | Primary CTA — save KB document (explicit save if not autosave) | "문서 저장" |
 | Primary CTA — save chapter draft (explicit save, distinct from the separate "발행하기" publish action) | "회차 저장" |
 | Empty state — 작품 목록, no works yet | Heading: "아직 만든 작품이 없어요" · Body: "새 작품을 만들고 집필을 시작해보세요." · CTA: "새 작품 만들기" |
