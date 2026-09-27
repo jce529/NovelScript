@@ -381,7 +381,7 @@ Residual (stays in v1.0, not yet done):
 - [x] 15-05-PLAN.md — 오프라인 평가(버전 고정 JSONL 정답셋, calibration/holdout 분리, 순서 교란, DB 증거 기록) *(blocked on 15-02, 15-11)*
 
 **Wave 4**
-- [ ] 15-06-PLAN.md — 저장 확인 모달(D-11) + 원자적 저장 + lifecycle 기반 템플릿 재생성 *(blocked on 15-04, 15-07, 15-10)*
+- [x] 15-06-PLAN.md — 저장 확인 모달(D-11) + 원자적 저장 + lifecycle 기반 템플릿 재생성 *(blocked on 15-04, 15-07, 15-10)*
 
 **Wave 5**
 - [ ] 15-08-PLAN.md — 그림자 계획(bucket별 합성 시나리오, after(), 샘플링·예산·회로 차단) + 저장 결정 로그 *(blocked on 15-04, 15-05, 15-06, 15-11)*
@@ -419,6 +419,6 @@ Residual (stays in v1.0, not yet done):
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 8/11 | In Progress|  |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 9/11 | In Progress|  |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
