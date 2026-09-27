@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-09-24T07:38:02.072Z"
-last_activity: 2026-09-24 -- Phase 15 execution started
+stopped_at: Phase 15 code complete — activation blocked (data policy review + real-vendor eval + shadow samples)
+last_updated: "2026-09-27T18:00:00.000Z"
+last_activity: 2026-09-27 -- Phase 15 code complete; browser UAT (Plan 15-09 Task 2) pending
 progress:
   total_phases: 16
   completed_phases: 7
   total_plans: 62
-  completed_plans: 46
+  completed_plans: 56
 ---
 
 # Project State
@@ -172,7 +172,8 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- **[v1.1 Phase 15] Jev(TypeSafe AI) 데이터 처리 정책 검토가 실제 활성화의 전제 조건이다.** D-08/D-09/D-10. 활성화는 코드 상수가 아니라 lib/ai/decision/activation.ts의 getAiDocPlanningMode()가 DB에 기록된 정책 승인·실제 벤더 평가 증거·그림자 표본을 모두 확인할 때만 'active'가 된다 (Plan 15-11). 검토 주체: 작가 본인(사용자, 법무팀 별도 검토 없음). 검토 시작일: 2026-09-27. Jev 계정 상태: live verified — 인증 `Authorization: Bearer <key>`, 요청 `{state, model, questions:{<id>:{type,instructions,criteria}}}`, 응답 `{model, answers:{<id>:{choice,probabilities,confidence}}}`, 고정 버전 태그 `jev-1.13.0` (semver, alias는 `jev-latest`/`jev-preview`). 2026-09-27 합성 데이터 스파이크 호출로 확인(HTTP 200).
+- **[v1.1 Phase 15] Code complete / Activation blocked.** Jev 추천의 Production active는 lib/ai/decision/activation.ts getAiDocPlanningMode()가 다음을 모두 확인할 때만 성립한다: (1) 데이터 처리 정책 검토 승인 행(ai_doc_activation_approvals — 검토 주체: 작가 본인, D-10) (2) pinned JEV_MODEL_VERSION (3) 같은 모델·golden-set hash·EVALUATOR_VERSION의 실제 벤더 holdout 평가 통과 증거(ai_doc_activation_evidence) (4) 최근 30일 그림자 표본 ≥ 200·오류율 ≤ 5%·P95 ≤ 800ms. 그 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다(D-08). Jev 계정: live verified — 인증 `Authorization: Bearer <key>`, 요청 `{state, model, questions:{<id>:{type,instructions,criteria}}}`, 응답 `{model, answers:{<id>:{choice,probabilities,confidence}}}`, 고정 버전 태그 `jev-1.13.0`(semver, alias는 `jev-latest`/`jev-preview`). 갱신일: 2026-09-27. Phase 5 Toss 심사와 동일한 외부 대기열로 취급.
+- **[v1.1 Phase 15 활성화 절차 — 코드 수정 없음]** ① 실제 키로 `npm run eval:jev` → holdout 증거 기록(현재 migrations 0010/0011을 실제 Supabase 프로젝트에 적용해야 이 단계가 성공함) ② golden-set hash·임계값을 검토하고 ai_doc_activation_approvals에 policy_review 행 insert(service role SQL) ③ `AI_DOC_PLANNING_MODE=shadow`로 배포해 그림자 표본 축적 ④ 조건 충족 확인 후 `AI_DOC_PLANNING_MODE=active`. 조건이 하나라도 빠지면 resolver가 자동으로 shadow/off로 강등한다.
 - **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
 - **[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).
 - **[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.

@@ -4,6 +4,7 @@ import type { DecisionClient } from './types';
 import type { DecisionCallRecord } from './plan';
 import { planTaskAndCategory, planFolderAndTemplateFromCandidates } from './plan';
 import { SHADOW_SCENARIOS, type ShadowBucket, type ShadowScenario } from './shadow-scenarios';
+import { untypedTable } from './untyped-table';
 
 export interface ShadowTrigger { ownerId: string; workId: string; requestKey: string; requestLength: number; hasChapterContext: boolean; mentionedFactCount: number; }
 export interface ShadowDeps { client: DecisionClient; admin: SupabaseClient; rng: () => number; now: () => Date; sampleRate: number; dailyMax: number; modelVersion: string; }
@@ -19,7 +20,6 @@ export function pickScenario(bucket: ShadowBucket, seedKey: string): ShadowScena
   const matches = SHADOW_SCENARIOS.filter(s => s.bucket === bucket);
   return matches[hash(seedKey) % matches.length];
 }
-let inFlightForTests = () => inFlight;
 export async function runShadowPlan(deps: ShadowDeps, trigger: ShadowTrigger): Promise<{ skipped?: 'not_sampled' | 'daily_budget' | 'circuit_open' | 'concurrency' } | void> {
   try {
     const configuredRate = Number.isFinite(deps.sampleRate) ? deps.sampleRate : 0;
@@ -27,13 +27,13 @@ export async function runShadowPlan(deps: ShadowDeps, trigger: ShadowTrigger): P
     if (inFlight >= SHADOW_MAX_CONCURRENCY) return { skipped: 'concurrency' };
     inFlight++;
     try {
-      const admin = deps.admin as any;
+      const admin = deps.admin;
       const midnight = new Date(deps.now()); midnight.setUTCHours(0, 0, 0, 0);
-      const daily = await admin.from('ai_doc_plan_shadow_log').select('id', { count: 'exact', head: true }).gte('created_at', midnight.toISOString());
+      const daily = await untypedTable(admin, 'ai_doc_plan_shadow_log').select('id', { count: 'exact', head: true }).gte('created_at', midnight.toISOString());
       if (daily.error || Number(daily.count ?? 0) >= deps.dailyMax) return { skipped: 'daily_budget' };
-      const recent = await admin.from('ai_doc_plan_shadow_log').select('status').gte('created_at', new Date(deps.now().getTime() - 10 * 60_000).toISOString()).order('created_at', { ascending: false }).limit(20);
+      const recent = await untypedTable(admin, 'ai_doc_plan_shadow_log').select('status').gte('created_at', new Date(deps.now().getTime() - 10 * 60_000).toISOString()).order('created_at', { ascending: false }).limit(20);
       if (recent.error) return { skipped: 'circuit_open' };
-      if ((recent.data ?? []).filter((r: any) => r.status === 'error').length >= 10) return { skipped: 'circuit_open' };
+      if ((recent.data ?? []).filter((r: { status: string }) => r.status === 'error').length >= 10) return { skipped: 'circuit_open' };
       const bucket = bucketFor(trigger);
       const scenario = pickScenario(bucket, trigger.requestKey);
       const task = await planTaskAndCategory(deps.client, scenario.state);
@@ -55,7 +55,7 @@ export async function runShadowPlan(deps: ShadowDeps, trigger: ShadowTrigger): P
         call_count: calls.length, latency_ms: calls.reduce((sum, c) => sum + c.latencyMs, 0),
         estimated_cost_usd: calls.length * ESTIMATED_COST_PER_CALL_USD, applied: false,
       };
-      await admin.from('ai_doc_plan_shadow_log').insert(row);
+      await untypedTable(admin, 'ai_doc_plan_shadow_log').insert(row);
       if (deps.rng() < 0.01) await admin.rpc('purge_ai_doc_plan_logs', { p_retention_days: 90 });
     } finally { inFlight--; }
   } catch {
@@ -70,7 +70,7 @@ export async function recordDocumentSaveDecision(admin: SupabaseClient, input: {
   try {
     const folderChanged = input.recommendedFolderId !== input.actualFolderId;
     const templateChanged = input.recommendedTemplateId !== input.actualTemplateId;
-    const { error } = await (admin as any).from('ai_doc_plan_decision_log').insert({
+    const { error } = await untypedTable(admin, 'ai_doc_plan_decision_log').insert({
       owner_id: input.ownerId, work_id: input.workId, node_id: input.nodeId,
       recommended_folder_id: input.recommendedFolderId, actual_folder_id: input.actualFolderId,
       recommended_template_id: input.recommendedTemplateId ?? null, actual_template_id: input.actualTemplateId,

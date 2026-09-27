@@ -11,7 +11,7 @@ function admin(data: Record<string, unknown> = {}, errorTable?: string) {
   const calls: string[] = [];
   const client = { from: (table: string) => {
     calls.push(table);
-    const builder: any = { select: () => builder, eq: () => builder, is: () => builder, lt: () => builder, gte: () => builder, order: () => builder, limit: () => builder,
+    const builder = { select: () => builder, eq: () => builder, is: () => builder, lt: () => builder, gte: () => builder, order: () => builder, limit: () => builder,
       insert: vi.fn((row: unknown) => ({ select: () => ({ single: async () => ({ data: row, error: null }) }) })),
       then: (resolve: (value: unknown) => unknown) => Promise.resolve({ data: data[table] ?? [], error: errorTable === table ? new Error('db') : null }).then(resolve) };
     return builder;

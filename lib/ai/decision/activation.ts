@@ -2,6 +2,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { JEV_ACTIVATION_THRESHOLDS } from './config';
 import { computeShadowMetrics, evaluateShadowGate, type ShadowLogRow } from './metrics';
+import { untypedTable } from './untyped-table';
 
 export type AiDocPlanningMode = 'off' | 'shadow' | 'active';
 export interface ActivationStatus { mode: AiDocPlanningMode; reasons: string[]; modelVersion: string | null; }
@@ -33,18 +34,18 @@ export async function getAiDocPlanningMode(admin: SupabaseClient, env: Record<st
   const cacheKey = `${requested}:${modelVersion}`;
   if (cache?.key === cacheKey && cache.expires > Date.now()) return cache.status;
   try {
-    const { data: approvalRows, error: approvalError } = await (admin.from('ai_doc_activation_approvals') as any)
+    const { data: approvalRows, error: approvalError } = await untypedTable(admin, 'ai_doc_activation_approvals')
       .select('*').eq('kind', 'policy_review').is('revoked_at', null).eq('model_version', modelVersion).order('approved_at', { ascending: false }).limit(1);
     if (approvalError) throw approvalError;
     const approval = approvalRows?.[0];
     if (!approval) return { mode: 'shadow', reasons: ['policy_approval_missing'], modelVersion };
     const reasons: string[] = [];
     if (stable(approval.approved_thresholds) !== stable(JEV_ACTIVATION_THRESHOLDS)) reasons.push('approved_thresholds_mismatch');
-    const { data: priorRows, error: priorError } = await (admin.from('ai_doc_activation_approvals') as any)
+    const { data: priorRows, error: priorError } = await untypedTable(admin, 'ai_doc_activation_approvals')
       .select('approved_at,approved_thresholds').eq('model_version', modelVersion).lt('approved_at', approval.approved_at);
     if (priorError) throw priorError;
-    if ((priorRows ?? []).some((prior: any) => isWeakerThan(approval.approved_thresholds ?? {}, prior.approved_thresholds ?? {}))) reasons.push('approved_thresholds_weakened');
-    const { data: evidenceRows, error: evidenceError } = await (admin.from('ai_doc_activation_evidence') as any)
+    if ((priorRows ?? []).some((prior: { approved_thresholds?: Record<string, unknown> }) => isWeakerThan(approval.approved_thresholds ?? {}, prior.approved_thresholds ?? {}))) reasons.push('approved_thresholds_weakened');
+    const { data: evidenceRows, error: evidenceError } = await untypedTable(admin, 'ai_doc_activation_evidence')
       .select('*').eq('model_version', modelVersion).eq('dataset_hash', approval.dataset_hash)
       .eq('evaluator_version', EVALUATOR_VERSION).eq('split', 'holdout').eq('used_real_vendor', true)
       .order('recorded_at', { ascending: false }).limit(1);
@@ -59,7 +60,7 @@ export async function getAiDocPlanningMode(admin: SupabaseClient, env: Record<st
       if (new Date(evidence.recorded_at).getTime() <= new Date(approval.approved_at).getTime()) reasons.push('evidence_predates_approval');
     }
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: shadowRows, error: shadowError } = await (admin.from('ai_doc_plan_shadow_log') as any)
+    const { data: shadowRows, error: shadowError } = await untypedTable(admin, 'ai_doc_plan_shadow_log')
       .select('status,task_decision,task_correct,folder_fallback,template_fallback,call_count,latency_ms,estimated_cost_usd')
       .eq('model_version', modelVersion).gte('created_at', since);
     if (shadowError) throw shadowError;
@@ -77,7 +78,7 @@ export async function recordActivationEvidence(admin: SupabaseClient, e: {
 }): Promise<{ recorded: boolean }> {
   if (!e.usedRealVendor) return { recorded: false };
   try {
-    const { error } = await (admin.from('ai_doc_activation_evidence') as any).insert({
+    const { error } = await untypedTable(admin, 'ai_doc_activation_evidence').insert({
       model_version: e.modelVersion, dataset_hash: e.datasetHash, evaluator_version: EVALUATOR_VERSION,
       used_real_vendor: true, split: e.split, sample_size: e.sampleSize, metrics: e.metrics, passed: metricsPass(e.metrics),
     });

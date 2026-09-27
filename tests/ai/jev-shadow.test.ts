@@ -6,22 +6,29 @@ const h = vi.hoisted(() => ({ task: vi.fn(), folder: vi.fn() }));
 vi.mock('@/lib/ai/decision/plan', () => ({ planTaskAndCategory: h.task, planFolderAndTemplateFromCandidates: h.folder }));
 vi.mock('server-only', () => ({}));
 
+type FakeRow = Record<string, unknown>;
+interface FakeChain {
+  select: ReturnType<typeof vi.fn>; gte: ReturnType<typeof vi.fn>; order: ReturnType<typeof vi.fn>; limit: ReturnType<typeof vi.fn>;
+  insert: ReturnType<typeof vi.fn>; then?: (resolve: (v: { data: unknown[]; error: null; count: number }) => void) => void;
+}
+
 function deps(overrides: Record<string, unknown> = {}) {
-  const inserted: any[] = [];
+  const inserted: FakeRow[] = [];
   const queries: string[] = [];
-  const admin: any = {
+  const admin = {
     from: vi.fn((table: string) => {
       queries.push(table);
-      const chain: any = {
+      const chain = {
         select: vi.fn(() => chain), gte: vi.fn(() => chain), order: vi.fn(() => chain), limit: vi.fn(() => chain),
-        insert: vi.fn(async (row: any) => { inserted.push(row); return { error: null }; }),
+        insert: vi.fn(async (row: FakeRow) => { inserted.push(row); return { error: null }; }),
         then: undefined,
-      };
-      chain.then = (resolve: any) => resolve({ data: [], error: null, count: 0 });
+      } as FakeChain;
+      chain.then = (resolve) => resolve({ data: [], error: null, count: 0 });
       return chain;
     }), rpc: vi.fn(async () => ({ error: null })),
   };
-  return { inserted, queries, admin, value: { client: { provider: 'jev' }, admin, rng: () => 0.1, now: () => new Date('2026-09-27T12:00:00Z'), sampleRate: 1, dailyMax: 500, modelVersion: 'jev-1', ...overrides } as any };
+  const fakeAdmin = admin as unknown as Parameters<typeof recordDocumentSaveDecision>[0];
+  return { inserted, queries, admin: fakeAdmin, value: { client: { provider: 'jev' }, admin: fakeAdmin, rng: () => 0.1, now: () => new Date('2026-09-27T12:00:00Z'), sampleRate: 1, dailyMax: 500, modelVersion: 'jev-1', ...overrides } as unknown as Parameters<typeof runShadowPlan>[0] };
 }
 
 describe('shadow plan', () => {
@@ -60,12 +67,17 @@ describe('shadow plan', () => {
   it('enforces daily, circuit and concurrency limits', async () => {
     const trigger = { ownerId: 'o', workId: 'w', requestKey: 'k', requestLength: 10, hasChapterContext: false, mentionedFactCount: 0 };
     const daily = deps({ dailyMax: 0, rng: () => 0.1 }); expect(await runShadowPlan(daily.value, trigger)).toEqual({ skipped: 'daily_budget' });
-    const circuit = deps(); circuit.admin.from = vi.fn(() => { const c: any = { select: () => c, gte: () => c, order: () => c, limit: () => c }; c.then = (r: any) => r({ data: Array.from({ length: 20 }, (_, i) => ({ status: i < 10 ? 'error' : 'ok' })), error: null }); return c; });
+    const circuit = deps();
+    (circuit.admin as unknown as { from: unknown }).from = vi.fn(() => {
+      const c = { select: () => c, gte: () => c, order: () => c, limit: () => c } as FakeChain;
+      c.then = (resolve) => resolve({ data: Array.from({ length: 20 }, (_, i) => ({ status: i < 10 ? 'error' : 'ok' })), error: null, count: 0 });
+      return c;
+    });
     expect(await runShadowPlan(circuit.value, trigger)).toEqual({ skipped: 'circuit_open' });
     expect(SHADOW_MAX_CONCURRENCY).toBe(2);
     const concurrent = deps();
-    let release!: (value: any) => void;
-    h.task.mockReturnValue(new Promise(resolve => { release = resolve; }));
+    let release!: (value: { kind: string; taskConfidence: number; categoryConfidence: number | null; calls: unknown[] }) => void;
+    h.task.mockReturnValue(new Promise((resolve) => { release = resolve; }));
     const first = runShadowPlan(concurrent.value, trigger);
     const second = runShadowPlan(concurrent.value, { ...trigger, requestKey: 'second' });
     await Promise.resolve(); await Promise.resolve();

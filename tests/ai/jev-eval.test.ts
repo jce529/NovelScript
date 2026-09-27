@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DecisionClient, DecisionRequest } from '@/lib/ai/decision/types';
 import { DecisionCallError } from '@/lib/ai/decision/errors';
-import { loadFolderTemplateSet, loadGoldenSet, type FolderTemplateItem, type GoldenItem } from '@/lib/ai/decision/eval/golden-set';
+import { loadFolderTemplateSet, type GoldenItem } from '@/lib/ai/decision/eval/golden-set';
 import {
   buildEvidence,
   computeECE,

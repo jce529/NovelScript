@@ -9,7 +9,7 @@ import type { ChatResult } from '@/lib/ai/chat-result';
 import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
 import type { DecisionClient } from '@/lib/ai/decision/types';
-import { parseChatResponse, type ParsedChatResponse } from '@/lib/ai/chat-parse';
+import { parseChatResponse } from '@/lib/ai/chat-parse';
 
 export { AI_GENERATION_REFERENCE_TYPE } from './paid-generation';
 export { parseChatResponse, type ParsedChatResponse } from '@/lib/ai/chat-parse';
