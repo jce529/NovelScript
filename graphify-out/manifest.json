@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/MentionAutocomplete.tsx": {
-    "mtime": 1790155157.735459,
-    "seen": 1790481351.6485362,
-    "ast_hash": "e10f89b8b3fc2f6bc43832f82db2b5f9",
+    "mtime": 1790503651.3063252,
+    "seen": 1790503862.2656085,
+    "ast_hash": "9be5e4151ff7ed4c7a2b28f10edeb5d8",
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/QuickAddDialog.tsx": {
@@ -444,9 +444,9 @@
     "semantic_hash": ""
   },
   "lib/ai/mentions.ts": {
-    "mtime": 1790481306.76776,
-    "seen": 1790481351.6485968,
-    "ast_hash": "687fb5d8088835269600f4280ccc4d52",
+    "mtime": 1790503651.3073244,
+    "seen": 1790503862.2656877,
+    "ast_hash": "c20988b6e803153aafc38b6631fcad34",
     "semantic_hash": ""
   },
   "lib/ai/prompt.ts": {
@@ -510,10 +510,10 @@
     "semantic_hash": "8b38b09b046038788d781178e8694273"
   },
   "lib/kb/templates.ts": {
-    "mtime": 1788074942.2064717,
-    "seen": 1790481351.6486108,
-    "ast_hash": "184059d6116986cc9a2311a69181db29",
-    "semantic_hash": "184059d6116986cc9a2311a69181db29"
+    "mtime": 1790503651.3073244,
+    "seen": 1790503862.2657034,
+    "ast_hash": "8686a280d3fa45e95aa4d63eb5679bfd",
+    "semantic_hash": ""
   },
   "lib/kb/tree.ts": {
     "mtime": 1788171608.930636,
@@ -3744,8 +3744,8 @@
     "semantic_hash": ""
   },
   ".planning/phases/04-ai-gateway-mention-based-generation/bugs/README.md": {
-    "mtime": 1790165596.4337895,
-    "seen": 1790481351.648751,
+    "mtime": 1790503253.9000473,
+    "seen": 1790503862.2658591,
     "ast_hash": "7d136991afef01e3d7a6319a672aaa8b",
     "semantic_hash": ""
   },
@@ -4044,9 +4044,9 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/quick-add-folders.ts": {
-    "mtime": 1790482194.1838267,
-    "seen": 1790482373.7298286,
-    "ast_hash": "b5b7451b71cc705442093506041e52d2",
+    "mtime": 1790503711.7073178,
+    "seen": 1790503862.2656128,
+    "ast_hash": "431837b19bd8ad4de4df42da1c11b5a1",
     "semantic_hash": ""
   },
   "lib/ai/decision/activation.ts": {
@@ -4281,6 +4281,24 @@
     "mtime": 1790499697.5406191,
     "seen": 1790500734.4767714,
     "ast_hash": "7ad986b5b0222710e95d62a1c31b22df",
+    "semantic_hash": ""
+  },
+  "tests/studio/client-bundle-fs-free.test.ts": {
+    "mtime": 1790503651.3752718,
+    "seen": 1790503862.2657824,
+    "ast_hash": "b5458fb46d925bf0a703d1648dda1d9d",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/bugs/BUG-01-chapter-editor-client-bundle-fs-import.md": {
+    "mtime": 1790503842.7124424,
+    "seen": 1790503862.2659428,
+    "ast_hash": "2d1ca94e85f746e12ac450f41f70decb",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/bugs/README.md": {
+    "mtime": 1790503651.3752718,
+    "seen": 1790503862.2659435,
+    "ast_hash": "26d5c3f5d78ca82efc7d94df6eeaa6f4",
     "semantic_hash": ""
   }
 }
