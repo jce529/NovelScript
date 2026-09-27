@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/QuickAddDialog.tsx": {
-    "mtime": 1790482310.2354553,
-    "seen": 1790482373.7298274,
-    "ast_hash": "e9f4cb0174dd361e620a9c3872b2ef15",
+    "mtime": 1790506615.537014,
+    "seen": 1790507138.7928035,
+    "ast_hash": "267af7744e2da44f6afe422e988e4542",
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/page.tsx": {
@@ -132,10 +132,10 @@
     "semantic_hash": "8d126420cb0f8902820169ecbd7dda8b"
   },
   "app/studio/[workId]/kb/[nodeId]/page.tsx": {
-    "mtime": 1787893621.8391688,
-    "seen": 1790481351.648543,
-    "ast_hash": "b52e119df91fe885723caed893edf869",
-    "semantic_hash": "b52e119df91fe885723caed893edf869"
+    "mtime": 1790506607.698233,
+    "seen": 1790507138.7928205,
+    "ast_hash": "4bb86e531886b895f1c92d4df88f5609",
+    "semantic_hash": ""
   },
   "app/studio/[workId]/layout.tsx": {
     "mtime": 1788173745.086524,
@@ -426,9 +426,9 @@
     "semantic_hash": ""
   },
   "eslint.config.mjs": {
-    "mtime": 1787629628.776731,
-    "seen": 1790481351.648582,
-    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "mtime": 1790506595.6071432,
+    "seen": 1790507138.7929013,
+    "ast_hash": "a5b4cf9a4e5fc781b55f394c7cf5da26",
     "semantic_hash": ""
   },
   "lib/ai/chat.ts": {
@@ -684,9 +684,9 @@
     "semantic_hash": ""
   },
   "tests/auth/account-deletion.test.ts": {
-    "mtime": 1787887841.5690188,
-    "seen": 1790481351.648654,
-    "ast_hash": "2830bf6524bc44abed75aa9e5b9cdfd1",
+    "mtime": 1790506579.96601,
+    "seen": 1790507138.793095,
+    "ast_hash": "c903020faa0fe5b4db82d6aaf47284a9",
     "semantic_hash": ""
   },
   "tests/auth/email-guard.test.ts": {
@@ -696,21 +696,21 @@
     "semantic_hash": ""
   },
   "tests/auth/profile-provisioning.test.ts": {
-    "mtime": 1787670625.6670723,
-    "seen": 1790481351.6486557,
-    "ast_hash": "28d1928408639d8705eb5cb8e16e2dc5",
+    "mtime": 1790506579.96601,
+    "seen": 1790507138.7930973,
+    "ast_hash": "c26fdca2d0635a25648c2a666a89773d",
     "semantic_hash": ""
   },
   "tests/auth/session-refresh.test.ts": {
-    "mtime": 1787670941.7765326,
-    "seen": 1790481351.6486564,
-    "ast_hash": "1a73af834c9e406b7a0e0e1f23291c05",
+    "mtime": 1790506632.6547318,
+    "seen": 1790507138.7930984,
+    "ast_hash": "ee72db29d17d754b1519f0851c8dac03",
     "semantic_hash": ""
   },
   "tests/auth/writer-upgrade.test.ts": {
-    "mtime": 1787887833.5988002,
-    "seen": 1790481351.6486568,
-    "ast_hash": "1f8d7c93502b6550e4399030d4c97295",
+    "mtime": 1790506579.9670105,
+    "seen": 1790507138.7930999,
+    "ast_hash": "810a6ec61fd357d052d52cf4dad1ef6a",
     "semantic_hash": ""
   },
   "tests/chapters/draft.test.ts": {
@@ -858,10 +858,10 @@
     "semantic_hash": "853397f1629eacdd0ed20483a4ad2bef"
   },
   "tests/studio/schema-smoke.test.ts": {
-    "mtime": 1788171092.8270864,
-    "seen": 1790481351.6486773,
-    "ast_hash": "77497f0e1c221b31a433ae84980a712d",
-    "semantic_hash": "77497f0e1c221b31a433ae84980a712d"
+    "mtime": 1790506579.96601,
+    "seen": 1790507138.7931437,
+    "ast_hash": "cbee1cd59bd96fb6a786b474b2d36f90",
+    "semantic_hash": ""
   },
   "tests/viewer/chapter-read.test.ts": {
     "mtime": 1788049173.9430394,
@@ -882,16 +882,16 @@
     "semantic_hash": "8f05160392feeaffe16bf1b941a0595b"
   },
   "tests/wallet/ledger.concurrency.test.ts": {
-    "mtime": 1789645977.9111385,
-    "seen": 1790481351.6486802,
-    "ast_hash": "8fe035ec989409be51b31470a765a6e9",
+    "mtime": 1790506579.9670105,
+    "seen": 1790507138.7931492,
+    "ast_hash": "960264b9ddce184a03c6f8ca4ad7ec2e",
     "semantic_hash": ""
   },
   "tests/works/work-crud.test.ts": {
-    "mtime": 1788173991.2586026,
-    "seen": 1790481351.6486807,
-    "ast_hash": "3a0f97e6dc1458340a1f3b0239200cf8",
-    "semantic_hash": "3a0f97e6dc1458340a1f3b0239200cf8"
+    "mtime": 1790506579.9670105,
+    "seen": 1790507138.7931507,
+    "ast_hash": "2a90e51312fc4e6b18ac910664f57257",
+    "semantic_hash": ""
   },
   "tsconfig.json": {
     "mtime": 1787629631.9201763,
@@ -978,15 +978,15 @@
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1790500683.148648,
-    "seen": 1790500734.4768236,
-    "ast_hash": "1db15708a973d2d068630f7882559764",
+    "mtime": 1790506530.3495257,
+    "seen": 1790507138.7931812,
+    "ast_hash": "fa58a1d315e64fd8a859cbcbd49cd7f8",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
-    "mtime": 1790500673.6618972,
-    "seen": 1790500734.476824,
-    "ast_hash": "6d511342a4e15afc3c46c1dac4d8b1b2",
+    "mtime": 1790506530.3520346,
+    "seen": 1790507138.7931821,
+    "ast_hash": "e89cbfd25b623995202cd4c9dde81c28",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-01-PLAN.md": {
@@ -4278,9 +4278,9 @@
     "semantic_hash": ""
   },
   "tests/ai/jev-off-path.test.ts": {
-    "mtime": 1790499697.5406191,
-    "seen": 1790500734.4767714,
-    "ast_hash": "7ad986b5b0222710e95d62a1c31b22df",
+    "mtime": 1790506530.3820264,
+    "seen": 1790507138.7930727,
+    "ast_hash": "f6162c7d800703538d54caa0e8e42e70",
     "semantic_hash": ""
   },
   "tests/studio/client-bundle-fs-free.test.ts": {
@@ -4289,16 +4289,22 @@
     "ast_hash": "b5458fb46d925bf0a703d1648dda1d9d",
     "semantic_hash": ""
   },
-  ".planning/phases/15-jev-ai/bugs/BUG-01-chapter-editor-client-bundle-fs-import.md": {
-    "mtime": 1790503842.7124424,
-    "seen": 1790503862.2659428,
-    "ast_hash": "2d1ca94e85f746e12ac450f41f70decb",
+  ".planning/phases/15-jev-ai/bugs/README.md": {
+    "mtime": 1790503921.0810695,
+    "seen": 1790504481.8010604,
+    "ast_hash": "4d3c415c4e2b2fe21bef553a6fbf30b5",
     "semantic_hash": ""
   },
-  ".planning/phases/15-jev-ai/bugs/README.md": {
-    "mtime": 1790503651.3752718,
-    "seen": 1790503862.2659435,
-    "ast_hash": "26d5c3f5d78ca82efc7d94df6eeaa6f4",
+  ".planning/fixed/15-01 \ud68c\ucc28 \ud3b8\uc9d1\uae30 Turbopack fs \ud328\ub2c9 \uc218\uc815.md": {
+    "mtime": 1790503920.6907692,
+    "seen": 1790504481.8009243,
+    "ast_hash": "cd1cc4c5e9c0afcdd820f8404df6cc00",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-09-SUMMARY.md": {
+    "mtime": 1790507089.124026,
+    "seen": 1790507138.7934403,
+    "ast_hash": "79e1ba909a898aacdc6f703f95c684e5",
     "semantic_hash": ""
   }
 }
