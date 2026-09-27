@@ -42,7 +42,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **v1.1 — 마무리 품질 페이즈**
 
-- [ ] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다
+- [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
 
 ## Phase Details
 
@@ -387,7 +387,7 @@ Residual (stays in v1.0, not yet done):
 - [x] 15-08-PLAN.md — 그림자 계획(bucket별 합성 시나리오, after(), 샘플링·예산·회로 차단) + 저장 결정 로그 *(blocked on 15-04, 15-05, 15-06, 15-11)*
 
 **Wave 6**
-- [ ] 15-09-PLAN.md — 전체 게이트: 스위트 + off 경로 무호출 테스트 + 브라우저 UAT + Code complete / Activation blocked 기록 *(blocked on 15-01, 15-05, 15-06, 15-08)*
+- [x] 15-09-PLAN.md — 전체 게이트: 스위트 + off 경로 무호출 테스트 + 브라우저 UAT + Code complete / Activation blocked 기록 *(Task 2 browser UAT pending)*
 
 **UI hint**: yes
 **Source**: Phase 4 BUG-01 (`.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`)에서 페이즈로 승격 (2026-09-22)
@@ -419,6 +419,6 @@ Residual (stays in v1.0, not yet done):
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 10/11 | In Progress|  |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
