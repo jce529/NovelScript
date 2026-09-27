@@ -126,6 +126,117 @@ export async function listTemplateOptions(
   return options;
 }
 
+export interface FolderCandidate {
+  id: string;
+  name: string;
+  isRoot: boolean;
+  /** 카테고리 루트를 제외한 경로. 루트는 ''. 예: '주요 등장인물/핵심' */
+  path: string;
+  /** 루트→자신 'id:name' 체인. 저장 직전 재검증에 쓴다. */
+  version: string;
+}
+
+export type FolderCandidatesResult =
+  | { status: 'ok'; root: FolderCandidate; candidates: FolderCandidate[] }
+  | { status: 'root_missing' }
+  | { status: 'root_duplicate' }
+  | { status: 'query_failed' };
+
+export const MAX_FOLDER_DEPTH = 32;
+
+type CategoryFolderRow = { id: string; name: string; parent_id: string | null };
+
+/** Returns only folders connected to the single explicit structural root. */
+export async function listCategoryFolderCandidates(
+  supabase: SupabaseClient,
+  { ownerId, workId, category }: { ownerId: string; workId: string; category: string }
+): Promise<FolderCandidatesResult> {
+  const { data, error } = await supabase
+    .from('kb_nodes')
+    .select('id, name, parent_id')
+    .eq('owner_id', ownerId)
+    .eq('work_id', workId)
+    .eq('scope', 'work')
+    .eq('category', category)
+    .eq('node_type', 'folder')
+    .is('deleted_at', null);
+  if (error || !data) return { status: 'query_failed' };
+
+  const rows = data as CategoryFolderRow[];
+  const roots = rows.filter((row) => row.parent_id === null);
+  if (roots.length === 0) return { status: 'root_missing' };
+  if (roots.length > 1) return { status: 'root_duplicate' };
+
+  const rootRow = roots[0];
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  function chainToRoot(row: CategoryFolderRow): CategoryFolderRow[] | null {
+    const chain = [row];
+    const visited = new Set([row.id]);
+    let current = row;
+    while (current.parent_id !== null) {
+      if (chain.length > MAX_FOLDER_DEPTH) return null;
+      const parent = byId.get(current.parent_id);
+      if (!parent || visited.has(parent.id)) return null;
+      visited.add(parent.id);
+      chain.unshift(parent);
+      current = parent;
+    }
+    return current.id === rootRow.id ? chain : null;
+  }
+
+  const toCandidate = (chain: CategoryFolderRow[]): FolderCandidate => {
+    const self = chain[chain.length - 1];
+    return {
+      id: self.id,
+      name: self.name,
+      isRoot: chain.length === 1,
+      path: chain.slice(1).map((row) => row.name).join('/'),
+      version: chain.map((row) => `${row.id}:${row.name}`).join('/'),
+    };
+  };
+
+  const root = toCandidate([rootRow]);
+  const rest: FolderCandidate[] = [];
+  for (const row of rows) {
+    if (row.id === rootRow.id) continue;
+    const chain = chainToRoot(row);
+    if (chain) rest.push(toCandidate(chain));
+  }
+  rest.sort((a, b) => a.path.localeCompare(b.path) || a.id.localeCompare(b.id));
+  return { status: 'ok', root, candidates: [root, ...rest] };
+}
+
+export function formatFolderPath(category: string, path: string, separator: string): string {
+  return path ? `${category}${separator}${path}` : category;
+}
+
+export const FOLDER_COPY = {
+  folder_changed: '저장 위치가 변경되었어요. 다시 선택해주세요.',
+  query_failed: '저장 위치를 확인하지 못했어요. 잠시 후 다시 시도해주세요.',
+  root_missing: '카테고리 폴더를 찾을 수 없어요.',
+  root_duplicate: '이 카테고리의 최상위 폴더에 문제가 있어요. 새로고침 후 다시 시도해주세요.',
+} as const;
+
+export type TargetFolderValidation =
+  | { ok: true; folder: FolderCandidate }
+  | { ok: false; reason: keyof typeof FOLDER_COPY; error: string };
+
+/** Rechecks the selected destination and its root-to-folder version before saving. */
+export async function validateTargetFolder(
+  supabase: SupabaseClient,
+  { ownerId, workId, category, targetFolderId, expectedVersion }:
+    { ownerId: string; workId: string; category: string; targetFolderId: string; expectedVersion?: string }
+): Promise<TargetFolderValidation> {
+  const listed = await listCategoryFolderCandidates(supabase, { ownerId, workId, category });
+  if (listed.status !== 'ok') return { ok: false, reason: listed.status, error: FOLDER_COPY[listed.status] };
+  const folder = listed.candidates.find((candidate) => candidate.id === targetFolderId);
+  if (!folder || (expectedVersion !== undefined && folder.version !== expectedVersion)) {
+    return { ok: false, reason: 'folder_changed', error: FOLDER_COPY.folder_changed };
+  }
+  return { ok: true, folder };
+}
+
 export async function createNode(
   supabase: SupabaseClient,
   input: {

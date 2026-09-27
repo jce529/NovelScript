@@ -1,7 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getMentionedNodesContent } from '../../lib/ai/mentions';
-import { createNode, deleteNode } from '../../lib/kb/actions';
+import { getMentionedNodesContent, quickAddMentionNode, resolveDefaultCategoryFolder } from '../../lib/ai/mentions';
+import { createNode, deleteNode, validateTargetFolder } from '../../lib/kb/actions';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
+
+type FolderRow = { id: string; name: string; parent_id: string | null };
+
+function candidateClient(data: FolderRow[] | null, error: unknown = null) {
+  const query: Record<string, unknown> = {};
+  for (const method of ['select', 'eq']) query[method] = () => query;
+  query.is = () => Promise.resolve({ data, error });
+  return { from: () => query } as never;
+}
+
+const folderInput = { ownerId: 'owner', workId: 'work', category: '인물' as const };
+const root: FolderRow = { id: 'root', name: '인물', parent_id: null };
 
 describe('lib/ai/mentions.ts — getMentionedNodesContent (EDIT-02)', () => {
   const admin = adminClient();
@@ -45,5 +57,70 @@ describe('lib/ai/mentions.ts — getMentionedNodesContent (EDIT-02)', () => {
   it('returns [] for an empty nodeIds array without erroring', async () => {
     const docs = await getMentionedNodesContent(admin, { ownerId: owner.id, workId, nodeIds: [] });
     expect(docs).toEqual([]);
+  });
+});
+
+describe('AIDOC-03 folder resolution and save-time validation', () => {
+  it('resolves the one explicit root even when nested folders exist', async () => {
+    await expect(resolveDefaultCategoryFolder(candidateClient([
+      root, { id: 'child', name: '주요', parent_id: 'root' },
+    ]), folderInput)).resolves.toEqual({ ok: true, folderId: 'root' });
+  });
+
+  it('returns root_duplicate and no id for duplicate roots', async () => {
+    await expect(resolveDefaultCategoryFolder(candidateClient([
+      root, { id: 'other-root', name: '인물', parent_id: null },
+    ]), folderInput)).resolves.toEqual({ ok: false, reason: 'root_duplicate' });
+  });
+
+  it('accepts a target with its original candidate version', async () => {
+    const result = await validateTargetFolder(candidateClient([root, { id: 'child', name: '주요', parent_id: 'root' }]), {
+      ...folderInput, targetFolderId: 'child', expectedVersion: 'root:인물/child:주요',
+    });
+    expect(result).toMatchObject({ ok: true, folder: { id: 'child' } });
+  });
+
+  it.each([
+    ['another work', [root]],
+    ['soft-deleted target', [root]],
+    ['another category', [root]],
+  ])('rejects a target absent from the current candidate set (%s)', async (_case, rows) => {
+    await expect(validateTargetFolder(candidateClient(rows), {
+      ...folderInput, targetFolderId: 'foreign', expectedVersion: 'foreign:Folder',
+    })).resolves.toEqual({ ok: false, reason: 'folder_changed', error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+  });
+
+  it('rejects a target moved under a different parent because its version changed', async () => {
+    await expect(validateTargetFolder(candidateClient([
+      root, { id: 'moved', name: '이동됨', parent_id: 'root' }, { id: 'target', name: '문서', parent_id: 'moved' },
+    ]), { ...folderInput, targetFolderId: 'target', expectedVersion: 'root:인물/target:문서' }))
+      .resolves.toEqual({ ok: false, reason: 'folder_changed', error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+  });
+
+  it('rejects a target orphaned by a deleted ancestor', async () => {
+    await expect(validateTargetFolder(candidateClient([
+      root, { id: 'target', name: '문서', parent_id: 'deleted-parent' },
+    ]), { ...folderInput, targetFolderId: 'target', expectedVersion: 'root:인물/target:문서' }))
+      .resolves.toEqual({ ok: false, reason: 'folder_changed', error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+  });
+
+  it('keeps query_failed distinct from folder_changed', async () => {
+    await expect(validateTargetFolder(candidateClient(null, { message: 'offline' }), {
+      ...folderInput, targetFolderId: 'target',
+    })).resolves.toEqual({ ok: false, reason: 'query_failed', error: '저장 위치를 확인하지 못했어요. 잠시 후 다시 시도해주세요.' });
+  });
+
+  it('returns the root_duplicate copy for a duplicate root', async () => {
+    await expect(validateTargetFolder(candidateClient([
+      root, { id: 'second', name: '인물', parent_id: null },
+    ]), { ...folderInput, targetFolderId: 'root' }))
+      .resolves.toEqual({ ok: false, reason: 'root_duplicate', error: '이 카테고리의 최상위 폴더에 문제가 있어요. 새로고침 후 다시 시도해주세요.' });
+  });
+
+  it('does not create a quick-add node when root resolution reports a duplicate', async () => {
+    await expect(quickAddMentionNode(candidateClient([
+      root, { id: 'second', name: '인물', parent_id: null },
+    ]), { ...folderInput, name: '새 문서' }))
+      .resolves.toEqual({ ok: false, error: '이 카테고리의 최상위 폴더에 문제가 있어요. 새로고침 후 다시 시도해주세요.' });
   });
 });
