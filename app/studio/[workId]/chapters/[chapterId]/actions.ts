@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
@@ -21,6 +22,7 @@ import { createJevClient } from '@/lib/ai/decision/jev';
 import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decision/fixture';
 import { DecisionCallError } from '@/lib/ai/decision/errors';
 import { regenerateDocumentWithTemplate, type RegenerateResult } from '@/lib/ai/document-regenerate';
+import { recordDocumentSaveDecision, runShadowPlan } from '@/lib/ai/decision/shadow';
 
 export async function getChapterAction(chapterId: string) {
   const supabase = await createClient();
@@ -122,19 +124,19 @@ const droppedFixtureKeys = new Set<string>();
 
 /** Every chatAction call resolves planning fresh from the DB-backed activation resolver — no
  * code change is needed to turn Jev document planning on/off (Plan 15-11/15-09 HIGH). */
-async function resolveChatPlanning(): Promise<ChatInput['planning']> {
+async function resolveChatPlanning(): Promise<{ planning: ChatInput['planning']; mode: 'off' | 'shadow' | 'active' }> {
   const fixtureMode = readDecisionFixture(process.env);
-  if (fixtureMode) return { mode: 'active', decisionClient: createFixtureDecisionClient(fixtureMode) };
+  if (fixtureMode) return { planning: { mode: 'active', decisionClient: createFixtureDecisionClient(fixtureMode) }, mode: 'active' };
 
   const status = await getAiDocPlanningMode(createAdminClient());
-  if (status.mode !== 'active') return undefined;
+  if (status.mode !== 'active') return { planning: undefined, mode: status.mode };
 
   try {
-    return { mode: 'active', decisionClient: createJevClient() };
+    return { planning: { mode: 'active', decisionClient: createJevClient() }, mode: status.mode };
   } catch (err) {
     const kind = err instanceof DecisionCallError ? err.info.kind : 'config';
     console.error('[ai] decision client unavailable', { stage: 'decision_client', kind });
-    return undefined;
+    return { planning: undefined, mode: status.mode };
   }
 }
 
@@ -162,7 +164,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     return { ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config };
   }
 
-  const planning = await resolveChatPlanning();
+  const resolvedPlanning = await resolveChatPlanning();
 
   // Explicit field list (never spread input) so a forged ownerId cannot ride along.
   const result = await chat(supabase, client, {
@@ -177,8 +179,30 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     chatHistory: input.chatHistory,
     idempotencyKey: parsed.data.idempotencyKey,
     ownerId: user.id,
-    planning,
+    planning: resolvedPlanning.planning,
   });
+
+  if (resolvedPlanning.mode === 'shadow') {
+    const lastUser = [...input.chatHistory].reverse().find((turn) => turn.role === 'user');
+    const trigger = {
+      ownerId: user.id, workId: input.workId, requestKey: parsed.data.idempotencyKey,
+      requestLength: lastUser?.content.length ?? 0,
+      hasChapterContext: input.precedingText.length > 0,
+      mentionedFactCount: input.mentionedNodeIds.length,
+    };
+    after(async () => {
+      const { data: work } = await supabase.from('works').select('id').eq('id', trigger.workId).eq('owner_id', user.id).maybeSingle();
+      if (!work) return;
+      let decisionClient;
+      try { decisionClient = createJevClient(); } catch { return; }
+      await runShadowPlan({
+        client: decisionClient, admin: createAdminClient(), rng: Math.random, now: () => new Date(),
+        sampleRate: Number(process.env.AI_DOC_SHADOW_SAMPLE_RATE ?? '0.05'),
+        dailyMax: Number(process.env.AI_DOC_SHADOW_DAILY_MAX ?? '500'),
+        modelVersion: process.env.JEV_MODEL_VERSION ?? 'unknown',
+      }, trigger);
+    });
+  }
 
   // Dev fixture: simulate a response lost AFTER the real debit, once per key, so 다시 시도 hits already_processed.
   if (
@@ -268,6 +292,15 @@ export async function saveDocumentProposalAction(raw: unknown): Promise<
   });
   if (!created.ok || !created.nodeId) return { ok: false, reason: 'write_failed', error: created.error ?? '문서를 저장하지 못했어요.' };
 
+  const p = parsed.data;
+  if (p.proposal.recommendedFolderId) {
+    // validateTargetFolder already confirmed this folder belongs to the authenticated owner's work.
+    after(() => recordDocumentSaveDecision(createAdminClient(), {
+      ownerId: user.id, workId: p.workId, nodeId: created.nodeId!, recommendedFolderId: p.proposal.recommendedFolderId,
+      actualFolderId: p.targetFolderId, recommendedTemplateId: p.proposal.recommendedTemplateId,
+      actualTemplateId: p.templateId, regenerated: p.regenerated,
+    }));
+  }
   revalidatePath(`/studio/${workId}/chapters`);
   return { ok: true, nodeId: created.nodeId };
 }

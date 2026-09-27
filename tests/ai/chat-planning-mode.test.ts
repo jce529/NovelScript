@@ -18,6 +18,7 @@ const h = vi.hoisted(() => ({
 
 vi.mock('server-only', () => ({}));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
+vi.mock('next/server', () => ({ after: vi.fn() }));
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: {
