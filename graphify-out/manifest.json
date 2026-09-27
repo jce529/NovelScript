@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/actions.ts": {
-    "mtime": 1789646291.4920185,
-    "seen": 1790481351.648533,
-    "ast_hash": "fb7b86c05cf9526f68d88a277f0d126d",
+    "mtime": 1790482238.913947,
+    "seen": 1790482373.7298212,
+    "ast_hash": "ab84ad3eb3144ff5a0391c80a7d35920",
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel.tsx": {
@@ -90,10 +90,10 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/QuickAddDialog.tsx": {
-    "mtime": 1788074942.2044716,
-    "seen": 1790481351.6485376,
-    "ast_hash": "c60586d4919e4ccfd82fde57b006798d",
-    "semantic_hash": "c60586d4919e4ccfd82fde57b006798d"
+    "mtime": 1790482310.2354553,
+    "seen": 1790482373.7298274,
+    "ast_hash": "e9f4cb0174dd361e620a9c3872b2ef15",
+    "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/page.tsx": {
     "mtime": 1790162569.37438,
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "lib/ai/chat.ts": {
-    "mtime": 1790481387.4986453,
-    "seen": 1790481464.8995826,
-    "ast_hash": "d200c8ae0ca4e7dded4c74b41d59710a",
+    "mtime": 1790481516.787014,
+    "seen": 1790482373.729887,
+    "ast_hash": "804d91932f22483a5da450db3fb270fd",
     "semantic_hash": ""
   },
   "lib/ai/cost.ts": {
@@ -672,10 +672,10 @@
     "semantic_hash": ""
   },
   "tests/ai/mention-search.test.ts": {
-    "mtime": 1788172758.5053234,
-    "seen": 1790481351.6486502,
-    "ast_hash": "9e34e9eca78a67ac0e0ebcee53c9d142",
-    "semantic_hash": "9e34e9eca78a67ac0e0ebcee53c9d142"
+    "mtime": 1790482218.7757206,
+    "seen": 1790482373.72997,
+    "ast_hash": "bb20aef7ce272db4b7411e2a090dcc87",
+    "semantic_hash": ""
   },
   "tests/ai/prompt-composition.test.ts": {
     "mtime": 1788150553.0381887,
@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1790481210.572219,
-    "seen": 1790481351.6486967,
-    "ast_hash": "2f01f0a2c045bd52dbdf2fc041dbb338",
+    "mtime": 1790481654.4871821,
+    "seen": 1790482373.730033,
+    "ast_hash": "d46042e845a9b8c0719ed2fded1bc2b4",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
@@ -3870,27 +3870,27 @@
     "semantic_hash": ""
   },
   "lib/ai/decision/jev.ts": {
-    "mtime": 1790481024.2708306,
-    "seen": 1790481351.6485932,
-    "ast_hash": "2589b55d29059973837bfef97b323b49",
+    "mtime": 1790482027.6070774,
+    "seen": 1790482373.729893,
+    "ast_hash": "1412c9790fc9b8314f0eb029d67225b4",
     "semantic_hash": ""
   },
   "lib/ai/decision/types.ts": {
-    "mtime": 1790480993.0482433,
-    "seen": 1790481351.6485941,
-    "ast_hash": "9b5e22a220652b012b22df905707237b",
+    "mtime": 1790482014.0641994,
+    "seen": 1790482373.7298954,
+    "ast_hash": "3b95235ec847a6d0be29d3708e67b3b9",
     "semantic_hash": ""
   },
   "lib/ai/document-contract.ts": {
-    "mtime": 1790481333.384836,
-    "seen": 1790481351.6485946,
-    "ast_hash": "432e3ae2a957e9e9af7848cd60f4a5d3",
+    "mtime": 1790481516.7880182,
+    "seen": 1790482373.7298958,
+    "ast_hash": "5fb18309ae3e8e439483dcd7e2a34d64",
     "semantic_hash": ""
   },
   "lib/ai/paid-generation.ts": {
-    "mtime": 1790480095.2576478,
-    "seen": 1790481351.6485975,
-    "ast_hash": "173567c7f79f27e1d8802461a099003c",
+    "mtime": 1790481516.7795088,
+    "seen": 1790482373.729899,
+    "ast_hash": "4be5babf633b904bd9deb59f8ab28cf8",
     "semantic_hash": ""
   },
   "supabase/migrations/0010_kb_category_root_unique.sql": {
@@ -3912,9 +3912,9 @@
     "semantic_hash": ""
   },
   "tests/ai/jev-client.test.ts": {
-    "mtime": 1790481044.542236,
-    "seen": 1790481351.6486483,
-    "ast_hash": "c8fa646eb39c2c0df4a2b3856981c3a3",
+    "mtime": 1790482033.718235,
+    "seen": 1790482373.7299666,
+    "ast_hash": "77e634c0202825baa06792c3933a1f42",
     "semantic_hash": ""
   },
   "tests/ai/paid-generation.test.ts": {
@@ -4038,9 +4038,87 @@
     "semantic_hash": ""
   },
   ".planning/phases/15-jev-ai/15-03-SUMMARY.md": {
-    "mtime": 1790481441.5880058,
-    "seen": 1790481464.8998275,
-    "ast_hash": "9f688cb7f93daf1f4a024708e20fbb00",
+    "mtime": 1790481913.5072567,
+    "seen": 1790482373.7301714,
+    "ast_hash": "c9dabbf818bd2058c933f0b72678b6ed",
+    "semantic_hash": ""
+  },
+  "app/studio/[workId]/chapters/[chapterId]/ai-panel/quick-add-folders.ts": {
+    "mtime": 1790482194.1838267,
+    "seen": 1790482373.7298286,
+    "ast_hash": "b5b7451b71cc705442093506041e52d2",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/activation.ts": {
+    "mtime": 1790482344.4143577,
+    "seen": 1790482373.7298882,
+    "ast_hash": "9195469baecaea0b874d459d7340f028",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/candidates.ts": {
+    "mtime": 1790482306.8298297,
+    "seen": 1790482373.729889,
+    "ast_hash": "3259407a0f9009db5a5636f2d6c07a28",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/fixture.ts": {
+    "mtime": 1790482287.7713764,
+    "seen": 1790482373.7298918,
+    "ast_hash": "cf843b054a26e68d09e044901c560031",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/metrics.ts": {
+    "mtime": 1790482262.2016485,
+    "seen": 1790482373.7298937,
+    "ast_hash": "782c2392f7d5f24ce306eafa9940fd1d",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/plan.ts": {
+    "mtime": 1790482287.769877,
+    "seen": 1790482373.7298944,
+    "ast_hash": "83ba62881ad25b00cc2d07899e5481e9",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/0011_ai_doc_planning.sql": {
+    "mtime": 1790482262.2026484,
+    "seen": 1790482373.7299366,
+    "ast_hash": "b4524081ba6f53f6550283c9f77722da",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-activation.test.ts": {
+    "mtime": 1790482363.5317154,
+    "seen": 1790482373.7299526,
+    "ast_hash": "bdac82bf6a05ca87b8dce649f450adad",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-candidates.test.ts": {
+    "mtime": 1790482196.4129333,
+    "seen": 1790482373.7299533,
+    "ast_hash": "dd3360ce4775d8d170d4e337cf2e0864",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-metrics.test.ts": {
+    "mtime": 1790482270.9262938,
+    "seen": 1790482373.7299674,
+    "ast_hash": "d790487498a5f18a0242f2c67a293a94",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-plan.test.ts": {
+    "mtime": 1790482244.7444575,
+    "seen": 1790482373.729968,
+    "ast_hash": "bc5ef5d4cfc925e228c3c5a54f88d4a6",
+    "semantic_hash": ""
+  },
+  "tests/ai/quick-add-folders.test.ts": {
+    "mtime": 1790482270.2649992,
+    "seen": 1790482373.7299743,
+    "ast_hash": "acbbc9dd1f9f249ec5b265f438022ab8",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-10-SUMMARY.md": {
+    "mtime": 1790481920.7566602,
+    "seen": 1790482373.7301772,
+    "ast_hash": "d8ea25ca09a20f980614f152ca571400",
     "semantic_hash": ""
   }
 }
