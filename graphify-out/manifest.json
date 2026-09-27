@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/actions.ts": {
-    "mtime": 1790482238.913947,
-    "seen": 1790482373.7298212,
-    "ast_hash": "ab84ad3eb3144ff5a0391c80a7d35920",
+    "mtime": 1790483266.4560716,
+    "seen": 1790484591.7564948,
+    "ast_hash": "b6e664bd8c9491c8cf8c97c8c60cecaa",
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel.tsx": {
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "lib/ai/chat.ts": {
-    "mtime": 1790481516.787014,
-    "seen": 1790482373.729887,
-    "ast_hash": "804d91932f22483a5da450db3fb270fd",
+    "mtime": 1790483017.5191975,
+    "seen": 1790483155.0430617,
+    "ast_hash": "1efc7fd976915340d19065171ab3b5fa",
     "semantic_hash": ""
   },
   "lib/ai/cost.ts": {
@@ -600,10 +600,10 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1788070625.004262,
-    "seen": 1790481351.648622,
-    "ast_hash": "ce3056079414c62944d8fdf927240462",
-    "semantic_hash": "ce3056079414c62944d8fdf927240462"
+    "mtime": 1790484461.3937986,
+    "seen": 1790484591.7566764,
+    "ast_hash": "c2f2bba354ed299b1e81c6b78dced948",
+    "semantic_hash": ""
   },
   "postcss.config.mjs": {
     "mtime": 1787629628.7907307,
@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1790481654.4871821,
-    "seen": 1790482373.730033,
-    "ast_hash": "d46042e845a9b8c0719ed2fded1bc2b4",
+    "mtime": 1790482605.6935797,
+    "seen": 1790483155.043285,
+    "ast_hash": "668d3f317872094c09d1871b36a37b2c",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
@@ -4110,15 +4110,99 @@
     "semantic_hash": ""
   },
   "tests/ai/quick-add-folders.test.ts": {
-    "mtime": 1790482270.2649992,
-    "seen": 1790482373.7299743,
-    "ast_hash": "acbbc9dd1f9f249ec5b265f438022ab8",
+    "mtime": 1790482416.8941605,
+    "seen": 1790483155.043201,
+    "ast_hash": "a27fa4c5587129de906297e9dd67285c",
     "semantic_hash": ""
   },
   ".planning/phases/15-jev-ai/15-10-SUMMARY.md": {
     "mtime": 1790481920.7566602,
     "seen": 1790482373.7301772,
     "ast_hash": "d8ea25ca09a20f980614f152ca571400",
+    "semantic_hash": ""
+  },
+  "lib/ai/chat-parse.ts": {
+    "mtime": 1790482996.0386653,
+    "seen": 1790483155.0430558,
+    "ast_hash": "3b04bd8d09ceded98f9dc1baeb7ce453",
+    "semantic_hash": ""
+  },
+  "lib/ai/document-plan.ts": {
+    "mtime": 1790483070.4900832,
+    "seen": 1790483155.0430794,
+    "ast_hash": "dbf14e7a149b325bd5d5daaebe85c6c6",
+    "semantic_hash": ""
+  },
+  "tests/ai/document-plan-generation.test.ts": {
+    "mtime": 1790483032.9026456,
+    "seen": 1790483155.0431814,
+    "ast_hash": "ccb1ff7438513e056ca209821c24f640",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-golden-set.test.ts": {
+    "mtime": 1790484787.2980864,
+    "seen": 1790484979.8334198,
+    "ast_hash": "8b7f622081c63e05bb1bd9cac1aa2362",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-02-SUMMARY.md": {
+    "mtime": 1790482462.771268,
+    "seen": 1790483155.0435276,
+    "ast_hash": "5c454ac43705b3a70dfcc081797c7a08",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-07-SUMMARY.md": {
+    "mtime": 1790482488.4233778,
+    "seen": 1790483155.0435367,
+    "ast_hash": "a2875ca3196cb313bd1a1875a8afaa37",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-11-SUMMARY.md": {
+    "mtime": 1790482449.9017048,
+    "seen": 1790483155.0435438,
+    "ast_hash": "6b69a2d36673c990b6a3d63be29e8296",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/eval/golden-set.ts": {
+    "mtime": 1790483155.1085534,
+    "seen": 1790483181.9500725,
+    "ast_hash": "4fa2ba83b98c25deee86246f2bb064c4",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/eval/evaluate.ts": {
+    "mtime": 1790484164.9114614,
+    "seen": 1790484591.756614,
+    "ast_hash": "e4f3e6e21c88712686801bc979c46263",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/eval/run-eval.ts": {
+    "mtime": 1790484385.7881424,
+    "seen": 1790484591.7566178,
+    "ast_hash": "2163aa6e59ca83ab0a14c789164a63cf",
+    "semantic_hash": ""
+  },
+  "tests/ai/chat-planning-mode.test.ts": {
+    "mtime": 1790483309.6916995,
+    "seen": 1790484591.756718,
+    "ast_hash": "f4fbf6f2757a0308a325b0e14d14e89a",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-eval.test.ts": {
+    "mtime": 1790484221.678161,
+    "seen": 1790484591.7567334,
+    "ast_hash": "5e49d4ec1bff194d2ad9425945fb0c26",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-04-SUMMARY.md": {
+    "mtime": 1790483370.2004046,
+    "seen": 1790484591.7570379,
+    "ast_hash": "1698e170a542a40de0b4ed343c9a60a0",
+    "semantic_hash": ""
+  },
+  ".planning/phases/15-jev-ai/15-05-SUMMARY.md": {
+    "mtime": 1790484767.2515078,
+    "seen": 1790484979.83373,
+    "ast_hash": "83037d7111ac02ddec72752847440458",
     "semantic_hash": ""
   }
 }
