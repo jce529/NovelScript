@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "lib/ai/chat.ts": {
-    "mtime": 1790485668.3019528,
-    "seen": 1790498398.1957731,
-    "ast_hash": "61bddf913b0c500c135d2736657bb5f8",
+    "mtime": 1790500406.1136901,
+    "seen": 1790500734.4766974,
+    "ast_hash": "3645e434363c1bc53cf4f07286f9940d",
     "semantic_hash": ""
   },
   "lib/ai/cost.ts": {
@@ -978,15 +978,15 @@
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1790498742.6002402,
-    "seen": 1790499116.0697775,
-    "ast_hash": "0db72126e7723fb7d9d22b1625766699",
+    "mtime": 1790500683.148648,
+    "seen": 1790500734.4768236,
+    "ast_hash": "1db15708a973d2d068630f7882559764",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
-    "mtime": 1790485446.4914186,
-    "seen": 1790498398.1958961,
-    "ast_hash": "3abd8d9c851f413f152310d2105b56ec",
+    "mtime": 1790500673.6618972,
+    "seen": 1790500734.476824,
+    "ast_hash": "6d511342a4e15afc3c46c1dac4d8b1b2",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-01-PLAN.md": {
@@ -4026,9 +4026,9 @@
     "semantic_hash": ""
   },
   ".planning/phases/15-jev-ai/15-VALIDATION.md": {
-    "mtime": 1790166258.1861317,
-    "seen": 1790481351.648822,
-    "ast_hash": "22396dc6a98f850c03da887f829f8de6",
+    "mtime": 1790500618.4105587,
+    "seen": 1790500734.4769623,
+    "ast_hash": "69a33c06e1015505f7ac9802dc7b8c8e",
     "semantic_hash": ""
   },
   ".planning/phases/15-jev-ai/JEV-KEY-SETUP.md": {
@@ -4050,9 +4050,9 @@
     "semantic_hash": ""
   },
   "lib/ai/decision/activation.ts": {
-    "mtime": 1790482344.4143577,
-    "seen": 1790482373.7298882,
-    "ast_hash": "9195469baecaea0b874d459d7340f028",
+    "mtime": 1790500145.392712,
+    "seen": 1790500734.476699,
+    "ast_hash": "df1a5d6abe274afb4af18321ca799303",
     "semantic_hash": ""
   },
   "lib/ai/decision/candidates.ts": {
@@ -4086,9 +4086,9 @@
     "semantic_hash": ""
   },
   "tests/ai/jev-activation.test.ts": {
-    "mtime": 1790482363.5317154,
-    "seen": 1790482373.7299526,
-    "ast_hash": "bdac82bf6a05ca87b8dce649f450adad",
+    "mtime": 1790500357.8656607,
+    "seen": 1790500734.476767,
+    "ast_hash": "d6aba197d6257b21f6b9591c00ea743c",
     "semantic_hash": ""
   },
   "tests/ai/jev-candidates.test.ts": {
@@ -4188,9 +4188,9 @@
     "semantic_hash": ""
   },
   "tests/ai/jev-eval.test.ts": {
-    "mtime": 1790484221.678161,
-    "seen": 1790484591.7567334,
-    "ast_hash": "5e49d4ec1bff194d2ad9425945fb0c26",
+    "mtime": 1790500379.9140296,
+    "seen": 1790500734.4767692,
+    "ast_hash": "8e148f104c566b632d12e35b93dc2019",
     "semantic_hash": ""
   },
   ".planning/phases/15-jev-ai/15-04-SUMMARY.md": {
@@ -4242,21 +4242,21 @@
     "semantic_hash": ""
   },
   "lib/ai/decision/shadow.ts": {
-    "mtime": 1790499260.2532368,
-    "seen": 1790499294.5871527,
-    "ast_hash": "b0bcc312bcfadbc2ba11323f9168f112",
+    "mtime": 1790500177.479144,
+    "seen": 1790500734.4767082,
+    "ast_hash": "3ad44b4b36f0143dd0f406a26ae1db1f",
     "semantic_hash": ""
   },
   "tests/ai/jev-shadow-wiring.test.ts": {
-    "mtime": 1790499157.6261237,
-    "seen": 1790499236.7804754,
-    "ast_hash": "bc88e006c999a18be526e64da0f34857",
+    "mtime": 1790500305.8386648,
+    "seen": 1790500734.4767725,
+    "ast_hash": "9caf14f5bbfd30a7526edf4b80a0aaa6",
     "semantic_hash": ""
   },
   "tests/ai/jev-shadow.test.ts": {
-    "mtime": 1790499266.8175888,
-    "seen": 1790499294.5872228,
-    "ast_hash": "e6ee3b3cb968492dc6c348f5940ee66e",
+    "mtime": 1790500321.1547368,
+    "seen": 1790500734.4767733,
+    "ast_hash": "6261ba10f8707ddd50d9c79ac5d23767",
     "semantic_hash": ""
   },
   ".planning/phases/15-jev-ai/15-06-SUMMARY.md": {
@@ -4269,6 +4269,18 @@
     "mtime": 1790499562.3936317,
     "seen": 1790499606.0766118,
     "ast_hash": "f41c45450afcccd055a5a222cf5bc874",
+    "semantic_hash": ""
+  },
+  "lib/ai/decision/untyped-table.ts": {
+    "mtime": 1790500115.338487,
+    "seen": 1790500734.4767098,
+    "ast_hash": "167c125df32397f467371c8bf3c47527",
+    "semantic_hash": ""
+  },
+  "tests/ai/jev-off-path.test.ts": {
+    "mtime": 1790499697.5406191,
+    "seen": 1790500734.4767714,
+    "ast_hash": "7ad986b5b0222710e95d62a1c31b22df",
     "semantic_hash": ""
   }
 }
