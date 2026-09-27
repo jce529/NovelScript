@@ -372,9 +372,9 @@ Residual (stays in v1.0, not yet done):
 - [x] 15-10-PLAN.md — 공통 paid-generation lifecycle 추출(chat 무회귀) + 문서 계획 프롬프트 지시 + 결과 계약 검증기
 
 **Wave 2** *(blocked on Wave 1)*
-- [ ] 15-02-PLAN.md — Jev 2단계 계획(안정 정렬·membership·data_integrity·선별 폴백·순수 FromCandidates) *(blocked on 15-01, 15-03)*
-- [ ] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출, stale 응답 reducer) *(blocked on 15-03)*
-- [ ] 15-11-PLAN.md — 영속 활성화 게이트: getAiDocPlanningMode + 증거/승인/그림자/결정 로그 테이블 + 지표 *(blocked on 15-01)*
+- [x] 15-02-PLAN.md — Jev 2단계 계획(안정 정렬·membership·data_integrity·선별 폴백·순수 FromCandidates) *(blocked on 15-01, 15-03)*
+- [x] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출, stale 응답 reducer) *(blocked on 15-03)*
+- [x] 15-11-PLAN.md — 영속 활성화 게이트: getAiDocPlanningMode + 증거/승인/그림자/결정 로그 테이블 + 지표 *(blocked on 15-01)*
 
 **Wave 3**
 - [ ] 15-04-PLAN.md — Jev→Gemini 생성 전략을 lifecycle 위에 연결 + chatAction resolver 주입 *(blocked on 15-02, 15-07, 15-10, 15-11)*
@@ -419,6 +419,6 @@ Residual (stays in v1.0, not yet done):
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 3/11 | In Progress|  |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 6/11 | In Progress|  |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
