@@ -26,9 +26,10 @@ import {
 } from '@/lib/ai/chat-request';
 import type { ChatResult } from '@/lib/ai/chat-result';
 import type { KbCategory } from '@/lib/kb/categories';
-import { chatAction, saveDocumentProposalAction } from '../actions';
+import { chatAction } from '../actions';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { AiPanelNotice } from './AiPanelNotice';
+import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
 
 export interface MentionedNode {
   id: string;
@@ -92,7 +93,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [savingProposalId, setSavingProposalId] = useState<string | null>(null);
+  const [modalMessageId, setModalMessageId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const chatLogRef = useRef<HTMLDivElement>(null);
@@ -235,20 +236,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
     setMessages(tail?.role === 'user' ? withoutLastAssistant.slice(0, -1) : withoutLastAssistant);
   }
 
-  async function handleSaveProposal(message: ChatMessage) {
-    if (!message.proposal || savingProposalId) return;
-    setSavingProposalId(message.id);
-    const result = await saveDocumentProposalAction(workId, message.proposal);
-    setSavingProposalId(null);
-
-    if (!result.ok || !result.nodeId) {
-      toast.error(result.error ?? '문서를 저장하지 못했어요.');
-      return;
-    }
-    setMessages((prev) => prev.map((m) => (m.id === message.id ? { ...m, savedNodeId: result.nodeId } : m)));
-    onAddMention({ id: result.nodeId, name: message.proposal.name, category: message.proposal.category });
-    toast.success(`"${message.proposal.name}" 문서를 저장하고 멘션에 추가했어요.`);
-  }
+  const modalMessage = messages.find((message) => message.id === modalMessageId);
 
   return (
     <aside className="sticky top-8 flex h-[calc(100vh-4rem)] w-full flex-col gap-6 rounded-lg border border-border bg-background p-6 lg:w-96 lg:shrink-0">
@@ -372,9 +360,9 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
                 savedNodeId={message.savedNodeId}
                 wasCapped={Boolean(message.wasCapped)}
                 interactive={isLast}
-                isBusy={isGenerating || savingProposalId === message.id}
+                isBusy={isGenerating}
                 onInsertDraft={() => message.draft && onInsertText(message.draft)}
-                onSaveProposal={() => handleSaveProposal(message)}
+                onSaveProposal={() => setModalMessageId(message.id)}
                 onRegenerate={handleRegenerate}
                 onReject={handleReject}
               />
@@ -383,6 +371,23 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
         )}
         {isGenerating && <p className="text-xs text-muted-foreground">AI가 응답을 생성하고 있어요...</p>}
       </div>
+
+      {modalMessage?.proposal && (
+        <SaveDocumentPlanModal
+          workId={workId}
+          open={Boolean(modalMessageId)}
+          onOpenChange={(open) => { if (!open) setModalMessageId(null); }}
+          proposal={modalMessage.proposal}
+          generation={{ modelTier, presetLevel, styleId, genre }}
+          onSaved={(nodeId) => {
+            const proposal = modalMessage.proposal!;
+            setMessages((prev) => prev.map((message) => message.id === modalMessage.id ? { ...message, savedNodeId: nodeId } : message));
+            onAddMention({ id: nodeId, name: proposal.name, category: proposal.category });
+            toast.success(`"${proposal.name}" 문서를 저장했어요.`);
+            setModalMessageId(null);
+          }}
+        />
+      )}
 
       <div
         role={notice?.notice.variant === 'error' ? 'alert' : 'status'}

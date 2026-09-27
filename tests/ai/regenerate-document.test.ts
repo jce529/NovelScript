@@ -1,0 +1,109 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { ProviderClient, GenerateResult } from '@/lib/ai/providers/types';
+
+const mocks = vi.hoisted(() => ({
+  template: vi.fn(), folder: vi.fn(), preflight: vi.fn(), settle: vi.fn(),
+}));
+vi.mock('server-only', () => ({}));
+vi.mock('@/lib/kb/actions', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/lib/kb/actions')>(),
+  validateTargetTemplate: mocks.template, validateTargetFolder: mocks.folder,
+  formatFolderPath: (category: string, path: string, separator: string) => path ? `${category}${separator}${path}` : category,
+  TEMPLATE_REVALIDATION_FAILED: '저장 템플릿이 변경되었어요. 다시 선택해주세요.',
+}));
+vi.mock('@/lib/ai/paid-generation', () => ({ preflightPaidGeneration: mocks.preflight, settlePaidGeneration: mocks.settle }));
+
+import { regenerateDocumentWithTemplate } from '@/lib/ai/document-regenerate';
+
+const workId = '11111111-1111-4111-8111-111111111111';
+const ownerId = 'owner';
+const templateId = '22222222-2222-4222-8222-222222222222';
+const folderId = '33333333-3333-4333-8333-333333333333';
+const key = '44444444-4444-4444-8444-444444444444';
+const proposal = { category: '인물' as const, name: '미라', content: '# 미라\n## 성격\n차분함' };
+const template = { id: templateId, name: '인물 양식', content: '# 미라\n## 성격', isDefault: false, scope: 'work' as const };
+const generated = (text = '[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n차분함\n[/DOCUMENT]'): GenerateResult => ({
+  text, finishReason: 'stop', refusal: null,
+  usage: { inputTokens: 10, outputTokens: 10, thoughtsTokens: null, reported: { input: true, output: true } },
+});
+const input = {
+  ownerId, workId, proposal, templateId, targetFolderId: folderId, folderVersion: `${folderId}:조연`,
+  modelTier: 'lite' as const, idempotencyKey: key, presetLevel: 'intermediate' as const,
+  styleId: 'concise-hemingway' as const, genre: '판타지',
+};
+const provider = { provider: 'gemini' as const, generateContent: vi.fn(async () => generated()) } as ProviderClient;
+const db = {} as SupabaseClient;
+const ctx = { admin: db, walletBalance: 1000, model: 'gemini-lite', maxOutputTokens: 2000 };
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.template.mockResolvedValue({ ok: true, template });
+  mocks.folder.mockResolvedValue({ ok: true, folder: { id: folderId, path: '조연', version: `${folderId}:조연` } });
+  mocks.preflight.mockResolvedValue({ ok: true, ctx });
+  mocks.settle.mockImplementation(async (_client, _ctx, _id, generate) => ({ kind: 'completed', result: await generate(), debitAmount: 10, remainingBalance: 990 }));
+  provider.generateContent = vi.fn(async () => generated());
+});
+
+describe('document template regeneration', () => {
+  it('uses the paid lifecycle and selected folder, template, and chat prompt settings', async () => {
+    const result = await regenerateDocumentWithTemplate(db, provider, input);
+    expect(result).toMatchObject({ ok: true, name: '미라', remainingBalance: 990 });
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+    const params = vi.mocked(provider.generateContent).mock.calls[0][0];
+    expect(params.systemInstruction).toContain('인물/조연');
+    expect(params.systemInstruction).toContain(template.content);
+    expect(params.systemInstruction).toContain('판타지');
+    expect(params.contents).toContain(proposal.content);
+    expect(mocks.settle).toHaveBeenCalledWith(provider, ctx, expect.objectContaining({ idempotencyKey: key, ledgerReason: `document_regenerate:${workId}` }), expect.any(Function));
+  });
+
+  it('does not generate when write access is denied', async () => {
+    mocks.preflight.mockResolvedValue({ ok: false, chatResult: { ok: false, failureKind: 'write_denied', error: 'denied' } });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, failureKind: 'write_denied' });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+  });
+
+  it('does not generate a previously processed key', async () => {
+    mocks.preflight.mockResolvedValue({ ok: false, chatResult: { ok: false, status: 'already_processed', error: 'processed' } });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, status: 'already_processed' });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+  });
+
+  it('rejects a template that no longer belongs to the category', async () => {
+    mocks.template.mockResolvedValue({ ok: false });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, error: '저장 템플릿이 변경되었어요. 다시 선택해주세요.' });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+  });
+
+  it('rejects a moved folder version before generation', async () => {
+    mocks.folder.mockResolvedValue({ ok: false, error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid idempotency keys, model tiers, and oversized proposals', async () => {
+    expect(await regenerateDocumentWithTemplate(db, provider, { ...input, idempotencyKey: 'bad' })).toMatchObject({ ok: false, failureKind: 'invalid_input' });
+    expect(await regenerateDocumentWithTemplate(db, provider, { ...input, modelTier: 'flash' as never })).toMatchObject({ ok: false, failureKind: 'invalid_input' });
+    expect(await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: { ...proposal, content: 'x'.repeat(20001) } })).toMatchObject({ ok: false, failureKind: 'invalid_input' });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+  });
+
+  it('returns a charged refusal without generated content', async () => {
+    mocks.settle.mockResolvedValue({ kind: 'terminal', chatResult: { ok: false, status: 'refused', error: 'refused', remainingBalance: 990 } });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, status: 'refused' });
+  });
+
+  it('rejects generated content that omits required template headings', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n[/DOCUMENT]'));
+    const result = await regenerateDocumentWithTemplate(db, provider, input);
+    expect(mocks.settle).toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: false, error: '문서를 다시 생성하지 못했어요. 다시 시도해주세요.' });
+  });
+
+  it('maps provider rate limits without bypassing settlement lifecycle', async () => {
+    mocks.settle.mockResolvedValue({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'rate_limited', error: 'rate limit' } });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, failureKind: 'rate_limited', error: 'rate limit' });
+    expect(mocks.settle).toHaveBeenCalled();
+  });
+});

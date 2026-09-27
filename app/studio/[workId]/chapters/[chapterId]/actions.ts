@@ -6,9 +6,9 @@ import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
-import { listCategoryFolderCandidates, saveNodeContent, validateTargetFolder, type FolderCandidatesResult } from '@/lib/kb/actions';
-import type { KbCategory } from '@/lib/kb/templates';
-import { chat, type ChatInput, type DocumentProposal } from '@/lib/ai/chat';
+import { listCategoryFolderCandidates, listTemplateOptions, validateTargetFolder, validateTargetTemplate, createNode, formatFolderPath, TEMPLATE_REVALIDATION_FAILED, type FolderCandidate, type FolderCandidatesResult, type TemplateOption } from '@/lib/kb/actions';
+import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
+import { chat, type ChatInput } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
@@ -20,6 +20,7 @@ import { getAiDocPlanningMode } from '@/lib/ai/decision/activation';
 import { createJevClient } from '@/lib/ai/decision/jev';
 import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decision/fixture';
 import { DecisionCallError } from '@/lib/ai/decision/errors';
+import { regenerateDocumentWithTemplate, type RegenerateResult } from '@/lib/ai/document-regenerate';
 
 export async function getChapterAction(chapterId: string) {
   const supabase = await createClient();
@@ -191,20 +192,111 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
   return result;
 }
 
-/** Persists a chat-proposed document as a real KB document (createNode +
- * saveNodeContent, since createNode always seeds template content and has no
- * way to set custom content at creation time) and returns enough to add it to
- * the AiPanel's mentioned-documents list immediately. */
-export async function saveDocumentProposalAction(workId: string, proposal: DocumentProposal) {
+const proposalSchema = z.object({
+  category: z.enum(KB_CATEGORIES), name: z.string().trim().min(1).max(100), content: z.string().max(20000),
+  recommendedFolderId: z.string().uuid().optional(), recommendedFolderPath: z.string().max(500).optional(),
+  recommendedFolderVersion: z.string().max(4000).optional(), recommendedTemplateId: z.string().uuid().nullable().optional(),
+  recommendedTemplateName: z.string().max(200).optional(),
+});
+const saveSchema = z.object({
+  workId: z.string().uuid(), proposal: proposalSchema, targetFolderId: z.string().uuid(),
+  folderVersion: z.string().max(4000).optional(), templateId: z.string().uuid().nullable(), regenerated: z.boolean(),
+});
+
+export interface SaveRecommendation {
+  source: 'jev' | 'default'; folderId: string; folderPath: string; folderVersion: string;
+  templateId: string | null; templateName: string;
+}
+
+export async function loadSavePlanAction(
+  workId: string, category: KbCategory,
+  rec?: { folderId?: string; folderVersion?: string; templateId?: string | null },
+): Promise<
+  | { status: 'ok'; recommended: SaveRecommendation; folders: FolderCandidate[]; templates: Pick<TemplateOption, 'id' | 'name' | 'isDefault'>[] }
+  | { status: 'root_missing' | 'root_duplicate' | 'query_failed' | 'unauthenticated' }
+> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  if (!user) return { status: 'unauthenticated' };
+  try {
+    const listed = await listCategoryFolderCandidates(supabase, { ownerId: user.id, workId, category });
+    if (listed.status !== 'ok') return { status: listed.status };
+    const templates = await listTemplateOptions(supabase, { ownerId: user.id, workId, category });
+    const defaultTemplate = templates.find((template) => template.isDefault);
+    if (!defaultTemplate) return { status: 'query_failed' };
+    const recommendedFolder = rec?.folderId
+      ? await validateTargetFolder(supabase, { ownerId: user.id, workId, category, targetFolderId: rec.folderId, expectedVersion: rec.folderVersion })
+      : null;
+    const recommendedTemplate = rec?.templateId !== undefined
+      ? await validateTargetTemplate(supabase, { ownerId: user.id, workId, category, templateId: rec.templateId })
+      : null;
+    const jevValid = recommendedFolder?.ok && recommendedTemplate?.ok;
+    const folder = jevValid ? recommendedFolder.folder : listed.root;
+    const template = jevValid ? recommendedTemplate.template : defaultTemplate;
+    return {
+      status: 'ok',
+      recommended: {
+        source: jevValid ? 'jev' : 'default', folderId: folder.id,
+        folderPath: formatFolderPath(category, folder.path, ' › '), folderVersion: folder.version,
+        templateId: template.id, templateName: template.name,
+      },
+      folders: listed.candidates,
+      templates: templates.map(({ id, name, isDefault }) => ({ id, name, isDefault })),
+    };
+  } catch {
+    return { status: 'query_failed' };
+  }
+}
 
-  const created = await quickAddMentionNode(supabase, { ownerId: user.id, workId, category: proposal.category, name: proposal.name });
-  if (!created.ok || !created.nodeId) return created;
+export async function saveDocumentProposalAction(raw: unknown): Promise<
+  | { ok: true; nodeId: string }
+  | { ok: false; reason: 'invalid_input' | 'unauthenticated' | 'folder_changed' | 'template_changed' | 'query_failed' | 'root_missing' | 'root_duplicate' | 'write_failed'; error: string }
+> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, reason: 'unauthenticated', error: CHAT_COPY.unauthenticated };
+  const parsed = saveSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, reason: 'invalid_input', error: CHAT_COPY.invalid_input };
+  const { workId, proposal, targetFolderId, folderVersion, templateId } = parsed.data;
+  const folder = await validateTargetFolder(supabase, { ownerId: user.id, workId, category: proposal.category, targetFolderId, expectedVersion: folderVersion });
+  if (!folder.ok) return { ok: false, reason: folder.reason, error: folder.error };
+  const template = await validateTargetTemplate(supabase, { ownerId: user.id, workId, category: proposal.category, templateId });
+  if (!template.ok) return { ok: false, reason: 'template_changed', error: TEMPLATE_REVALIDATION_FAILED };
+  const created = await createNode(supabase, {
+    ownerId: user.id, workId, parentId: targetFolderId, category: proposal.category,
+    nodeType: 'file', name: proposal.name, initialContent: proposal.content,
+  });
+  if (!created.ok || !created.nodeId) return { ok: false, reason: 'write_failed', error: created.error ?? '문서를 저장하지 못했어요.' };
 
-  const saved = await saveNodeContent(supabase, { ownerId: user.id, nodeId: created.nodeId, content: proposal.content });
-  if (!saved.ok) return { ok: false, error: saved.error };
-
+  revalidatePath(`/studio/${workId}/chapters`);
   return { ok: true, nodeId: created.nodeId };
+}
+
+const regenerateSchema = z.object({
+  workId: z.string().uuid(), proposal: proposalSchema, templateId: z.string().uuid().nullable(),
+  targetFolderId: z.string().uuid(), folderVersion: z.string().max(4000).optional(),
+  modelTier: z.enum(['lite', 'pro']), idempotencyKey: z.string().uuid(),
+  presetLevel: z.enum(['beginner', 'intermediate', 'freeform']),
+  styleId: z.enum(['concise-hemingway', 'maximalist-dostoevsky', 'lyrical-kimhoon', 'colloquial-kimyounha']),
+  genre: z.string().max(100),
+});
+
+export async function regenerateDocumentWithTemplateAction(raw: unknown): Promise<RegenerateResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, failureKind: 'unauthenticated', error: CHAT_COPY.unauthenticated };
+  const parsed = regenerateSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+
+  let client;
+  try {
+    client = createPlatformProvider();
+  } catch (err) {
+    const info = err instanceof ProviderCallError
+      ? err.info
+      : { provider: 'gemini' as const, status: null, kind: 'config' as const, providerErrorCode: null };
+    logProviderFailure(info, parsed.data.idempotencyKey);
+    return { ok: false, failureKind: 'config', error: CHAT_COPY.config };
+  }
+  return regenerateDocumentWithTemplate(supabase, client, { ...parsed.data, ownerId: user.id });
 }

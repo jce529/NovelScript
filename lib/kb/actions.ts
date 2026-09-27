@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FlatKbNode } from './tree';
 import { buildSeedContent, readCanonicalSeed, type KbCategory } from './templates';
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
+import { FOLDER_COPY } from './folder-copy';
+export { FOLDER_COPY } from './folder-copy';
 
 /** KB-04 §2 (RESEARCH.md): 작품 폴더 and 계정 공유 폴더 are two separate, explicit
  * tree sections in the UI (D-01) — each needs its own flat node list. Replaces
@@ -126,6 +128,19 @@ export async function listTemplateOptions(
   return options;
 }
 
+export const TEMPLATE_REVALIDATION_FAILED = '저장 템플릿이 변경되었어요. 다시 선택해주세요.';
+
+export async function validateTargetTemplate(
+  supabase: SupabaseClient,
+  { ownerId, workId, category, templateId }: { ownerId: string; workId: string; category: string; templateId: string | null }
+): Promise<{ ok: true; template: TemplateOption } | { ok: false }> {
+  const templates = await listTemplateOptions(supabase, { ownerId, workId, category: category as KbCategory });
+  const template = templateId === null
+    ? templates.find((option) => option.isDefault)
+    : templates.find((option) => option.id === templateId);
+  return template ? { ok: true, template } : { ok: false };
+}
+
 export interface FolderCandidate {
   id: string;
   name: string;
@@ -211,13 +226,6 @@ export function formatFolderPath(category: string, path: string, separator: stri
   return path ? `${category}${separator}${path}` : category;
 }
 
-export const FOLDER_COPY = {
-  folder_changed: '저장 위치가 변경되었어요. 다시 선택해주세요.',
-  query_failed: '저장 위치를 확인하지 못했어요. 잠시 후 다시 시도해주세요.',
-  root_missing: '카테고리 폴더를 찾을 수 없어요.',
-  root_duplicate: '이 카테고리의 최상위 폴더에 문제가 있어요. 새로고침 후 다시 시도해주세요.',
-} as const;
-
 export type TargetFolderValidation =
   | { ok: true; folder: FolderCandidate }
   | { ok: false; reason: keyof typeof FOLDER_COPY; error: string };
@@ -251,6 +259,8 @@ export async function createNode(
      * preserving prior behavior. A defined value (including `null`, meaning the
      * writer explicitly picked the canonical option) BYPASSES auto-resolution. */
     templateOverrideContent?: string | null;
+    /** Persist generated content directly in the single node insert. */
+    initialContent?: string;
   }
 ): Promise<NodeMutationResult> {
   const name = input.name.trim();
@@ -259,7 +269,9 @@ export async function createNode(
   if (!access.ok) return writeDenial(access);
 
   let content: string | null = null;
-  if (input.nodeType === 'file' && input.category !== 'template') {
+  if (input.initialContent !== undefined) {
+    content = input.initialContent;
+  } else if (input.nodeType === 'file' && input.category !== 'template') {
     const category = input.category as KbCategory;
     const override = input.templateOverrideContent !== undefined
       ? input.templateOverrideContent
