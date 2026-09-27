@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { searchMentionNodes, quickAddMentionNode, getMentionedNodesContent } from '../../lib/ai/mentions';
-import { createNode } from '../../lib/kb/actions';
+import { createNode, listCategoryFolderCandidates, validateTargetFolder } from '../../lib/kb/actions';
 import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
 
 describe('lib/ai/mentions.ts — search + quick-add (EDIT-01)', () => {
@@ -67,6 +67,42 @@ describe('lib/ai/mentions.ts — search + quick-add (EDIT-01)', () => {
   it('quickAddMentionNode rejects an empty name with the exact UI-SPEC error copy', async () => {
     const result = await quickAddMentionNode(admin, { ownerId: owner.id, workId, category: '인물', name: '   ' });
     expect(result).toEqual({ ok: false, error: '문서 이름을 입력해주세요.' });
+  });
+
+  it('validates the selected folder version before creating a mention in that folder', async () => {
+    const { data: rootFolder } = await admin.from('kb_nodes').select('id').eq('work_id', workId).eq('category', '장소').eq('node_type', 'folder').single();
+    const { data: childFolder } = await admin.from('kb_nodes').insert({
+      owner_id: owner.id, work_id: workId, scope: 'work', parent_id: rootFolder!.id, node_type: 'folder', category: '장소', is_locked: false, name: '왕국',
+    }).select('id').single();
+    const listed = await listCategoryFolderCandidates(admin, { ownerId: owner.id, workId, category: '장소' });
+    expect(listed.status).toBe('ok');
+    if (listed.status !== 'ok') return;
+
+    const candidate = listed.candidates.find((folder) => folder.id === childFolder!.id)!;
+    const validated = await validateTargetFolder(admin, { ownerId: owner.id, workId, category: '장소', targetFolderId: candidate.id, expectedVersion: candidate.version });
+    expect(validated.ok).toBe(true);
+    const created = await quickAddMentionNode(admin, { ownerId: owner.id, workId, category: '장소', name: '수도', targetFolderId: candidate.id });
+    expect(created.ok).toBe(true);
+    const { data: saved } = await admin.from('kb_nodes').select('parent_id').eq('id', created.nodeId!).single();
+    expect(saved?.parent_id).toBe(candidate.id);
+  });
+
+  it('rejects another work folder and a changed folder version before creating a mention', async () => {
+    const { data: otherFolder } = await admin.from('kb_nodes').select('id').eq('work_id', otherWorkId).eq('category', '인물').eq('node_type', 'folder').single();
+    const foreign = await validateTargetFolder(admin, { ownerId: owner.id, workId, category: '인물', targetFolderId: otherFolder!.id });
+    expect(foreign).toMatchObject({ ok: false, error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+
+    const listed = await listCategoryFolderCandidates(admin, { ownerId: owner.id, workId, category: '인물' });
+    if (listed.status !== 'ok') throw new Error(`Unexpected folder state: ${listed.status}`);
+    const stale = await validateTargetFolder(admin, { ownerId: owner.id, workId, category: '인물', targetFolderId: listed.root.id, expectedVersion: 'old-version' });
+    expect(stale).toMatchObject({ ok: false, error: '저장 위치가 변경되었어요. 다시 선택해주세요.' });
+  });
+
+  it('keeps the backward-compatible default root when no target folder is supplied', async () => {
+    const result = await quickAddMentionNode(admin, { ownerId: owner.id, workId, category: '인물', name: '기본저장' });
+    expect(result.ok).toBe(true);
+    const { data: saved } = await admin.from('kb_nodes').select('parent_id').eq('id', result.nodeId!).single();
+    expect(saved?.parent_id).toBe(personFolderId);
   });
 });
 

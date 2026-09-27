@@ -6,7 +6,7 @@ import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
-import { saveNodeContent } from '@/lib/kb/actions';
+import { listCategoryFolderCandidates, saveNodeContent, validateTargetFolder, type FolderCandidatesResult } from '@/lib/kb/actions';
 import type { KbCategory } from '@/lib/kb/templates';
 import { chat, type DocumentProposal } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
@@ -68,11 +68,24 @@ export async function searchMentionsAction(workId: string, query: string) {
   return searchMentionNodes(supabase, { ownerId: user.id, workId, query });
 }
 
-export async function quickAddMentionAction(workId: string, category: KbCategory, name: string) {
+export async function listCategoryFoldersAction(workId: string, category: KbCategory): Promise<FolderCandidatesResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { status: 'query_failed' };
+  return listCategoryFolderCandidates(supabase, { ownerId: user.id, workId, category });
+}
+
+export async function quickAddMentionAction(workId: string, category: KbCategory, name: string, targetFolderId?: string, folderVersion?: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
-  return quickAddMentionNode(supabase, { ownerId: user.id, workId, category, name });
+  if (targetFolderId) {
+    const validation = await validateTargetFolder(supabase, {
+      ownerId: user.id, workId, category, targetFolderId, expectedVersion: folderVersion,
+    });
+    if (!validation.ok) return { ok: false, error: validation.error };
+  }
+  return quickAddMentionNode(supabase, { ownerId: user.id, workId, category, name, targetFolderId });
 }
 
 export interface ChatActionInput {
