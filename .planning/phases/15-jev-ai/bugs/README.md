@@ -4,7 +4,8 @@ Phase 15(Jev AI) 코드에서 원인이 발생한 버그를 모은다.
 
 | ID | 제목 | 심각도 | 발견 | 상태 |
 |---|---|---|---|---|
-| [BUG-01](BUG-01-chapter-editor-client-bundle-fs-import.md) | 회차 편집기 열람 시 Turbopack 청킹 패닉 (node:fs/promises가 클라이언트 번들에 유입) | High | 2026-09-27 | Open |
+
+완전히 고쳐진 버그는 이 폴더에서 지우고 `.planning/fixed/`로 옮긴다 — 현재: [`15-01 회차 편집기 Turbopack fs 패닉 수정.md`](../../../fixed/15-01%20회차%20편집기%20Turbopack%20fs%20패닉%20수정.md) (BUG-01).
 
 ## 템플릿
 
