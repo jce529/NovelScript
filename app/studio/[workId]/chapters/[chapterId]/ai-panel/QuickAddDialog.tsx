@@ -28,6 +28,7 @@ export function QuickAddDialog({ workId, open, onOpenChange, initialName, onCrea
   const seqRef = useRef(0);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the editable name whenever the dialog reopens with a new initial value
     if (open) setName(initialName);
   }, [open, initialName]);
 

@@ -56,9 +56,8 @@ vi.mock('@/lib/kb/actions', () => ({
 }));
 vi.mock('@/lib/ai/decision/activation', () => ({ getAiDocPlanningMode: h.getAiDocPlanningMode }));
 vi.mock('@/lib/ai/decision/jev', () => ({ createJevClient: h.createJevClient }));
-vi.mock('@/lib/ai/decision/fixture', () => ({
-  readDecisionFixture: (env: Record<string, string | undefined>) =>
-    env.NODE_ENV === 'development' && env.DECISION_FIXTURE && env.DECISION_FIXTURE !== 'off' ? env.DECISION_FIXTURE : null,
+vi.mock('@/lib/ai/decision/fixture', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/ai/decision/fixture')>()),
   createFixtureDecisionClient: h.createFixtureDecisionClient,
 }));
 vi.mock('@/lib/ai/decision/shadow', () => ({ runShadowPlan: vi.fn(), recordDocumentSaveDecision: vi.fn() }));
@@ -92,20 +91,36 @@ let fetchSpy: ReturnType<typeof vi.fn>;
 let errorSpy: ReturnType<typeof vi.spyOn>;
 
 async function runFullFlow() {
-  await chatAction(chatInput());
-  await loadSavePlanAction(WORK_ID, '인물');
-  await saveDocumentProposalAction({
+  expect(await chatAction(chatInput())).toEqual(h.chatResult);
+  expect((await loadSavePlanAction(WORK_ID, '인물')).status).toBe('ok');
+  expect(await saveDocumentProposalAction({
     workId: WORK_ID,
     proposal: { category: '인물', name: '문서', content: '내용' },
     targetFolderId: FOLDER_ID,
     templateId: null,
     regenerated: false,
-  });
-  await listCategoryFoldersAction(WORK_ID, '인물');
-  await quickAddMentionAction(WORK_ID, '인물', '이름');
+  })).toEqual({ ok: true, nodeId: 'node-1' });
+  expect((await listCategoryFoldersAction(WORK_ID, '인물')).status).toBe('ok');
+  expect(await quickAddMentionAction(WORK_ID, '인물', '이름')).toEqual({ ok: true, nodeId: 'node-2' });
+  expect(h.chat).toHaveBeenCalledTimes(1);
+  expect(h.listCategoryFolderCandidates).toHaveBeenCalledTimes(2);
+  expect(h.createNode).toHaveBeenCalledTimes(1);
+  expect(h.quickAddMentionNode).toHaveBeenCalledTimes(1);
+}
+
+function expectNoVendorActivity() {
+  expect(h.createJevClient).not.toHaveBeenCalled();
+  expect(h.createFixtureDecisionClient).not.toHaveBeenCalled();
+  expect(h.after).not.toHaveBeenCalled();
+  const baseUrl = process.env.TYPESAFE_API_BASE_URL;
+  const vendorCalls = fetchSpy.mock.calls.filter(([url]) =>
+    String(url).includes('api.typesafe.ai') || (baseUrl && String(url).startsWith(baseUrl)));
+  expect(vendorCalls).toHaveLength(0);
 }
 
 beforeEach(() => {
+  vi.stubEnv('DECISION_FIXTURE', undefined);
+  vi.stubEnv('TYPESAFE_API_BASE_URL', 'https://custom-jev.example/v1/systemone');
   h.sessionUserId = SESSION_USER;
   h.chat.mockReset(); h.chat.mockResolvedValue(h.chatResult);
   h.createPlatformProvider.mockReset(); h.createPlatformProvider.mockImplementation(() => ({ provider: 'gemini' }));
@@ -129,34 +144,19 @@ beforeEach(() => {
 afterEach(() => {
   global.fetch = originalFetch;
   errorSpy.mockRestore();
-  delete process.env.DECISION_FIXTURE;
+  vi.unstubAllEnvs();
 });
 
 describe('off-path: server never reaches Jev', () => {
   it('mode off, no fixture: zero createJevClient calls, zero typesafe.ai fetches, zero after() registrations', async () => {
     await runFullFlow();
-    expect(h.createJevClient).not.toHaveBeenCalled();
-    expect(h.createFixtureDecisionClient).not.toHaveBeenCalled();
-    expect(h.after).not.toHaveBeenCalled();
-    const typesafeCalls = fetchSpy.mock.calls.filter(([url]) => String(url).includes('typesafe.ai'));
-    expect(typesafeCalls).toHaveLength(0);
+    expectNoVendorActivity();
   });
 
   it('production + DECISION_FIXTURE set: fixture is ignored, still zero Jev activity', async () => {
-    const originalEnv = process.env.NODE_ENV;
-    // @ts-expect-error -- test-only override of a readonly-typed env var
-    process.env.NODE_ENV = 'production';
-    process.env.DECISION_FIXTURE = 'high-confidence-document';
-    try {
-      await runFullFlow();
-    } finally {
-      // @ts-expect-error -- restore
-      process.env.NODE_ENV = originalEnv;
-    }
-    expect(h.createJevClient).not.toHaveBeenCalled();
-    expect(h.createFixtureDecisionClient).not.toHaveBeenCalled();
-    expect(h.after).not.toHaveBeenCalled();
-    const typesafeCalls = fetchSpy.mock.calls.filter(([url]) => String(url).includes('typesafe.ai'));
-    expect(typesafeCalls).toHaveLength(0);
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('DECISION_FIXTURE', 'high-confidence-document');
+    await runFullFlow();
+    expectNoVendorActivity();
   });
 });

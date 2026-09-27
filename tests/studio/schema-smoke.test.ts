@@ -4,7 +4,7 @@ import { pgPool, createTestUser, deleteTestUser } from '../helpers/db';
 
 describe('Studio schema smoke test (0002_studio.sql)', () => {
   const sql = pgPool(5);
-  let users: string[] = [];
+  const users: string[] = [];
 
   afterAll(async () => {
     for (const id of users) {

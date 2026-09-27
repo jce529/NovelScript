@@ -17,6 +17,7 @@ export default function KbNodeEditorPage({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets load state when nodeId changes, before the async fetch below
     setLoaded(false);
     getNodeContentAction(nodeId).then((result) => {
       if (result.ok) setContent(result.content);

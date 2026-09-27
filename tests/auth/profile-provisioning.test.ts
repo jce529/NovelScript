@@ -3,7 +3,7 @@ import { pgPool, createTestUser, deleteTestUser } from '../helpers/db';
 
 describe('Profile Auto-provisioning', () => {
   const sql = pgPool();
-  let users: string[] = [];
+  const users: string[] = [];
 
   afterAll(async () => {
     for (const id of users) {
