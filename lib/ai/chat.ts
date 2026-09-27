@@ -8,6 +8,8 @@ import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
 import type { ChatResult } from '@/lib/ai/chat-result';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
+import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
+import type { DecisionClient } from '@/lib/ai/decision/types';
 
 export { AI_GENERATION_REFERENCE_TYPE } from './paid-generation';
 export type { ChatResult, DocumentProposal };
@@ -61,6 +63,8 @@ export interface ChatInput {
   chatHistory: ChatTurn[];
   /** D-01: one per writer send; validated as UUID by chatAction. Ledger reference_id. */
   idempotencyKey: string;
+  /** Plan 15-04: supplied by chatAction only when planning is active. */
+  planning?: { mode: 'active'; decisionClient: DecisionClient };
 }
 
 /**
@@ -104,6 +108,10 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   if (!pre.ok) return pre.chatResult;
 
   const mentionedDocs = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
+  if (input.planning?.mode === 'active') {
+    const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: client, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
+    if (strategy.kind === 'result') return strategy.chatResult;
+  }
   const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
   const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory });
   const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: `chapter:${input.chapterId}` },

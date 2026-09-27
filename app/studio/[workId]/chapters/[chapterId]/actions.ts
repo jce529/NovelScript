@@ -8,13 +8,18 @@ import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chap
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
 import { listCategoryFolderCandidates, saveNodeContent, validateTargetFolder, type FolderCandidatesResult } from '@/lib/kb/actions';
 import type { KbCategory } from '@/lib/kb/templates';
-import { chat, type DocumentProposal } from '@/lib/ai/chat';
+import { chat, type ChatInput, type DocumentProposal } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
 import type { ModelTier } from '@/lib/ai/providers/types';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getAiDocPlanningMode } from '@/lib/ai/decision/activation';
+import { createJevClient } from '@/lib/ai/decision/jev';
+import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decision/fixture';
+import { DecisionCallError } from '@/lib/ai/decision/errors';
 
 export async function getChapterAction(chapterId: string) {
   const supabase = await createClient();
@@ -114,6 +119,24 @@ const chatActionSchema = z.object({
 // Dev fixture only: keys whose response was already dropped once (in-memory, per server process).
 const droppedFixtureKeys = new Set<string>();
 
+/** Every chatAction call resolves planning fresh from the DB-backed activation resolver — no
+ * code change is needed to turn Jev document planning on/off (Plan 15-11/15-09 HIGH). */
+async function resolveChatPlanning(): Promise<ChatInput['planning']> {
+  const fixtureMode = readDecisionFixture(process.env);
+  if (fixtureMode) return { mode: 'active', decisionClient: createFixtureDecisionClient(fixtureMode) };
+
+  const status = await getAiDocPlanningMode(createAdminClient());
+  if (status.mode !== 'active') return undefined;
+
+  try {
+    return { mode: 'active', decisionClient: createJevClient() };
+  } catch (err) {
+    const kind = err instanceof DecisionCallError ? err.info.kind : 'config';
+    console.error('[ai] decision client unavailable', { stage: 'decision_client', kind });
+    return undefined;
+  }
+}
+
 /** This session's redesign: ONE chat action for the whole AI 패널, replacing
  * the old generateAction/planChatAction split. Every turn may come back with
  * a chapter-prose draft, a KB document proposal, both absent (plain reply),
@@ -138,6 +161,8 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     return { ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config };
   }
 
+  const planning = await resolveChatPlanning();
+
   // Explicit field list (never spread input) so a forged ownerId cannot ride along.
   const result = await chat(supabase, client, {
     workId: input.workId,
@@ -151,6 +176,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     chatHistory: input.chatHistory,
     idempotencyKey: parsed.data.idempotencyKey,
     ownerId: user.id,
+    planning,
   });
 
   // Dev fixture: simulate a response lost AFTER the real debit, once per key, so 다시 시도 hits already_processed.
