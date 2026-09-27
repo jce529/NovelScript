@@ -367,9 +367,9 @@ Residual (stays in v1.0, not yet done):
 **Plans**: 11 plans, 6 waves (2026-09-24 cross-AI review 반영 재계획)
 
 **Wave 1**
-- [ ] 15-01-PLAN.md — Jev(TypeSafe AI) 온보딩 + DecisionClient 계약(Zod 응답 검증·후보 membership·타임아웃·단일 에러 경계) (checkpoint: 계정 발급)
-- [ ] 15-03-PLAN.md — BUG-01 근본 수정: 구조 루트(parent_id IS NULL) 판별 + 루트 유일성 index + version 기반 저장 직전 재검증
-- [ ] 15-10-PLAN.md — 공통 paid-generation lifecycle 추출(chat 무회귀) + 문서 계획 프롬프트 지시 + 결과 계약 검증기
+- [x] 15-01-PLAN.md — Jev(TypeSafe AI) 온보딩 + DecisionClient 계약(Zod 응답 검증·후보 membership·타임아웃·단일 에러 경계) (checkpoint: 계정 발급)
+- [x] 15-03-PLAN.md — BUG-01 근본 수정: 구조 루트(parent_id IS NULL) 판별 + 루트 유일성 index + version 기반 저장 직전 재검증
+- [x] 15-10-PLAN.md — 공통 paid-generation lifecycle 추출(chat 무회귀) + 문서 계획 프롬프트 지시 + 결과 계약 검증기
 
 **Wave 2** *(blocked on Wave 1)*
 - [ ] 15-02-PLAN.md — Jev 2단계 계획(안정 정렬·membership·data_integrity·선별 폴백·순수 FromCandidates) *(blocked on 15-01, 15-03)*
@@ -419,6 +419,6 @@ Residual (stays in v1.0, not yet done):
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/11 | Planned | - |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 3/11 | In Progress|  |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
