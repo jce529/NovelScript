@@ -6,46 +6,14 @@ import {
 } from '@/lib/ai/prompt';
 import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
 import type { ChatResult } from '@/lib/ai/chat-result';
-import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
 import type { DecisionClient } from '@/lib/ai/decision/types';
+import { parseChatResponse, type ParsedChatResponse } from '@/lib/ai/chat-parse';
 
 export { AI_GENERATION_REFERENCE_TYPE } from './paid-generation';
+export { parseChatResponse, type ParsedChatResponse } from '@/lib/ai/chat-parse';
 export type { ChatResult, DocumentProposal };
-
-export interface ParsedChatResponse {
-  reply: string;
-  draft: string | null;
-  proposal: DocumentProposal | null;
-}
-
-/** Parses lib/ai/prompt.ts's RESPONSE_PROTOCOL_INSTRUCTIONS [REPLY]/[DRAFT]/
- * [DOCUMENT] format. Falls back to treating the whole response as the reply
- * (no draft, no proposal) if the model didn't follow the format, or drops a
- * DOCUMENT block missing a required field — a malformed block must never
- * silently insert garbage into 본문 or create a garbage KB document. */
-export function parseChatResponse(raw: string): ParsedChatResponse {
-  const replyMatch = raw.match(/\[REPLY\]([\s\S]*?)(?:\[\/REPLY\]|\[DRAFT\]|\[DOCUMENT\]|$)/);
-  const reply = (replyMatch ? replyMatch[1] : raw).trim();
-
-  const draftMatch = raw.match(/\[DRAFT\]([\s\S]*?)\[\/DRAFT\]/);
-  const draft = draftMatch ? draftMatch[1].trim() || null : null;
-
-  const docMatch = raw.match(/\[DOCUMENT\]([\s\S]*?)\[\/DOCUMENT\]/);
-  let proposal: DocumentProposal | null = null;
-  if (docMatch) {
-    const block = docMatch[1];
-    const category = block.match(/카테고리:\s*(.+)/)?.[1]?.trim();
-    const name = block.match(/이름:\s*(.+)/)?.[1]?.trim();
-    const content = block.match(/내용:\s*([\s\S]*)/)?.[1]?.trim();
-    if (category && name && content && KB_CATEGORIES.includes(category as KbCategory)) {
-      proposal = { category: category as KbCategory, name, content };
-    }
-  }
-
-  return { reply, draft, proposal };
-}
 
 export interface ChatInput {
   ownerId: string;
