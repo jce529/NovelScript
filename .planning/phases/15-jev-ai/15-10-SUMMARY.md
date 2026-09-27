@@ -63,10 +63,7 @@ completed: 2026-09-27
 
 ## Task Commits
 
-The requested task commits could not be created: `git add` was denied while attempting to create `.git/index.lock` because `.git` is read-only in this workspace.
-
-1. **Task 1: paid-generation lifecycle extraction** - not committed (workspace permission denied)
-2. **Task 2: document prompt and contract validation** - not committed (workspace permission denied)
+The Codex sandbox couldn't write `.git/index.lock`. Committed afterward from the main session as a single plan-scoped commit: `9c4bb87` — "feat(15-10): extract paid-generation lifecycle, add document plan/contract". Full `tests/ai tests/kb` regression (310 tests) passes outside the sandbox, including the three DB-backed suites that failed only because the sandbox had no reachable Supabase instance.
 
 ## Files Created/Modified
 

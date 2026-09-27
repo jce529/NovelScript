@@ -63,7 +63,7 @@ completed: 2026-09-27
 
 ## Task Commits
 
-Task-scoped commits were not created. The workspace policy allows reading `.git` but denies writes; `git update-index` failed to create `.git/index.lock` with `Permission denied`.
+The Codex sandbox couldn't write `.git/index.lock`. Committed afterward from the main session as a single plan-scoped commit: `8d49025` — "feat(15-03): AIDOC-03 folder-candidate root resolution, replaces .maybeSingle() assumption". Full `tests/ai tests/kb` regression (310 tests) and `npx tsc --noEmit` pass outside the sandbox, including the two `document-generation`/`prompt.ts` cases that were still in-flight (Plan 15-10) at the time this summary was first drafted.
 
 ## Files Created/Modified
 
