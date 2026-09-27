@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: planning
+status: executing
 stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-09-23T12:28:44.004Z"
-last_activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04 매핑, BUG-04 사고 토큰 차감 누락 수정 (lib/ai/cost.ts, lib/ai/chat.ts)
+last_updated: "2026-09-24T07:38:02.072Z"
+last_activity: 2026-09-24 -- Phase 15 execution started
 progress:
   total_phases: 16
   completed_phases: 7
-  total_plans: 53
+  total_plans: 62
   completed_plans: 46
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 09 — OpenAI · Anthropic 어댑터 + 제공자별 단가 (next)
+**Current focus:** Phase 15 — jev-ai
 
 ## Current Position
 
-Phase: 09 — context gathered (09-CONTEXT.md)
-Plan: —
-Status: Phase 09 discuss 완료 2026-09-19. BUG-04 정책 확정(사고 토큰 출력 단가 차감) 및 수정 완료 2026-09-22. Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01, 02, 03, 05, 06 open; BUG-04 fixed, output-truncation half deferred pending real-usage data). BUG-01은 Phase 4 원인 버그로 확인되어 Phase 15로 승격됨.
-Last activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04 매핑, BUG-04 사고 토큰 차감 누락 수정 (lib/ai/cost.ts, lib/ai/chat.ts)
+Phase: 15 (jev-ai) — EXECUTING
+Plan: 1 of 11
+Status: Executing Phase 15
+Last activity: 2026-09-24 -- Phase 15 execution started
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 1/8 완료. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
@@ -172,6 +172,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
+- **[v1.1 Phase 15] Jev(TypeSafe AI) 데이터 처리 정책 검토가 실제 활성화의 전제 조건이다.** D-08/D-09/D-10. 활성화는 코드 상수가 아니라 lib/ai/decision/activation.ts의 getAiDocPlanningMode()가 DB에 기록된 정책 승인·실제 벤더 평가 증거·그림자 표본을 모두 확인할 때만 'active'가 된다 (Plan 15-11). 검토 주체: 작가 본인(사용자, 법무팀 별도 검토 없음). 검토 시작일: 2026-09-27. Jev 계정 상태: live verified — 인증 `Authorization: Bearer <key>`, 요청 `{state, model, questions:{<id>:{type,instructions,criteria}}}`, 응답 `{model, answers:{<id>:{choice,probabilities,confidence}}}`, 고정 버전 태그 `jev-1.13.0` (semver, alias는 `jev-latest`/`jev-preview`). 2026-09-27 합성 데이터 스파이크 호출로 확인(HTTP 200).
 - **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
 - **[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).
 - **[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.
