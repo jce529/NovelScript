@@ -11,8 +11,12 @@ export type DecisionType = 'task' | 'category' | 'folder' | 'template';
 export interface DecisionCandidate {
   /** Opaque key only; never place a database ID here. */
   key: string;
-  /** Human-readable description sent to Jev as the choice criterion for this key. */
-  label: string;
+  /**
+   * Human-readable description sent to Jev as the choice criterion for this key.
+   * Optional: callers that only need the key itself (task/category candidates) may
+   * omit it. The adapter falls back to any other describe() fields, then to the key.
+   */
+  label?: string;
   [field: string]: unknown;
 }
 
@@ -20,8 +24,11 @@ export interface DecisionRequest {
   decisionType: DecisionType;
   /** UUID generated with crypto.randomUUID(); the only logged request identifier. */
   requestId: string;
-  /** The Jev "choice" question instructions — what the model should decide. */
-  instructions: string;
+  /**
+   * The Jev "choice" question instructions — what the model should decide.
+   * Optional: the adapter substitutes a per-decisionType default when omitted.
+   */
+  instructions?: string;
   state: Record<string, unknown>;
   candidates: DecisionCandidate[];
 }

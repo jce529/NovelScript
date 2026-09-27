@@ -60,6 +60,21 @@ describe('createJevClient', () => {
     expect(result.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
+  it('falls back to describing candidates from non-label fields, then the key, when label is absent', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(answerBody({ choice: 'reply', confidence: 0.9 })));
+    vi.stubGlobal('fetch', fetchMock);
+    await createJevClient(env).decide({
+      decisionType: 'task',
+      requestId: request.requestId,
+      state: {},
+      candidates: [{ key: 'reply' }, { key: 'document', purpose: '설정 문서 생성' }],
+    });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.questions.decision.criteria).toEqual({ reply: 'reply', document: 'purpose: 설정 문서 생성' });
+    expect(body.questions.decision.instructions).toBe('Choose which task the writer is asking for, given the chapter state.');
+  });
+
   it('prefers the response model field over the requested model when present', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(answerBody({ choice: 'task-a', confidence: 0.9 }, 'jev-1.13.1'))));
     const result = await createJevClient(env).decide(request);
