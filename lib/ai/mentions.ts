@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createNode, FOLDER_COPY, listCategoryFolderCandidates, type NodeMutationResult } from '@/lib/kb/actions';
-import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/templates';
+import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 
 export interface MentionCandidate {
   id: string;

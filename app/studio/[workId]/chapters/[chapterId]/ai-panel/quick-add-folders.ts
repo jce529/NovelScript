@@ -1,4 +1,5 @@
-import { FOLDER_COPY, type FolderCandidate, type FolderCandidatesResult } from '@/lib/kb/actions';
+import { FOLDER_COPY } from '@/lib/kb/folder-copy';
+import type { FolderCandidate, FolderCandidatesResult } from '@/lib/kb/actions';
 
 export const QUICK_ADD_FOLDER_LOAD_FAILED = '폴더 목록을 불러오지 못했어요. 최상위 폴더에 저장돼요.';
 

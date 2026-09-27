@@ -5,7 +5,7 @@ import getCaretCoordinates from 'textarea-caret';
 import { Popover } from '@base-ui/react/popover';
 import { Command, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { User, MapPin, Zap, Shield, Package, Folder } from 'lucide-react';
-import type { KbCategory } from '@/lib/kb/templates';
+import type { KbCategory } from '@/lib/kb/categories';
 import { resolveMentionKeyboardCommand } from '@/lib/ai/mention-keyboard';
 import { searchMentionsAction } from '../actions';
 import { QuickAddDialog } from './QuickAddDialog';
