@@ -88,19 +88,44 @@ export interface ComposeSystemInstructionInput {
    * genre but is overridable per-generation. Always a plain string (one of
    * lib/works/genres.ts's GENRES), never absent. */
   genre: string;
+
+  documentPlan?: DocumentGenerationPlanInfo;
 }
 
+export interface DocumentGenerationPlanInfo {
+  category: KbCategory;
+  folderPath: string;
+  templateName: string;
+  templateContent: string;
+  purpose: string;
+}
+
+export function composeDocumentPlanDirective(plan: DocumentGenerationPlanInfo): string {
+  return `작업: 설정 문서 생성
+카테고리: ${plan.category}
+저장 목적: ${plan.purpose}
+대상 폴더: ${plan.folderPath}
+
+아래 템플릿의 제목·섹션 구조와 순서를 유지하면서 내용을 채우세요.
+사용자 요청, 현재 챕터와 KB에 없는 사실을 임의로 확정해야 한다면 명시적으로 미정으로 남기세요.
+선택된 카테고리와 템플릿을 바꾸지 마세요. 템플릿의 필수 제목과 섹션은 삭제하거나 이름을 바꾸지 마세요.
+알려진 KB 사실과 모순되는 내용을 만들지 마세요. 근거가 부족한 필드는 빈 값 또는 "미정"으로 남기세요.
+반드시 [DOCUMENT] 블록으로 응답하고 카테고리 줄에는 "${plan.category}"를 그대로 쓰세요.
+
+템플릿:
+${plan.templateContent}`;
+}
 /** Assembles the full Gemini `systemInstruction` string: baseline (always) +
  * genre (always) + 문체 프리셋 (always) + AI-지시 프리셋 instruction (varies) +
  * the REPLY/DRAFT/DOCUMENT response protocol (always). The per-turn user
  * message and prior conversation live in `contents` (assembleUserContent),
  * not here — this string is otherwise static for the whole chat session. */
-export function composeSystemInstruction({ presetLevel, styleId, genre }: ComposeSystemInstructionInput): string {
+export function composeSystemInstruction({ presetLevel, styleId, genre, documentPlan }: ComposeSystemInstructionInput): string {
   const genreInstruction = `이 작품의 장르는 '${genre}'입니다. 장르 관습과 독자 기대에 맞게 작성하세요.`;
   const styleInstruction = STYLE_PRESETS[styleId].instruction;
   const presetInstruction = PRESET_INSTRUCTIONS[presetLevel];
 
-  return [BASELINE_SYSTEM_PROMPT, genreInstruction, styleInstruction, presetInstruction, RESPONSE_PROTOCOL_INSTRUCTIONS].join('\n\n');
+  return [BASELINE_SYSTEM_PROMPT, genreInstruction, styleInstruction, presetInstruction, ...(documentPlan ? [composeDocumentPlanDirective(documentPlan)] : []), RESPONSE_PROTOCOL_INSTRUCTIONS].join('\n\n');
 }
 
 /** One turn of the unified AI 패널 chat — browser-session-only (never
@@ -121,6 +146,12 @@ export interface DocumentProposal {
   category: KbCategory;
   name: string;
   content: string;
+
+  recommendedFolderId?: string;
+  recommendedFolderPath?: string;
+  recommendedFolderVersion?: string;
+  recommendedTemplateId?: string | null;
+  recommendedTemplateName?: string;
 }
 
 /** What an assistant turn's ChatTurn.content should be when folded into a

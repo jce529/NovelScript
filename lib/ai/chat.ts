@@ -1,19 +1,15 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { getMentionedNodesContent } from '@/lib/ai/mentions';
 import {
   composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal,
 } from '@/lib/ai/prompt';
-import { computeMaxOutputTokens, computeDebitAmount } from '@/lib/ai/cost';
-import type { ModelTier, ProviderClient, GenerateResult } from '@/lib/ai/providers/types';
-import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
-import { ProviderCallError, toSanitizedProviderError, logProviderFailure } from '@/lib/ai/providers/errors';
-import { CHAT_COPY, type ChatResult, type ChatFailureKind } from '@/lib/ai/chat-result';
+import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
+import type { ChatResult } from '@/lib/ai/chat-result';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
-import { checkWriteAccess } from '@/lib/auth/write-access';
+import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 
-export const AI_GENERATION_REFERENCE_TYPE = 'ai_generation';
+export { AI_GENERATION_REFERENCE_TYPE } from './paid-generation';
 export type { ChatResult, DocumentProposal };
 
 export interface ParsedChatResponse {
@@ -67,37 +63,6 @@ export interface ChatInput {
   idempotencyKey: string;
 }
 
-async function findGenerationEntry(admin: SupabaseClient, ownerId: string, key: string): Promise<'found' | 'absent' | 'error'> {
-  try {
-    const { data, error } = await admin.from('ledger_entries').select('id').eq('wallet_id', ownerId).eq('reference_type', AI_GENERATION_REFERENCE_TYPE).eq('reference_id', key).maybeSingle();
-    if (error) return 'error';
-    return data ? 'found' : 'absent';
-  } catch {
-    return 'error';
-  }
-}
-
-async function readBalance(admin: SupabaseClient, ownerId: string): Promise<number | undefined> {
-  try {
-    const { data, error } = await admin.from('wallets').select('balance').eq('id', ownerId).maybeSingle();
-    if (error || !data) return undefined;
-    return Number(data.balance);
-  } catch {
-    return undefined;
-  }
-}
-
-function failed(kind: ChatFailureKind, error: string, extra: Partial<ChatResult> = {}): ChatResult {
-  return { ok: false, status: 'failed', failureKind: kind, error, ...extra };
-}
-
-async function alreadyProcessed(admin: SupabaseClient, ownerId: string): Promise<ChatResult> {
-  const result: ChatResult = { ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle };
-  const balance = await readBalance(admin, ownerId);
-  if (balance !== undefined) result.remainingBalance = balance;
-  return result;
-}
-
 /**
  * This session's redesign of EDIT-04 + D-13: ONE chat, no separate
  * "생성하기" button. Every turn goes through this single function — the
@@ -134,105 +99,25 @@ async function alreadyProcessed(admin: SupabaseClient, ownerId: string): Promise
  * log only { provider, status, kind, idempotencyKey }.
  */
 export async function chat(supabase: SupabaseClient, client: ProviderClient, input: ChatInput): Promise<ChatResult> {
-  const ownerId = input.ownerId;
-  const key = input.idempotencyKey;
+  const id = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, modelTier: input.modelTier };
+  const pre = await preflightPaidGeneration(supabase, id);
+  if (!pre.ok) return pre.chatResult;
 
-  const access = await checkWriteAccess(supabase, ownerId);
-  if (!access.ok) return failed('write_denied', access.error, { code: access.code });
-
-  const admin = createAdminClient();
-
-  const pre = await findGenerationEntry(admin, ownerId, key);
-  if (pre === 'error') return failed('unavailable', CHAT_COPY.unavailable);
-  if (pre === 'found') return alreadyProcessed(admin, ownerId);
-
-  const { data: wallet } = await admin.from('wallets').select('balance').eq('id', ownerId).maybeSingle();
-  if (!wallet) return failed('unknown', CHAT_COPY.walletMissing);
-  const walletBalance = Number(wallet.balance);
-
-  const mentionedDocs = await getMentionedNodesContent(supabase, { ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
+  const mentionedDocs = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
   const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
   const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory });
-  const model = MODEL_TIER_TO_ID[input.modelTier];
+  const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: `chapter:${input.chapterId}` },
+    () => client.generateContent({ model: pre.ctx.model, systemInstruction, contents, maxOutputTokens: pre.ctx.maxOutputTokens, temperature: 0.9 }));
+  if (settled.kind === 'terminal') return settled.chatResult;
 
-  // No input-token estimate: the output cap comes from the whole balance. Actual input+output
-  // usage is debited after the call, clamped to the balance read above.
-  const maxOutputTokens = computeMaxOutputTokens({ walletBalance, modelTier: input.modelTier });
-  if (maxOutputTokens <= 0) {
-    return failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: walletBalance });
-  }
-
-  // Provider failures happen BEFORE any debit: never charged, no ledger row, so the same key
-  // may be resent (D-04).
-  let result: GenerateResult;
-  try {
-    result = await client.generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature: 0.9 });
-  } catch (err) {
-    // D-11/D-12: only the sanitized allowlist crosses into logs/results — never the raw error,
-    // the prompt, the contents or the system instruction.
-    const info = err instanceof ProviderCallError ? err.info : toSanitizedProviderError(client.provider, err);
-    logProviderFailure(info, input.idempotencyKey);
-    return failed(info.kind, CHAT_COPY[info.kind]);
-  }
-
-  const stillAllowed = await checkWriteAccess(admin, ownerId);
-  if (!stillAllowed.ok) return failed('write_denied', stillAllowed.error, { code: stillAllowed.code });
-
-  // With no pre-call input estimate, actual usage can exceed the balance by a fraction of a
-  // token; charge at most what the wallet held so the writer still gets the capped body (D-13).
-  const debitAmount = Math.min(walletBalance, computeDebitAmount({
-    modelTier: input.modelTier,
-    promptTokenCount: result.usage.inputTokens,
-    candidatesTokenCount: result.usage.outputTokens,
-    thoughtsTokenCount: result.usage.thoughtsTokens,
-  }));
-
-  // Pre-debit recheck narrows the concurrent window so a racing duplicate gets no free body.
-  const recheck = await findGenerationEntry(admin, ownerId, key);
-  if (recheck === 'found') return alreadyProcessed(admin, ownerId);
-  if (recheck === 'error') return failed('settlement', CHAT_COPY.settlement);
-
-  let newBalance: unknown = null;
-  let debitFailed = false;
-  try {
-    const { data, error } = await admin.rpc('apply_wallet_delta', {
-      p_wallet_id: ownerId,
-      p_delta: 0 - debitAmount,
-      p_reference_type: AI_GENERATION_REFERENCE_TYPE,
-      p_reference_id: input.idempotencyKey,
-      p_reason: `chapter:${input.chapterId}`,
-    });
-    if (error) debitFailed = true;
-    else newBalance = data;
-  } catch {
-    debitFailed = true;
-  }
-
-  if (debitFailed) {
-    // Never log the DB error itself; never clamp the amount or retry with another key.
-    console.error('[ai] wallet settlement failed', { provider: client.provider, stage: 'settlement', idempotencyKey: key });
-    const post = await findGenerationEntry(admin, ownerId, key);
-    if (post === 'found') return alreadyProcessed(admin, ownerId);
-    return failed('settlement', CHAT_COPY.settlement);
-  }
-
-  // D-05..D-08: structured refusal — charged above like any completion (actual reported usage,
-  // same key), but the body is never returned. Prose refusals are not detected (D-05 C).
-  if (result.refusal) {
-    return {
-      ok: false, status: 'refused', error: CHAT_COPY.refusedTitle, remainingBalance: Number(newBalance),
-      refusal: { stage: result.refusal.stage, reasonCode: result.refusal.reasonCode, debitAmount },
-    };
-  }
-
-  const { reply, draft, proposal } = parseChatResponse(result.text);
+  const { reply, draft, proposal } = parseChatResponse(settled.result.text);
   return {
     ok: true,
     status: 'completed',
     reply,
     draft,
     proposal,
-    wasCapped: result.finishReason === 'max_tokens',
-    remainingBalance: Number(newBalance),
+    wasCapped: settled.result.finishReason === 'max_tokens',
+    remainingBalance: settled.remainingBalance,
   };
 }
