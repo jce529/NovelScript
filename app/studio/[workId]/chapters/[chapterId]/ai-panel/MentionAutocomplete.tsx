@@ -44,6 +44,9 @@ function mentionTrailingText(candidate: MentionCandidate): string {
  * shadcn-generated wrapper, to guarantee the virtual-anchor positioning works. */
 export function MentionAutocomplete({ workId, textareaRef, content, onContentChange, onMention }: MentionAutocompleteProps) {
   const [open, setOpen] = useState(false);
+  // "armed": an @query run is active but the popover is intentionally held back
+  // (buffered) until the writer confirms it with space/enter/tab.
+  const [armed, setArmed] = useState(false);
   const [query, setQuery] = useState('');
   const [triggerStart, setTriggerStart] = useState<number | null>(null);
   const [anchor, setAnchor] = useState<{ getBoundingClientRect: () => DOMRect } | null>(null);
@@ -64,6 +67,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
     const match = /@([^\s@]*)$/.exec(upToCaret);
     if (!match) {
       setOpen(false);
+      setArmed(false);
       return;
     }
     setQuery(match[1]);
@@ -73,7 +77,8 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
     const x = rect.left + caret.left - textarea.scrollLeft;
     const y = rect.top + caret.top - textarea.scrollTop;
     setAnchor({ getBoundingClientRect: () => new DOMRect(x, y, 0, caret.height) });
-    setOpen(true);
+    // Buffer: hold the popover back until the writer confirms with space/enter/tab.
+    setArmed(true);
   }, [content, textareaRef]);
 
   useEffect(() => {
@@ -94,6 +99,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
     const caretIndex = textarea ? textarea.selectionStart : triggerStart + query.length + 1;
     onContentChange(content.slice(0, triggerStart) + content.slice(caretIndex));
     setOpen(false);
+    setArmed(false);
   }, [content, onContentChange, query.length, textareaRef, triggerStart]);
 
   const selectCandidate = useCallback((candidate: MentionCandidate) => {
@@ -106,7 +112,13 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
     if (!textarea) return;
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (!open) return;
+      if (!open) {
+        if (armed && (event.key === ' ' || event.key === 'Enter' || event.key === 'Tab')) {
+          event.preventDefault();
+          setOpen(true);
+        }
+        return;
+      }
 
       const activeIndex = results.findIndex((candidate) => candidate.id === activeCandidateId);
       const command = resolveMentionKeyboardCommand({
@@ -121,6 +133,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
 
       if (command.type === 'close') {
         setOpen(false);
+        setArmed(false);
         return;
       }
 
@@ -137,7 +150,7 @@ export function MentionAutocomplete({ workId, textareaRef, content, onContentCha
 
     textarea.addEventListener('keydown', handleKeyDown);
     return () => textarea.removeEventListener('keydown', handleKeyDown);
-  }, [activeCandidateId, open, results, selectCandidate, textareaRef]);
+  }, [activeCandidateId, armed, open, results, selectCandidate, textareaRef]);
 
   return (
     <>
