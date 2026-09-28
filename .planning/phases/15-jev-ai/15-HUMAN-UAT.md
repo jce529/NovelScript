@@ -18,7 +18,7 @@ result: PASS — 로그인된 실사용자 계정("버그 재현용 작품")으�
 
 ### 2. SaveDocumentPlanModal — 저장 확인 모달·템플릿 재생성·이동/삭제 race
 expected: AI 채팅으로 문서 생성 요청 → 저장 확인 모달에서 추천/선택 분리, 폴더 변경, 템플릿 변경 시 재생성 확인(성공/취소/실패), 이동·삭제 race 시 재검증 배너 확인.
-result: BLOCKED (환경 요인, Phase 15 코드 문제 아님) — AI 채팅 요청(`새 인물 강진욱에 대한 인물 설정 문서를 만들어줘`, 라이트/프로 모델 모두 시도, 재시도 4회)이 매번 서버 로그에서 `[ai] provider call failed { provider: 'gemini', status: 503, kind: 'unavailable' }`로 실패. `curl`로 Gemini API에 동일 모델(`gemini-3.5-flash`)을 직접 호출해 재현: `{"error":{"code":503,"message":"This model is currently experiencing high demand...","status":"UNAVAILABLE"}}` — Google 쪽 일시적 용량 문제로 확인, 앱/Phase 15 코드의 결함이 아님. 재시도 시 idempotencyKey가 매번 동일하게 재사용됨을 로그로 확인(Phase 8의 안정적 reference_id 수정이 올바르게 동작 중이라는 부수 증거). Gemini 서비스가 복구된 뒤 재확인 필요.
+result: BLOCKED (환경 요인, Phase 15 코드 문제 아님) — AI 채팅 요청(`새 인물 강진욱에 대한 인물 설정 문서를 만들어줘`, 라이트/프로 모델 모두 시도, 총 8회 재시도에 걸쳐)이 매번 서버 로그에서 `[ai] provider call failed { provider: 'gemini', status: 503, kind: 'unavailable' }`로 실패. `curl`로 Gemini API에 동일 모델(`gemini-3.5-flash`)을 직접 호출해 재현: `{"error":{"code":503,"message":"This model is currently experiencing high demand...","status":"UNAVAILABLE"}}` — Google 쪽 일시적 용량 문제로 확인, 앱/Phase 15 코드의 결함이 아님. 재시도 시 idempotencyKey가 매번 동일하게 재사용됨을 로그로 확인(Phase 8의 안정적 reference_id 수정이 올바르게 동작 중이라는 부수 증거). 추가 관찰: 이후 단순 `curl` 요청("hi")은 성공했지만, 앱이 보내는 무거운 요청(시스템 프롬프트 + Phase 8 도입 잔액 전체 기준 출력 토큰 상한 포함)은 계속 503을 받음 — Google 쪽에서 가벼운 요청만 우선 처리하는 부분 복구 상태로 추정. 사용자가 나중에 직접 `npm run dev` → `http://localhost:3000`에서 재확인하기로 함(Gemini가 완전히 안정화된 뒤).
 why_human: 시각적 UI 상호작용과 비동기 race 조건의 실사용 흐름은 자동 테스트만으로 확증할 수 없음. Item 1은 사람(이번 세션의 실행자)이 직접 조작해 확인 완료. Item 2는 사람의 조작 자체는 진행했으나 외부 서비스(Gemini) 가용성 문제로 최종 결과를 확인하지 못함 — 재시도 필요.
 
 ## Summary
