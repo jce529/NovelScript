@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-// Plan 09-01 supplies this module; keep the RED scaffold type-checkable in Wave 0.
-// @ts-expect-error adapter is intentionally absent until Plan 09-01
 import { createOpenAiProvider, mapOpenAiResponse } from '@/lib/ai/providers/openai';
+import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
 import { ProviderCallError, toSanitizedProviderError } from '@/lib/ai/providers/errors';
 
 const sdk = vi.hoisted(() => ({ ctorOptions: [] as unknown[], create: vi.fn() }));
@@ -18,6 +17,13 @@ vi.mock('openai', () => ({
 const fx = (value: unknown) => value as Parameters<typeof mapOpenAiResponse>[0];
 const usage = { inputTokens: 120, outputTokens: 30, thoughtsTokens: null, reported: { input: true, output: true } };
 const params = { model: 'gpt-4o-mini', systemInstruction: 'S', contents: 'C', maxOutputTokens: 512, temperature: 0.9 };
+
+describe('OpenAI pricing', () => {
+  it('owns the researched per-model USD rates', () => {
+    expect(OPENAI_PRICING_USD_PER_MILLION['gpt-4o-mini']).toEqual({ input: 0.15, output: 0.60 });
+    expect(OPENAI_PRICING_USD_PER_MILLION['gpt-5.6-terra']).toEqual({ input: 2.00, output: 12.00 });
+  });
+});
 
 describe('mapOpenAiResponse', () => {
   it('maps output_text and reported usage', () => {
