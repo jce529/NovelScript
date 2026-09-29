@@ -6,6 +6,7 @@ import { computeDebitAmount, computeMaxOutputTokens } from '@/lib/ai/cost';
 import { CHAT_COPY, type ChatFailureKind, type ChatResult } from '@/lib/ai/chat-result';
 import { ProviderCallError, logProviderFailure, toSanitizedProviderError } from '@/lib/ai/providers/errors';
 import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
+import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import type { GenerateResult, ModelTier, ProviderClient } from '@/lib/ai/providers/types';
 
 /**
@@ -77,11 +78,13 @@ export async function preflightPaidGeneration(
 
   const balance = await readBalance(admin, id.ownerId);
   if (balance === undefined) return { ok: false, chatResult: failed('unknown', CHAT_COPY.walletMissing) };
-  const maxOutputTokens = computeMaxOutputTokens({ walletBalance: balance, modelTier: id.modelTier });
+  const model = MODEL_TIER_TO_ID[id.modelTier];
+  const pricing = GEMINI_PRICING_USD_PER_MILLION[model];
+  const maxOutputTokens = computeMaxOutputTokens({ walletBalance: balance, pricing });
   if (maxOutputTokens <= 0) {
     return { ok: false, chatResult: failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: balance }) };
   }
-  return { ok: true, ctx: { admin, walletBalance: balance, model: MODEL_TIER_TO_ID[id.modelTier], maxOutputTokens } };
+  return { ok: true, ctx: { admin, walletBalance: balance, model, maxOutputTokens } };
 }
 
 export type SettleOutcome =
@@ -107,7 +110,7 @@ export async function settlePaidGeneration(
   if (!stillAllowed.ok) return { kind: 'terminal', chatResult: failed('write_denied', stillAllowed.error, { code: stillAllowed.code }) };
 
   const debitAmount = Math.min(ctx.walletBalance, computeDebitAmount({
-    modelTier: id.modelTier,
+    pricing: GEMINI_PRICING_USD_PER_MILLION[ctx.model],
     promptTokenCount: result.usage.inputTokens,
     candidatesTokenCount: result.usage.outputTokens,
     thoughtsTokenCount: result.usage.thoughtsTokens,
