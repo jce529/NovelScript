@@ -45,6 +45,8 @@ export interface MentionedNode {
 export interface AiPanelProps {
   workId: string;
   chapterId: string;
+  defaultProviderId: ProviderId;
+  defaultModel: string;
   /** Current chapter textarea content — used as precedingText for cost estimate + generation. */
   content: string;
   /** Work's own genre (Phase 2 D-04) — D-07's default. null falls back to GENRES[0]. */
@@ -68,8 +70,6 @@ const PRESET_LEVEL_META: Record<PresetLevel, { label: string; description: strin
 
 const PRESET_LEVELS: PresetLevel[] = ['beginner', 'intermediate', 'freeform'];
 const STYLE_IDS = Object.keys(STYLE_PRESETS) as StylePresetId[];
-const DEFAULT_PROVIDER_ID: ProviderId = 'gemini';
-const DEFAULT_MODEL = PROVIDER_MODELS.gemini[0].id;
 
 interface ChatMessage {
   id: string;
@@ -95,9 +95,9 @@ interface SendPayload {
   precedingText: string;
 }
 
-export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
-  const [providerId, setProviderId] = useState<ProviderId>(DEFAULT_PROVIDER_ID);
-  const [model, setModel] = useState<string>(DEFAULT_MODEL);
+export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProviderId, defaultModel, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
+  const [providerId, setProviderId] = useState<ProviderId>(defaultProviderId);
+  const [model, setModel] = useState<string>(defaultModel);
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
@@ -188,8 +188,8 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
     const outcome = resolveChatOutcome(result);
     if (outcome.kind === 'success') {
       failedAttemptRef.current = null;
-      setProviderId(DEFAULT_PROVIDER_ID);
-      setModel(DEFAULT_MODEL);
+      setProviderId(defaultProviderId);
+      setModel(defaultModel);
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
@@ -285,6 +285,10 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">이번 전송에만 적용돼요</p>
+            <div className="rounded-md border border-border p-2 text-xs text-muted-foreground">
+              계정 기본값: {PROVIDER_MODELS[defaultProviderId].find((entry) => entry.id === defaultModel)?.displayName ?? defaultModel}
+              {' · '}<a className="underline" href="/studio/settings/ai-providers">설정에서 변경</a>
+            </div>
             <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
           </div>
           <div className="flex flex-1 flex-col gap-1">

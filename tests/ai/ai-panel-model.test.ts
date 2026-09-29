@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ children }: { children: ReactNode }) => createElement('div', null, children),
+  Select: ({ children, value }: { children: ReactNode; value: string }) => createElement('div', { 'data-selected-model': value }, children),
   SelectTrigger: ({ children }: { children: ReactNode }) => createElement('button', null, children),
   SelectValue: () => null,
   SelectContent: ({ children }: { children: ReactNode }) => createElement('div', null, children),
@@ -22,6 +22,7 @@ describe('AI panel model picker', () => {
   it('shows every configured provider and real model name with a per-send hint', () => {
     const html = renderToStaticMarkup(createElement(AiPanel, {
       workId: 'work', chapterId: 'chapter', content: '', defaultGenre: null,
+      defaultProviderId: 'gemini', defaultModel: 'gemini-3.5-flash',
       mentionedNodes: [], onRemoveMention: () => {}, onAddMention: () => {}, onInsertText: () => {},
     }));
     expect(html).toContain('data-model="gemini:gemini-3.5-flash"');
@@ -29,5 +30,16 @@ describe('AI panel model picker', () => {
     expect(html).toContain('data-model="anthropic:claude-sonnet-5"');
     expect(html).toContain('이번 전송에만 적용돼요');
     expect(html).toContain('입력 1,000 + 출력 1,000 토큰 기준');
+  });
+
+  it('starts with the saved account default and shows its settings link', () => {
+    const html = renderToStaticMarkup(createElement(AiPanel, {
+      workId: 'work', chapterId: 'chapter', content: '', defaultGenre: null,
+      defaultProviderId: 'openai', defaultModel: 'gpt-4o-mini',
+      mentionedNodes: [], onRemoveMention: () => {}, onAddMention: () => {}, onInsertText: () => {},
+    }));
+    expect(html).toContain('data-selected-model="openai:gpt-4o-mini"');
+    expect(html).toContain('계정 기본값');
+    expect(html).toContain('/studio/settings/ai-providers');
   });
 });

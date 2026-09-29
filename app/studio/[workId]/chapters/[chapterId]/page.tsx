@@ -14,6 +14,7 @@ import {
 } from './actions';
 import { ReviewRequestPanel } from '@/components/moderation/review-request';
 import { AiPanel, type MentionedNode } from './ai-panel/AiPanel';
+import type { ProviderModelPair } from '@/lib/ai/providers/settings';
 import { MentionAutocomplete, type MentionCandidate } from './ai-panel/MentionAutocomplete';
 
 export default function ChapterEditorPage({
@@ -28,6 +29,7 @@ export default function ChapterEditorPage({
   const [priceTier, setPriceTier] = useState<number | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [defaultProviderModel, setDefaultProviderModel] = useState<ProviderModelPair | null>(null);
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [genre, setGenre] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export default function ChapterEditorPage({
         setPriceTier(chapter.price_tier);
         setIsPaid(chapter.price_tier !== null);
         setGenre(chapter.genre ?? null);
+        setDefaultProviderModel(chapter.defaultProviderModel);
       }
       setLoaded(true);
     });
@@ -175,8 +178,10 @@ export default function ChapterEditorPage({
         />
       </div>
 
-      {loaded && (
+      {loaded && defaultProviderModel && (
         <AiPanel
+          defaultProviderId={defaultProviderModel.providerId}
+          defaultModel={defaultProviderModel.model}
           workId={workId}
           chapterId={chapterId}
           content={content}

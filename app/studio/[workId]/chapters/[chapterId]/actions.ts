@@ -15,6 +15,7 @@ import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
 import type { ModelTier, ProviderId } from '@/lib/ai/providers/types';
 import { isKnownModel } from '@/lib/ai/providers/catalog';
+import { getDefaultProviderModel } from '@/lib/ai/providers/settings';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -40,7 +41,8 @@ export async function getChapterAction(chapterId: string) {
   const { data: work } = await supabase.from('works').select('genre').eq('id', data.work_id).maybeSingle();
   const content = await readChapterContent(supabase, chapterId);
   if (content === null) return null;
-  return { ...data, content, genre: work?.genre ?? null };
+  const defaultProviderModel = await getDefaultProviderModel(supabase, user.id);
+  return { ...data, content, genre: work?.genre ?? null, defaultProviderModel };
 }
 
 export async function saveChapterContentAction(workId: string, chapterId: string, content: string) {
