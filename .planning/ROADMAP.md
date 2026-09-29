@@ -265,7 +265,7 @@ Residual (stays in v1.0, not yet done):
 **Plans**: 6 plans, 5 waves
 
 **Wave 0**
-- [ ] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
+- [x] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
 
 **Wave 1** *(blocked on 09-00)*
 - [ ] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
@@ -413,7 +413,7 @@ Residual (stays in v1.0, not yet done):
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
-| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/6 | Planned    |  |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 1/6 | In Progress |  |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
