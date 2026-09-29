@@ -178,6 +178,8 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
   }
 
   const busy = saving || regenerating;
+  const folderLabel = (folder: FolderCandidate) => folder.isRoot ? `${proposal.category} (최상위)` : folder.path;
+  const templateLabel = (template: TemplateChoice) => `${template.name}${template.isDefault ? ' (기본)' : ''}`;
 
   return (
     <>
@@ -203,9 +205,12 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
                   setSelectedFolderVersion(folder.version);
                   setBanner(null);
                 }}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue>{(value: string) => {
+                    const folder = folders.find((item) => item.id === value);
+                    return folder ? folderLabel(folder) : '폴더를 선택해주세요';
+                  }}</SelectValue></SelectTrigger>
                   <SelectContent>{folders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>{folder.isRoot ? `${proposal.category} (최상위)` : folder.path}</SelectItem>
+                    <SelectItem key={folder.id} value={folder.id}>{folderLabel(folder)}</SelectItem>
                   ))}</SelectContent>
                 </Select>
               </div>
@@ -217,9 +222,12 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
                   setBanner(null);
                   if (regenerated?.templateId !== templateId) setRegenerated(null);
                 }}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue>{(value: string) => {
+                    const template = templates.find((item) => (item.id ?? CANONICAL_TEMPLATE_VALUE) === value);
+                    return template ? templateLabel(template) : '템플릿을 선택해주세요';
+                  }}</SelectValue></SelectTrigger>
                   <SelectContent>{templates.map((template) => (
-                    <SelectItem key={template.id ?? 'canonical'} value={template.id ?? CANONICAL_TEMPLATE_VALUE}>{template.name}{template.isDefault ? ' (기본)' : ''}</SelectItem>
+                    <SelectItem key={template.id ?? 'canonical'} value={template.id ?? CANONICAL_TEMPLATE_VALUE}>{templateLabel(template)}</SelectItem>
                   ))}</SelectContent>
                 </Select>
               </div>

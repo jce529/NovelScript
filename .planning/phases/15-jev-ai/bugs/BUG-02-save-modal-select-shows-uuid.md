@@ -27,7 +27,7 @@ files:
 ## 원인
 `SaveDocumentPlanModal.tsx:206`, `:220`의 `<SelectValue />`에 children 렌더 함수가 없다. 이 프로젝트의 셀렉트는 Base UI(`components/ui/select.tsx`의 `SelectPrimitive.Value`)라서, 목록이 열리기 전에는 값에 대응하는 라벨을 알 수 없어 값 문자열을 그대로 그린다. 같은 프로젝트의 다른 셀렉트는 `<SelectValue>{(value) => ...}</SelectValue>` 형태로 라벨을 직접 계산해 넘긴다(`AiPanel.tsx:250,260`, `QuickAddDialog.tsx:70,83`, `feed-filters.tsx:33,47` 등). 이 모달의 두 곳만 빠져 있다.
 
-## 수정 방향
+## 수정 방향 (확정 — 사용자 승인, 2026-09-29)
 두 `SelectValue`에 children 렌더 함수를 추가해 id → 표시 이름으로 변환한다.
 - 폴더: `folders.find(f => f.id === value)`로 찾아 `isRoot ? \`${proposal.category} (최상위)\` : path` (옵션 렌더와 같은 규칙, 함수로 뽑아 공유).
 - 템플릿: `templates.find(t => (t.id ?? CANONICAL_TEMPLATE_VALUE) === value)`로 찾아 `name` + 기본이면 ' (기본)'.
@@ -37,3 +37,9 @@ files:
 - 컴포넌트 테스트: 모달 렌더 직후(목록을 열기 전) 트리거 텍스트가 UUID가 아닌 이름인지 단언.
 - 폴더/템플릿을 바꾼 뒤에도 트리거가 새 이름을 표시하는지 단언.
 - 브라우저 UAT: 모달을 열어 두 트리거가 이름을 표시하는지 육안 확인.
+
+## 실제 적용 (2026-09-29)
+- `SaveDocumentPlanModal.tsx`의 폴더·템플릿 `SelectValue`에 ID를 이름으로 바꾸는 렌더 함수를 추가했다. 목록 항목도 같은 라벨 함수를 사용한다.
+- 선택한 ID가 목록에 없을 때 각각 `폴더를 선택해주세요`, `템플릿을 선택해주세요`를 표시한다.
+- `tests/ai/save-document-plan-modal.test.ts`에서 초기 표시, 선택 변경 후 표시, 기본 템플릿의 `null` ID, 누락된 ID의 안내 문구를 검증한다.
+- 관련 테스트 22개 통과 (`save-document-plan-modal`, `save-validation`, `regenerate-document`), `tsc --noEmit` 통과. 브라우저 확인은 이번 실행에서 하지 않았다.
