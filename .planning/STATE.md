@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Phase 15 code complete — activation blocked (data policy review + real-vendor eval + shadow samples)
-last_updated: "2026-09-29T14:00:00.000Z"
-last_activity: 2026-09-29 -- Phase 9 complete (6/6, live-key + browser UAT passed); Phase 15 activation still blocked
+stopped_at: Phase 10 context gathered
+last_updated: "2026-09-29T14:34:23.889Z"
+last_activity: "2026-09-29 -- Phase 9 complete (6/6; live-key + browser UAT passed, migration 0013 applied). Phase 15: browser UAT pending, activation blocked"
 progress:
   total_phases: 16
   completed_phases: 8
@@ -191,12 +191,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-23T12:28:43.999Z
-Stopped at: Phase 15 UI-SPEC approved
+Last session: 2026-09-29T14:34:23.880Z
+Stopped at: Phase 10 context gathered
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
-Resume file: .planning/phases/15-jev-ai/15-UI-SPEC.md
+Resume file: .planning/phases/10-byok/10-CONTEXT.md
+
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.
