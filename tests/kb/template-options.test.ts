@@ -25,8 +25,12 @@ describe('listTemplateOptions (D-10 create-time template picker)', () => {
     workId = data as string;
 
     const { data: workTemplateFolder } = await admin
-      .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').single();
+      .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).single();
     workTemplateFolderId = workTemplateFolder!.id;
+    const { data: templatePersonFolder } = await admin.from('kb_nodes').select('id')
+      .eq('parent_id', workTemplateFolderId).eq('name', '인물').eq('node_type', 'folder').single();
+    const { data: templatePlaceFolder } = await admin.from('kb_nodes').select('id')
+      .eq('parent_id', workTemplateFolderId).eq('name', '장소').eq('node_type', 'folder').single();
 
     const { data: personFolder } = await admin
       .from('kb_nodes').select('id').eq('work_id', workId).eq('category', '인물').eq('node_type', 'folder').single();
@@ -40,19 +44,29 @@ describe('listTemplateOptions (D-10 create-time template picker)', () => {
     // work-level: an arbitrarily-named custom file PLUS a canonical-named ('인물') override
     const { error: workInsertErr } = await admin.from('kb_nodes').insert([
       {
-        owner_id: owner.id, work_id: workId, scope: 'work', parent_id: workTemplateFolderId,
+        owner_id: owner.id, work_id: workId, scope: 'work', parent_id: templatePersonFolder!.id,
         node_type: 'file', category: 'template', is_locked: false, name: CUSTOM_NAME, content: CUSTOM_CONTENT,
       },
       {
-        owner_id: owner.id, work_id: workId, scope: 'work', parent_id: workTemplateFolderId,
+        owner_id: owner.id, work_id: workId, scope: 'work', parent_id: templatePersonFolder!.id,
         node_type: 'file', category: 'template', is_locked: false, name: '인물', content: '# 작품 전용 인물 오버라이드',
+      },
+      {
+        owner_id: owner.id, work_id: workId, scope: 'work', parent_id: templatePlaceFolder!.id,
+        node_type: 'file', category: 'template', is_locked: false, name: '다른 장소 양식', content: '# 장소',
+      },
+      {
+        owner_id: owner.id, work_id: workId, scope: 'work', parent_id: workTemplateFolderId,
+        node_type: 'file', category: 'template', is_locked: false, name: '미분류 양식', content: '# 미분류',
       },
     ]);
     if (workInsertErr) throw workInsertErr;
 
     // account-level: its own canonical-named ('인물') override
+    const { data: accountPersonFolder } = await admin.from('kb_nodes').select('id')
+      .eq('parent_id', accountRootId).eq('name', '인물').eq('node_type', 'folder').single();
     const { error: accountInsertErr } = await admin.from('kb_nodes').insert({
-      owner_id: owner.id, work_id: null, scope: 'account_template', parent_id: accountRootId,
+      owner_id: owner.id, work_id: null, scope: 'account_template', parent_id: accountPersonFolder!.id,
       node_type: 'file', category: 'template', is_locked: false, name: '인물', content: '# 계정 전용 인물 오버라이드',
     });
     if (accountInsertErr) throw accountInsertErr;
@@ -62,7 +76,7 @@ describe('listTemplateOptions (D-10 create-time template picker)', () => {
     await deleteTestUser(owner.id);
   });
 
-  it('lists every selectable template (work x2, account x1, canonical x1) with the work-level name match flagged default', async () => {
+  it('lists only direct files in the requested category, preserving both scopes and work default', async () => {
     const options = await listTemplateOptions(admin, { ownerId: owner.id, workId, category: '인물' });
     expect(options).toHaveLength(4);
 
@@ -72,6 +86,7 @@ describe('listTemplateOptions (D-10 create-time template picker)', () => {
     expect(byScope('canonical')).toHaveLength(1);
 
     expect(options.some((o) => o.name === CUSTOM_NAME && o.scope === 'work')).toBe(true);
+    expect(options.some((o) => o.name === '다른 장소 양식' || o.name === '미분류 양식')).toBe(false);
 
     const defaults = options.filter((o) => o.isDefault);
     expect(defaults).toHaveLength(1);
@@ -110,12 +125,14 @@ describe('listTemplateOptions — no category-name match falls back to canonical
     workId = data as string;
 
     const { data: workTemplateFolder } = await admin
-      .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').single();
+      .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).single();
+    const { data: templatePersonFolder } = await admin.from('kb_nodes').select('id')
+      .eq('parent_id', workTemplateFolder!.id).eq('name', '인물').eq('node_type', 'folder').single();
 
     // Only the arbitrarily-named custom file — no file named exactly '인물' at either tier
     // (this owner never calls ensure_account_template_root, so there's no account-level match either).
     const { error: insertErr } = await admin.from('kb_nodes').insert({
-      owner_id: owner.id, work_id: workId, scope: 'work', parent_id: workTemplateFolder!.id,
+      owner_id: owner.id, work_id: workId, scope: 'work', parent_id: templatePersonFolder!.id,
       node_type: 'file', category: 'template', is_locked: false, name: CUSTOM_NAME, content: CUSTOM_CONTENT,
     });
     if (insertErr) throw insertErr;

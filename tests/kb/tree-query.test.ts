@@ -61,12 +61,14 @@ describe('getWorkKbNodes / getAccountSharedNodes (integration, lib/kb/actions.ts
     });
     if (rootErr) throw rootErr;
 
-    // Give the account template root a child so the "merges in ... + its children" behavior is exercised.
+    const { data: personTemplateFolder } = await admin.from('kb_nodes').select('id')
+      .eq('parent_id', accountRootId).eq('name', '인물').eq('node_type', 'folder').single();
+    // Give the account category folder a child so the nested tree is exercised.
     const { error: childErr } = await admin.from('kb_nodes').insert({
       owner_id: userA.id,
       work_id: null,
       scope: 'account_template',
-      parent_id: accountRootId,
+      parent_id: personTemplateFolder!.id,
       node_type: 'file',
       category: 'template',
       is_locked: false,

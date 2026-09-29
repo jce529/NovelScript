@@ -46,25 +46,38 @@ export interface NodeMutationResult {
 const FRIENDLY_NAME_COLLISION = '이미 같은 이름의 파일/폴더가 있어요. 다른 이름을 사용해주세요.';
 const FRIENDLY_LOCKED = '기본 폴더는 이름을 바꾸거나 삭제할 수 없어요.';
 
+async function findTemplateCategoryFolder(supabase: SupabaseClient, rootId: string, category: KbCategory): Promise<string | null> {
+  const { data } = await supabase.from('kb_nodes').select('id')
+    .eq('parent_id', rootId).eq('name', category).eq('category', 'template')
+    .eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+  return data?.id ?? null;
+}
+
 async function resolveTemplateOverride(
   supabase: SupabaseClient,
   { ownerId, workId, category }: { ownerId: string; workId: string; category: KbCategory }
 ): Promise<string | null> {
   // Pattern 3: work-local override > account-level override > canonical (null = canonical)
   const { data: workTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (workTemplateFolder) {
-    const { data: workOverride } = await supabase
-      .from('kb_nodes').select('content').eq('parent_id', workTemplateFolder.id).eq('name', category).is('deleted_at', null).maybeSingle();
-    if (workOverride?.content) return workOverride.content;
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, workTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: workOverride } = await supabase
+        .from('kb_nodes').select('content').eq('parent_id', categoryFolderId).eq('name', category).eq('node_type', 'file').is('deleted_at', null).maybeSingle();
+      if (workOverride?.content) return workOverride.content;
+    }
   }
 
   const { data: accountTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (accountTemplateFolder) {
-    const { data: accountOverride } = await supabase
-      .from('kb_nodes').select('content').eq('parent_id', accountTemplateFolder.id).eq('name', category).is('deleted_at', null).maybeSingle();
-    if (accountOverride?.content) return accountOverride.content;
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, accountTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: accountOverride } = await supabase
+        .from('kb_nodes').select('content').eq('parent_id', categoryFolderId).eq('name', category).eq('node_type', 'file').is('deleted_at', null).maybeSingle();
+      if (accountOverride?.content) return accountOverride.content;
+    }
   }
 
   return null;
@@ -78,9 +91,8 @@ export interface TemplateOption {
   isDefault: boolean;
 }
 
-/** D-10: full create-time template picker. Lists EVERY selectable template source
- * for a category — this work's local template/ files, the account-level template/
- * files, and the canonical docs/Template seed — regardless of filename. An
+/** D-10: full create-time template picker. Lists files directly under the requested
+ * category folder in each scope, plus the canonical docs/Template seed. An
  * arbitrarily-named custom template (e.g. "내캐릭터양식") is fully listed and
  * selectable here, closing the gap where only an exact category-name match had
  * any effect. The category-name-matched file is flagged isDefault (work-level
@@ -93,22 +105,28 @@ export async function listTemplateOptions(
   const options: TemplateOption[] = [];
 
   const { data: workTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (workTemplateFolder) {
-    const { data: workFiles } = await supabase
-      .from('kb_nodes').select('id, name, content').eq('parent_id', workTemplateFolder.id).eq('node_type', 'file').is('deleted_at', null);
-    for (const file of workFiles ?? []) {
-      options.push({ id: file.id, name: file.name, scope: 'work', content: file.content ?? '', isDefault: false });
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, workTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: workFiles } = await supabase
+        .from('kb_nodes').select('id, name, content').eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
+      for (const file of workFiles ?? []) {
+        options.push({ id: file.id, name: file.name, scope: 'work', content: file.content ?? '', isDefault: false });
+      }
     }
   }
 
   const { data: accountTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (accountTemplateFolder) {
-    const { data: accountFiles } = await supabase
-      .from('kb_nodes').select('id, name, content').eq('parent_id', accountTemplateFolder.id).eq('node_type', 'file').is('deleted_at', null);
-    for (const file of accountFiles ?? []) {
-      options.push({ id: file.id, name: file.name, scope: 'account_template', content: file.content ?? '', isDefault: false });
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, accountTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: accountFiles } = await supabase
+        .from('kb_nodes').select('id, name, content').eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
+      for (const file of accountFiles ?? []) {
+        options.push({ id: file.id, name: file.name, scope: 'account_template', content: file.content ?? '', isDefault: false });
+      }
     }
   }
 

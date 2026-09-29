@@ -53,6 +53,7 @@ export async function createWork(
     .eq('work_id', workId)
     .eq('category', 'template')
     .eq('node_type', 'folder')
+    .is('parent_id', null)
     .is('deleted_at', null)
     .maybeSingle();
 
