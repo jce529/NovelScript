@@ -14,7 +14,7 @@ vi.mock('@/lib/kb/actions', async (importOriginal) => ({
 }));
 vi.mock('@/lib/ai/paid-generation', () => ({ preflightPaidGeneration: mocks.preflight, settlePaidGeneration: mocks.settle }));
 
-import { regenerateDocumentWithTemplate } from '@/lib/ai/document-regenerate';
+import { REGENERATION_FAILED, regenerateDocumentWithTemplate } from '@/lib/ai/document-regenerate';
 
 const workId = '11111111-1111-4111-8111-111111111111';
 const ownerId = 'owner';
@@ -99,6 +99,39 @@ describe('document template regeneration', () => {
     const result = await regenerateDocumentWithTemplate(db, provider, input);
     expect(mocks.settle).toHaveBeenCalled();
     expect(result).toMatchObject({ ok: false, error: '문서를 다시 생성하지 못했어요. 다시 시도해주세요.' });
+  });
+
+  it('keeps the original name even when the model returns a different one (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n차분함\n[/DOCUMENT]'.replace('이름: 미라', '이름: 시후')));
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: true, name: '미라' });
+    const params = vi.mocked(provider.generateContent).mock.calls[0][0];
+    expect(params.contents).toContain('"미라"');
+  });
+
+  it('rejects generated content whose body title changes the name (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 시후\n## 성격\n차분함\n[/DOCUMENT]'));
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, error: '문서를 다시 생성하지 못했어요. 다시 시도해주세요.' });
+  });
+
+  it('rejects a regenerated wikilink to an unknown target (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n[[친구]]와 [[낯선 사람]]\n[/DOCUMENT]'));
+    const linkedProposal = { ...proposal, content: `${proposal.content}\n[[친구]]` };
+    expect(await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: linkedProposal }))
+      .toEqual({ ok: false, error: REGENERATION_FAILED });
+  });
+
+  it('accepts unchanged wikilinks (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n[[미라]]와 [[친구]]\n[/DOCUMENT]'));
+    const linkedProposal = { ...proposal, content: `${proposal.content}\n[[미라]]와 [[친구]]` };
+    expect(await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: linkedProposal }))
+      .toMatchObject({ ok: true, name: '미라' });
+  });
+
+  it('keeps wikilinks to the document itself (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n[[친구]]\n[/DOCUMENT]'));
+    const linkedProposal = { ...proposal, content: `${proposal.content}\n[[미라]]와 [[친구]]` };
+    expect(await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: linkedProposal }))
+      .toEqual({ ok: false, error: REGENERATION_FAILED });
   });
 
   it('maps provider rate limits without bypassing settlement lifecycle', async () => {
