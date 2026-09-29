@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-// Plan 09-02 supplies this module; keep the RED scaffold type-checkable in Wave 0.
-// @ts-expect-error adapter is intentionally absent until Plan 09-02
 import { createAnthropicProvider, mapAnthropicResponse } from '@/lib/ai/providers/anthropic';
 import { ProviderCallError, toSanitizedProviderError } from '@/lib/ai/providers/errors';
+import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
 
 const sdk = vi.hoisted(() => ({ ctorOptions: [] as unknown[], create: vi.fn() }));
 
@@ -18,6 +17,13 @@ vi.mock('@anthropic-ai/sdk', () => ({
 const fx = (value: unknown) => value as Parameters<typeof mapAnthropicResponse>[0];
 const usage = { inputTokens: 120, outputTokens: 30, thoughtsTokens: null, reported: { input: true, output: true } };
 const params = { model: 'claude-haiku-4-5', systemInstruction: 'S', contents: 'C', maxOutputTokens: 512, temperature: 0.9 };
+
+describe('Anthropic pricing', () => {
+  it('keeps each catalog model at its Anthropic input and output rates', () => {
+    expect(ANTHROPIC_PRICING_USD_PER_MILLION['claude-haiku-4-5']).toEqual({ input: 1.00, output: 5.00 });
+    expect(ANTHROPIC_PRICING_USD_PER_MILLION['claude-sonnet-5']).toEqual({ input: 2.00, output: 10.00 });
+  });
+});
 
 describe('mapAnthropicResponse', () => {
   it('maps text blocks and reported usage', () => {
