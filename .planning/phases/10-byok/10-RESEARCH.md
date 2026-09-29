@@ -219,12 +219,16 @@ function decodeSelection(value: string) {
 | A6 | Three-part colon encoding and new profile source column are best compatibility choice | Existing caller misses source; contract tests across settings, chapter props and chat action |
 | A7 | Bounded pagination can still discover all catalog models | Valid model hidden; multi-page fixture test |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Vault SQL contract and privileges:** Inspect `pg_proc`, extension schema, `vault.create_secret`, `vault.decrypted_secrets`, and permitted secret deletion on the target test DB before writing SQL; the repo has no Vault migration or vendored Vault docs. [ASSUMED]
+   RESOLVED: Plan 00 Task 1 프로브(scripts/probe-vault.mjs)가 확정해 10-VAULT-PROBE.md에 기록하고 Plan 01이 그 결과로 SQL을 작성한다(접속 불가 시 UNREACHABLE 기록 + Plan 01 human-action 체크포인트).
 2. **Provider list semantics:** Confirm real responses and whether list visibility means generation entitlement for the exact catalog IDs. The endpoint path/method is evidenced for OpenAI/Anthropic by installed SDK; Gemini network path is not established here. [ASSUMED]
+   RESOLVED: A4 근사치(목록 노출 = 사용 가능)를 수용하고, 실제 응답은 Plan 06 라이브 프로브(scripts/verify-byok-live.mjs)로 확인한다.
 3. **Service model availability:** Current static catalog lists platform models irrespective of service-key account access. PROV-05's “actually callable” wording may require a live service-key availability check or explicit Phase 9 operational gate; the phase decisions only define BYOK intersection. Do not silently claim the static list is entitlement proof. [VERIFIED: `catalog.ts`; ASSUMED: account access]
+   RESOLVED: 정적 카탈로그를 유지하며 서비스 키 계정 권한 실시간 확인은 이 phase 범위 밖이다(VALIDATION Manual-Only / Plan 06 UAT에서 확인).
 4. **Rate control:** Public registration/recheck actions call external endpoints. Set a small per-user request bound using existing app patterns if present; no rate-limit implementation was verified in this pass. [ASSUMED]
+   RESOLVED: claim_byok_validation RPC(owner당 10분 5회 슬라이딩 윈도우)를 register/recheck 선행 호출로 적용한다(Plan 01/03).
 
 ## Environment Availability
 
