@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Overview
 status: executing
 stopped_at: Phase 15 code complete — activation blocked (data policy review + real-vendor eval + shadow samples)
-last_updated: "2026-09-27T18:00:00.000Z"
-last_activity: 2026-09-27 -- Phase 15 code complete; browser UAT (Plan 15-09 Task 2) pending
+last_updated: "2026-09-29T14:00:00.000Z"
+last_activity: 2026-09-29 -- Phase 9 complete (6/6, live-key + browser UAT passed); Phase 15 activation still blocked
 progress:
   total_phases: 16
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 62
-  completed_plans: 56
+  completed_plans: 62
 ---
 
 # Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 Phase: 15 (jev-ai) — EXECUTING
 Plan: 11 of 11 (Task 2 browser UAT pending)
 Status: Phase 15 code complete / activation blocked
-Last activity: 2026-09-27 -- Plan 15-09 Tasks 1 and 3; browser UAT pending
+Last activity: 2026-09-29 -- Phase 9 complete (6/6; live-key + browser UAT passed, migration 0013 applied). Phase 15: browser UAT pending, activation blocked
 
-> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 1/8 완료. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
+> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 2/8 완료 (Phase 8, 9). v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
@@ -52,7 +52,7 @@ Last activity: 2026-09-27 -- Plan 15-09 Tasks 1 and 3; browser UAT pending
 - Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
 - Phase 6 작가 90:10 정산 — 미구현
 - Phase 7 Admin Moderation Surface — **완료(2026-09-17), 7/7**. 실제 DB·동시성·브라우저 UAT 통과. ⚠️ 미확인 2건(경고 확인 유지, 정지 사용자 화면) + 사소한 이슈(F-2 자기제재 문구, F-3 테스트 신고 잔여물)는 `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`에서 반드시 확인.
-- Phase 4 라이브 GEMINI_API_KEY UAT — 미완
+- Phase 4 라이브 GEMINI_API_KEY UAT — 미완. 2026-09-29 Phase 9 라이브 점검에서 `gemini-3.5-flash`가 429 RESOURCE_EXHAUSTED(키/쿼터 문제, 코드 무관) — 키·결제 상태 확인 필요
 
 ## Performance Metrics
 
@@ -199,3 +199,4 @@ Next: 두 트랙이 열려 있다 —
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
 Resume file: .planning/phases/15-jev-ai/15-UI-SPEC.md
+- **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.
