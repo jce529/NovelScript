@@ -4,7 +4,7 @@ import { getMentionedNodesContent } from '@/lib/ai/mentions';
 import {
   composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal,
 } from '@/lib/ai/prompt';
-import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
+import type { ProviderId, ProviderClient } from '@/lib/ai/providers/types';
 import type { ChatResult } from '@/lib/ai/chat-result';
 import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
@@ -19,7 +19,8 @@ export interface ChatInput {
   ownerId: string;
   workId: string;
   chapterId: string;
-  modelTier: ModelTier;
+  providerId: ProviderId;
+  model: string;
   mentionedNodeIds: string[];
   presetLevel: PresetLevel;
   styleId: StylePresetId;
@@ -71,7 +72,7 @@ export interface ChatInput {
  * log only { provider, status, kind, idempotencyKey }.
  */
 export async function chat(supabase: SupabaseClient, client: ProviderClient, input: ChatInput): Promise<ChatResult> {
-  const id = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, modelTier: input.modelTier };
+  const id = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, providerId: input.providerId, model: input.model };
   const pre = await preflightPaidGeneration(supabase, id);
   if (!pre.ok) return pre.chatResult;
 

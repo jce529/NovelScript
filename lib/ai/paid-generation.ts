@@ -2,12 +2,14 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkWriteAccess } from '@/lib/auth/write-access';
-import { computeDebitAmount, computeMaxOutputTokens } from '@/lib/ai/cost';
+import { computeDebitAmount, computeMaxOutputTokens, type VendorPricing } from '@/lib/ai/cost';
 import { CHAT_COPY, type ChatFailureKind, type ChatResult } from '@/lib/ai/chat-result';
 import { ProviderCallError, logProviderFailure, toSanitizedProviderError } from '@/lib/ai/providers/errors';
 import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
-import type { GenerateResult, ModelTier, ProviderClient } from '@/lib/ai/providers/types';
+import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
+import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
+import type { GenerateResult, ModelTier, ProviderClient, ProviderId } from '@/lib/ai/providers/types';
 
 /**
  * Shared Phase 8 payment lifecycle for every paid Gemini generation.
@@ -25,13 +27,22 @@ export interface PaidGenerationContext {
   admin: SupabaseClient;
   walletBalance: number;
   model: string;
+  pricing: VendorPricing;
   maxOutputTokens: number;
 }
 
-export interface PaidGenerationIdentity {
+export type PaidGenerationIdentity = {
   ownerId: string;
   idempotencyKey: string;
-  modelTier: ModelTier;
+} & ({ providerId: ProviderId; model: string; modelTier?: never } | { modelTier: ModelTier; providerId?: never; model?: never });
+
+function resolvePricing(providerId: ProviderId, model: string): VendorPricing {
+  const table = providerId === 'openai' ? OPENAI_PRICING_USD_PER_MILLION
+    : providerId === 'anthropic' ? ANTHROPIC_PRICING_USD_PER_MILLION
+    : GEMINI_PRICING_USD_PER_MILLION;
+  const pricing = table[model];
+  if (!pricing) throw new Error('Unknown provider model');
+  return pricing;
 }
 
 async function findGenerationEntry(admin: SupabaseClient, ownerId: string, key: string): Promise<'found' | 'absent' | 'error'> {
@@ -78,13 +89,13 @@ export async function preflightPaidGeneration(
 
   const balance = await readBalance(admin, id.ownerId);
   if (balance === undefined) return { ok: false, chatResult: failed('unknown', CHAT_COPY.walletMissing) };
-  const model = MODEL_TIER_TO_ID[id.modelTier];
-  const pricing = GEMINI_PRICING_USD_PER_MILLION[model];
+  const model = id.model ?? MODEL_TIER_TO_ID[id.modelTier!];
+  const pricing = resolvePricing(id.providerId ?? 'gemini', model);
   const maxOutputTokens = computeMaxOutputTokens({ walletBalance: balance, pricing });
   if (maxOutputTokens <= 0) {
     return { ok: false, chatResult: failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: balance }) };
   }
-  return { ok: true, ctx: { admin, walletBalance: balance, model, maxOutputTokens } };
+  return { ok: true, ctx: { admin, walletBalance: balance, model, pricing, maxOutputTokens } };
 }
 
 export type SettleOutcome =
@@ -110,7 +121,7 @@ export async function settlePaidGeneration(
   if (!stillAllowed.ok) return { kind: 'terminal', chatResult: failed('write_denied', stillAllowed.error, { code: stillAllowed.code }) };
 
   const debitAmount = Math.min(ctx.walletBalance, computeDebitAmount({
-    pricing: GEMINI_PRICING_USD_PER_MILLION[ctx.model],
+    pricing: ctx.pricing,
     promptTokenCount: result.usage.inputTokens,
     candidatesTokenCount: result.usage.outputTokens,
     thoughtsTokenCount: result.usage.thoughtsTokens,

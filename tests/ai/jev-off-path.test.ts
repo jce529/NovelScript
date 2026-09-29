@@ -74,7 +74,7 @@ function chatInput(overrides: Record<string, unknown> = {}) {
   return {
     workId: WORK_ID,
     chapterId: 'c1',
-    modelTier: 'lite',
+    providerId: 'gemini', model: 'gemini-3.5-flash',
     mentionedNodeIds: [],
     presetLevel: 'balanced',
     styleId: 'default',

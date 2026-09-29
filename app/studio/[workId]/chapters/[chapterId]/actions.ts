@@ -13,7 +13,8 @@ import { chat, type ChatInput } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
-import type { ModelTier } from '@/lib/ai/providers/types';
+import type { ModelTier, ProviderId } from '@/lib/ai/providers/types';
+import { isKnownModel } from '@/lib/ai/providers/catalog';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -99,7 +100,8 @@ export async function quickAddMentionAction(workId: string, category: KbCategory
 export interface ChatActionInput {
   workId: string;
   chapterId: string;
-  modelTier: ModelTier;
+  providerId: ProviderId;
+  model: string;
   mentionedNodeIds: string[];
   presetLevel: PresetLevel;
   styleId: StylePresetId;
@@ -116,8 +118,9 @@ export interface ChatActionInput {
 // Not exported: 'use server' modules may only export async functions.
 const chatActionSchema = z.object({
   idempotencyKey: z.string().uuid(),
-  modelTier: z.enum(['lite', 'pro']),
-});
+  providerId: z.enum(['gemini', 'openai', 'anthropic']),
+  model: z.string(),
+}).refine((value) => isKnownModel(value.providerId, value.model), { message: 'unknown model for provider' });
 
 // Dev fixture only: keys whose response was already dropped once (in-memory, per server process).
 const droppedFixtureKeys = new Set<string>();
@@ -154,12 +157,12 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
 
   let client;
   try {
-    client = createPlatformProvider();
+    client = createPlatformProvider(parsed.data.providerId);
   } catch (err) {
     // Never log or return the raw error: it may carry the API key (D-11).
     const info = err instanceof ProviderCallError
       ? err.info
-      : { provider: 'gemini' as const, status: null, kind: 'config' as const, providerErrorCode: null };
+      : { provider: parsed.data.providerId, status: null, kind: 'config' as const, providerErrorCode: null };
     logProviderFailure(info, parsed.data.idempotencyKey);
     return { ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config };
   }
@@ -170,7 +173,8 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
   const result = await chat(supabase, client, {
     workId: input.workId,
     chapterId: input.chapterId,
-    modelTier: parsed.data.modelTier,
+    providerId: parsed.data.providerId,
+    model: parsed.data.model,
     mentionedNodeIds: input.mentionedNodeIds,
     presetLevel: input.presetLevel,
     styleId: input.styleId,
@@ -323,7 +327,7 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
 
   let client;
   try {
-    client = createPlatformProvider();
+    client = createPlatformProvider('gemini');
   } catch (err) {
     const info = err instanceof ProviderCallError
       ? err.info

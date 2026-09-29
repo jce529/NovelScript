@@ -1,4 +1,4 @@
-﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 const h = vi.hoisted(() => ({ user: { id: 'owner' }, mode: 'shadow' as 'shadow'|'off'|'active', result: { ok: true, status: 'completed', reply: 'done' }, chat: vi.fn(), callbacks: [] as Array<() => unknown>, shadow: vi.fn(), record: vi.fn(), created: { ok: true, nodeId: 'node-id' } as { ok: boolean; nodeId: string | undefined }, owns: true }));
 vi.mock('server-only', () => ({}));
 vi.mock('next/server', () => ({ after: (fn: () => unknown) => { h.callbacks.push(fn); } }));
@@ -20,7 +20,7 @@ import { chatAction, saveDocumentProposalAction } from '@/app/studio/[workId]/ch
 import { KB_CATEGORIES } from '@/lib/kb/categories';
 const key = '6f1c2b1e-3d4a-4b5c-8d9e-0a1b2c3d4e5f';
 const workId = '11111111-1111-4111-8111-111111111111';
-const input = (overrides: Record<string, unknown> = {}) => ({ workId, chapterId: 'chapter', modelTier: 'lite', mentionedNodeIds: ['fact'], presetLevel: 'balanced', styleId: 'default', genre: 'fantasy', precedingText: 'chapter context', chatHistory: [{ role: 'user', content: 'actual private prompt' }], idempotencyKey: key, ...overrides }) as unknown as Parameters<typeof chatAction>[0];
+const input = (overrides: Record<string, unknown> = {}) => ({ workId, chapterId: 'chapter', providerId: 'gemini', model: 'gemini-3.5-flash', mentionedNodeIds: ['fact'], presetLevel: 'balanced', styleId: 'default', genre: 'fantasy', precedingText: 'chapter context', chatHistory: [{ role: 'user', content: 'actual private prompt' }], idempotencyKey: key, ...overrides }) as unknown as Parameters<typeof chatAction>[0];
 beforeEach(() => { h.mode = 'shadow'; h.callbacks.length = 0; h.shadow.mockReset(); h.record.mockReset(); h.chat.mockReset().mockResolvedValue(h.result); h.created = { ok: true, nodeId: 'node-id' }; h.owns = true; });
 describe('Jev shadow action wiring', () => {
  it('schedules metadata-only shadow work after returning chat result', async () => { expect(await chatAction(input())).toBe(h.result); expect(h.callbacks).toHaveLength(1); await h.callbacks[0](); expect(h.shadow).toHaveBeenCalledWith(expect.anything(), { ownerId: 'owner', workId, requestKey: key, requestLength: 21, hasChapterContext: true, mentionedFactCount: 1 }); });

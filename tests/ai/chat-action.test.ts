@@ -42,7 +42,8 @@ function validInput(overrides: Record<string, unknown> = {}) {
   return {
     workId: 'w1',
     chapterId: 'c1',
-    modelTier: 'lite',
+    providerId: 'gemini',
+    model: 'gemini-3.5-flash',
     mentionedNodeIds: [],
     presetLevel: 'balanced',
     styleId: 'default',
@@ -80,7 +81,8 @@ describe('chatAction boundary', () => {
     ['empty', { idempotencyKey: '' }],
     ['missing', { idempotencyKey: undefined }],
     ['number', { idempotencyKey: 12345 }],
-    ['bad modelTier', { modelTier: 'ultra' }],
+    ['bad provider', { providerId: 'unknown' }],
+    ['model from another provider', { providerId: 'gemini', model: 'gpt-4o-mini' }],
   ])('rejects invalid input (%s)', async (_label, overrides) => {
     const result = await chatAction(validInput(overrides));
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
@@ -95,6 +97,21 @@ describe('chatAction boundary', () => {
     expect(third).toEqual(expect.objectContaining({ ownerId: SESSION_USER, idempotencyKey: KEY }));
     expect(third.ownerId).not.toBe('attacker-id');
     expect(result).toBe(h.chatResult);
+  });
+
+  it.each([
+    ['openai', 'gpt-4o-mini'],
+    ['anthropic', 'claude-sonnet-5'],
+  ] as const)('passes %s model to the provider and chat', async (providerId, model) => {
+    await chatAction(validInput({ providerId, model }));
+    expect(h.createPlatformProvider).toHaveBeenCalledWith(providerId);
+    expect(h.chat.mock.calls[0][2]).toEqual(expect.objectContaining({ providerId, model }));
+  });
+
+  it('reports the selected provider for an unexpected config error', async () => {
+    h.createPlatformProvider.mockImplementation(() => { throw new Error('secret'); });
+    await chatAction(validInput({ providerId: 'anthropic', model: 'claude-sonnet-5' }));
+    expect(errorSpy).toHaveBeenCalledWith('[ai] provider call failed', expect.objectContaining({ provider: 'anthropic' }));
   });
 
   it('maps a ProviderCallError config failure to config copy with sanitized log', async () => {

@@ -19,7 +19,12 @@ import {
   STYLE_PRESETS, DEFAULT_STYLE_PRESET, chatHistoryTurnContent,
   type StylePresetId, type PresetLevel, type DocumentProposal,
 } from '@/lib/ai/prompt';
-import type { ModelTier } from '@/lib/ai/providers/types';
+import type { ProviderId } from '@/lib/ai/providers/types';
+import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
+import { computeDebitAmount } from '@/lib/ai/cost';
+import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
+import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
+import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
 import {
   createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice,
   type ChatNotice, type SendAttempt,
@@ -63,6 +68,8 @@ const PRESET_LEVEL_META: Record<PresetLevel, { label: string; description: strin
 
 const PRESET_LEVELS: PresetLevel[] = ['beginner', 'intermediate', 'freeform'];
 const STYLE_IDS = Object.keys(STYLE_PRESETS) as StylePresetId[];
+const DEFAULT_PROVIDER_ID: ProviderId = 'gemini';
+const DEFAULT_MODEL = PROVIDER_MODELS.gemini[0].id;
 
 interface ChatMessage {
   id: string;
@@ -79,7 +86,8 @@ interface SendPayload {
   userTurnId: string;
   userMessage: string;
   history: ChatMessage[];
-  modelTier: ModelTier;
+  providerId: ProviderId;
+  model: string;
   genre: string;
   presetLevel: PresetLevel;
   styleId: StylePresetId;
@@ -88,7 +96,8 @@ interface SendPayload {
 }
 
 export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
-  const [modelTier, setModelTier] = useState<ModelTier>('lite');
+  const [providerId, setProviderId] = useState<ProviderId>(DEFAULT_PROVIDER_ID);
+  const [model, setModel] = useState<string>(DEFAULT_MODEL);
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
@@ -106,6 +115,10 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
   const retryButtonRef = useRef<HTMLButtonElement>(null);
 
   const mentionedNodeIds = mentionedNodes.map((n) => n.id);
+  const pricingTable = providerId === 'openai' ? OPENAI_PRICING_USD_PER_MILLION
+    : providerId === 'anthropic' ? ANTHROPIC_PRICING_USD_PER_MILLION
+    : GEMINI_PRICING_USD_PER_MILLION;
+  const exampleCost = computeDebitAmount({ pricing: pricingTable[model], promptTokenCount: 1000, candidatesTokenCount: 1000 });
 
   useEffect(() => {
     chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: 'smooth' });
@@ -123,7 +136,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
   function buildPayload(userMessage: string, history: ChatMessage[]): SendPayload {
     return {
       userTurnId: crypto.randomUUID(),
-      userMessage, history, modelTier, genre, presetLevel, styleId, mentionedNodeIds,
+      userMessage, history, providerId, model, genre, presetLevel, styleId, mentionedNodeIds,
       precedingText: content,
     };
   }
@@ -149,7 +162,8 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
     try {
       result = await chatAction({
         workId, chapterId,
-        modelTier: p.modelTier,
+        providerId: p.providerId,
+        model: p.model,
         mentionedNodeIds: [...p.mentionedNodeIds],
         presetLevel: p.presetLevel,
         styleId: p.styleId,
@@ -174,6 +188,8 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
     const outcome = resolveChatOutcome(result);
     if (outcome.kind === 'success') {
       failedAttemptRef.current = null;
+      setProviderId(DEFAULT_PROVIDER_ID);
+      setModel(DEFAULT_MODEL);
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
@@ -246,13 +262,30 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
         <div className="flex items-end gap-2">
           <div className="flex flex-1 flex-col gap-1">
             <label className="text-xs text-muted-foreground">AI 모델</label>
-            <Select value={modelTier} onValueChange={(value) => setModelTier(value as ModelTier)}>
-              <SelectTrigger className="w-full"><SelectValue>{(value: string) => (value === 'lite' ? '라이트' : '프로')}</SelectValue></SelectTrigger>
+            <Select value={`${providerId}:${model}`} onValueChange={(value) => {
+              if (!value) return;
+              const [nextProvider, nextModel] = value.split(':') as [ProviderId, string];
+              setProviderId(nextProvider);
+              setModel(nextModel);
+            }}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="lite">라이트</SelectItem>
-                <SelectItem value="pro">프로</SelectItem>
+                {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((pid) => (
+                  <div key={pid}>
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+                      {pid.toUpperCase()} · {PROVIDER_MODELS[pid].length}개
+                    </div>
+                    {PROVIDER_MODELS[pid].map((entry) => (
+                      <SelectItem key={`${pid}:${entry.id}`} value={`${pid}:${entry.id}`}>
+                        {entry.displayName} — {entry.description}
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">이번 전송에만 적용돼요</p>
+            <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
           </div>
           <div className="flex flex-1 flex-col gap-1">
             <label className="text-xs text-muted-foreground">장르</label>
@@ -378,7 +411,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, mentionedNod
           open={Boolean(modalMessageId)}
           onOpenChange={(open) => { if (!open) setModalMessageId(null); }}
           proposal={modalMessage.proposal}
-          generation={{ modelTier, presetLevel, styleId, genre }}
+          generation={{ modelTier: 'lite', presetLevel, styleId, genre }}
           onSaved={(nodeId) => {
             const proposal = modalMessage.proposal!;
             setMessages((prev) => prev.map((message) => message.id === modalMessage.id ? { ...message, savedNodeId: nodeId } : message));

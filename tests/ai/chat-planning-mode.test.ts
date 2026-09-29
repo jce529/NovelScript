@@ -53,7 +53,7 @@ function validInput(overrides: Record<string, unknown> = {}) {
   return {
     workId: 'w1',
     chapterId: 'c1',
-    modelTier: 'lite',
+    providerId: 'gemini', model: 'gemini-3.5-flash',
     mentionedNodeIds: [],
     presetLevel: 'balanced',
     styleId: 'default',

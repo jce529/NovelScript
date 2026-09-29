@@ -22,7 +22,7 @@ const KEY = '60000000-0000-4000-8000-000000000001';
 const chapterId = '30000000-0000-4000-8000-000000000001';
 
 const input: ChatInput = {
-  ownerId: OWNER, workId: '20000000-0000-4000-8000-000000000001', chapterId, modelTier: 'lite',
+  ownerId: OWNER, workId: '20000000-0000-4000-8000-000000000001', chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
   mentionedNodeIds: [], presetLevel: 'beginner', styleId: 'concise-hemingway', genre: '판타지',
   precedingText: '어느 날', chatHistory: [{ role: 'user', content: '이어서 써줘' }], idempotencyKey: KEY,
 };

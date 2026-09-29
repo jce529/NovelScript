@@ -21,7 +21,7 @@ const folder = { id: 'folder-1', name: '주요 등장인물', isRoot: false, pat
 const template = { id: 'template-1', name: '인물 템플릿', scope: 'work' as const, content: '# 개요\n## 성격', isDefault: false };
 const resultText = '[REPLY]\n제안합니다.\n[DOCUMENT]\n카테고리: 인물\n이름: 유리\n내용:\n# 개요\n설명\n## 성격\n차분함\n[/DOCUMENT]';
 const input = (planning = true): ChatInput => ({
-  ownerId: 'owner', workId: 'work', chapterId: 'chapter', modelTier: 'lite', mentionedNodeIds: [],
+  ownerId: 'owner', workId: 'work', chapterId: 'chapter', providerId: 'gemini', model: 'gemini-3.5-flash', mentionedNodeIds: [],
   presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지', precedingText: '앞선 본문',
   chatHistory: [{ role: 'user', content: '주요 인물 문서 작성' }, { role: 'assistant', content: '어떤 문서인가요?' }, { role: 'user', content: '유리를 정리해 줘' }],
   idempotencyKey: 'same-key', ...(planning ? { planning: { mode: 'active', decisionClient: { provider: 'jev', decide: vi.fn() } } } : {}),

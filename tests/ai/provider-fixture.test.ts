@@ -128,7 +128,7 @@ describe('chatAction drop-response hook', () => {
     ({
       workId: 'w1',
       chapterId: 'c1',
-      modelTier: 'lite',
+      providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [],
       presetLevel: 'balanced',
       styleId: 'default',

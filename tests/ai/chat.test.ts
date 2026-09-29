@@ -75,7 +75,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     });
 
     const result = await chat(admin, client, {
-      ownerId: owner.id, workId, chapterId, modelTier: 'lite',
+      ownerId: owner.id, workId, chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '어느 날...', chatHistory: [{ role: 'user', content: '이어서 써줘' }],
       idempotencyKey: crypto.randomUUID(),
@@ -100,7 +100,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     });
 
     const result = await chat(admin, client, {
-      ownerId: freshUser.id, workId, chapterId, modelTier: 'lite',
+      ownerId: freshUser.id, workId, chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '어느 날...', chatHistory: [{ role: 'user', content: '이어서 써줘' }],
       idempotencyKey: crypto.randomUUID(),
@@ -120,7 +120,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     });
 
     const result = await chat(admin, client, {
-      ownerId: freshUser.id, workId, chapterId, modelTier: 'lite',
+      ownerId: freshUser.id, workId, chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '', chatHistory: [{ role: 'user', content: '안녕' }],
       idempotencyKey: crypto.randomUUID(),
@@ -146,7 +146,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     });
 
     const result = await chat(admin, client, {
-      ownerId: lowBalanceUser.id, workId, chapterId, modelTier: 'pro',
+      ownerId: lowBalanceUser.id, workId, chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [], presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '', chatHistory: [{ role: 'user', content: '이어서 써줘' }],
       idempotencyKey: crypto.randomUUID(),
@@ -168,7 +168,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
     });
 
     const result = await chat(admin, client, {
-      ownerId: owner.id, workId, chapterId, modelTier: 'lite',
+      ownerId: owner.id, workId, chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [], presetLevel: 'freeform', styleId: 'concise-hemingway', genre: '판타지',
       precedingText: '', chatHistory: [{ role: 'user', content: '동료 인물 하나 만들어줘' }],
       idempotencyKey: crypto.randomUUID(),
@@ -190,7 +190,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
 
     function input(userId: string, key: string) {
       return {
-        ownerId: userId, workId, chapterId, modelTier: 'lite' as const,
+        ownerId: userId, workId, chapterId, providerId: 'gemini' as const, model: 'gemini-3.5-flash',
         mentionedNodeIds: [], presetLevel: 'intermediate' as const, styleId: 'concise-hemingway' as const, genre: '판타지',
         precedingText: '', chatHistory: [{ role: 'user' as const, content: '이어서 써줘' }],
         idempotencyKey: key,

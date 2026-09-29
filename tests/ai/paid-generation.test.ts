@@ -10,6 +10,8 @@ import { ProviderCallError } from '@/lib/ai/providers/errors';
 import type { ProviderClient } from '@/lib/ai/providers/types';
 import { createFakeLedgerAdmin, type FakeLedgerOptions } from '../helpers/fake-ledger-admin';
 import { createMockProvider, okResult } from '../helpers/mock-provider';
+import { computeDebitAmount, computeMaxOutputTokens } from '@/lib/ai/cost';
+import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 
 const OWNER = '10000000-0000-4000-8000-000000000001';
 const KEY = '60000000-0000-4000-8000-000000000001';
@@ -74,7 +76,7 @@ describe('paid generation lifecycle', () => {
 
   it('does not debit when the post-generation write check is denied', async () => {
     const admin = setup({ balances: { [OWNER]: 100 }, access: 'suspended' });
-    const ctx = { admin: admin.client, walletBalance: 100, model: 'model', maxOutputTokens: 1 };
+    const ctx = { admin: admin.client, walletBalance: 100, model: 'model', pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], maxOutputTokens: 1 };
     const settled = await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, ctx, { ...identity, ledgerReason: 'test' }, async () => okResult());
     expect(settled).toMatchObject({ kind: 'terminal', chatResult: { failureKind: 'write_denied' } });
     expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(0);
@@ -88,5 +90,22 @@ describe('paid generation lifecycle', () => {
     const settled = await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, pre.ctx, { ...identity, ledgerReason: 'test' }, async () => refusal);
     expect(settled).toMatchObject({ kind: 'terminal', chatResult: { status: 'refused', refusal: { reasonCode: 'SAFETY' } } });
     expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(1);
+  });
+  it.each([
+    ['openai', 'gpt-4o-mini', 0.15, 0.60],
+    ['anthropic', 'claude-sonnet-5', 2, 10],
+  ] as const)('uses %s pricing for the output cap and actual debit', async (providerId, model, inputRate, outputRate) => {
+    setup({ balances: { [OWNER]: 10 } });
+    const selected = { ownerId: OWNER, idempotencyKey: KEY, providerId, model };
+    const pre = await preflightPaidGeneration(session(), selected);
+    if (!pre.ok) throw new Error('preflight failed');
+    expect(pre.ctx.model).toBe(model);
+    expect(pre.ctx.pricing).toEqual({ input: inputRate, output: outputRate });
+    expect(pre.ctx.maxOutputTokens).toBe(computeMaxOutputTokens({ walletBalance: 10, pricing: pre.ctx.pricing }));
+    const settled = await settlePaidGeneration(createMockProvider(), pre.ctx, { ...selected, ledgerReason: 'test' }, async () => okResult('body', 1000, 2000));
+    expect(settled.kind).toBe('completed');
+    if (settled.kind !== 'completed') throw new Error('settlement failed');
+    expect(settled.debitAmount).toBe(computeDebitAmount({ pricing: pre.ctx.pricing, promptTokenCount: 1000, candidatesTokenCount: 2000 }));
+    expect(settled.debitAmount).not.toBe(computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 1000, candidatesTokenCount: 2000 }));
   });
 });

@@ -260,7 +260,7 @@ describe('reading bookkeeping is skipped without failing the read', () => {
 
 describe('AI generation checks write access before provider work and before charging', () => {
   const input: ChatInput = {
-    ownerId: userId, workId, chapterId, modelTier: 'lite', mentionedNodeIds: [], presetLevel: 'beginner',
+    ownerId: userId, workId, chapterId, providerId: 'gemini', model: 'gemini-3.5-flash', mentionedNodeIds: [], presetLevel: 'beginner',
     styleId: 'concise-hemingway', genre: '판타지', precedingText: '', chatHistory: [{ role: 'user', content: '이어줘' }],
     idempotencyKey: '60000000-0000-4000-8000-000000000001',
   };
