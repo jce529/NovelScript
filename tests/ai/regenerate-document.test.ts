@@ -101,6 +101,18 @@ describe('document template regeneration', () => {
     expect(result).toMatchObject({ ok: false, error: '문서를 다시 생성하지 못했어요. 다시 시도해주세요.' });
   });
 
+  it('keeps the original name even when the model returns a different one (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n차분함\n[/DOCUMENT]'.replace('이름: 미라', '이름: 시후')));
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: true, name: '미라' });
+    const params = vi.mocked(provider.generateContent).mock.calls[0][0];
+    expect(params.contents).toContain('"미라"');
+  });
+
+  it('rejects generated content whose body title changes the name (BUG-04)', async () => {
+    provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 시후\n## 성격\n차분함\n[/DOCUMENT]'));
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, error: '문서를 다시 생성하지 못했어요. 다시 시도해주세요.' });
+  });
+
   it('maps provider rate limits without bypassing settlement lifecycle', async () => {
     mocks.settle.mockResolvedValue({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'rate_limited', error: 'rate limit' } });
     expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, failureKind: 'rate_limited', error: 'rate limit' });
