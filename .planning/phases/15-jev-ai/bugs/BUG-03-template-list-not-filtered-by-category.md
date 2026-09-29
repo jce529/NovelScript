@@ -81,3 +81,10 @@ files:
 - `create_work`와 `ensure_account_template_root`가 새 루트에 카테고리 폴더를 만들도록 갱신했다. `seedTemplateFiles`는 각 카테고리 폴더에 정규 이름의 파일을 시드한다.
 - 템플릿 루트 조회에 `parent_id is null` 조건을 추가했다. `listTemplateOptions`와 자동 오버라이드 조회는 요청 카테고리 폴더의 직속 파일만 사용하고, 캐노니컬 템플릿과 기본값 우선순위를 유지한다.
 - 1단계 테스트에 목록 필터, 영역 분리, 생성 경로, 마이그레이션 재실행 검증을 반영했다. 이동 액션과 템플릿 생성·KB 트리·모달 UI는 2·3단계로 남는다. 따라서 전체 버그 상태는 `open`이다.
+
+## 2단계 적용 내용 (서버 로직)
+- `createFolder`가 작품·계정 템플릿 루트와 카테고리 폴더 아래의 새 폴더를 거부한다. `createNode`는 검증된 카테고리 폴더의 직속 템플릿 파일만 허용하며, 계정 영역에서는 부모의 `scope`와 `work_id`를 사용한다. 새 파일 내용은 제목 치환 없는 캐노니컬 템플릿 원문이다.
+- `moveTemplateFile`을 추가했다. 소유자·쓰기 권한·삭제 여부·파일 종류·같은 영역·소스와 대상의 템플릿 트리 위치를 검증하고, 성공 시 `parent_id`와 `updated_at`만 바꾼다. 이름 충돌은 친절한 오류로 반환한다. 인증과 레이아웃 재검증을 수행하는 `moveTemplateFileAction`도 추가했다.
+- DB 없이 실행하는 카테고리 폴더 판정 테스트와 DB 통합 테스트를 추가했다. 통합 테스트는 폴더·파일 생성 제한, 원문 시드, 이동 성공·거부·충돌·기존 미분류 파일 이동을 다룬다.
+- 검증: `node node_modules/typescript/bin/tsc --noEmit` 통과, `node node_modules/vitest/vitest.mjs run tests/kb/template-tree.test.ts` 2개 통과. DB 접속 환경변수(`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`)가 없어 통합 테스트는 실행하지 못했다.
+- KB 트리와 모달 UI는 3단계에 남아 있다. 전체 상태는 `open`이다.

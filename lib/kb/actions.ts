@@ -3,6 +3,7 @@ import type { FlatKbNode } from './tree';
 import { buildSeedContent, readCanonicalSeed, type KbCategory } from './templates';
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 import { FOLDER_COPY } from './folder-copy';
+import { templateCategoryOf } from './template-tree';
 export { FOLDER_COPY } from './folder-copy';
 
 /** KB-04 §2 (RESEARCH.md): 작품 폴더 and 계정 공유 폴더 are two separate, explicit
@@ -286,8 +287,33 @@ export async function createNode(
   const access = await checkWriteAccess(supabase, input.ownerId);
   if (!access.ok) return writeDenial(access);
 
+  let scope: 'work' | 'account_template' = 'work';
+  let workId: string | null = input.workId;
+  let templateCategory: KbCategory | null = null;
+  if (input.category === 'template') {
+    if (input.nodeType !== 'file') return { ok: false, error: '템플릿 폴더는 새로 만들 수 없어요.' };
+    const { data: parent } = await supabase.from('kb_nodes')
+      .select('id, parent_id, name, category, node_type, scope, work_id')
+      .eq('id', input.parentId).eq('owner_id', input.ownerId).is('deleted_at', null).maybeSingle();
+    if (!parent || (parent.scope === 'work' && parent.work_id !== input.workId)) {
+      return { ok: false, error: '템플릿 카테고리 폴더를 찾을 수 없어요.' };
+    }
+    const { data: root } = parent.parent_id
+      ? await supabase.from('kb_nodes').select('id, parent_id, name, category, node_type, scope, work_id')
+        .eq('id', parent.parent_id).eq('owner_id', input.ownerId).is('deleted_at', null).maybeSingle()
+      : { data: null };
+    templateCategory = templateCategoryOf(parent, root);
+    if (!templateCategory || !root || root.scope !== parent.scope || root.work_id !== parent.work_id) {
+      return { ok: false, error: '템플릿은 카테고리 폴더 안에만 만들 수 있어요.' };
+    }
+    scope = parent.scope;
+    workId = parent.work_id;
+  }
+
   let content: string | null = null;
-  if (input.initialContent !== undefined) {
+  if (templateCategory) {
+    content = await readCanonicalSeed(templateCategory);
+  } else if (input.initialContent !== undefined) {
     content = input.initialContent;
   } else if (input.nodeType === 'file' && input.category !== 'template') {
     const category = input.category as KbCategory;
@@ -301,8 +327,8 @@ export async function createNode(
     .from('kb_nodes')
     .insert({
       owner_id: input.ownerId,
-      work_id: input.workId,
-      scope: 'work',
+      work_id: workId,
+      scope,
       parent_id: input.parentId,
       node_type: input.nodeType,
       category: input.category,
@@ -355,6 +381,7 @@ export async function createFolder(
     if (!parent || parent.node_type !== 'folder' || parent.scope !== input.scope || parent.work_id !== input.workId) {
       return { ok: false, error: '상위 폴더를 찾을 수 없어요.' };
     }
+    if (parent.category === 'template') return { ok: false, error: '템플릿 폴더 안에는 새 폴더를 만들 수 없어요.' };
     category = parent.category;
   }
 
@@ -378,6 +405,51 @@ export async function createFolder(
     if (error.code === '23505') return { ok: false, error: FRIENDLY_NAME_COLLISION };
     return { ok: false, error: error.message };
   }
+  return { ok: true, nodeId: data.id };
+}
+
+export async function moveTemplateFile(
+  supabase: SupabaseClient,
+  { ownerId, nodeId, targetCategoryFolderId }: { ownerId: string; nodeId: string; targetCategoryFolderId: string }
+): Promise<NodeMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
+
+  const { data: source } = await supabase.from('kb_nodes')
+    .select('id, parent_id, category, node_type, scope, work_id')
+    .eq('id', nodeId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  if (!source || source.category !== 'template' || source.node_type !== 'file' || !source.parent_id) {
+    return { ok: false, error: '이동할 템플릿 파일을 찾을 수 없어요.' };
+  }
+  const { data: target } = await supabase.from('kb_nodes')
+    .select('id, parent_id, name, category, node_type, scope, work_id')
+    .eq('id', targetCategoryFolderId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  const { data: sourceParent } = await supabase.from('kb_nodes')
+    .select('id, parent_id, name, category, node_type, scope, work_id')
+    .eq('id', source.parent_id).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  if (!target || !sourceParent || target.scope !== source.scope || target.work_id !== source.work_id ||
+      sourceParent.scope !== source.scope || sourceParent.work_id !== source.work_id) {
+    return { ok: false, error: '같은 영역의 템플릿 카테고리 폴더만 선택할 수 있어요.' };
+  }
+  const { data: root } = target.parent_id
+    ? await supabase.from('kb_nodes').select('id, parent_id, name, category, node_type, scope, work_id')
+      .eq('id', target.parent_id).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle()
+    : { data: null };
+  if (!root || root.scope !== source.scope || root.work_id !== source.work_id ||
+      !templateCategoryOf(target, root) ||
+      !(sourceParent.id === root.id || templateCategoryOf(sourceParent, root))) {
+    return { ok: false, error: '템플릿 카테고리 폴더만 선택할 수 있어요.' };
+  }
+
+  const { data, error } = await supabase.from('kb_nodes')
+    .update({ parent_id: target.id, updated_at: new Date().toISOString() })
+    .eq('id', source.id).eq('owner_id', ownerId).is('deleted_at', null)
+    .select('id').maybeSingle();
+  if (error) {
+    if (error.code === '23505') return { ok: false, error: FRIENDLY_NAME_COLLISION };
+    return { ok: false, error: error.message };
+  }
+  if (!data) return { ok: false, error: '이동할 템플릿 파일을 찾을 수 없어요.' };
   return { ok: true, nodeId: data.id };
 }
 
