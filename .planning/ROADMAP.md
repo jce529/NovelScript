@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
 
 - [x] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
-- [ ] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
+- [x] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
 - [ ] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다
 - [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다
 
@@ -268,17 +268,17 @@ Residual (stays in v1.0, not yet done):
 - [x] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
 
 **Wave 1** *(blocked on 09-00)*
-- [ ] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
-- [ ] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
+- [x] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
+- [x] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
 
 **Wave 2** *(blocked on 09-01, 09-02)*
-- [ ] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
+- [x] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
 
 **Wave 3** *(blocked on 09-03)*
-- [ ] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
+- [x] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
 
 **Wave 4** *(blocked on 09-04)*
-- [ ] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
+- [x] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
 
 **UI hint**: yes
 **Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. ~~한국어 토큰 추정 상수는 provider별로 분리해 보정한다~~ — Phase 8에서 로컬 입력 추정을 제거했으므로(2026-09-18) 해당 없음. 출력 상한은 provider별 출력 단가로만 환산한다.
@@ -413,7 +413,7 @@ Residual (stays in v1.0, not yet done):
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
-| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 1/6 | In Progress |  |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (live-key UAT · migration 0013 적용 대기) | 2026-09-29 |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
