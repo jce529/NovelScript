@@ -14,14 +14,14 @@ where category = 'template' and node_type = 'folder' and parent_id is null and d
 group by scope;
 
 -- A2. 루트 직속 파일: 이름=카테고리(이동 대상) vs 그 외 커스텀 이름(루트에 남아야 함)
-select scope,
+select f.scope,
        count(*) filter (where f.name in ('인물','장소','사건','세력','아이템')) as category_named_files,
        count(*) filter (where f.name not in ('인물','장소','사건','세력','아이템')) as custom_named_files
 from kb_nodes f
 join kb_nodes r on r.id = f.parent_id
 where f.node_type = 'file' and f.category = 'template' and f.deleted_at is null
   and r.category = 'template' and r.node_type = 'folder' and r.parent_id is null and r.deleted_at is null
-group by scope;
+group by f.scope;
 
 -- A3. 루트 직속 폴더(이미 있는 사용자 폴더 — 카테고리명과 같으면 카테고리 폴더로 재사용됨)
 select r.scope, f.name, f.is_locked
@@ -83,13 +83,13 @@ where b.name in ('인물','장소','사건','세력','아이템')
 select id, name from kb_nodes where name like '\_\_bug03\_%' escape '\';
 
 -- B6. 커스텀 이름 파일은 루트에 그대로 남아 있어야 한다 (A2의 custom_named_files와 같은 수)
-select scope, count(*) as custom_named_files_still_at_root
+select f.scope, count(*) as custom_named_files_still_at_root
 from kb_nodes f
 join kb_nodes r on r.id = f.parent_id
 where f.node_type = 'file' and f.category = 'template' and f.deleted_at is null
   and f.name not in ('인물','장소','사건','세력','아이템')
   and r.category = 'template' and r.node_type = 'folder' and r.parent_id is null and r.deleted_at is null
-group by scope;
+group by f.scope;
 
 -- B7. 시블링 이름 중복이 없어야 한다 (kb_nodes_sibling_name_unique 보호 확인)
 select owner_id, coalesce(work_id, '00000000-0000-0000-0000-000000000000'::uuid) as w, parent_id, name, count(*)
