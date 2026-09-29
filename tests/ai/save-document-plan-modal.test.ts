@@ -46,7 +46,9 @@ vi.mock('@/components/ui/select', () => ({
   SelectValue: ({ children }: { children?: (value: string) => ReactNode }) =>
     createElement('span', { 'data-slot': 'select-value' }, children ? children(mock.selectedValue) : mock.selectedValue),
   SelectContent: ({ children }: { children: ReactNode }) => createElement('div', null, children),
-  SelectItem: ({ children }: { children: ReactNode }) => createElement('div', null, children),
+  SelectGroup: ({ children }: { children: ReactNode }) => createElement('section', null, children),
+  SelectLabel: ({ children }: { children: ReactNode }) => createElement('h3', null, children),
+  SelectItem: ({ value, children }: { value: string; children: ReactNode }) => createElement('div', { 'data-value': value }, children),
 }));
 
 vi.mock('@/app/studio/[workId]/chapters/[chapterId]/actions', () => ({
@@ -84,8 +86,8 @@ beforeEach(() => {
       { id: secondFolderId, name: '서브인물', isRoot: false, path: '서브인물', version: 'child-v1' },
     ],
     [
-      { id: templateId, name: '인물', isDefault: true },
-      { id: secondTemplateId, name: '세부 인물', isDefault: false },
+      { id: templateId, name: '인물', scope: 'work', isDefault: true },
+      { id: secondTemplateId, name: '세부 인물', scope: 'account_template', isDefault: false },
     ],
     { key: JSON.stringify([workId, proposal]), state: 'ready' },
   ];
@@ -111,7 +113,22 @@ describe('SaveDocumentPlanModal select triggers', () => {
 
   it('shows the canonical template name for a null template id', () => {
     mock.state[3] = null;
-    mock.state[5] = [{ id: null, name: '기본 인물', isDefault: true }];
+    mock.state[5] = [{ id: null, name: '기본 인물', scope: 'canonical', isDefault: true }];
     expect(renderModal()).toEqual(['인물 (최상위)', '기본 인물 (기본)']);
+  });
+
+  it('groups duplicate names by template scope while keeping the default marker', () => {
+    mock.state[5] = [
+      { id: templateId, name: '인물', scope: 'work', isDefault: true },
+      { id: secondTemplateId, name: '인물', scope: 'account_template', isDefault: false },
+      { id: null, name: '기본 인물 템플릿', scope: 'canonical', isDefault: false },
+    ];
+    mock.cursor = 0;
+    const html = renderToStaticMarkup(createElement(SaveDocumentPlanModal, {
+      workId, open: true, onOpenChange: () => {}, proposal,
+      generation: { modelTier: 'pro', presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지' },
+      onSaved: () => {},
+    }));
+    expect(html).toMatch(/<h3>작품 템플릿<\/h3>.*인물 \(기본\).*<h3>계정 템플릿<\/h3>.*>인물<.*<h3>기본 템플릿<\/h3>.*기본 인물 템플릿/);
   });
 });

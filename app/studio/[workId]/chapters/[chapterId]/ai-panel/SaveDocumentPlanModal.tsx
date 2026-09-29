@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import type { DocumentProposal, PresetLevel, StylePresetId } from '@/lib/ai/prompt';
 import type { ModelTier } from '@/lib/ai/providers/types';
@@ -15,7 +15,7 @@ import {
   type SaveRecommendation,
 } from '../actions';
 
-type TemplateChoice = { id: string | null; name: string; isDefault: boolean };
+type TemplateChoice = { id: string | null; name: string; scope: 'work' | 'account_template' | 'canonical'; isDefault: boolean };
 type GenerationSettings = { modelTier: ModelTier; presetLevel: PresetLevel; styleId: StylePresetId; genre: string };
 
 export interface SaveDocumentPlanModalProps {
@@ -30,6 +30,11 @@ export interface SaveDocumentPlanModalProps {
 const LOAD_FAILED = '저장 위치를 불러오지 못했어요. 다시 시도해주세요.';
 const REGENERATION_FAILED = '문서를 다시 생성하지 못했어요. 다시 시도해주세요.';
 const CANONICAL_TEMPLATE_VALUE = '__canonical__';
+const TEMPLATE_GROUPS = [
+  { scope: 'work', label: '작품 템플릿' },
+  { scope: 'account_template', label: '계정 템플릿' },
+  { scope: 'canonical', label: '기본 템플릿' },
+] as const;
 
 export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, generation, onSaved }: SaveDocumentPlanModalProps) {
   const [recommended, setRecommended] = useState<SaveRecommendation | null>(null);
@@ -226,9 +231,17 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
                     const template = templates.find((item) => (item.id ?? CANONICAL_TEMPLATE_VALUE) === value);
                     return template ? templateLabel(template) : '템플릿을 선택해주세요';
                   }}</SelectValue></SelectTrigger>
-                  <SelectContent>{templates.map((template) => (
-                    <SelectItem key={template.id ?? 'canonical'} value={template.id ?? CANONICAL_TEMPLATE_VALUE}>{templateLabel(template)}</SelectItem>
-                  ))}</SelectContent>
+                  <SelectContent>{TEMPLATE_GROUPS.map(({ scope, label }) => {
+                    const options = templates.filter((template) => template.scope === scope);
+                    return options.length > 0 && (
+                      <SelectGroup key={scope}>
+                        <SelectLabel>{label}</SelectLabel>
+                        {options.map((template) => (
+                          <SelectItem key={template.id ?? 'canonical'} value={template.id ?? CANONICAL_TEMPLATE_VALUE}>{templateLabel(template)}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                    );
+                  })}</SelectContent>
                 </Select>
               </div>
             </div>

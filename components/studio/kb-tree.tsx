@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { KbTreeActions } from '@/components/studio/kb-node-dialogs';
 import type { TreeNode, ChapterLeaf } from '@/lib/kb/tree';
+import { isTemplateRoot, templateCategoryOf } from '@/lib/kb/template-tree';
 
 export function KbTree({
   nodes, chaptersByFolderId, workId,
@@ -14,18 +15,22 @@ export function KbTree({
   return (
     <ul className="flex flex-col">
       {nodes.map((node) => (
-        <TreeRow key={node.id} node={node} depth={0} chaptersByFolderId={chaptersByFolderId} workId={workId} />
+        <TreeRow key={node.id} node={node} depth={0} chaptersByFolderId={chaptersByFolderId} workId={workId} templateRoot={null} />
       ))}
     </ul>
   );
 }
 
 function TreeRow({
-  node, depth, chaptersByFolderId, workId,
-}: { node: TreeNode; depth: number; chaptersByFolderId: Record<string, ChapterLeaf[]>; workId: string }) {
+  node, depth, chaptersByFolderId, workId, templateRoot,
+}: { node: TreeNode; depth: number; chaptersByFolderId: Record<string, ChapterLeaf[]>; workId: string; templateRoot: TreeNode | null }) {
   const params = useParams<{ nodeId?: string }>();
   const isActive = params?.nodeId === node.id;
-  const isRootTemplateFolder = node.category === 'template' && node.parent_id === null;
+  const isRootTemplateFolder = isTemplateRoot(node);
+  const currentTemplateRoot = isRootTemplateFolder ? node : templateRoot;
+  const isTemplateCategoryFolder = Boolean(currentTemplateRoot && templateCategoryOf(node, currentTemplateRoot));
+  const categoryFolders = currentTemplateRoot?.children.filter((child) => templateCategoryOf(child, currentTemplateRoot)) ?? [];
+  const isUncategorizedTemplate = node.category === 'template' && node.node_type === 'file' && node.parent_id === currentTemplateRoot?.id;
   const isChapterRootFolder = node.category === '회차' && node.parent_id === null;
   const chapterLeaves = node.category === '회차' ? (chaptersByFolderId[node.id] ?? []) : [];
   const hasNoChapterContent = isChapterRootFolder && node.children.length === 0 && chapterLeaves.length === 0;
@@ -70,14 +75,20 @@ function TreeRow({
         {isRootTemplateFolder && node.scope === 'work' && (
           <Badge variant="secondary" className="text-xs">이 작품 전용</Badge>
         )}
+        {isUncategorizedTemplate && (
+          <Tooltip>
+            <TooltipTrigger render={<span className="text-xs text-muted-foreground" aria-label="카테고리 미지정">미분류</span>} />
+            <TooltipContent>카테고리 미지정 · 카테고리 폴더로 이동해 주세요</TooltipContent>
+          </Tooltip>
+        )}
         <span className="ml-auto opacity-0 group-hover:opacity-100">
-          <KbTreeActions workId={workId} node={node} />
+          <KbTreeActions workId={workId} node={node} isTemplateCategoryFolder={isTemplateCategoryFolder} categoryFolders={categoryFolders} />
         </span>
       </div>
       {(node.children.length > 0 || chapterLeaves.length > 0) && (
         <ul>
           {node.children.map((child) => (
-            <TreeRow key={child.id} node={child} depth={depth + 1} chaptersByFolderId={chaptersByFolderId} workId={workId} />
+            <TreeRow key={child.id} node={child} depth={depth + 1} chaptersByFolderId={chaptersByFolderId} workId={workId} templateRoot={currentTemplateRoot} />
           ))}
           {chapterLeaves.map((chapter) => (
             <ChapterLeafRow key={chapter.id} chapter={chapter} depth={depth + 1} workId={workId} />

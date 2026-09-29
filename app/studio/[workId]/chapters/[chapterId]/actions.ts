@@ -236,7 +236,7 @@ export async function loadSavePlanAction(
   workId: string, category: KbCategory,
   rec?: { folderId?: string; folderVersion?: string; templateId?: string | null },
 ): Promise<
-  | { status: 'ok'; recommended: SaveRecommendation; folders: FolderCandidate[]; templates: Pick<TemplateOption, 'id' | 'name' | 'isDefault'>[] }
+  | { status: 'ok'; recommended: SaveRecommendation; folders: FolderCandidate[]; templates: Pick<TemplateOption, 'id' | 'name' | 'scope' | 'isDefault'>[] }
   | { status: 'root_missing' | 'root_duplicate' | 'query_failed' | 'unauthenticated' }
 > {
   const supabase = await createClient();
@@ -265,7 +265,7 @@ export async function loadSavePlanAction(
         templateId: template.id, templateName: template.name,
       },
       folders: listed.candidates,
-      templates: templates.map(({ id, name, isDefault }) => ({ id, name, isDefault })),
+      templates: templates.map(({ id, name, scope, isDefault }) => ({ id, name, scope, isDefault })),
     };
   } catch {
     return { status: 'query_failed' };
