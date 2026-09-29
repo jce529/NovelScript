@@ -268,7 +268,14 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
               setProviderId(nextProvider);
               setModel(nextModel);
             }}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full">
+                <SelectValue>
+                  {(value: string) => {
+                    const [pid, id] = value.split(':') as [ProviderId, string];
+                    return PROVIDER_MODELS[pid]?.find((entry) => entry.id === id)?.displayName ?? value;
+                  }}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((pid) => (
                   <div key={pid}>
