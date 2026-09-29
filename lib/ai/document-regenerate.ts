@@ -92,6 +92,14 @@ export async function regenerateDocumentWithTemplate(
   // BUG-04: 템플릿만 바꾸는 재생성이므로 이름은 원본을 강제하고, 본문 제목이 원본 이름과 다르면 실패 처리한다.
   const title = parsed.proposal!.content.split('\n').map((line) => line.trim()).find((line) => /^#\s+\S/.test(line));
   if (title && !title.includes(input.proposal.name.trim())) return { ok: false, error: REGENERATION_FAILED };
+  const links = (content: string) => [...content.matchAll(/\[\[([^\[\]]+)\]\]/g)].map((match) => match[1]);
+  const originalLinks = links(input.proposal.content);
+  const regeneratedLinks = links(parsed.proposal!.content);
+  if (
+    regeneratedLinks.some((target) => !originalLinks.includes(target)) ||
+    regeneratedLinks.filter((target) => target === input.proposal.name).length <
+      originalLinks.filter((target) => target === input.proposal.name).length
+  ) return { ok: false, error: REGENERATION_FAILED };
   return {
     ok: true,
     content: parsed.proposal!.content,

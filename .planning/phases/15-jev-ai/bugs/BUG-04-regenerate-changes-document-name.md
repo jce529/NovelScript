@@ -42,8 +42,8 @@ files:
 - 반환 `name`을 모델 출력이 아닌 원본 `input.proposal.name`으로 강제.
 - 프롬프트(`contents`)에 원본 이름 유지 + 본문 제목에 같은 이름 사용 지시 추가.
 - 본문 첫 H1이 원본 이름을 포함하지 않으면 `REGENERATION_FAILED`.
-- `[[링크]]` 검증은 범위 밖(미적용).
-- 테스트: `tests/ai/regenerate-document.test.ts`에 이름 유지/제목 불일치 실패 2건 추가.
+- 재생성 본문의 모든 `[[링크]]` 대상이 원본 `proposal.content`에 있던 대상인지 검증하고, 원본의 `[[문서 이름]]` 링크도 유지되지 않으면 `REGENERATION_FAILED` 처리.
+- 테스트: `tests/ai/regenerate-document.test.ts`에 이름 유지/제목 불일치 및 링크 대상/자기 이름 링크 검증 추가.
 - **브라우저 UAT 필수 — 미실시.** 아래 "검증"의 브라우저 UAT를 통과하기 전에는 `/bug-complete`로 넘어가지 말 것(status: open 유지).
 
 ## 검증
