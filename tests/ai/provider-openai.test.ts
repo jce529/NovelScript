@@ -76,6 +76,15 @@ describe('createOpenAiProvider', () => {
     expect(result).toEqual(mapOpenAiResponse(response));
   });
 
+  it('omits temperature for reasoning models that reject it (live 400 on gpt-5.6-terra)', async () => {
+    sdk.create.mockResolvedValue(fx({ status: 'completed', output_text: 'ok', usage: { input_tokens: 1, output_tokens: 1 } }));
+    const provider = createOpenAiProvider({ apiKey: 'k' });
+    await provider.generateContent({ ...params, model: 'gpt-5.6-terra' });
+    expect(sdk.create).toHaveBeenCalledWith({
+      model: 'gpt-5.6-terra', instructions: 'S', input: 'C', max_output_tokens: 512,
+    });
+  });
+
   it('converts SDK errors to a sanitized ProviderCallError without raw fields', async () => {
     const original = new Error('sk-SENTINEL');
     original.stack = 'Error: sk-SENTINEL\n    at fake';

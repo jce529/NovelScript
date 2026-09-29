@@ -31,6 +31,11 @@ export function mapOpenAiResponse(response: OpenAI.Responses.Response): Generate
   return { text: response.output_text ?? '', finishReason, usage, refusal: null };
 }
 
+/** Reasoning models (gpt-5*, o-series) reject `temperature` with a 400 (verified live 2026-09-29). */
+export function supportsTemperature(model: string): boolean {
+  return !/^(gpt-5|o\d)/.test(model);
+}
+
 /** Construct the SDK once; only sanitized errors leave the adapter boundary. */
 export function createOpenAiProvider({ apiKey }: { apiKey: string }): ProviderClient {
   const client = new OpenAI({ apiKey });
@@ -44,7 +49,7 @@ export function createOpenAiProvider({ apiKey }: { apiKey: string }): ProviderCl
           instructions: systemInstruction,
           input: contents,
           max_output_tokens: maxOutputTokens,
-          temperature,
+          ...(supportsTemperature(model) ? { temperature } : {}),
         });
       } catch (err) {
         throw new ProviderCallError(toSanitizedProviderError('openai', err));
