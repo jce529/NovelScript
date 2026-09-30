@@ -1,7 +1,7 @@
 ---
 phase: 10
 slug: byok
-status: in-review
+status: approved
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-09-30
@@ -153,4 +153,4 @@ UAT 중 발견·수정한 결함:
 - [x] `nyquist_compliant: true` set in frontmatter
 - [x] `byok-db.test.ts` skipped 0 (스킵은 검증이 아님)
 
-**Approval:** pending — 자동 게이트 통과, 라이브 키·브라우저 UAT(Plan 06 Task 2) 승인 대기
+**Approval:** approved 2026-09-30 — UAT 1~9단계 통과. 10단계(검증 실패 상태, 선택)와 11단계 중 등록·피커 키보드 조작은 미확인으로 승인.

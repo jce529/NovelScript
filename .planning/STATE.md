@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Phase 10 UI-SPEC approved
+stopped_at: Phase 10 complete (BYOK 키 등록·검증·관리 + 모델 피커 배지)
 last_updated: "2026-09-29T15:24:02.290Z"
-last_activity: 2026-09-29 -- Phase 10 planning complete
+last_activity: 2026-09-30 -- Phase 10 complete
 progress:
   total_phases: 16
   completed_phases: 9
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 Phase: 15 (jev-ai) — EXECUTING
 Plan: 11 of 11 (Task 2 browser UAT pending)
 Status: Ready to execute
-Last activity: 2026-09-29 -- Phase 10 planning complete
+Last activity: 2026-09-30 -- Phase 10 complete
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 2/8 완료 (Phase 8, 9). v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
@@ -193,7 +193,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-09-29T14:39:35.463Z
-Stopped at: Phase 10 UI-SPEC approved
+Stopped at: Phase 10 complete
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
