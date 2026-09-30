@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import { SiteHeader } from '@/components/layout/site-header';
 import { isAccountActive } from '@/lib/auth/account';
 import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
 import { listByokKeys } from '@/lib/ai/providers/byok';
@@ -55,7 +54,6 @@ export default async function AiProvidersSettingsPage({
 
   return (
     <>
-      <SiteHeader />
       <main className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
         <div>
           <h1 className="text-2xl font-semibold">AI 제공자 설정</h1>
