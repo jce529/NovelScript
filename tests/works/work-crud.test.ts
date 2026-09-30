@@ -53,7 +53,7 @@ describe('Work CRUD (lib/works/actions.ts)', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('seeds exactly 12 kb_nodes (7 folders incl. 회차 + 5 template files) for a newly created work', async () => {
+  it('seeds exactly 17 kb_nodes (7 root folders incl. 회차 + 5 template category folders + 5 template files) for a newly created work', async () => {
     const ownerId = await createOwner();
 
     const result = await createWork(supabase, { ownerId, title: '설정 확인용 작품' });
@@ -65,11 +65,11 @@ describe('Work CRUD (lib/works/actions.ts)', () => {
       .eq('work_id', result.workId)
       .is('deleted_at', null);
 
-    expect(nodes ?? []).toHaveLength(12);
+    expect(nodes ?? []).toHaveLength(17);
 
     const folders = (nodes ?? []).filter((n) => n.node_type === 'folder');
     const files = (nodes ?? []).filter((n) => n.node_type === 'file');
-    expect(folders).toHaveLength(7);
+    expect(folders).toHaveLength(12);
     expect(files).toHaveLength(5);
   });
 

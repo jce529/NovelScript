@@ -97,17 +97,15 @@ created: 2026-09-30
 | `byok-db.test.ts` | 13 passed / failed 0 / skipped 0 |
 | 평문 누출 정적 검사 | `console.`(byok*.ts, ai-providers), `getByokSecret`/`get_byok_secret`(app, components), `secret_id`(app, components) 모두 무매치 |
 | `scripts/verify-byok-live.mjs` | 임의 키 3개 제공자 모두 `invalid` 분류 (RESULT=PASS). 유효 키 경로는 `*_BYOK_TEST_KEY` 미설정으로 건너뜀 → UAT 1단계에서 확인 |
-| `npm test` 전체 | **Phase 10 밖의 기존 실패 4건** (직렬 실행: 92 files pass / 4 tests fail / skipped 0). BYOK 관련 실패 없음 |
+| `npm test` 전체 | 통과 (exit 0) — 96 files / 996 tests passed, skipped 0 (기본 병렬 실행) |
 
-### Phase 10 범위 밖의 기존 실패 (원격 공유 DB·다른 phase 기인)
+### 함께 정리한 Phase 10 밖의 기존 실패 4건
 
-| 테스트 | 원인 |
-|--------|------|
-| `tests/auth/writer-upgrade.test.ts` (1) | 원격 DB에 필명 '테스트작가'가 남아 있어 `이미 사용 중인 필명입니다` (테스트 잔여 데이터) |
-| `tests/works/work-crud.test.ts` (1) | 신규 작품 kb_nodes 기대값 12 vs 실제 17 — Phase 15 BUG-03 템플릿 카테고리 폴더 구조 변경(aa36875) 이후 기대값 미갱신 |
-| `tests/studio/schema-smoke.test.ts` (2) | `UNSAFE_TRANSACTION`(테스트의 postgres 풀 사용) / `deadlock detected` |
-
-병렬 실행(기본)에서는 같은 원격 DB를 여러 파일이 동시에 쓰면서 deadlock·timeout으로 실패 파일이 늘어난다 (실행마다 4~11건 변동, 스킵 발생). `npx vitest run --no-file-parallelism`가 안정적이다.
+| 테스트 | 원인 → 수정 |
+|--------|-------------|
+| `tests/auth/writer-upgrade.test.ts` | 고정 필명이 원격 DB의 잔여 행과 충돌 → 실행마다 고유 필명 사용 |
+| `tests/works/work-crud.test.ts` | Phase 15 BUG-03(0012)로 템플릿 카테고리 폴더 5개 추가 → 기대값 12→17 (폴더 12 + 파일 5) |
+| `tests/studio/schema-smoke.test.ts` (2) | 자체 begin/commit 마이그레이션을 풀 연결로 실행해 `UNSAFE_TRANSACTION`, 이어서 deadlock → 예약(reserved) 연결에서 실행 |
 
 ---
 

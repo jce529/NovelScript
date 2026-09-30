@@ -14,6 +14,13 @@ describe('Studio schema smoke test (0002_studio.sql)', () => {
     await sql.end();
   });
 
+  // Migration files wrap themselves in begin/commit; postgres.js only allows that on a single
+  // dedicated connection (pooled sql.unsafe raises UNSAFE_TRANSACTION and can leave a lock behind).
+  async function applyMigration(sqlText: string) {
+    const conn = await sql.reserve();
+    try { await conn.unsafe(sqlText); } finally { conn.release(); }
+  }
+
   async function createOwner() {
     const user = await createTestUser();
     users.push(user.id);
@@ -126,8 +133,8 @@ describe('Studio schema smoke test (0002_studio.sql)', () => {
       values (${owner}::uuid, ${work.id}, 'work', ${root.id}, 'folder', 'template', false, '사용자 폴더'),
              (${owner}::uuid, null, 'account_template', ${accountRoot.id}, 'file', 'template', false, '인물')`;
     const migrationSql = await readFile(new URL('../../supabase/migrations/0012_template_category_folders.sql', import.meta.url), 'utf-8');
-    await sql.unsafe(migrationSql);
-    await sql.unsafe(migrationSql);
+    await applyMigration(migrationSql);
+    await applyMigration(migrationSql);
     const rows = await sql`select child.name, child.node_type, parent.name as parent_name
       from kb_nodes child left join kb_nodes parent on child.parent_id = parent.id
       where child.work_id = ${work.id} and child.parent_id is not null and child.deleted_at is null`;
@@ -153,9 +160,9 @@ describe('Studio schema smoke test (0002_studio.sql)', () => {
     expect(before[0].count).toBe(0);
 
     const migrationSql = await readFile(new URL('../../supabase/migrations/0004_kb_custom_folders.sql', import.meta.url), 'utf-8');
-    await sql.unsafe(migrationSql);
+    await applyMigration(migrationSql);
     const templateMigrationSql = await readFile(new URL('../../supabase/migrations/0012_template_category_folders.sql', import.meta.url), 'utf-8');
-    await sql.unsafe(templateMigrationSql);
+    await applyMigration(templateMigrationSql);
 
     const after = await sql`select is_locked from kb_nodes where work_id = ${legacyWorkId} and category = '회차' and parent_id is null`;
     expect(after).toHaveLength(1);

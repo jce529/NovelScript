@@ -5,6 +5,8 @@ import { upgradeToWriter } from '../../lib/auth/writer';
 describe('upgradeToWriter', () => {
   const supabase = adminClient();
   const users: string[] = [];
+  // pen_name is globally unique in the shared DB; a fixed name collides with rows left by an interrupted run.
+  const uniq = () => crypto.randomUUID().slice(0, 6);
 
   afterAll(async () => {
     for (const id of users) {
@@ -13,12 +15,13 @@ describe('upgradeToWriter', () => {
   });
 
   it('flips a reader account to writer and sets pen_name/pen_name_bio/pen_name_set_at', async () => {
+    const penName = `테스트작가${uniq()}`;
     const user = await createTestUser();
     users.push(user.id);
 
     const result = await upgradeToWriter(supabase, {
       userId: user.id,
-      penName: '테스트작가',
+      penName,
       bio: '안녕하세요',
     });
 
@@ -31,19 +34,20 @@ describe('upgradeToWriter', () => {
       .single();
 
     expect(profile?.role).toBe('writer');
-    expect(profile?.pen_name).toBe('테스트작가');
+    expect(profile?.pen_name).toBe(penName);
     expect(profile?.pen_name_bio).toBe('안녕하세요');
     expect(profile?.pen_name_set_at).not.toBeNull();
   });
 
   it('rejects a second conversion attempt on an already-writer account', async () => {
     const user = await createTestUser();
+    const firstName = `첫필명${uniq()}`;
     users.push(user.id);
 
-    const first = await upgradeToWriter(supabase, { userId: user.id, penName: '첫필명' });
+    const first = await upgradeToWriter(supabase, { userId: user.id, penName: firstName });
     expect(first.ok).toBe(true);
 
-    const second = await upgradeToWriter(supabase, { userId: user.id, penName: '두번째필명' });
+    const second = await upgradeToWriter(supabase, { userId: user.id, penName: `두번째${uniq()}` });
     expect(second.ok).toBe(false);
 
     const { data: profile } = await supabase
@@ -53,7 +57,7 @@ describe('upgradeToWriter', () => {
       .single();
 
     // Pen name from the first (successful) conversion must be unchanged.
-    expect(profile?.pen_name).toBe('첫필명');
+    expect(profile?.pen_name).toBe(firstName);
   });
 
   it('rejects pen names shorter than 2 or longer than 20 characters', async () => {
