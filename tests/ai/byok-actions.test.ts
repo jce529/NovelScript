@@ -11,7 +11,8 @@ import { deleteByokKey, recheckByokKey, registerByokKey } from '@/lib/ai/provide
 // All RPCs go through the service-role admin client (10-03 contract); the session client only reads profiles.
 const profileRow = { default_provider: 'openai', default_model: 'gpt-4o-mini', default_key_source: 'service' };
 const keyRow = { model_ids: ['gpt-4o-mini'] };
-const chain = (row: unknown) => { const q: any = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: row, error: null }) }; return q; };
+type Chain = { select: () => Chain; eq: () => Chain; maybeSingle: () => Promise<{ data: unknown; error: null }> };
+const chain = (row: unknown) => { const q: Chain = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: row, error: null }) }; return q; };
 const sessionClient = { rpc: mocks.supabaseRpc, from: (table: string) => chain(table === 'byok_keys' ? keyRow : profileRow) };
 const deps = { supabase: sessionClient, admin: { rpc: mocks.adminRpc } } as never;
 const ownerId = '00000000-0000-4000-8000-000000000001';

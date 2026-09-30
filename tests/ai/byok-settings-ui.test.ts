@@ -8,17 +8,18 @@ vi.mock('@/lib/ai/providers/byok', () => ({ listByokKeys: pageMocks.listKeys }))
 vi.mock('@/lib/ai/providers/byok-models', () => ({ loadConnectedByokModels: pageMocks.models }));
 vi.mock('@/lib/ai/providers/settings', () => ({ getDefaultProviderModel: pageMocks.current }));
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'session-owner' } } }) }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { role: 'writer', deleted_at: null } }) }) }) }) }) }));
+type MockProps = { children?: React.ReactNode; render?: React.ReactNode; initialFocus?: unknown; finalFocus?: unknown; [key: string]: unknown };
 vi.mock('@/components/layout/site-header', () => ({ SiteHeader: () => null }));
 vi.mock('@/components/ui/dialog', () => ({
-  Dialog: ({ children }: any) => React.createElement('div', null, children), DialogTrigger: ({ children, render }: any) => render ?? children,
-  DialogContent: ({ children, initialFocus, finalFocus }: any) => React.createElement('div', { 'data-initial-focus': String(!!initialFocus), 'data-final-focus': String(!!finalFocus) }, children),
-  DialogDescription: ({ children }: any) => React.createElement('p', null, children), DialogFooter: ({ children }: any) => React.createElement('div', null, children),
-  DialogHeader: ({ children }: any) => React.createElement('div', null, children), DialogTitle: ({ children }: any) => React.createElement('h3', null, children), DialogClose: ({ children, render }: any) => render ?? children,
+  Dialog: ({ children }: MockProps) => React.createElement('div', null, children), DialogTrigger: ({ children, render }: MockProps) => render ?? children,
+  DialogContent: ({ children, initialFocus, finalFocus }: MockProps) => React.createElement('div', { 'data-initial-focus': String(!!initialFocus), 'data-final-focus': String(!!finalFocus) }, children),
+  DialogDescription: ({ children }: MockProps) => React.createElement('p', null, children), DialogFooter: ({ children }: MockProps) => React.createElement('div', null, children),
+  DialogHeader: ({ children }: MockProps) => React.createElement('div', null, children), DialogTitle: ({ children }: MockProps) => React.createElement('h3', null, children), DialogClose: ({ children, render }: MockProps) => render ?? children,
 }));
-vi.mock('@/components/ui/button', () => ({ Button: ({ children, ...props }: any) => React.createElement('button', props, children) }));
-vi.mock('@/components/ui/input', () => ({ Input: (props: any) => React.createElement('input', props) }));
-vi.mock('@/components/ui/badge', () => ({ Badge: ({ children, ...props }: any) => React.createElement('span', props, children) }));
-vi.mock('@/components/ui/label', () => ({ Label: ({ children, ...props }: any) => React.createElement('label', props, children) }));
+vi.mock('@/components/ui/button', () => ({ Button: ({ children, ...props }: MockProps) => React.createElement('button', props, children) }));
+vi.mock('@/components/ui/input', () => ({ Input: (props: MockProps) => React.createElement('input', props) }));
+vi.mock('@/components/ui/badge', () => ({ Badge: ({ children, ...props }: MockProps) => React.createElement('span', props, children) }));
+vi.mock('@/components/ui/label', () => ({ Label: ({ children, ...props }: MockProps) => React.createElement('label', props, children) }));
 
 import ByokKeyCards from '@/app/studio/settings/ai-providers/ByokKeyCards';
 import AiProvidersSettingsPage from '@/app/studio/settings/ai-providers/page';

@@ -1,3 +1,4 @@
+import type { TransactionSql } from 'postgres';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { adminClient, anonClient, createTestUser, deleteTestUser, pgPool } from '../helpers/db';
 
@@ -24,7 +25,8 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
     return result;
   };
   // postgres.js does not surface raw SAVEPOINT SQL errors to try/catch; tx.savepoint() does.
-  const isDenied = async (tx: any, run: (sp: any) => Promise<unknown>) => {
+  type Probe = (sp: TransactionSql) => PromiseLike<unknown>;
+  const isDenied = async (tx: TransactionSql, run: Probe) => {
     try { await tx.savepoint(run); return false; } catch { return true; }
   };
   const secretCount = async () => Number((await db`select count(*)::int as count from vault.secrets where id = ${secretId}`)[0]?.count ?? 0);
@@ -83,12 +85,12 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
     const denied = await db.begin(async (tx) => {
       await tx`set local role authenticated`;
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: ownerId, role: 'authenticated' })}, true)`;
-      const queries = [
-        (sp: any) => sp`select register_byok_key(${ownerId}::uuid, ${provider}, 'never-log-this-secret', 'cret', '{}')`,
-        (sp: any) => sp`select get_byok_secret(${ownerId}::uuid, ${provider})`,
-        (sp: any) => sp`select set_byok_status(${ownerId}::uuid, ${provider}, 'failed', '{}')`,
-        (sp: any) => sp`select delete_byok_key(${ownerId}::uuid, ${provider})`,
-        (sp: any) => sp`select claim_byok_validation(${ownerId}::uuid, 2, 60)`,
+      const queries: Probe[] = [
+        (sp) => sp`select register_byok_key(${ownerId}::uuid, ${provider}, 'never-log-this-secret', 'cret', '{}')`,
+        (sp) => sp`select get_byok_secret(${ownerId}::uuid, ${provider})`,
+        (sp) => sp`select set_byok_status(${ownerId}::uuid, ${provider}, 'failed', '{}')`,
+        (sp) => sp`select delete_byok_key(${ownerId}::uuid, ${provider})`,
+        (sp) => sp`select claim_byok_validation(${ownerId}::uuid, 2, 60)`,
       ];
       const results: boolean[] = [];
       for (const query of queries) results.push(await isDenied(tx, query));
@@ -102,10 +104,10 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
       await tx`set local role authenticated`;
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: ownerId, role: 'authenticated' })}, true)`;
       const out: boolean[] = [];
-      for (const query of [
-        (sp: any) => sp`select * from vault.decrypted_secrets`,
-        (sp: any) => sp`select secret_id from byok_keys`,
-        (sp: any) => sp`select get_byok_secret(${ownerId}::uuid, ${provider})`,
+      for (const query of <Probe[]>[
+        (sp) => sp`select * from vault.decrypted_secrets`,
+        (sp) => sp`select secret_id from byok_keys`,
+        (sp) => sp`select get_byok_secret(${ownerId}::uuid, ${provider})`,
       ]) out.push(await isDenied(tx, query));
       return out;
     });
@@ -126,10 +128,10 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
       await tx`set local role authenticated`;
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: ownerId, role: 'authenticated' })}, true)`;
       const denied: boolean[] = [];
-      for (const operation of [
-        (sp: any) => sp`insert into byok_keys(owner_id, provider, secret_id, masked_hint, status, model_ids) values (${ownerId}, 'openai', gen_random_uuid(), '1234', 'connected', '{}')`,
-        (sp: any) => sp`update byok_keys set status = 'failed' where owner_id = ${ownerId}`,
-        (sp: any) => sp`delete from byok_keys where owner_id = ${ownerId}`,
+      for (const operation of <Probe[]>[
+        (sp) => sp`insert into byok_keys(owner_id, provider, secret_id, masked_hint, status, model_ids) values (${ownerId}, 'openai', gen_random_uuid(), '1234', 'connected', '{}')`,
+        (sp) => sp`update byok_keys set status = 'failed' where owner_id = ${ownerId}`,
+        (sp) => sp`delete from byok_keys where owner_id = ${ownerId}`,
       ]) denied.push(await isDenied(tx, operation));
       return denied;
     });
