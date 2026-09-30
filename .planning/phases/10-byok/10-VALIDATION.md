@@ -96,7 +96,7 @@ created: 2026-09-30
 | `npm run lint` | 통과 — 0 errors (기존 warning 6건만). 테스트 3개 파일의 `no-explicit-any` 26건 수정 |
 | `byok-db.test.ts` | 13 passed / failed 0 / skipped 0 |
 | 평문 누출 정적 검사 | `console.`(byok*.ts, ai-providers), `getByokSecret`/`get_byok_secret`(app, components), `secret_id`(app, components) 모두 무매치 |
-| `scripts/verify-byok-live.mjs` | 임의 키 3개 제공자 모두 `invalid` 분류 (RESULT=PASS). 유효 키 경로는 `*_BYOK_TEST_KEY` 미설정으로 건너뜀 → UAT 1단계에서 확인 |
+| `scripts/verify-byok-live.mjs` | 유효 키(플랫폼 서비스 키를 환경변수로 사용, 무과금 models.list): openai ok models=2, anthropic ok models=1, gemini ok models=1. 임의 키: 3개 제공자 모두 `invalid`. RESULT=PASS (UAT 1단계 완료) |
 | `npm test` 전체 | 통과 (exit 0) — 96 files / 996 tests passed, skipped 0 (기본 병렬 실행) |
 
 ### 함께 정리한 Phase 10 밖의 기존 실패 4건
