@@ -63,7 +63,7 @@ function ProviderCard({ card }: { card: ByokCardData }) {
                   {deletion.message && !deletion.ok && <p role="alert">{deletion.message}</p>}
                   <DialogFooter>
                     <DialogClose render={<Button ref={cancelRef} type="button" variant="outline">취소</Button>} />
-                    <form action={deleteAction}>
+                    <form action={deleteAction} className="contents">
                       <input type="hidden" name="provider" value={card.providerId} />
                       <Button type="submit" variant="destructive" aria-label={`${card.label} 삭제 확인`} disabled={busy}>{deleting ? <span role="status">{BYOK_COPY.loading}</span> : '삭제'}</Button>
                     </form>
