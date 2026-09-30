@@ -58,6 +58,12 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
     expect((await admin.from('byok_keys').select('id').eq('owner_id', ownerId)).data).toEqual([]);
     expect(await secretCount()).toBe(0);
   });
+  it('removes the Vault secret when the owning account is deleted (cascade)', async () => {
+    expect((await register()).error).toBeNull();
+    expect(await secretCount()).toBe(1);
+    await deleteTestUser(ownerId); ownerId = '';
+    expect(await secretCount()).toBe(0);
+  });
   it('changes a deleted BYOK default to service and returns true', async () => {
     expect((await register()).error).toBeNull();
     await admin.from('profiles').update({ default_provider: provider, default_model: 'gpt-4o-mini', default_key_source: 'byok' }).eq('id', ownerId);
