@@ -50,12 +50,12 @@ describe('BYOK key validation', () => {
     expect(await validateByokKey('openai', validKey, { lister: timeoutLister, timeoutMs: 1 })).toEqual({ ok: false, reason: 'unavailable' });
   });
   it('fails closed when maxModels is reached before all catalog candidates are discovered', async () => {
-    expect(await validateByokKey('openai', validKey, { lister: collect(['gpt-4o-mini']), maxModels: 1 })).toEqual({ ok: false, reason: 'unavailable' });
+    expect(await validateByokKey('openai', validKey, { lister: collect(['gpt-4o-mini', 'gpt-5.6-terra']), maxModels: 1 })).toEqual({ ok: false, reason: 'unavailable' });
   });
   it('stops after finding all catalog candidates and never returns or throws the key', async () => {
     const sentinel = `sk-test-${crypto.randomUUID()}`;
     let iterated = 0;
-    const lister = async function* () { yield 'gpt-4o-mini'; iterated++; yield 'gpt-5.6-terra'; iterated++; yield 'late-model'; iterated++; };
+    const lister = async function* () { iterated++; yield 'gpt-4o-mini'; iterated++; yield 'gpt-5.6-terra'; iterated++; yield 'late-model'; };
     const caught = await validateByokKey('openai', sentinel, { lister }).then((value: unknown) => value, (error: unknown) => error);
     expect(caught).toEqual({ ok: true, modelIds: ['gpt-4o-mini', 'gpt-5.6-terra'] });
     expect(iterated).toBe(2);
