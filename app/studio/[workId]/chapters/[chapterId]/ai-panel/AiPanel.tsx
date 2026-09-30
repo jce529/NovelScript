@@ -274,8 +274,8 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
       <div className="flex flex-col gap-2">
-        <div className="flex items-end gap-2">
-          <div className="flex flex-1 flex-col gap-1">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex w-full min-w-0 flex-col gap-1">
             <label className="text-xs text-muted-foreground">AI 모델</label>
             <Select value={encodeSelection({ providerId, model, keySource })} onValueChange={(value) => {
               const selection = value ? decodeSelection(value) : null;
@@ -310,7 +310,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
             </div>
             <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
           </div>
-          <div className="flex flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label className="text-xs text-muted-foreground">장르</label>
             <Select value={genre} onValueChange={(value) => setGenre(value ?? GENRES[0])}>
               <SelectTrigger className="w-full"><SelectValue>{(value: string) => value}</SelectValue></SelectTrigger>
