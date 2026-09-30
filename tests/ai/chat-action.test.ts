@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
+import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 
 /*
  * 08-05 Server Action boundary for chatAction: session-derived owner, UUID
@@ -31,6 +32,8 @@ vi.mock('@/lib/access/actions', () => ({ readChapterContent: vi.fn() }));
 vi.mock('@/lib/chapters/actions', () => ({ saveChapterContent: vi.fn(), publishChapter: vi.fn(), unpublishChapter: vi.fn() }));
 vi.mock('@/lib/ai/mentions', () => ({ searchMentionNodes: vi.fn(), quickAddMentionNode: vi.fn() }));
 vi.mock('@/lib/kb/actions', () => ({ saveNodeContent: vi.fn() }));
+vi.mock('@/lib/ai/decision/activation', () => ({ getAiDocPlanningMode: vi.fn(async () => ({ mode: 'off' })) }));
+vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({}) }));
 
 import { chatAction } from '@/app/studio/[workId]/chapters/[chapterId]/actions';
 import { ProviderCallError } from '@/lib/ai/providers/errors';
@@ -68,6 +71,38 @@ beforeEach(() => {
 });
 
 describe('chatAction boundary', () => {
+  it('uses the shared BYOK pending copy', async () => {
+    expect(CHAT_COPY.byokPending).toBe(BYOK_COPY.sendBoundary);
+  });
+
+  it('blocks BYOK before provider creation', async () => {
+    const result = await chatAction(validInput({ keySource: 'byok' }));
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.byokPending });
+    expect(h.createPlatformProvider).not.toHaveBeenCalled();
+    expect(h.chat).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unknown key source', async () => {
+    const result = await chatAction(validInput({ keySource: 'x' }));
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
+    expect(h.createPlatformProvider).not.toHaveBeenCalled();
+    expect(h.chat).not.toHaveBeenCalled();
+  });
+
+  it('sends an explicit service selection without forwarding keySource', async () => {
+    await chatAction(validInput({ keySource: 'service', ownerId: 'forged' }));
+    expect(h.createPlatformProvider).toHaveBeenCalledTimes(1);
+    expect(h.chat).toHaveBeenCalledTimes(1);
+    expect(h.chat.mock.calls[0][2]).not.toHaveProperty('keySource');
+    expect(h.chat.mock.calls[0][2].ownerId).toBe(SESSION_USER);
+  });
+
+  it('treats missing keySource as service', async () => {
+    await chatAction(validInput());
+    expect(h.createPlatformProvider).toHaveBeenCalledTimes(1);
+    expect(h.chat).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects unauthenticated callers before provider or chat', async () => {
     h.sessionUserId = null;
     const result = await chatAction(validInput());

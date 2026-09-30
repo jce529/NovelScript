@@ -16,6 +16,7 @@ import { readProviderFixture } from '@/lib/ai/providers/fixture';
 import type { ModelTier, ProviderId } from '@/lib/ai/providers/types';
 import { isKnownModel } from '@/lib/ai/providers/catalog';
 import { getDefaultProviderModel } from '@/lib/ai/providers/settings';
+import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -41,8 +42,9 @@ export async function getChapterAction(chapterId: string) {
   const { data: work } = await supabase.from('works').select('genre').eq('id', data.work_id).maybeSingle();
   const content = await readChapterContent(supabase, chapterId);
   if (content === null) return null;
-  const defaultProviderModel = await getDefaultProviderModel(supabase, user.id);
-  return { ...data, content, genre: work?.genre ?? null, defaultProviderModel };
+  const byokModels = await loadConnectedByokModels(supabase, user.id);
+  const defaultProviderModel = await getDefaultProviderModel(supabase, user.id, byokModels);
+  return { ...data, content, genre: work?.genre ?? null, defaultProviderModel, byokModels };
 }
 
 export async function saveChapterContentAction(workId: string, chapterId: string, content: string) {
@@ -104,6 +106,7 @@ export interface ChatActionInput {
   chapterId: string;
   providerId: ProviderId;
   model: string;
+  keySource?: 'service' | 'byok';
   mentionedNodeIds: string[];
   presetLevel: PresetLevel;
   styleId: StylePresetId;
@@ -122,6 +125,7 @@ const chatActionSchema = z.object({
   idempotencyKey: z.string().uuid(),
   providerId: z.enum(['gemini', 'openai', 'anthropic']),
   model: z.string(),
+  keySource: z.enum(['service', 'byok']).optional().default('service'),
 }).refine((value) => isKnownModel(value.providerId, value.model), { message: 'unknown model for provider' });
 
 // Dev fixture only: keys whose response was already dropped once (in-memory, per server process).
@@ -156,6 +160,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
 
   const parsed = chatActionSchema.safeParse(input);
   if (!parsed.success) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  if (parsed.data.keySource === 'byok') return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.byokPending };
 
   let client;
   try {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
@@ -21,6 +22,8 @@ import {
 } from '@/lib/ai/prompt';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
+import { buildModelChoices, decodeSelection, encodeSelection, KEY_SOURCE_LABEL, type ByokModelMap, type KeySource } from '@/lib/ai/providers/selection';
+import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 import { computeDebitAmount } from '@/lib/ai/cost';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
@@ -36,6 +39,8 @@ import { ChatMessageBubble } from './ChatMessageBubble';
 import { AiPanelNotice } from './AiPanelNotice';
 import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
 
+const PROVIDER_LABELS: Record<ProviderId, string> = { gemini: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
+
 export interface MentionedNode {
   id: string;
   name: string;
@@ -47,6 +52,8 @@ export interface AiPanelProps {
   chapterId: string;
   defaultProviderId: ProviderId;
   defaultModel: string;
+  defaultKeySource: KeySource;
+  byokModels: ByokModelMap;
   /** Current chapter textarea content — used as precedingText for cost estimate + generation. */
   content: string;
   /** Work's own genre (Phase 2 D-04) — D-07's default. null falls back to GENRES[0]. */
@@ -88,6 +95,7 @@ interface SendPayload {
   history: ChatMessage[];
   providerId: ProviderId;
   model: string;
+  keySource: KeySource;
   genre: string;
   presetLevel: PresetLevel;
   styleId: StylePresetId;
@@ -95,9 +103,11 @@ interface SendPayload {
   precedingText: string;
 }
 
-export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProviderId, defaultModel, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
+export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [providerId, setProviderId] = useState<ProviderId>(defaultProviderId);
   const [model, setModel] = useState<string>(defaultModel);
+  const [keySource, setKeySource] = useState<KeySource>(defaultKeySource);
+  const modelChoices = buildModelChoices(byokModels);
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
@@ -136,7 +146,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
   function buildPayload(userMessage: string, history: ChatMessage[]): SendPayload {
     return {
       userTurnId: crypto.randomUUID(),
-      userMessage, history, providerId, model, genre, presetLevel, styleId, mentionedNodeIds,
+      userMessage, history, providerId, model, keySource, genre, presetLevel, styleId, mentionedNodeIds,
       precedingText: content,
     };
   }
@@ -164,6 +174,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
         workId, chapterId,
         providerId: p.providerId,
         model: p.model,
+        keySource: p.keySource,
         mentionedNodeIds: [...p.mentionedNodeIds],
         presetLevel: p.presetLevel,
         styleId: p.styleId,
@@ -190,6 +201,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
       failedAttemptRef.current = null;
       setProviderId(defaultProviderId);
       setModel(defaultModel);
+      setKeySource(defaultKeySource);
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
@@ -210,6 +222,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
   }
 
   function handleSend() {
+    if (keySource === 'byok') return;
     const trimmed = chatInput.trim();
     if (!trimmed || isGenerating || lockRef.current.locked) return;
     const failed = failedAttemptRef.current;
@@ -222,6 +235,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
 
   /** 다시 시도: same key, same snapshot (UI-SPEC §1 row 2). */
   function handleRetry() {
+    if (keySource === 'byok') return;
     const attempt = failedAttemptRef.current;
     if (!attempt || isGenerating || lockRef.current.locked) return;
     void runAttempt(attempt);
@@ -235,6 +249,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
   /** Drops the last AI turn (and the user message that prompted it, if any)
    * and resends the same request with a NEW key — a "redo" of the last exchange. */
   function handleRegenerate() {
+    if (keySource === 'byok') return;
     if (isGenerating || lockRef.current.locked) return;
     const withoutLastAssistant = messages.slice(0, -1);
     const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
@@ -262,39 +277,36 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
         <div className="flex items-end gap-2">
           <div className="flex flex-1 flex-col gap-1">
             <label className="text-xs text-muted-foreground">AI 모델</label>
-            <Select value={`${providerId}:${model}`} onValueChange={(value) => {
-              if (!value) return;
-              const [nextProvider, nextModel] = value.split(':') as [ProviderId, string];
-              setProviderId(nextProvider);
-              setModel(nextModel);
+            <Select value={encodeSelection({ providerId, model, keySource })} onValueChange={(value) => {
+              const selection = value ? decodeSelection(value) : null;
+              if (!selection || !modelChoices.some((choice) => choice.value === encodeSelection(selection))) return;
+              setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource);
             }}>
               <SelectTrigger className="w-full">
                 <SelectValue>
                   {(value: string) => {
-                    const [pid, id] = value.split(':') as [ProviderId, string];
-                    return PROVIDER_MODELS[pid]?.find((entry) => entry.id === id)?.displayName ?? value;
+                    const selection = decodeSelection(value);
+                    const choice = modelChoices.find((item) => item.value === value);
+                    return selection && choice ? <>{PROVIDER_LABELS[selection.providerId]} {'\u00B7'} {choice.displayName} <Badge variant={selection.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[selection.keySource]}</Badge></> : value;
                   }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((pid) => (
-                  <div key={pid}>
-                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
-                      {pid.toUpperCase()} · {PROVIDER_MODELS[pid].length}개
-                    </div>
-                    {PROVIDER_MODELS[pid].map((entry) => (
-                      <SelectItem key={`${pid}:${entry.id}`} value={`${pid}:${entry.id}`}>
-                        {entry.displayName} — {entry.description}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
+                {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((pid, index) => {
+                  const choices = modelChoices.filter((choice) => choice.providerId === pid);
+                  return <div key={pid} role="group" aria-label={PROVIDER_LABELS[pid]} className={index ? 'border-t border-border mt-1' : ''}>
+                    <div className="flex justify-between bg-muted px-2 py-1 text-xs font-semibold"><span>{PROVIDER_LABELS[pid]}</span><span>{choices.length}개</span></div>
+                    {choices.map((choice) => <SelectItem key={choice.value} value={choice.value} aria-label={`${PROVIDER_LABELS[pid]} ${choice.displayName} ${choice.badge}`}>
+                      {choice.displayName} <Badge variant={choice.keySource === 'byok' ? 'secondary' : 'outline'}>{choice.badge}</Badge>
+                    </SelectItem>)}
+                  </div>;
+                })}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">이번 전송에만 적용돼요</p>
             <div className="rounded-md border border-border p-2 text-xs text-muted-foreground">
-              계정 기본값: {PROVIDER_MODELS[defaultProviderId].find((entry) => entry.id === defaultModel)?.displayName ?? defaultModel}
-              {' · '}<a className="underline" href="/studio/settings/ai-providers">설정에서 변경</a>
+              {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[defaultProviderId]} {'\u00B7'} {PROVIDER_MODELS[defaultProviderId].find((entry) => entry.id === defaultModel)?.displayName ?? defaultModel} <Badge variant={defaultKeySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[defaultKeySource]}</Badge>
+              {' · '}<Link className="underline" href="/studio/settings/ai-providers">설정에서 변경</Link>
             </div>
             <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
           </div>
@@ -452,6 +464,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
       </div>
 
       <div className="flex items-center gap-2">
+        {keySource === 'byok' && <p role="status" className="text-xs text-muted-foreground">{BYOK_COPY.sendBoundary}</p>}
         <Input
           ref={inputRef}
           value={chatInput}
@@ -461,7 +474,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
           disabled={isGenerating}
           className="flex-1"
         />
-        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim()} onClick={handleSend}>
+        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || keySource === 'byok'} onClick={handleSend}>
           보내기
         </Button>
       </div>
