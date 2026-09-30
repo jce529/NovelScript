@@ -40,6 +40,7 @@ export default async function AiProvidersSettingsPage({
     const result = await setDefaultProviderModel(actionClient, actionUser.id, {
       providerId: selection.slice(0, separator) as ProviderId,
       model: selection.slice(separator + 1),
+      keySource: 'service',
     });
     if (!result.ok) redirect('/studio/settings/ai-providers?error=1');
     revalidatePath('/studio/settings/ai-providers');
