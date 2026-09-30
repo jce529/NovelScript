@@ -107,6 +107,26 @@ created: 2026-09-30
 | `tests/works/work-crud.test.ts` | Phase 15 BUG-03(0012)로 템플릿 카테고리 폴더 5개 추가 → 기대값 12→17 (폴더 12 + 파일 5) |
 | `tests/studio/schema-smoke.test.ts` (2) | 자체 begin/commit 마이그레이션을 풀 연결로 실행해 `UNSAFE_TRANSACTION`, 이어서 deadlock → 예약(reserved) 연결에서 실행 |
 
+### 브라우저 UAT 진행 기록 (2026-09-30, Plan 06 Task 2)
+
+| 단계 | 결과 |
+|------|------|
+| 1 라이브 프로브 | 통과 |
+| 2 카드 3장·미등록 | 통과 |
+| 3 무효 키·형식 오류 | 통과 (role=alert, 입력 비움, 미등록 유지) |
+| 4 유효 키 등록 (Gemini, 사용자 등록) | 통과 — `연결됨`, 끝 4자리·등록일, 폼 제거, 페이지 HTML에 키 형태 문자열·`secret_id` 없음 |
+| 5 다시 확인 | 통과 — `role=status` 알림, 상태 유지 |
+| 6 BYOK 기본값 | 통과 — 셀렉트에 `[BYOK]` 항목, 저장 후 DB `default_key_source=byok` |
+| 7 피커·전송 차단 | 통과 — Gemini 그룹 `서비스 키`→`BYOK`, 트리거·기본값 안내에 배지, BYOK 선택 시 [보내기] 비활성+안내 문구, 서비스 키 선택+입력 시 활성 (실제 전송은 하지 않음) |
+| 8 삭제 다이얼로그 | 문구·초기 포커스(취소)·Esc 닫힘·포커스 복귀 통과. 실제 삭제·기본값 대체는 미확인 |
+| 9 Vault 잔존 | 미확인 (삭제 후) |
+| 10 검증 실패 상태 | 미확인 (선택) |
+| 11 키보드 조작 | 일부 (다이얼로그 포커스·Esc). 등록·피커 키보드 조작은 미확인 |
+
+UAT 중 발견·수정한 결함:
+- AI 패널 모델/장르 칸이 배지로 인해 패널 밖으로 넘침 → fc4f0de
+- 설정 페이지 SiteHeader 중복 렌더링(layout과 page 양쪽) → af6264d
+
 ---
 
 ## Manual-Only Verifications
