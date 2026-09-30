@@ -5,7 +5,7 @@ import { loadConnectedByokModels } from './byok-models';
 import type { ByokModelMap, Selection } from './selection';
 import type { ProviderId } from './types';
 
-export interface ProviderModelPair extends Selection {}
+export type ProviderModelPair = Selection;
 const FALLBACK: ProviderModelPair = { providerId: 'gemini', model: defaultModelFor('gemini'), keySource: 'service' };
 function isProvider(value: string): value is ProviderId { return Object.hasOwn(PROVIDER_MODELS, value); }
 function isValidPair(providerId: string, model: string): providerId is ProviderId { return isProvider(providerId) && isKnownModel(providerId, model); }

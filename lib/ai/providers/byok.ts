@@ -7,7 +7,7 @@ import { intersectWithCatalog } from './selection';
 import type { ProviderId } from './types';
 import { getDefaultProviderModel } from './settings';
 
-type RpcClient = { rpc(name: string, args?: Record<string, unknown>): Promise<{ data: any; error: any }> };
+type RpcClient = { rpc(name: string, args?: Record<string, unknown>): Promise<{ data: unknown; error: { code?: string } | null }> };
 export interface ByokKeyMeta { id: string; provider: ProviderId; maskedHint: string; status: 'connected' | 'failed'; modelIds: string[]; createdAt: string; verifiedAt: string | null }
 export type ByokActionResult = { ok: true; message: string; modelCount?: number } | { ok: false; reason: string; message?: string };
 const internal = (): ByokActionResult => ({ ok: false, reason: 'internal', message: BYOK_COPY.internalError });
