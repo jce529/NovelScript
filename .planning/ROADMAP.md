@@ -414,7 +414,7 @@ Residual (stays in v1.0, not yet done):
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
-| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 5/7 | In Progress|  |
+| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 6/7 | In Progress|  |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |

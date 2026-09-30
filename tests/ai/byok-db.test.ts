@@ -23,6 +23,10 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
     if (row.data?.secret_id) secretId = String(row.data.secret_id);
     return result;
   };
+  // postgres.js does not surface raw SAVEPOINT SQL errors to try/catch; tx.savepoint() does.
+  const isDenied = async (tx: any, run: (sp: any) => Promise<unknown>) => {
+    try { await tx.savepoint(run); return false; } catch { return true; }
+  };
   const secretCount = async () => Number((await db`select count(*)::int as count from vault.secrets where id = ${secretId}`)[0]?.count ?? 0);
 
   it('creates one Vault secret and metadata row through service registration', async () => {
@@ -60,7 +64,9 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
   });
   it('claims validation at most twice in the configured window', async () => {
     const claims = await Promise.all([1, 2, 3].map(() => admin.rpc('claim_byok_validation', { p_owner: ownerId, p_limit: 2, p_window_seconds: 60 })));
-    expect(claims.map((claim) => claim.data)).toEqual([true, true, false]);
+    const granted = claims.map((claim) => claim.data);
+    expect(granted.filter((value) => value === true)).toHaveLength(2);
+    expect(granted.filter((value) => value === false)).toHaveLength(1);
   });
   it('denies anon execution of all five service RPCs', async () => {
     const anon = anonClient();
@@ -78,19 +84,14 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
       await tx`set local role authenticated`;
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: ownerId, role: 'authenticated' })}, true)`;
       const queries = [
-        () => tx`select register_byok_key(${ownerId}::uuid, ${provider}, 'never-log-this-secret', 'cret', '{}')`,
-        () => tx`select get_byok_secret(${ownerId}::uuid, ${provider})`,
-        () => tx`select set_byok_status(${ownerId}::uuid, ${provider}, 'failed', '{}')`,
-        () => tx`select delete_byok_key(${ownerId}::uuid, ${provider})`,
-        () => tx`select claim_byok_validation(${ownerId}::uuid, 2, 60)`,
+        (sp: any) => sp`select register_byok_key(${ownerId}::uuid, ${provider}, 'never-log-this-secret', 'cret', '{}')`,
+        (sp: any) => sp`select get_byok_secret(${ownerId}::uuid, ${provider})`,
+        (sp: any) => sp`select set_byok_status(${ownerId}::uuid, ${provider}, 'failed', '{}')`,
+        (sp: any) => sp`select delete_byok_key(${ownerId}::uuid, ${provider})`,
+        (sp: any) => sp`select claim_byok_validation(${ownerId}::uuid, 2, 60)`,
       ];
       const results: boolean[] = [];
-      for (let index = 0; index < queries.length; index++) {
-        const savepoint = `denied_rpc_set_${index}`;
-        await tx.unsafe(`savepoint ${savepoint}`);
-        try { await queries[index](); results.push(false); await tx.unsafe(`release savepoint ${savepoint}`); }
-        catch { results.push(true); await tx.unsafe(`rollback to savepoint ${savepoint}`); await tx.unsafe(`release savepoint ${savepoint}`); }
-      }
+      for (const query of queries) results.push(await isDenied(tx, query));
       return results;
     });
     expect(denied).toEqual([true, true, true, true, true]);
@@ -101,17 +102,11 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
       await tx`set local role authenticated`;
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: ownerId, role: 'authenticated' })}, true)`;
       const out: boolean[] = [];
-      let index = 0;
       for (const query of [
-        () => tx`select * from vault.decrypted_secrets`,
-        () => tx`select secret_id from byok_keys`,
-        () => tx`select get_byok_secret(${ownerId}::uuid, ${provider})`,
-      ]) {
-        const savepoint = `denied_rpc_${index++}`;
-        await tx.unsafe(`savepoint ${savepoint}`);
-        try { await query(); out.push(false); await tx.unsafe(`release savepoint ${savepoint}`); }
-        catch { out.push(true); await tx.unsafe(`rollback to savepoint ${savepoint}`); await tx.unsafe(`release savepoint ${savepoint}`); }
-      }
+        (sp: any) => sp`select * from vault.decrypted_secrets`,
+        (sp: any) => sp`select secret_id from byok_keys`,
+        (sp: any) => sp`select get_byok_secret(${ownerId}::uuid, ${provider})`,
+      ]) out.push(await isDenied(tx, query));
       return out;
     });
     expect(results).toEqual([true, true, true]);
@@ -130,18 +125,12 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BYOK database and Vault contract'
     const result = await db.begin(async (tx) => {
       await tx`set local role authenticated`;
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: ownerId, role: 'authenticated' })}, true)`;
-      const denied = [];
-      let index = 0;
+      const denied: boolean[] = [];
       for (const operation of [
-        () => tx`insert into byok_keys(owner_id, provider, secret_id, masked_hint, status, model_ids) values (${ownerId}, 'openai', gen_random_uuid(), '1234', 'connected', '{}')`,
-        () => tx`update byok_keys set status = 'failed' where owner_id = ${ownerId}`,
-        () => tx`delete from byok_keys where owner_id = ${ownerId}`,
-      ]) {
-        const savepoint = `denied_write_${index++}`;
-        await tx.unsafe(`savepoint ${savepoint}`);
-        try { await operation(); denied.push(false); await tx.unsafe(`release savepoint ${savepoint}`); }
-        catch { denied.push(true); await tx.unsafe(`rollback to savepoint ${savepoint}`); await tx.unsafe(`release savepoint ${savepoint}`); }
-      }
+        (sp: any) => sp`insert into byok_keys(owner_id, provider, secret_id, masked_hint, status, model_ids) values (${ownerId}, 'openai', gen_random_uuid(), '1234', 'connected', '{}')`,
+        (sp: any) => sp`update byok_keys set status = 'failed' where owner_id = ${ownerId}`,
+        (sp: any) => sp`delete from byok_keys where owner_id = ${ownerId}`,
+      ]) denied.push(await isDenied(tx, operation));
       return denied;
     });
     expect(result).toEqual([true, true, true]);
