@@ -151,7 +151,17 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can purchase tokens through the Toss Payments widget and see the charge reflected as an updated wallet balance
   2. Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — ai_usage 스키마·KST 집계·원격 DB 차단 게이트
+- [ ] 11-02-PLAN.md — provider 실패 4분류·SDK 자동 retry 비활성화
+- [ ] 11-03-PLAN.md — 서버 재도출 BYOK route·race-safe invalid 전환
+- [ ] 11-04-PLAN.md — BYOK wallet 완전 우회·공통 usage settlement
+- [ ] 11-05-PLAN.md — chat·문서 계획·재생성 공통 진입점 연결
+- [ ] 11-06-PLAN.md — AI 패널 BYOK 전송·실패·명시 대체 UX
+- [ ] 11-07-PLAN.md — 설정 카드 KST 월간 BYOK 사용량
+- [ ] 11-08-PLAN.md — 전체 자동·DB·live·브라우저 검증
 **UI hint**: yes
 **Status**: Not started — **blocked on external dependency**. No Toss Payments code exists in the repo (verified 2026-09-15: no client/widget/webhook handler, no payment migration beyond `0005_commerce.sql`). `05-CONTEXT.md`, `05-RESEARCH.md`, `05-UI-SPEC.md`, `05-VALIDATION.md` are complete and ready for `/gsd:plan-phase`; execution waits on the Toss merchant keys (사업자등록 + merchant application).
 
