@@ -1,23 +1,23 @@
-# Graph Report - NovelScript  (2026-09-30)
+# Graph Report - NovelScript  (2026-10-01)
 
 ## Corpus Check
-- 788 files · ~639,706 words
+- 824 files · ~669,853 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3649 nodes · 6497 edges · 354 communities (243 shown, 67 thin omitted)
+- 3900 nodes · 6771 edges · 397 communities (268 shown, 78 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 81 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `06025917`
+- Built from commit: `89f19d92`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - providers/types.ts
 - vitest
-- button.tsx
+- viewer-shell.tsx
 - plan.ts
 - app/admin/actions.ts
 - dependencies
@@ -31,7 +31,7 @@
 - Phase 6: Paid Chapter Unlock - Context
 - SSOT Coverage Report
 - KB Folder Context
-- MentionAutocomplete.tsx
+- MentionAutocomplete
 - queries.ts
 - Workspace Work Entity
 - Project Research Summary
@@ -45,9 +45,9 @@
 - session-refresh.test.ts
 - Authentication Callback Design
 - 0002_studio.sql
-- kb/actions.ts
+- [workId]/layout.tsx
 - Graphify Pipeline
-- user-flows.test.ts
+- Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Context
 - Readable Chapter
 - Phase 02 Plan 02: Studio Work Creation & Writer Gate Summary
 - AI Gateway Context
@@ -61,14 +61,14 @@
 - Phase 02 Plan 01: Studio Core Foundation Summary
 - Chapter Planning Rules
 - Chapter Reading Rules
-- scripts
+- @supabase/supabase-js
 - Phase 02 Plan 03: KB Tree Query + Node CRUD Summary
 - Phase 02 Plan 06: Chapter List, Draft Form & Publish Editor Summary
 - Epic Catalog
 - New Work Creation Overview
 - Chapter Editing Data Model
 - Account Profile
-- operations.database.test.ts
+- postgres
 - Next.js Agent Rules
 - Account Overview Data Dictionary
 - Knowledge Base Node Entity
@@ -173,11 +173,11 @@
 - graphify
 - moderation-form.tsx
 - Phase 7 Plan 01: Moderation Foundation and Admin Trust Boundary Summary
-- @supabase/supabase-js
+- blinding.test.ts
 - 07-PATTERNS.md
 - Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Context
 - Implementation Decisions
-- [nodeId]/actions.ts
+- Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Research
 - shadow.ts
 - Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 — Research
 - Phase 8 Plan 08: Dev-only Provider Fixture Summary
@@ -208,7 +208,7 @@
 - Goal Achievement
 - jev.ts
 - Phase 8 Plan 01: Provider Contracts, Error Scrubbing, Token Estimator Summary
-- quick-add-folders.test.ts
+- studio/[workId]/chapters/[chapterId]/actions.ts
 - chat.ts
 - Phase 8 Plan 03: Idempotent Chat Orchestration Summary
 - Phase 8 Plan 06: Real-DB Idempotent Debit Evidence Summary
@@ -263,37 +263,37 @@
 - Phase 9 Plan 04 Summary
 - client-bundle-fs-free.test.ts
 - Phase 15 Plan 06 Summary
-- createClient
+- sanctions.test.ts
 - activation.ts
 - Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Context
 - Phase 15 Plan 04: Jev plan → Gemini document generation wiring Summary
-- regenerate-document.test.ts
+- KbCategory
 - Phase 15 Plan 05 Summary
 - Phase 15 Plan 09: Off-path verification and activation status Summary
-- ByokKeyCards.tsx
+- lucide-react
 - user-actions.ts
 - lib/admin/actions.ts
 - 4. 자사 LLM 학습을 위한 데이터 이용권 — "파운데이션 작가 프로그램"
-- ViewerShell
+- NovelScript 이용약관 — 변호사 자문 필요사항
 - 15-01: 회차 편집기 Turbopack fs 패닉 수정
-- ai-providers/page.tsx
+- byok-settings-ui.test.ts
 - chapters
 - 0006_admin_foundation.sql
 - Phase 9 Plan 00 Summary
 - Phase 9 Plan 03 Summary
-- studio/[workId]/chapters/[chapterId]/actions.ts
+- AiPanel.tsx
 - Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Discussion Log
 - profiles
 - Goal Achievement
 - admin/page.tsx
 - 2. BUG-03 — 템플릿 카테고리 폴더 구조
-- works/actions.ts
+- createClient
 - Phase 9 Plan 01 Summary
 - 15-02: 저장 모달 셀렉트 UUID 표시 수정
 - 15-03: 템플릿 카테고리 폴더 구조 수정 (일부)
 - 15-HUMAN-UAT.md
-- mentions.ts
-- moderation/actions.ts
+- kb/actions.ts
+- Phase 11 — UI Design Contract
 - 0001_init.sql
 - Q: BUG-01 문서에 Gemini 생성 후 Jev가 폴더 위치를 결정하는 해결 설계를 반영
 - Q: 현재 문서 생성할 때 Gemini가 어떤 식으로 생성하는가
@@ -301,19 +301,19 @@
 - verify-0012.sql
 - Phase 9 Plan 02 Summary
 - Phase 10 — UI Design Contract
-- popover.tsx
-- provider-anthropic.test.ts
-- getReviewPanelStateAction
+- payments/actions.ts
+- ai-providers/page.tsx
+- SaveDocumentPlanModal
 - Phase 10 — Validation Strategy
 - 0014_byok_keys.sql
-- route.ts
+- Phase 5 Plan 2: Owned Orders and Toss API Client Summary
 - Phase 9 Plan 05 Summary
-- session
-- chat-result.ts
+- Implementation Decisions
+- admin/types.ts
 - 10-02 Summary
 - 10-03 Summary
 - Supabase Vault Probe
-- acknowledgeWarningAction
+- Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Discussion Log
 - 10-00 Summary
 - 10-01 Summary
 - 10-04 Summary
@@ -325,30 +325,66 @@
 - 10-04-PLAN.md
 - 10-05-PLAN.md
 - 10-06-PLAN.md
+- Recommended Architecture
+- 10-06 Summary
+- Common Pitfalls
+- Suggested File Plan
+- Validation Architecture
+- Open Questions for Planning
+- Sources
+- 0015_byok_secret_cleanup.sql
+- UI Integration Guidance
+- categories.ts
+- jev-plan.test.ts
+- ai-panel-notice.test.ts
+- Phase 5 Plan 1: Payment Contract and Order Schema Summary
+- operations.database.test.ts
+- ProviderId
+- concurrency.database.test.ts
+- foundation.database.test.ts
+- folder-candidates.test.ts
+- Phase 11 — Validation Strategy
+- blinding.database.test.ts
+- toss.ts
+- probe-vault.mjs
+- byok-actions.test.ts
+- route.ts
+- getReviewPanelStateAction
+- 0008_sanction_enforcement.sql
+- fakeClient
+- 11-01-PLAN.md
+- 11-02-PLAN.md
+- 11-03-PLAN.md
+- 11-04-PLAN.md
+- 11-05-PLAN.md
+- 11-06-PLAN.md
+- 11-07-PLAN.md
+- 11-08-PLAN.md
+- public.payment_orders
 
 ## God Nodes (most connected - your core abstractions)
-1. `vitest` - 101 edges
+1. `vitest` - 106 edges
 2. `cn()` - 89 edges
-3. `createClient()` - 76 edges
-4. `createTestUser()` - 56 edges
+3. `createClient()` - 78 edges
+4. `createTestUser()` - 58 edges
 5. `@supabase/supabase-js` - 50 edges
 6. `checkWriteAccess()` - 45 edges
-7. `react` - 37 edges
-8. `deleteTestUser()` - 36 edges
-9. `adminClient()` - 35 edges
+7. `deleteTestUser()` - 38 edges
+8. `react` - 37 edges
+9. `adminClient()` - 37 edges
 10. `lucide-react` - 30 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `chatActionSchema` --calls--> `isKnownModel()`  [EXTRACTED]
-  app/studio/[workId]/chapters/[chapterId]/actions.ts → lib/ai/providers/catalog.ts
-- `render()` --indirect_call--> `AiPanelNotice()`  [INFERRED]
-  tests/ai/ai-panel-notice.test.ts → app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanelNotice.tsx
+- `ChatMessage` --references--> `DocumentProposal`  [EXTRACTED]
+  app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel.tsx → lib/ai/prompt.ts
+- `ChatMessageBubbleProps` --references--> `DocumentProposal`  [EXTRACTED]
+  app/studio/[workId]/chapters/[chapterId]/ai-panel/ChatMessageBubble.tsx → lib/ai/prompt.ts
+- `SaveDocumentPlanModalProps` --references--> `DocumentProposal`  [EXTRACTED]
+  app/studio/[workId]/chapters/[chapterId]/ai-panel/SaveDocumentPlanModal.tsx → lib/ai/prompt.ts
 - `renderModal()` --indirect_call--> `SaveDocumentPlanModal()`  [INFERRED]
   tests/ai/save-document-plan-modal.test.ts → app/studio/[workId]/chapters/[chapterId]/ai-panel/SaveDocumentPlanModal.tsx
 - `QuickAddFoldersState` --references--> `FolderCandidate`  [EXTRACTED]
   app/studio/[workId]/chapters/[chapterId]/ai-panel/quick-add-folders.ts → lib/kb/actions.ts
-- `purchase()` --calls--> `purchaseChapterAction()`  [EXTRACTED]
-  components/reader/viewer-shell.tsx → app/works/[workId]/chapters/[chapterId]/actions.ts
 
 ## Import Cycles
 - None detected.
@@ -380,23 +416,23 @@
 - **Writer Studio Screens** — docs_ssot_specs_screen_28a1521fad1225bb_new_chapter_screen, docs_ssot_specs_screen_31e04d36ea04448b_new_work_screen, docs_ssot_specs_screen_5ed7abf91158a5ea_knowledge_base_editor_screen, docs_ssot_specs_screen_62d6b6c1b8099f81_studio_work_list_screen, docs_ssot_specs_screen_6b8128ed6b4fe6f7_chapter_list_screen, docs_ssot_specs_screen_a4992bce897aaf20_chapter_editor_screen, docs_ssot_specs_screen_cba5f8214d2acb18_studio_work_home_screen [INFERRED 0.85]
 - **Account Overview SSOT Bundle** — docs_ssot_epics_0of0hlk2djttwk5y_fqcj_br_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_data_dictionary_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_design_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_overview_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_persona_document, docs_ssot_epics_0of0hlk2djttwk5y_fqcj_usecases_ucl_document [INFERRED 0.95]
 
-## Communities (354 total, 67 thin omitted)
+## Communities (397 total, 78 thin omitted)
 
 ### Community 0 - "providers/types.ts"
-Cohesion: 0.08
-Nodes (41): chatAction(), regenerateDocumentWithTemplateAction(), createAnthropicProvider(), logProviderFailure(), ProviderCallError, readStatus(), STATUS_TO_CODE, toSanitizedProviderError() (+33 more)
+Cohesion: 0.06
+Nodes (47): regenerateDocumentWithTemplateAction(), createAnthropicProvider(), mapAnthropicResponse(), ProviderCallError, readStatus(), STATUS_TO_CODE, toSanitizedProviderError(), createFixtureProvider() (+39 more)
 
 ### Community 1 - "vitest"
-Cohesion: 0.14
-Nodes (21): deleteNode(), renameNode(), vitest, Probe, createOwnerWithWork(), createWork(), createWorkWithPublishedAndUnpublishedChapter(), adminClient() (+13 more)
+Cohesion: 0.12
+Nodes (25): deleteNode(), vitest, Probe, grantedUser(), createOwnerWithWork(), createWorkWithPublishedAndUnpublishedChapter(), adminClient(), anonClient() (+17 more)
 
-### Community 2 - "button.tsx"
-Cohesion: 0.10
-Nodes (21): ReportDialog(), TocSheet(), ViewTracker(), FONT_SIZES, THEME_OPTIONS, ViewerSettingsSheet(), THEME_CLASS, ViewerTheme (+13 more)
+### Community 2 - "viewer-shell.tsx"
+Cohesion: 0.12
+Nodes (16): ReportDialog(), TocSheet(), ViewTracker(), FONT_SIZES, THEME_OPTIONS, ViewerSettingsSheet(), THEME_CLASS, ViewerTheme (+8 more)
 
 ### Community 3 - "plan.ts"
-Cohesion: 0.12
-Nodes (25): buildOpaqueKeyMap(), CATEGORY_CANDIDATES, SCOPE_RANK, shuffleArray(), sortFolderCandidates(), sortTemplateOptions(), TASK_CANDIDATES, DecisionCallRecord (+17 more)
+Cohesion: 0.16
+Nodes (22): buildOpaqueKeyMap(), CATEGORY_CANDIDATES, SCOPE_RANK, shuffleArray(), sortFolderCandidates(), sortTemplateOptions(), TASK_CANDIDATES, DecisionCallRecord (+14 more)
 
 ### Community 4 - "app/admin/actions.ts"
 Cohesion: 0.15
@@ -404,7 +440,7 @@ Nodes (18): ActionResult, asObject(), moderateReportGroupAction(), ModerateRepor
 
 ### Community 5 - "dependencies"
 Cohesion: 0.07
-Nodes (28): dependencies, @anthropic-ai/sdk, @base-ui/react, class-variance-authority, clsx, cmdk, @dnd-kit/core, @dnd-kit/sortable (+20 more)
+Nodes (29): dependencies, @anthropic-ai/sdk, @base-ui/react, class-variance-authority, clsx, cmdk, @dnd-kit/core, @dnd-kit/sortable (+21 more)
 
 ### Community 6 - "Phase 7 Plan 06: Writer Re-review, Warning Acknowledgement and Reader Locked States Summary"
 Cohesion: 0.22
@@ -419,8 +455,8 @@ Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 9 - "package.json"
-Cohesion: 0.07
-Nodes (27): ChapterListItem, name, private, version, @base-ui/react, clsx, cmdk, @dnd-kit/core (+19 more)
+Cohesion: 0.05
+Nodes (37): reorderChaptersAction(), ChapterList(), ChapterListItem, Toaster(), name, private, scripts, build (+29 more)
 
 ### Community 10 - "Social Sign-In Rules"
 Cohesion: 0.13
@@ -446,13 +482,13 @@ Nodes (18): SSOT Coverage Report, Submit Writer Upgrade API, Submit Email API, A
 Cohesion: 0.16
 Nodes (17): KB Folder Schema Plan, KB Folder Schema Result, KB Folder Actions Plan, KB Folder Actions Result, Chapter Folders Plan, Chapter Folders Result, Cross-Scope Mentions Plan, Cross-Scope Mentions Result (+9 more)
 
-### Community 16 - "MentionAutocomplete.tsx"
-Cohesion: 0.11
-Nodes (23): searchMentionsAction(), CATEGORY_ICON, EMPTY_RESULTS, MentionAutocomplete(), handleKeyDown(), MentionAutocompleteProps, MentionCandidate, mentionTrailingText() (+15 more)
+### Community 16 - "MentionAutocomplete"
+Cohesion: 0.28
+Nodes (7): MentionAutocomplete(), handleKeyDown(), mentionTrailingText(), MentionKeyboardCommand, MentionKeyboardInput, resolveMentionKeyboardCommand(), resolve()
 
 ### Community 17 - "queries.ts"
 Cohesion: 0.20
-Nodes (24): withAdminAction(), getReportDetail(), getReviewRequestDetail(), idSchema, listReportGroups(), listReviewRequests(), mapAction(), mapActions() (+16 more)
+Nodes (22): getReportDetail(), idSchema, listReportGroups(), mapAction(), mapActions(), mapReport(), mapReviewSummary(), num() (+14 more)
 
 ### Community 18 - "Workspace Work Entity"
 Cohesion: 0.16
@@ -463,8 +499,8 @@ Cohesion: 0.22
 Nodes (9): Real Payment Integration Decisions, Real Payment Architecture Research, Payment UI Design Contract, Payment Validation Strategy, NovelScript Platform Architecture, MVP Feature Set, Critical Product and Architecture Pitfalls, Recommended Technology Stack (+1 more)
 
 ### Community 20 - "byok.ts"
-Cohesion: 0.09
-Nodes (27): ByokActionResult, byokFailureMessage(), PROVIDER_LABEL, deleteByokKey(), getByokSecret(), internal(), ownerArgs(), recheckByokKey() (+19 more)
+Cohesion: 0.11
+Nodes (23): ByokActionResult, ByokKeyMeta, BYOK_COPY, byokFailureMessage(), PROVIDER_LABEL, deleteByokKey(), getByokSecret(), internal() (+15 more)
 
 ### Community 21 - "Graphify 후속 조사 질문"
 Cohesion: 0.09
@@ -483,8 +519,8 @@ Cohesion: 0.20
 Nodes (11): Studio Foundation Plan, Work Creation and Writer Gate Plan, Knowledge Base Tree CRUD Plan, Chapter Business Logic Plan, Knowledge Base Editor UI Plan, Chapter Editor UI Plan, Studio Core Design Decisions, Studio Core Architecture Research (+3 more)
 
 ### Community 25 - "app/layout.tsx"
-Cohesion: 0.20
-Nodes (7): geistMono, geistSans, metadata, Toaster(), nextConfig, next, next-themes
+Cohesion: 0.25
+Nodes (5): geistMono, geistSans, metadata, nextConfig, next
 
 ### Community 26 - "Wallet Schema Plan"
 Cohesion: 0.22
@@ -499,20 +535,20 @@ Cohesion: 0.33
 Nodes (10): Authentication Callback Rules, Authentication Callback Data Dictionary, Authentication Callback Input, Callback Exchanged User, Callback Redirect Outcome, Authentication Callback Design, Authentication Callback Rationale, Authentication Callback Overview (+2 more)
 
 ### Community 29 - "0002_studio.sql"
-Cohesion: 0.13
-Nodes (8): ensure_account_template_root(), guard_locked_kb_node(), kb_nodes, kb_nodes_guard_locked, soft_delete_kb_node(), user_can_write(), bug03_flat_seed_files, ensure_account_template_root()
+Cohesion: 0.21
+Nodes (6): ensure_account_template_root(), guard_locked_kb_node(), kb_nodes, kb_nodes_guard_locked, bug03_flat_seed_files, ensure_account_template_root()
 
-### Community 30 - "kb/actions.ts"
-Cohesion: 0.10
-Nodes (28): moveTemplateFileAction(), WorkLayout(), CreateRootFolderButton(), KbTreeActions(), MoveTemplateFileDialog(), KbTree(), TreeRow(), CategoryFolderRow (+20 more)
+### Community 30 - "[workId]/layout.tsx"
+Cohesion: 0.12
+Nodes (21): WorkLayout(), CreateRootFolderButton(), KbTreeActions(), KbTree(), TreeRow(), listChapters(), getAccountSharedNodes(), getWorkKbNodes() (+13 more)
 
 ### Community 31 - "Graphify Pipeline"
 Cohesion: 0.22
 Nodes (9): Graphify Pipeline, URL Ingestion and Watch, Graph Exports, Semantic Extraction Contract, Repository Merge Flow, Graphify Automation Hooks, Graph Query Traversal, Media Transcription (+1 more)
 
-### Community 32 - "user-flows.test.ts"
-Cohesion: 0.10
-Nodes (17): TocBadge(), ReaderAccessState, PublicChapter, PublicChapterListItem, BLINDED_VIEWER_TITLE, tocRowBadge, CHAPTER, FakeDb (+9 more)
+### Community 32 - "Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Context"
+Cohesion: 0.11
+Nodes (18): Canonical References, Claude's Discretion, Deferred Ideas, Established Patterns, Existing Code Insights, Implementation Decisions, Integration Points, Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Context (+10 more)
 
 ### Community 33 - "Readable Chapter"
 Cohesion: 0.39
@@ -566,9 +602,9 @@ Nodes (6): Chapter Planning Rules, Chapter Planning Design, Chapter Planning Rat
 Cohesion: 0.47
 Nodes (6): Chapter Reading Rules, Chapter Reading Design, Chapter Reading Rationale, Chapter Reading Overview, Chapter Reader Persona, Chapter Reading Use Cases
 
-### Community 46 - "scripts"
-Cohesion: 0.29
-Nodes (7): scripts, build, dev, eval:jev, lint, start, test
+### Community 46 - "@supabase/supabase-js"
+Cohesion: 0.17
+Nodes (20): toggleBookmarkAction(), toggleLikeAction(), toggleSubscriptionAction(), WorkDetailPage(), LikeButton(), onClick(), WorkHeaderActions(), onToggleBookmark() (+12 more)
 
 ### Community 47 - "Phase 02 Plan 03: KB Tree Query + Node CRUD Summary"
 Cohesion: 0.17
@@ -594,9 +630,9 @@ Nodes (5): Work Workspace Business Rules, Chapter Editing Data Model, Chapter En
 Cohesion: 0.67
 Nodes (4): Account Closure Rules, Account Closure Data Dictionary, Account Profile, Account Closure Design
 
-### Community 53 - "operations.database.test.ts"
-Cohesion: 0.05
-Nodes (42): postgres, migration, sql, classifyProbeError(), main(), rows(), runVaultProbe(), SAFE_ERROR_CLASSES (+34 more)
+### Community 53 - "postgres"
+Cohesion: 0.12
+Nodes (11): postgres, migration, sql, as(), asOwner(), moveExpiry(), sanction(), scalar() (+3 more)
 
 ### Community 54 - "Next.js Agent Rules"
 Cohesion: 0.67
@@ -675,8 +711,8 @@ Cohesion: 0.25
 Nodes (7): Claude's Discretion, Deferred Ideas, Phase 5: Real Payment Integration - Discussion Log, 결제 실패·취소·미확정 처리, 논의 영역 선택, 충전 진입 및 결제중 UX, 토큰 충전 상품 구성
 
 ### Community 123 - "lib/chapters/actions.ts"
-Cohesion: 0.17
-Nodes (21): reorderChaptersAction(), ChaptersPage(), ChapterList(), writeDenial(), assertChapterFolder(), assertWorkOwnership(), ChapterAccessRow, createChapter() (+13 more)
+Cohesion: 0.23
+Nodes (17): writeDenial(), assertChapterFolder(), assertWorkOwnership(), ChapterAccessRow, createChapter(), createChapterSchema, findOwnedChapter(), publishChapter() (+9 more)
 
 ### Community 124 - "5-3 에셋 스토어 UI,UX 설계 및 정책.md"
 Cohesion: 0.29
@@ -751,12 +787,12 @@ Cohesion: 0.13
 Nodes (14): Atomic moderation and audit (D-04, D-18, D-19), Authorization and administrator bootstrap (D-01 to D-05), Blinding, purchasing and correction (D-11 to D-16), Existing Implementation Evidence, Open Details and Limits, Phase 7: Admin Moderation Surface - Research, Plan Decomposition Recommendation, Recommended Architecture (+6 more)
 
 ### Community 147 - "run-eval.ts"
-Cohesion: 0.13
-Nodes (26): EvalMetrics, buildEvidence(), computeECE(), ConfidenceRecord, evaluateFolderAndTemplate(), evaluateTaskAndCategory(), EvaluationResult, FolderEvaluationResult (+18 more)
+Cohesion: 0.20
+Nodes (17): EvalMetrics, buildEvidence(), computeECE(), ConfidenceRecord, evaluateFolderAndTemplate(), evaluateTaskAndCategory(), EvaluationResult, FolderEvaluationResult (+9 more)
 
 ### Community 148 - "app/page.tsx"
-Cohesion: 0.14
-Nodes (17): HomePage(), VALID_BASES, FeedFilters(), PromoBanner(), RecentlyReadSection(), buttonVariants, Separator(), averageNextChapterCtr() (+9 more)
+Cohesion: 0.13
+Nodes (18): HomePage(), VALID_BASES, FeedFilters(), PromoBanner(), RecentlyReadSection(), buttonVariants, averageNextChapterCtr(), computeTrendingScores() (+10 more)
 
 ### Community 149 - "Phase 7 - UI Design Contract"
 Cohesion: 0.17
@@ -803,24 +839,24 @@ Cohesion: 0.22
 Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known Stubs, Phase 7 Plan 05: Admin Queue, Evidence Detail and Action UI Summary, Self-Check: PASSED, Verification (actual results), What was built
 
 ### Community 160 - "auth.ts"
-Cohesion: 0.16
-Nodes (14): AdminAccessDenied, AdminAuthDeps, AdminCheck, AdminContext, AdminDenialReason, checkAdmin(), defaultDeps, requireAdmin() (+6 more)
+Cohesion: 0.15
+Nodes (17): AdminLayout(), AdminAccessDenied, AdminAuthDeps, AdminCheck, AdminContext, AdminDenialReason, checkAdmin(), defaultDeps (+9 more)
 
 ### Community 161 - "graphify"
 Cohesion: 0.40
 Nodes (4): Environment (verified on this machine), graphify, How to use this skill, Project rules
 
 ### Community 162 - "moderation-form.tsx"
-Cohesion: 0.09
-Nodes (25): ACTION_OPTIONS, describeFailure(), Field, FIELD_MESSAGES, FieldErrors, localInputToIso(), localTimeZone(), mapFieldErrors() (+17 more)
+Cohesion: 0.12
+Nodes (18): ACTION_OPTIONS, describeFailure(), Field, FIELD_MESSAGES, FieldErrors, localInputToIso(), localTimeZone(), mapFieldErrors() (+10 more)
 
 ### Community 163 - "Phase 7 Plan 01: Moderation Foundation and Admin Trust Boundary Summary"
 Cohesion: 0.22
 Nodes (8): Auto-fixed Issues, Deferred / Follow-ups, Deviations from Plan, Known Stubs, Phase 7 Plan 01: Moderation Foundation and Admin Trust Boundary Summary, Self-Check: PASSED, Verification (actual results), What was built
 
-### Community 164 - "@supabase/supabase-js"
-Cohesion: 0.10
-Nodes (31): purchaseChapterAction(), trackChapterOpenAction(), BLINDED_CONTENT_MESSAGE, canView(), ChapterAccessState, getChapterAccessState(), READER_ACCESS_STATES, UNAVAILABLE (+23 more)
+### Community 164 - "blinding.test.ts"
+Cohesion: 0.09
+Nodes (30): purchaseChapterAction(), ViewerPage(), ViewerShell(), purchase(), BLINDED_CONTENT_MESSAGE, ChapterAccessState, getChapterAccessState(), readChapterContent() (+22 more)
 
 ### Community 173 - "Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Context"
 Cohesion: 0.11
@@ -830,13 +866,13 @@ Nodes (17): Canonical References, Claude's Discretion, Deferred Ideas, Establish
 Cohesion: 0.10
 Nodes (20): Canonical References, Claude's Discretion, Deferred Ideas, Established Patterns, Existing Code Insights, Implementation Decisions, Integration Points, Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가 - Context (+12 more)
 
-### Community 175 - "[nodeId]/actions.ts"
-Cohesion: 0.20
-Nodes (14): createNodeAction(), getNodeContentAction(), listTemplateOptionsAction(), saveNodeContentAction(), KbNodeEditorPage(), CreateNodeDialog(), createFolder(), listTemplateOptions() (+6 more)
+### Community 175 - "Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Research"
+Cohesion: 0.11
+Nodes (17): Anti-Patterns to Avoid, Architectural Responsibility Map, Assumptions Log, Don't Hand-Roll, Environment Availability, Metadata, Output Limit Verification, Package Legitimacy Audit (+9 more)
 
 ### Community 176 - "shadow.ts"
-Cohesion: 0.10
-Nodes (25): QuickAddDialogProps, bucketFor(), ESTIMATED_COST_PER_CALL_USD, pickScenario(), recordDocumentSaveDecision(), runShadowPlan(), BUCKET_ORDER, casesFor() (+17 more)
+Cohesion: 0.13
+Nodes (20): bucketFor(), ESTIMATED_COST_PER_CALL_USD, pickScenario(), recordDocumentSaveDecision(), runShadowPlan(), BUCKET_ORDER, casesFor(), CATS (+12 more)
 
 ### Community 177 - "Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 — Research"
 Cohesion: 0.12
@@ -847,8 +883,8 @@ Cohesion: 0.29
 Nodes (6): Deviations from Plan, Known Stubs, Phase 8 Plan 08: Dev-only Provider Fixture Summary, Self-Check: PASSED, Tasks, Verification
 
 ### Community 179 - "chat-request.ts"
-Cohesion: 0.08
-Nodes (35): AiPanel(), buildPayload(), handleRegenerate(), handleRetry(), handleSend(), runAttempt(), showNotice(), AiPanelNoticeProps (+27 more)
+Cohesion: 0.10
+Nodes (27): AiPanel(), buildPayload(), handleRegenerate(), handleRetry(), handleSend(), runAttempt(), showNotice(), ChatOutcome (+19 more)
 
 ### Community 180 - "Phase 8 Plan 07: AiPanel Send Lifecycle + Legacy Gemini Removal Summary"
 Cohesion: 0.25
@@ -864,7 +900,7 @@ Nodes (9): Execution Evidence, Manual-Only Verifications, Per-Task Verification 
 
 ### Community 183 - "kb-node-dialogs.tsx"
 Cohesion: 0.12
-Nodes (33): GenerationSettings, TEMPLATE_GROUPS, TemplateChoice, createFolderAction(), deleteNodeAction(), renameNodeAction(), RANKING_BASIS_LABEL, CreateFolderDialog() (+25 more)
+Nodes (36): ByokCardData, initial, Props, RegisteredKey, Result, SaveRecommendation, GenerationSettings, SaveDocumentPlanModalProps (+28 more)
 
 ### Community 184 - "Admin moderation: deployment and verification record (07-07)"
 Cohesion: 0.29
@@ -883,8 +919,8 @@ Cohesion: 0.29
 Nodes (6): Deferred Issues, Deviations from Plan, Known Stubs, Phase 8 Plan 02: Gemini Provider Adapter + Platform Registry Summary, Self-Check: PASSED, Tasks
 
 ### Community 190 - "chat-refusal.test.ts"
-Cohesion: 0.09
-Nodes (28): computeDebitAmount(), ComputeDebitInput, computeMaxOutputTokens(), ComputeMaxOutputTokensInput, KRW_PER_WALLET_TOKEN, PER_REQUEST_MAX_OUTPUT_TOKENS, USD_TO_KRW, vendorTokensPerWalletToken() (+20 more)
+Cohesion: 0.11
+Nodes (20): GEMINI_PRICING_USD_PER_MILLION, GenerateResult, ProviderClient, adminState, input, session, setup(), adminState (+12 more)
 
 ### Community 191 - "BUG-04: 템플릿 재생성 시 문서 이름이 바뀌어 저장된다"
 Cohesion: 0.11
@@ -927,36 +963,36 @@ Cohesion: 0.25
 Nodes (7): Claude's Discretion, Deferred Ideas, Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가 - Discussion Log, 기본값·호출별 전환 동작, 모델 라인업·표기, 비용 추정 표시 방식, 사고 토큰 과금 (BUG-04)
 
 ### Community 201 - "settings.ts"
-Cohesion: 0.17
-Nodes (17): AiPanelProps, ByokKeyMeta, defaultModelFor(), isKnownModel(), PROVIDER_MODELS, ProviderModelInfo, ByokModelMap, KEY_SOURCE_LABEL (+9 more)
+Cohesion: 0.21
+Nodes (11): chatActionSchema, defaultModelFor(), isKnownModel(), PROVIDER_MODELS, ProviderModelInfo, Selection, FALLBACK, isProvider() (+3 more)
 
 ### Community 211 - "Phase 15: Jev AI Summary"
 Cohesion: 0.15
 Nodes (12): Accomplishments, Auto-fixed Issues (main-session verification pass), Decisions Made, Dependency graph, Deviations from Plan, Files Created/Modified, Metrics, Performance (+4 more)
 
 ### Community 212 - "cn"
-Cohesion: 0.10
-Nodes (29): MentionedNode, PRESET_LEVEL_META, PRESET_LEVELS, PROVIDER_LABELS, STYLE_IDS, AiPanelNotice(), DialogOverlay(), DropdownMenu() (+21 more)
+Cohesion: 0.07
+Nodes (46): CATEGORY_ICON, EMPTY_RESULTS, MentionAutocompleteProps, QuickAddDialog(), submit(), AccountPanel(), Command(), CommandDialog() (+38 more)
 
 ### Community 213 - "Goal Achievement"
 Cohesion: 0.15
 Nodes (12): Anti-Patterns Found, Behavioral Spot-Checks, Data-Flow Trace (Level 4), Gaps Summary, Goal Achievement, Human Verification, Key Link Verification, Observable Truths (ROADMAP Success Criteria) (+4 more)
 
 ### Community 214 - "jev.ts"
-Cohesion: 0.08
-Nodes (26): resolveChatPlanning(), OpaqueKeyMap, JEV_DEFAULT_TIMEOUT_MS, DecisionCallError, logDecisionFailure(), readStatus(), STATUS_TO_KIND, toSanitizedDecisionError() (+18 more)
+Cohesion: 0.10
+Nodes (19): OpaqueKeyMap, DecisionCallError, logDecisionFailure(), readStatus(), STATUS_TO_KIND, toSanitizedDecisionError(), createJevClient(), DEFAULT_INSTRUCTIONS (+11 more)
 
 ### Community 215 - "Phase 8 Plan 01: Provider Contracts, Error Scrubbing, Token Estimator Summary"
 Cohesion: 0.29
 Nodes (6): Deferred Issues, Deviations from Plan, Known Stubs, Phase 8 Plan 01: Provider Contracts, Error Scrubbing, Token Estimator Summary, Self-Check: PASSED, Tasks
 
-### Community 216 - "quick-add-folders.test.ts"
-Cohesion: 0.07
-Nodes (33): listCategoryFoldersAction(), loadSavePlanAction(), quickAddMentionAction(), saveDocumentProposalAction(), initialQuickAddFoldersState, QUICK_ADD_FOLDER_LOAD_FAILED, QuickAddFoldersAction, quickAddFoldersReducer() (+25 more)
+### Community 216 - "studio/[workId]/chapters/[chapterId]/actions.ts"
+Cohesion: 0.09
+Nodes (34): chatAction(), droppedFixtureKeys, listCategoryFoldersAction(), loadSavePlanAction(), proposalSchema, quickAddMentionAction(), regenerateSchema, resolveChatPlanning() (+26 more)
 
 ### Community 217 - "chat.ts"
-Cohesion: 0.08
-Nodes (49): ChatActionInput, ChatMessage, SendPayload, ChatMessageBubble(), ChatMessageBubbleProps, SaveDocumentPlanModalProps, chat(), ChatInput (+41 more)
+Cohesion: 0.09
+Nodes (37): chat(), parseChatResponse(), ParsedChatResponse, CHAT_COPY, ChatResult, ChatStatus, ContractCheck, DOCUMENT_CONTRACT_COPY (+29 more)
 
 ### Community 218 - "Phase 8 Plan 03: Idempotent Chat Orchestration Summary"
 Cohesion: 0.25
@@ -967,12 +1003,12 @@ Cohesion: 0.25
 Nodes (7): Deviations from Plan, Full-suite failure investigation (out of scope, not fixed), Known Stubs, Phase 8 Plan 06: Real-DB Idempotent Debit Evidence Summary, Self-Check: PASSED, Tasks, Verification
 
 ### Community 220 - "ai-providers/actions.ts"
-Cohesion: 0.19
-Nodes (18): deleteAccountAction(), AccountPage(), ActionResult, authorizedClients(), deleteByokKeyAction(), providerFrom(), providerSchema, recheckByokKeyAction() (+10 more)
+Cohesion: 0.24
+Nodes (14): ActionResult, authorizedClients(), deleteByokKeyAction(), providerFrom(), providerSchema, recheckByokKeyAction(), registerByokKeyAction(), sanitize() (+6 more)
 
 ### Community 221 - "paid-generation.ts"
-Cohesion: 0.12
-Nodes (18): VendorPricing, AI_GENERATION_REFERENCE_TYPE, alreadyProcessed(), failed(), findGenerationEntry(), PaidGenerationContext, PaidGenerationIdentity, preflightPaidGeneration() (+10 more)
+Cohesion: 0.16
+Nodes (23): computeDebitAmount(), ComputeDebitInput, computeMaxOutputTokens(), ComputeMaxOutputTokensInput, KRW_PER_WALLET_TOKEN, PER_REQUEST_MAX_OUTPUT_TOKENS, USD_TO_KRW, VendorPricing (+15 more)
 
 ### Community 222 - "Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Research"
 Cohesion: 0.05
@@ -1031,8 +1067,8 @@ Cohesion: 0.29
 Nodes (6): 04-02: @멘션 자동완성에서 Enter가 선택 대신 줄바꿈, 검증, 수정, 원인, 증상, 커밋
 
 ### Community 236 - "report-queue.tsx"
-Cohesion: 0.07
-Nodes (39): ACTION_TYPE_LABELS, LocalTime(), Pagination(), QueueTabs(), REPORT_STATUS_LABELS, reporterSummary(), ReportItemList(), ReportQueue() (+31 more)
+Cohesion: 0.10
+Nodes (31): AdminReportDetailPage(), AdminReviewDetailPage(), ACTION_TYPE_LABELS, ActionHistoryList(), LocalTime(), Pagination(), QueueTabs(), REPORT_STATUS_LABELS (+23 more)
 
 ### Community 237 - "15-01 — Jev 온보딩 및 DecisionClient"
 Cohesion: 0.33
@@ -1142,13 +1178,13 @@ Nodes (10): typescript, clientEntries, directive(), EXTENSIONS, findForbiddenCha
 Cohesion: 0.17
 Nodes (11): Accomplishments, Auto-fixed Issues, Decisions Made, Deviations from Plan, Files Created/Modified, Issues Encountered, Next Phase Readiness, Performance (+3 more)
 
-### Community 291 - "createClient"
-Cohesion: 0.08
-Nodes (43): submitEmail(), StudioLayout(), submitCreateChapter(), NewChapterPage(), submitReportAction(), toggleBookmarkAction(), toggleLikeAction(), toggleSubscriptionAction() (+35 more)
+### Community 291 - "sanctions.test.ts"
+Cohesion: 0.10
+Nodes (31): submitReportAction(), submitReportAction(), trackChapterOpenAction(), canView(), assertCanWrite(), checkWriteAccess(), deny(), WRITE_FORBIDDEN_MESSAGE (+23 more)
 
 ### Community 292 - "activation.ts"
-Cohesion: 0.11
-Nodes (27): ActivationStatus, AiDocPlanningMode, EVALUATOR_VERSION, failed(), getAiDocPlanningMode(), isWeakerThan(), keys, metricsPass() (+19 more)
+Cohesion: 0.10
+Nodes (28): ActivationStatus, AiDocPlanningMode, EVALUATOR_VERSION, failed(), getAiDocPlanningMode(), isWeakerThan(), keys, metricsPass() (+20 more)
 
 ### Community 293 - "Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Context"
 Cohesion: 0.10
@@ -1158,9 +1194,9 @@ Nodes (19): Canonical References, Claude's Discretion, Deferred Ideas, Establish
 Cohesion: 0.17
 Nodes (11): Accomplishments, Decisions Made, Deviations from Plan, Files Created/Modified, Issues and verification limits, Issues Encountered, Next Phase Readiness, Performance (+3 more)
 
-### Community 295 - "regenerate-document.test.ts"
-Cohesion: 0.20
-Nodes (8): REGENERATION_FAILED, ctx, db, input, mocks, proposal, provider, template
+### Community 295 - "KbCategory"
+Cohesion: 0.14
+Nodes (16): searchMentionsAction(), MentionCandidate, QuickAddDialogProps, DefaultFolderResolution, MentionCandidate, MentionedDoc, quickAddMentionNode(), resolveDefaultCategoryFolder() (+8 more)
 
 ### Community 296 - "Phase 15 Plan 05 Summary"
 Cohesion: 0.15
@@ -1170,33 +1206,33 @@ Nodes (12): Accomplishments, Auto-fixed Issues, Decisions Made, Deviations from 
 Cohesion: 0.17
 Nodes (11): Accomplishments, Decisions Made, Deviations from Plan, Files Created/Modified, Issues Encountered, Next Phase Readiness, Performance, Phase 15 Plan 09: Off-path verification and activation status Summary (+3 more)
 
-### Community 298 - "ByokKeyCards.tsx"
-Cohesion: 0.12
-Nodes (18): ByokCardData, initial, Props, RegisteredKey, Result, DialogClose(), DialogDescription(), DialogTrigger() (+10 more)
+### Community 298 - "lucide-react"
+Cohesion: 0.26
+Nodes (9): FeedCard(), Badge(), badgeVariants, Tooltip(), TooltipContent(), TooltipTrigger(), FeedWork, formatKoreanCount() (+1 more)
 
 ### Community 299 - "user-actions.ts"
-Cohesion: 0.13
-Nodes (17): LoadState, BLINDED_ENTITLED_NOTE, BLINDED_WORK_NOTE, NOTICE_ACK_ERROR, NOTICE_ACK_LABEL, NOTICE_LOAD_ERROR, NOTICE_TITLE, requestSchema (+9 more)
+Cohesion: 0.06
+Nodes (54): AccountNotices(), LoadState, WarningItem(), acknowledge(), TocBadge(), ReaderAccessState, PublicChapter, PublicChapterListItem (+46 more)
 
 ### Community 300 - "lib/admin/actions.ts"
 Cohesion: 0.09
 Nodes (21): callRpc(), Failure, moderateReportGroup(), ModerateReportGroupInput, moderationSchema, OPERATIVE, REASON_REQUIRED_MESSAGE, resolveReviewRequest() (+13 more)
 
 ### Community 301 - "4. 자사 LLM 학습을 위한 데이터 이용권 — "파운데이션 작가 프로그램""
-Cohesion: 0.12
-Nodes (16): 1. 배경 — 저작권 리스크 검증 요약, 2. 이용약관 책임구조 — 법적 근거, 3. 구상권 행사 범위 — a/b 병기 확정안, 4. 자사 LLM 학습을 위한 데이터 이용권 — "파운데이션 작가 프로그램", 5. 결정 사항 (2026-09-26 논의 반영), API 티어 전환 계획, BYOK(Bring Your Own Key) 화이트리스트, NovelScript 이용약관 책임구조 및 저작권 리스크 대응안 (+8 more)
+Cohesion: 0.11
+Nodes (17): 1. 배경 — 저작권 리스크 검증 요약, 2-1. 추가 조항 초안 (2026-09-29 보완, 같은 날 gpt-6-astra 2회·Opus 5.5 검토 반영), 2. 이용약관 책임구조 — 법적 근거, 3. 구상권 행사 범위 — a/b 병기 확정안, 4. 자사 LLM 학습을 위한 데이터 이용권 — "파운데이션 작가 프로그램", 5. 결정 사항 (2026-09-26 논의 반영), API 티어 전환 계획, BYOK(Bring Your Own Key) 화이트리스트 (+9 more)
 
-### Community 302 - "ViewerShell"
-Cohesion: 0.67
-Nodes (3): ViewerShell(), purchase(), viewerLockModel
+### Community 302 - "NovelScript 이용약관 — 변호사 자문 필요사항"
+Cohesion: 0.10
+Nodes (19): 0. 이 문서의 위치와 신뢰도, 1. 법령 사실 확인 상태 (원문 대조 필요), 2. 우선순위 A — 약관 구조를 바꿀 수 있는 질문, 3. 우선순위 B — 문구·수치 확정, 4. 우선순위 C — 파운데이션 작가 프로그램(§4)과 AI 학습, 5. 대응안이 다루지 못한 영역 — 자문 범위에 넣을지 검토, 6. 의뢰 시 함께 전달할 자료, 7. 자문 후 후속 작업 (+11 more)
 
 ### Community 303 - "15-01: 회차 편집기 Turbopack fs 패닉 수정"
 Cohesion: 0.29
 Nodes (6): 15-01: 회차 편집기 Turbopack fs 패닉 수정, 검증, 수정, 원인, 증상, 커밋
 
-### Community 304 - "ai-providers/page.tsx"
-Cohesion: 0.24
-Nodes (13): ByokKeyCards(), AiProvidersSettingsPage(), listByokKeys(), loadConnectedByokModels(), buildModelChoices(), encodeSelection(), intersectWithCatalog(), resolveDeleteReplacement() (+5 more)
+### Community 304 - "byok-settings-ui.test.ts"
+Cohesion: 0.33
+Nodes (5): ByokKeyCards(), html(), MockProps, pageHtml(), pageMocks
 
 ### Community 305 - "chapters"
 Cohesion: 0.28
@@ -1214,9 +1250,9 @@ Nodes (4): Phase 9 Plan 00 Summary, Scope notes, Tasks and TDD evidence, Verific
 Cohesion: 0.40
 Nodes (4): Phase 9 Plan 03 Summary, Remaining integration, Task order and test evidence, Verification
 
-### Community 309 - "studio/[workId]/chapters/[chapterId]/actions.ts"
-Cohesion: 0.16
-Nodes (12): chatActionSchema, droppedFixtureKeys, getChapterAction(), proposalSchema, publishChapterAction(), regenerateSchema, saveChapterContentAction(), SaveRecommendation (+4 more)
+### Community 309 - "AiPanel.tsx"
+Cohesion: 0.10
+Nodes (23): ChatMessage, MentionedNode, PRESET_LEVEL_META, PRESET_LEVELS, PROVIDER_LABELS, STYLE_IDS, ChatMessageBubble(), ChatMessageBubbleProps (+15 more)
 
 ### Community 310 - "Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Discussion Log"
 Cohesion: 0.15
@@ -1231,16 +1267,16 @@ Cohesion: 0.15
 Nodes (12): 1. 저장 확인 모달·재생성·QuickAdd 브라우저 UAT (Plan 15-09 Task 2), Anti-Patterns Found, Behavioral Spot-Checks, Gaps Summary, Goal Achievement, Human Verification Required, Important framing (per verification brief), Key Link Verification (+4 more)
 
 ### Community 313 - "admin/page.tsx"
-Cohesion: 0.29
-Nodes (9): AdminLayout(), AdminQueuePage(), failLoad(), AdminReportDetailPage(), AdminReviewDetailPage(), requireAdminPage(), first(), parseQueueParams() (+1 more)
+Cohesion: 0.60
+Nodes (4): AdminQueuePage(), failLoad(), listReviewRequests(), AdminErrorCode
 
 ### Community 314 - "2. BUG-03 — 템플릿 카테고리 폴더 구조"
 Cohesion: 0.17
 Nodes (11): 0. 준비 (테스트 DB 전용 — 운영 DB 금지), 1. BUG-02 — 저장 모달 셀렉트가 UUID 대신 이름 표시, 2-1. KB 트리 구조 (작품/계정 각각), 2-2. 카테고리 지정 UI, 2-3. 저장 모달의 템플릿 목록 (핵심 회귀), 2-4. 문서 만들기 다이얼로그, 2-5. AI 추천, 2. BUG-03 — 템플릿 카테고리 폴더 구조 (+3 more)
 
-### Community 315 - "works/actions.ts"
-Cohesion: 0.11
-Nodes (20): WorkListPage(), submitCreateWork(), NewWorkPage(), ViewerPage(), WriteDenialCode, UpgradeResult, ChapterMutationResult, getPublicChapter() (+12 more)
+### Community 315 - "createClient"
+Cohesion: 0.10
+Nodes (24): deleteAccountAction(), AccountPage(), submitEmail(), StudioLayout(), WorkListPage(), publishChapterAction(), saveChapterContentAction(), unpublishChapterAction() (+16 more)
 
 ### Community 316 - "Phase 9 Plan 01 Summary"
 Cohesion: 0.40
@@ -1258,17 +1294,17 @@ Nodes (6): 15-03: 템플릿 카테고리 폴더 구조 수정 (일부), 검증, 
 Cohesion: 0.29
 Nodes (6): 1. QuickAddDialog 폴더 선택기 (D-12), 2. SaveDocumentPlanModal — 저장 확인 모달·템플릿 재생성·이동/삭제 race, Current Test, Gaps, Summary, Tests
 
-### Community 320 - "mentions.ts"
-Cohesion: 0.12
-Nodes (17): DefaultFolderResolution, getMentionedNodesContent(), quickAddMentionNode(), resolveDefaultCategoryFolder(), createNode(), listCategoryFolderCandidates(), MAX_FOLDER_DEPTH, candidateClient() (+9 more)
+### Community 320 - "kb/actions.ts"
+Cohesion: 0.08
+Nodes (39): initialQuickAddFoldersState, QUICK_ADD_FOLDER_LOAD_FAILED, QuickAddFoldersAction, quickAddFoldersReducer(), QuickAddFoldersState, createFolderAction(), createNodeAction(), deleteNodeAction() (+31 more)
 
-### Community 321 - "moderation/actions.ts"
-Cohesion: 0.22
-Nodes (10): AccountNotices(), getAccountNoticesAction(), ReviewPanelState, AccountNoticesResult, AcknowledgeResult, getAccountNotices(), REVIEW_ERRORS, ReviewRequestResult (+2 more)
+### Community 321 - "Phase 11 — UI Design Contract"
+Cohesion: 0.13
+Nodes (14): AI 패널 — 대체 동의 (D-06, PROV-06), AI 패널 — 실패 알림 카드 (D-04, D-05, D-06), AI 패널 — 표시 (D-01, D-03), Checker Sign-Off, Color, Copywriting Contract, Design System, Interaction Contract (+6 more)
 
 ### Community 322 - "0001_init.sql"
-Cohesion: 0.53
-Nodes (5): apply_wallet_delta(), handle_new_user(), ledger_entries, on_auth_user_created, wallets
+Cohesion: 0.31
+Nodes (6): apply_wallet_delta(), handle_new_user(), ledger_entries, on_auth_user_created, wallets, pay_purchase_order()
 
 ### Community 323 - "Q: BUG-01 문서에 Gemini 생성 후 Jev가 폴더 위치를 결정하는 해결 설계를 반영"
 Cohesion: 0.40
@@ -1290,37 +1326,37 @@ Nodes (3): Phase 9 Plan 02 Summary, Tasks and test-first evidence, Verification 
 Cohesion: 0.18
 Nodes (10): Checker Recommendations (non-blocking, 실행 시 반영), Checker Sign-Off, Color, Copywriting Contract, Design System, Interaction Contract, Phase 10 — UI Design Contract, Registry Safety (+2 more)
 
-### Community 329 - "popover.tsx"
-Cohesion: 0.25
-Nodes (8): AccountPanel(), Popover(), PopoverContent(), PopoverDescription(), PopoverHeader(), PopoverTitle(), PopoverTrigger(), signOutAction()
+### Community 329 - "payments/actions.ts"
+Cohesion: 0.21
+Nodes (15): authenticatedUserId(), createTopupOrderAction(), getTopupOrderStatusAction(), orderIdSchema, safeReturnPath(), tierIdSchema, createTopupOrder(), getTopupOrderStatus() (+7 more)
 
-### Community 330 - "provider-anthropic.test.ts"
-Cohesion: 0.25
-Nodes (5): ANTHROPIC_PRICING_USD_PER_MILLION, mapAnthropicResponse(), params, sdk, usage
-
-### Community 331 - "getReviewPanelStateAction"
+### Community 330 - "ai-providers/page.tsx"
 Cohesion: 0.29
-Nodes (9): WorkHomePage(), ReviewRequestPanel(), submit(), getReviewPanelStateAction(), requestReviewAction(), getReviewTargetState(), loadOwnedTarget(), requestReview() (+1 more)
+Nodes (13): AiProvidersSettingsPage(), getChapterAction(), AiPanelProps, listByokKeys(), loadConnectedByokModels(), buildModelChoices(), ByokModelMap, encodeSelection() (+5 more)
+
+### Community 331 - "SaveDocumentPlanModal"
+Cohesion: 0.24
+Nodes (7): SaveDocumentPlanModal(), doSave(), handleConfirm(), handleRegenConfirm(), mock, proposal, renderModal()
 
 ### Community 332 - "Phase 10 — Validation Strategy"
-Cohesion: 0.22
-Nodes (8): CONTEXT 결정 → 검증 매핑, Manual-Only Verifications, Per-Task Verification Map, Phase 10 — Validation Strategy, Sampling Rate, Test Infrastructure, Validation Sign-Off, Wave 0 Requirements
+Cohesion: 0.17
+Nodes (11): CONTEXT 결정 → 검증 매핑, Manual-Only Verifications, Per-Task Verification Map, Phase 10 — Validation Strategy, Sampling Rate, Test Infrastructure, Validation Sign-Off, Wave 0 Requirements (+3 more)
 
-### Community 334 - "route.ts"
-Cohesion: 0.53
-Nodes (3): GET(), needsEmailCompletion(), OAuthUserLike
+### Community 334 - "Phase 5 Plan 2: Owned Orders and Toss API Client Summary"
+Cohesion: 0.12
+Nodes (16): Accomplishments, Auto-fixed Issues, Dependency graph, Deviations from Plan, Files Created/Modified, Issues Encountered, Known Stubs, Metrics (+8 more)
 
 ### Community 335 - "Phase 9 Plan 05 Summary"
 Cohesion: 0.33
 Nodes (5): Human verification remaining, Phase 9 Plan 05 Summary, Plan deviation, Task order and test evidence, Verification
 
-### Community 336 - "session"
-Cohesion: 0.43
-Nodes (7): session(), fakeClient(), canWrite(), doInsert(), from(), visible(), useSession()
+### Community 336 - "Implementation Decisions"
+Cohesion: 0.22
+Nodes (9): Claude's Discretion, Deferred Ideas, Implementation Decisions, Phase Boundary, User Constraints (from CONTEXT.md), 사용 기록 `ai_usage` (COST-02), 실패 안내 · 재시도 · 대체 (BYOK-05, PROV-06), 이번 달 사용량 화면 (BYOK-07) (+1 more)
 
-### Community 337 - "chat-result.ts"
-Cohesion: 0.18
-Nodes (7): CHAT_COPY, ChatFailureKind, ChatRefusalInfo, ChatStatus, RefusalReasonCode, h, grantedUser()
+### Community 337 - "admin/types.ts"
+Cohesion: 0.14
+Nodes (14): ADMIN_ACTION_TYPES, AdminActionRecord, EffectiveSanction, ModerationTarget, ModerationTargetType, REVIEW_REQUEST_STATUSES, ReviewRequestDetail, ReviewRequestSummary (+6 more)
 
 ### Community 338 - "10-02 Summary"
 Cohesion: 0.40
@@ -1334,9 +1370,9 @@ Nodes (4): 10-03 Summary, Deferred / Known, Deviations, Self-Check: PASSED
 Cohesion: 0.40
 Nodes (4): Observed contract, Supabase Vault Probe, 결론, 마이그레이션 검증
 
-### Community 342 - "acknowledgeWarningAction"
-Cohesion: 0.67
-Nodes (4): WarningItem(), acknowledge(), acknowledgeWarningAction(), acknowledgeWarning()
+### Community 342 - "Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Discussion Log"
+Cohesion: 0.25
+Nodes (7): Claude's Discretion, Deferred Ideas, Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX - Discussion Log, 사용 기록(ai_usage) 범위, 실패 안내 · 재시도 UX, 이번 달 사용량 화면, 패널 표시 · 출력 상한
 
 ### Community 343 - "10-00 Summary"
 Cohesion: 0.50
@@ -1354,33 +1390,133 @@ Nodes (3): 10-04 Summary, Deferred, Self-Check: PASSED
 Cohesion: 0.50
 Nodes (3): 10-05 Summary, Deviations, Self-Check: PASSED
 
+### Community 354 - "Recommended Architecture"
+Cohesion: 0.25
+Nodes (8): 1. 요청 의도와 신뢰된 실행 라우트를 분리한다, 2. 키 해석은 단일 서버 경계에서, 호출 직전에 한다, 3. 무효 키 상태 변경은 “그때 호출한 키 id”에만 적용한다, 4. `ai_usage`는 원장과 독립된 최소 append-only 테이블로 만든다, 5. 사용량 기록은 best-effort지만 호출 결과보다 먼저 관측한다, 6. KST 월 집계는 명시적 UTC 반개구간을 쓴다, 7. 모든 생성 진입점을 공통 경로로 수렴시킨다, Recommended Architecture
+
+### Community 355 - "10-06 Summary"
+Cohesion: 0.29
+Nodes (6): 10-06 Summary, Known gaps, Self-Check: PARTIAL (위 Known gaps 참조), Task 1 (자동 게이트), Task 2 (UAT), UAT 중 발견·수정한 결함
+
+### Community 356 - "Common Pitfalls"
+Cohesion: 0.33
+Nodes (6): Common Pitfalls, Idempotency의 범위, Refusal usage 조건, Service fallback와 동일 멱등 키, UI refresh와 stale selection, 사용량 숫자 타입
+
+### Community 357 - "Suggested File Plan"
+Cohesion: 0.33
+Nodes (6): Suggested File Plan, Wave 0 — 검증 기반, Wave 1 — DB와 순수 도메인, Wave 2 — 공통 생성 수명주기, Wave 3 — UI, Wave 4 — 통합/실 API 검증
+
+### Community 358 - "Validation Architecture"
+Cohesion: 0.40
+Nodes (5): Nyquist-specific planning rule, Recommended commands, Requirement-to-evidence matrix, Test layers, Validation Architecture
+
+### Community 359 - "Open Questions for Planning"
+Cohesion: 0.50
+Nodes (4): 1. Anthropic user-defined spend limit 400, 2. Post-provider write denial도 usage로 남길지, 3. Regeneration의 `chapter_id`, Open Questions for Planning
+
+### Community 360 - "Sources"
+Cohesion: 0.50
+Nodes (4): Local framework/SDK sources, Official provider sources, Primary project sources, Sources
+
+### Community 362 - "UI Integration Guidance"
+Cohesion: 0.67
+Nodes (3): AI panel, BYOK settings cards, UI Integration Guidance
+
+### Community 363 - "categories.ts"
+Cohesion: 0.25
+Nodes (11): common, datasetHash(), FOLDER_TEMPLATE_SET_FILE, FolderTemplateItemSchema, GOLDEN_SET_FILE, GoldenItemSchema, loadFolderTemplateSet(), loadGoldenSet() (+3 more)
+
+### Community 364 - "jev-plan.test.ts"
+Cohesion: 0.16
+Nodes (7): DECISION_FIXTURE_MODES, DecisionFixtureMode, readDecisionFixture(), DecisionResult, db, kbMocks, state
+
+### Community 365 - "ai-panel-notice.test.ts"
+Cohesion: 0.26
+Nodes (10): AiPanelNotice(), AiPanelNoticeProps, ChatNotice, insufficient, noop(), outputs, processed, rateLimited (+2 more)
+
+### Community 366 - "Phase 5 Plan 1: Payment Contract and Order Schema Summary"
+Cohesion: 0.18
+Nodes (10): Accomplishments, Deviations from Plan, Files Created/Modified, Known Stubs, Next Phase Readiness, Performance, Phase 5 Plan 1: Payment Contract and Order Schema Summary, Self-Check: PASSED (+2 more)
+
+### Community 367 - "operations.database.test.ts"
+Cohesion: 0.35
+Nodes (9): as(), asOwner(), counts(), op(), OpInput, report(), reportRow(), scalar() (+1 more)
+
+### Community 368 - "ProviderId"
+Cohesion: 0.36
+Nodes (8): ChatActionInput, SendPayload, ChatInput, ChatTurn, PresetLevel, StylePresetId, ProviderId, cases
+
+### Community 369 - "concurrency.database.test.ts"
+Cohesion: 0.31
+Nodes (7): barrier(), one(), race(), report(), Session, settle(), Settled
+
+### Community 370 - "foundation.database.test.ts"
+Cohesion: 0.44
+Nodes (7): as(), asOwner(), auditAction(), cache(), grantAdmin(), sanction(), scalar()
+
+### Community 371 - "folder-candidates.test.ts"
+Cohesion: 0.25
+Nodes (6): MAX_FOLDER_DEPTH, candidateClient(), query, FolderRow, input, root
+
+### Community 372 - "Phase 11 — Validation Strategy"
+Cohesion: 0.25
+Nodes (7): Manual-Only Verifications, Per-Task Verification Map, Phase 11 — Validation Strategy, Sampling Rate, Test Infrastructure, Validation Sign-Off, Wave 0 Requirements
+
+### Community 373 - "blinding.database.test.ts"
+Cohesion: 0.39
+Nodes (6): as(), asOwner(), blind(), financialSnapshot(), scalar(), state()
+
+### Community 374 - "toss.ts"
+Cohesion: 0.57
+Nodes (5): authorizationHeader(), confirmPayment(), getPaymentByOrderId(), readResult(), TossApiResult
+
+### Community 375 - "probe-vault.mjs"
+Cohesion: 0.43
+Nodes (5): classifyProbeError(), main(), rows(), runVaultProbe(), SAFE_ERROR_CLASSES
+
+### Community 376 - "byok-actions.test.ts"
+Cohesion: 0.29
+Nodes (6): Chain, deps, keyRow, mocks, profileRow, sessionClient
+
+### Community 377 - "route.ts"
+Cohesion: 0.53
+Nodes (3): GET(), needsEmailCompletion(), OAuthUserLike
+
+### Community 378 - "getReviewPanelStateAction"
+Cohesion: 0.60
+Nodes (5): WorkHomePage(), ReviewRequestPanel(), submit(), getReviewPanelStateAction(), getWork()
+
+### Community 380 - "fakeClient"
+Cohesion: 0.53
+Nodes (6): fakeClient(), canWrite(), doInsert(), from(), visible(), useSession()
+
 ## Knowledge Gaps
-- **1734 isolated node(s):** `bug03_before`, `UnblindTargetFormInput`, `ActionResult`, `geistSans`, `geistMono` (+1729 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2070 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **67 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1894 isolated node(s):** `bug03_before`, `UnblindTargetFormInput`, `ActionResult`, `geistSans`, `geistMono` (+1889 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2252 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **78 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Work-memory lessons
 
 **Preferred sources** — corroborated by past sessions; start here.
-- `prompt.ts` (2× useful, score=1.992741223) _(code changed — re-verify)_
-- `DocumentProposal` (2× useful, score=1.992741223) _(code changed — re-verify)_
-- `BUG-01-proposal-save-nested-category-folder.md` (2× useful, score=1.992697665) _(code changed — re-verify)_
-- `lib/chapters/actions.ts` (2× useful, score=1.448728297) _(code changed — re-verify)_
+- `prompt.ts` (2× useful, score=1.639712538)
+- `DocumentProposal` (2× useful, score=1.639712538)
+- `BUG-01-proposal-save-nested-category-folder.md` (2× useful, score=1.639676696)
+- `lib/chapters/actions.ts` (2× useful, score=1.192075482)
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `vitest` connect `vitest` to `providers/types.ts`, `plan.ts`, `app/admin/actions.ts`, `package.json`, `MentionAutocomplete.tsx`, `run-eval.ts`, `byok.ts`, `session-refresh.test.ts`, `kb/actions.ts`, `auth.ts`, `user-flows.test.ts`, `client-bundle-fs-free.test.ts`, `createClient`, `@supabase/supabase-js`, `activation.ts`, `regenerate-document.test.ts`, `lib/admin/actions.ts`, `[nodeId]/actions.ts`, `ai-providers/page.tsx`, `shadow.ts`, `chat-request.ts`, `operations.database.test.ts`, `works/actions.ts`, `chat-refusal.test.ts`, `mentions.ts`, `settings.ts`, `provider-anthropic.test.ts`, `route.ts`, `chat-result.ts`, `cn`, `jev.ts`, `quick-add-folders.test.ts`, `chat.ts`, `ai-providers/actions.ts`, `paid-generation.ts`, `lib/chapters/actions.ts`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **Why does `@supabase/supabase-js` connect `@supabase/supabase-js` to `vitest`, `plan.ts`, `package.json`, `run-eval.ts`, `byok.ts`, `app/page.tsx`, `kb/actions.ts`, `auth.ts`, `user-flows.test.ts`, `createClient`, `activation.ts`, `regenerate-document.test.ts`, `user-actions.ts`, `lib/admin/actions.ts`, `[nodeId]/actions.ts`, `shadow.ts`, `works/actions.ts`, `chat-refusal.test.ts`, `mentions.ts`, `settings.ts`, `quick-add-folders.test.ts`, `chat.ts`, `ai-providers/actions.ts`, `paid-generation.ts`, `lib/chapters/actions.ts`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
-- **Why does `createClient()` connect `createClient` to `providers/types.ts`, `MentionAutocomplete.tsx`, `app/page.tsx`, `kb/actions.ts`, `auth.ts`, `@supabase/supabase-js`, `[nodeId]/actions.ts`, `ai-providers/page.tsx`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `kb-node-dialogs.tsx`, `works/actions.ts`, `moderation/actions.ts`, `popover.tsx`, `getReviewPanelStateAction`, `route.ts`, `session`, `quick-add-folders.test.ts`, `ai-providers/actions.ts`, `lib/chapters/actions.ts`?**
-  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **Why does `vitest` connect `vitest` to `providers/types.ts`, `plan.ts`, `app/admin/actions.ts`, `package.json`, `MentionAutocomplete`, `run-eval.ts`, `byok.ts`, `app/page.tsx`, `session-refresh.test.ts`, `[workId]/layout.tsx`, `auth.ts`, `client-bundle-fs-free.test.ts`, `sanctions.test.ts`, `blinding.test.ts`, `activation.ts`, `KbCategory`, `user-actions.ts`, `lib/admin/actions.ts`, `byok-settings-ui.test.ts`, `shadow.ts`, `chat-request.ts`, `postgres`, `chat-refusal.test.ts`, `kb/actions.ts`, `settings.ts`, `ai-providers/page.tsx`, `SaveDocumentPlanModal`, `payments/actions.ts`, `jev.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `chat.ts`, `ai-providers/actions.ts`, `paid-generation.ts`, `categories.ts`, `jev-plan.test.ts`, `ai-panel-notice.test.ts`, `operations.database.test.ts`, `ProviderId`, `concurrency.database.test.ts`, `foundation.database.test.ts`, `folder-candidates.test.ts`, `blinding.database.test.ts`, `toss.ts`, `byok-actions.test.ts`, `route.ts`, `lib/chapters/actions.ts`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+- **Why does `@supabase/supabase-js` connect `@supabase/supabase-js` to `providers/types.ts`, `vitest`, `plan.ts`, `package.json`, `run-eval.ts`, `byok.ts`, `app/page.tsx`, `auth.ts`, `sanctions.test.ts`, `blinding.test.ts`, `activation.ts`, `KbCategory`, `user-actions.ts`, `lib/admin/actions.ts`, `shadow.ts`, `chat-refusal.test.ts`, `kb/actions.ts`, `settings.ts`, `ai-providers/page.tsx`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `chat.ts`, `ai-providers/actions.ts`, `paid-generation.ts`, `jev-plan.test.ts`, `lib/chapters/actions.ts`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+- **Why does `createClient()` connect `createClient` to `providers/types.ts`, `kb/actions.ts`, `auth.ts`, `sanctions.test.ts`, `blinding.test.ts`, `KbCategory`, `package.json`, `ai-providers/page.tsx`, `user-actions.ts`, `payments/actions.ts`, `@supabase/supabase-js`, `app/page.tsx`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `route.ts`, `getReviewPanelStateAction`, `ai-providers/actions.ts`, `[workId]/layout.tsx`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **What connects `bug03_before`, `UnblindTargetFormInput`, `ActionResult` to the rest of the system?**
-  _1734 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1894 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `providers/types.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.08007013442431327 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05712050078247261 - nodes in this community are weakly interconnected._
 - **Should `vitest` be split into smaller, more focused modules?**
-  _Cohesion score 0.13650075414781296 - nodes in this community are weakly interconnected._
-- **Should `button.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.09716599190283401 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11623376623376623 - nodes in this community are weakly interconnected._
+- **Should `viewer-shell.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.11692307692307692 - nodes in this community are weakly interconnected._

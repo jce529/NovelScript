@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-22T05:04:53.781415+00:00",
+  "generated_at": "2026-09-30T15:37:33.085118+00:00",
   "nodes": {
     "_planning_phases_05_real_payment_integration_05_context_payment_decisions": {
-      "code_fingerprint": "ab4b1f3cd7f60ab5468dac0a01e64295e21f8c263380eb3a3846a870c547be9c",
+      "code_fingerprint": "866382bc2da3ac3b01aee8759d0892be36f050f28f7c9facec511768d14c6bb9",
       "label": "Real Payment Integration Decisions",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -12,13 +12,13 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.724089652,
+      "score": 0.595811873,
       "source_file": ".planning/phases/05-real-payment-integration/05-CONTEXT.md",
       "status": "tentative",
       "uses": 1
     },
     "app_login_page": {
-      "code_fingerprint": "17e3cf8ca92f6a6b4bcda691129a3ec18d71adb7d63a4debca38c685b8b9801d",
+      "code_fingerprint": "7b322f79ffe8a3dbcdeee91640636310757749d898c4ea5835c433e6a205bd40",
       "label": "login/page.tsx",
       "last": "2026-09-08T06:31:18.610313+00:00",
       "provenance": [
@@ -28,13 +28,13 @@
           "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
         }
       ],
-      "score": 0.724638646,
+      "score": 0.596263609,
       "source_file": "app/login/page.tsx",
       "status": "tentative",
       "uses": 1
     },
     "app_studio_workid_chapters_chapterid_actions_getchapteraction": {
-      "code_fingerprint": "1e0ad4d09aad42cb38ac8566bdc83fb744256789ef2824c70df15d346468d19b",
+      "code_fingerprint": "04edffd4a22053cfa879238093904909830e1c4673b93da9c4a36c5cc789be79",
       "label": "getChapterAction()",
       "last": "2026-09-08T06:31:18.610313+00:00",
       "provenance": [
@@ -44,13 +44,13 @@
           "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
         }
       ],
-      "score": 0.724638646,
+      "score": 0.596263609,
       "source_file": "app/studio/[workId]/chapters/[chapterId]/actions.ts",
       "status": "tentative",
       "uses": 1
     },
     "app_studio_workid_chapters_chapterid_actions_savedocumentproposalaction": {
-      "code_fingerprint": "1e0ad4d09aad42cb38ac8566bdc83fb744256789ef2824c70df15d346468d19b",
+      "code_fingerprint": "04edffd4a22053cfa879238093904909830e1c4673b93da9c4a36c5cc789be79",
       "label": "saveDocumentProposalAction()",
       "last": "2026-09-22T01:14:25.063863+00:00",
       "provenance": [
@@ -60,13 +60,13 @@
           "q": "현재 문서 생성할 때 Gemini가 어떤 식으로 생성하는가"
         }
       ],
-      "score": 0.996308783,
+      "score": 0.819805394,
       "source_file": "app/studio/[workId]/chapters/[chapterId]/actions.ts",
       "status": "tentative",
       "uses": 1
     },
     "app_studio_workid_chapters_chapterid_ai_panel_aipanel": {
-      "code_fingerprint": "d37f908a69532c73aa6393345a1ffd6457c5f78e83cd28b9061b729c600ce0a8",
+      "code_fingerprint": "f7178aca879838b9dc861c124ee426b3939c933d8044e96148ee02d63742e97d",
       "label": "AiPanel.tsx",
       "last": "2026-09-22T01:14:25.063863+00:00",
       "provenance": [
@@ -76,13 +76,13 @@
           "q": "현재 문서 생성할 때 Gemini가 어떤 식으로 생성하는가"
         }
       ],
-      "score": 0.996308783,
+      "score": 0.819805394,
       "source_file": "app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel.tsx",
       "status": "tentative",
       "uses": 1
     },
     "app_studio_workid_chapters_chapterid_ai_panel_quickadddialog": {
-      "code_fingerprint": "305e13937be35d716902650a4ca37c77661f2a1fa7e2be525d5f12a44a321c6a",
+      "code_fingerprint": "e956fa0c61a97ec67c9eb03474ab141d8c98f294732143fa7550fc91e87511b6",
       "label": "QuickAddDialog.tsx",
       "last": "2026-09-22T01:11:41.571841+00:00",
       "provenance": [
@@ -92,13 +92,13 @@
           "q": "BUG-01 문서에 Gemini 생성 후 Jev가 폴더 위치를 결정하는 해결 설계를 반영"
         }
       ],
-      "score": 0.996265224,
+      "score": 0.819769552,
       "source_file": "app/studio/[workId]/chapters/[chapterId]/ai-panel/QuickAddDialog.tsx",
       "status": "tentative",
       "uses": 1
     },
     "components_reader_toc_sheet": {
-      "code_fingerprint": "e45fbff285ad0b631970aa1c7d745ea33796dd5e223c0beaa63c4d66b1f48584",
+      "code_fingerprint": "014b9040a4bdda7367b4a186e4f17d2375b97aba70479a665efc2feafb984284",
       "label": "toc-sheet.tsx",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -108,13 +108,13 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.724089652,
+      "score": 0.595811873,
       "source_file": "components/reader/toc-sheet.tsx",
       "status": "tentative",
       "uses": 1
     },
     "components_reader_viewer_shell": {
-      "code_fingerprint": "c77b41b952d07eba171de8460be5c7579a186cb201994aa7b021054a03d50989",
+      "code_fingerprint": "2af5886ba97748a41cde58a26b0cff8e3ddd5cbb8dd914b97f651574c80c93e8",
       "label": "viewer-shell.tsx",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -124,13 +124,13 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.724089652,
+      "score": 0.595811873,
       "source_file": "components/reader/viewer-shell.tsx",
       "status": "tentative",
       "uses": 1
     },
     "docs_ssot_epics_ddmjkqzqpk1w1e5hisfvy_overview_authentication_callback_overview": {
-      "code_fingerprint": "973c7c26e84e615fad6b4ff67d0100c26949b65c509793b5b25cab7cbce19055",
+      "code_fingerprint": "8a1a3721a7e62dc41cc9058bfca1643f98ef08797be6d65deac8a3671b5188ec",
       "label": "Authentication Callback Overview",
       "last": "2026-09-08T06:31:18.610313+00:00",
       "provenance": [
@@ -140,13 +140,13 @@
           "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
         }
       ],
-      "score": 0.724638646,
+      "score": 0.596263609,
       "source_file": "docs/ssot/epics/ddmjKqZQPK1w1e5HiSfvy/overview.md",
       "status": "tentative",
       "uses": 1
     },
     "lib_ai_chat_chat": {
-      "code_fingerprint": "9721332d0d4cd63677c946d99d1c0a936a5e0aec9585c844c1eadde664277c34",
+      "code_fingerprint": "dae3fe00e0690f19fcee9a4fb5e315316d222e36caebd8a9a5651f4fd9e095c4",
       "label": "chat()",
       "last": "2026-09-22T01:14:25.063863+00:00",
       "provenance": [
@@ -156,13 +156,13 @@
           "q": "현재 문서 생성할 때 Gemini가 어떤 식으로 생성하는가"
         }
       ],
-      "score": 0.996308783,
+      "score": 0.819805394,
       "source_file": "lib/ai/chat.ts",
       "status": "tentative",
       "uses": 1
     },
     "lib_ai_mentions_quickaddmentionnode": {
-      "code_fingerprint": "e74de131ae97bef14c7aa4ebfd7ea9c75624aba52a97bfca0fc10ad8a19cf5d8",
+      "code_fingerprint": "cd56e81889c24301ded84e62a0d1ef442fb1773ed9cc760d1526ed17cdbc2663",
       "label": "quickAddMentionNode()",
       "last": "2026-09-22T01:11:41.571841+00:00",
       "provenance": [
@@ -172,13 +172,13 @@
           "q": "BUG-01 문서에 Gemini 생성 후 Jev가 폴더 위치를 결정하는 해결 설계를 반영"
         }
       ],
-      "score": 0.996265224,
+      "score": 0.819769552,
       "source_file": "lib/ai/mentions.ts",
       "status": "tentative",
       "uses": 1
     },
     "lib_ai_prompt": {
-      "code_fingerprint": "765e6dab8ff33ecf7cddc36e9b3396c2774b7959ba5baaac44019e1cc3c694cb",
+      "code_fingerprint": "912a2cfc7ffa65576c29c136d245e0474ef97ca21d21a9dda7a950458018f22d",
       "label": "prompt.ts",
       "last": "2026-09-22T01:22:09.161729+00:00",
       "provenance": [
@@ -193,13 +193,13 @@
           "q": "현재 문서 생성할 때 Gemini가 어떤 식으로 생성하는가"
         }
       ],
-      "score": 1.992741223,
+      "score": 1.639712538,
       "source_file": "lib/ai/prompt.ts",
       "status": "preferred",
       "uses": 2
     },
     "lib_ai_prompt_documentproposal": {
-      "code_fingerprint": "765e6dab8ff33ecf7cddc36e9b3396c2774b7959ba5baaac44019e1cc3c694cb",
+      "code_fingerprint": "912a2cfc7ffa65576c29c136d245e0474ef97ca21d21a9dda7a950458018f22d",
       "label": "DocumentProposal",
       "last": "2026-09-22T01:22:09.161729+00:00",
       "provenance": [
@@ -214,13 +214,13 @@
           "q": "현재 문서 생성할 때 Gemini가 어떤 식으로 생성하는가"
         }
       ],
-      "score": 1.992741223,
+      "score": 1.639712538,
       "source_file": "lib/ai/prompt.ts",
       "status": "preferred",
       "uses": 2
     },
     "lib_chapters_actions": {
-      "code_fingerprint": "f492545308fc7e5172d1dd3fb760a62deda1f12d4f6b379c4b9920d1d0e20714",
+      "code_fingerprint": "0d0592e46bf111d14d981f224ab13f427f6be04ea625f5f8b128f92d73caf64e",
       "label": "lib/chapters/actions.ts",
       "last": "2026-09-08T06:31:18.610313+00:00",
       "provenance": [
@@ -235,13 +235,13 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 1.448728297,
+      "score": 1.192075482,
       "source_file": "lib/chapters/actions.ts",
       "status": "preferred",
       "uses": 2
     },
     "lib_kb_templates": {
-      "code_fingerprint": "f83c2f407cfeaabd0d2e51a97c063aa731430f3f8180588d9dfadf18e8e2918c",
+      "code_fingerprint": "82cd00233529558754eb49b6391f8f7df10dd43e65c384a89f95aa715205636b",
       "label": "templates.ts",
       "last": "2026-09-22T01:22:09.161729+00:00",
       "provenance": [
@@ -251,13 +251,13 @@
           "q": "BUG-01 해결 문서를 Jev 선결정 후 Gemini 템플릿 생성 방식으로 수정"
         }
       ],
-      "score": 0.99643244,
+      "score": 0.819907144,
       "source_file": "lib/kb/templates.ts",
       "status": "tentative",
       "uses": 1
     },
     "planning_phases_04_ai_gateway_mention_based_generation_bugs_bug_01_proposal_save_nested_category_folder": {
-      "code_fingerprint": "d6051aaa352d7dd32b8900802d6acc54065c758b2a8dc2716449d7b49b994c70",
+      "code_fingerprint": "6ef5a40af91b566a3e99372e26a887fdbf1f0e2951989e37b5a90b81c49ae849",
       "label": "BUG-01-proposal-save-nested-category-folder.md",
       "last": "2026-09-22T01:22:09.161729+00:00",
       "provenance": [
@@ -272,7 +272,7 @@
           "q": "BUG-01 문서에 Gemini 생성 후 Jev가 폴더 위치를 결정하는 해결 설계를 반영"
         }
       ],
-      "score": 1.992697665,
+      "score": 1.639676696,
       "source_file": ".planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md",
       "status": "preferred",
       "uses": 2
@@ -288,13 +288,13 @@
           "q": "06-CONTEXT.md의 Unresolved 섹션 3개 질문과 D-12 영향만 좁혀서 06-RESEARCH.md 재조사"
         }
       ],
-      "score": 0.724638646,
+      "score": 0.596263609,
       "source_file": "tests/discovery/public-read-rls.test.ts",
       "status": "tentative",
       "uses": 1
     },
     "tests_wallet_ledger_concurrency_test": {
-      "code_fingerprint": "943773b616b08fb431f9fc55a2b9f3e836eb6e9ce02f22770930c69907e1982d",
+      "code_fingerprint": "4b2ac87b4f6514c2b5791833f4758e8c1589b79bb7a6abb5fdbb278a0da907f9",
       "label": "ledger.concurrency.test.ts",
       "last": "2026-09-08T05:44:04.478086+00:00",
       "provenance": [
@@ -304,7 +304,7 @@
           "q": "c:\\Users\\MSI\\NovelScript\\.planning\\phases\\06-paid-chapter-unlock\\06-CONTEXT.md 해당 문서를 기준으로 필요한 자료를 리서치해줘. 리서치한 결과는 문서로 남겨줘"
         }
       ],
-      "score": 0.724089652,
+      "score": 0.595811873,
       "source_file": "tests/wallet/ledger.concurrency.test.ts",
       "status": "tentative",
       "uses": 1
