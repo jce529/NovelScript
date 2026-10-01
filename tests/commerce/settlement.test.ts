@@ -72,6 +72,9 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('author settlement (PostgreSQL)', 
         .replaceAll('search_path = public', `search_path = ${schema}, public`)
         .replace(/^begin;|^commit;/gm, ''));
     }
+    // Real price tiers (10/30/50/100) always split exactly at 90%; relax the check inside this
+    // rolled-back schema so the 3-token fixture can exercise the round-down remainder path.
+    await exec('alter table chapters drop constraint chapters_price_tier_check');
   });
   afterAll(async () => { try { await exec('rollback'); } finally { await sql.end(); } });
   beforeEach(async () => {
@@ -119,7 +122,9 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('author settlement (PostgreSQL)', 
     await exec('reset role');
     await query('update wallets set balance = 10 where id = $1', [buyer]);
     await asUser(buyer);
+    await exec('savepoint attempt');
     await expect(buy([c1])).rejects.toThrow(/insufficient balance/);
+    await exec('rollback to savepoint attempt');
     expect(await balance(author)).toBe(0);
   });
 });
