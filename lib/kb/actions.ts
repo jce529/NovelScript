@@ -2,6 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FlatKbNode } from './tree';
 import { buildSeedContent, readCanonicalSeed, type KbCategory } from './templates';
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
+import { FOLDER_COPY } from './folder-copy';
+import { templateCategoryOf } from './template-tree';
+export { FOLDER_COPY } from './folder-copy';
 
 /** KB-04 §2 (RESEARCH.md): 작품 폴더 and 계정 공유 폴더 are two separate, explicit
  * tree sections in the UI (D-01) — each needs its own flat node list. Replaces
@@ -44,25 +47,38 @@ export interface NodeMutationResult {
 const FRIENDLY_NAME_COLLISION = '이미 같은 이름의 파일/폴더가 있어요. 다른 이름을 사용해주세요.';
 const FRIENDLY_LOCKED = '기본 폴더는 이름을 바꾸거나 삭제할 수 없어요.';
 
+async function findTemplateCategoryFolder(supabase: SupabaseClient, rootId: string, category: KbCategory): Promise<string | null> {
+  const { data } = await supabase.from('kb_nodes').select('id')
+    .eq('parent_id', rootId).eq('name', category).eq('category', 'template')
+    .eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+  return data?.id ?? null;
+}
+
 async function resolveTemplateOverride(
   supabase: SupabaseClient,
   { ownerId, workId, category }: { ownerId: string; workId: string; category: KbCategory }
 ): Promise<string | null> {
   // Pattern 3: work-local override > account-level override > canonical (null = canonical)
   const { data: workTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (workTemplateFolder) {
-    const { data: workOverride } = await supabase
-      .from('kb_nodes').select('content').eq('parent_id', workTemplateFolder.id).eq('name', category).is('deleted_at', null).maybeSingle();
-    if (workOverride?.content) return workOverride.content;
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, workTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: workOverride } = await supabase
+        .from('kb_nodes').select('content').eq('parent_id', categoryFolderId).eq('name', category).eq('node_type', 'file').is('deleted_at', null).maybeSingle();
+      if (workOverride?.content) return workOverride.content;
+    }
   }
 
   const { data: accountTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (accountTemplateFolder) {
-    const { data: accountOverride } = await supabase
-      .from('kb_nodes').select('content').eq('parent_id', accountTemplateFolder.id).eq('name', category).is('deleted_at', null).maybeSingle();
-    if (accountOverride?.content) return accountOverride.content;
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, accountTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: accountOverride } = await supabase
+        .from('kb_nodes').select('content').eq('parent_id', categoryFolderId).eq('name', category).eq('node_type', 'file').is('deleted_at', null).maybeSingle();
+      if (accountOverride?.content) return accountOverride.content;
+    }
   }
 
   return null;
@@ -76,9 +92,8 @@ export interface TemplateOption {
   isDefault: boolean;
 }
 
-/** D-10: full create-time template picker. Lists EVERY selectable template source
- * for a category — this work's local template/ files, the account-level template/
- * files, and the canonical docs/Template seed — regardless of filename. An
+/** D-10: full create-time template picker. Lists files directly under the requested
+ * category folder in each scope, plus the canonical docs/Template seed. An
  * arbitrarily-named custom template (e.g. "내캐릭터양식") is fully listed and
  * selectable here, closing the gap where only an exact category-name match had
  * any effect. The category-name-matched file is flagged isDefault (work-level
@@ -91,22 +106,28 @@ export async function listTemplateOptions(
   const options: TemplateOption[] = [];
 
   const { data: workTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (workTemplateFolder) {
-    const { data: workFiles } = await supabase
-      .from('kb_nodes').select('id, name, content').eq('parent_id', workTemplateFolder.id).eq('node_type', 'file').is('deleted_at', null);
-    for (const file of workFiles ?? []) {
-      options.push({ id: file.id, name: file.name, scope: 'work', content: file.content ?? '', isDefault: false });
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, workTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: workFiles } = await supabase
+        .from('kb_nodes').select('id, name, content').eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
+      for (const file of workFiles ?? []) {
+        options.push({ id: file.id, name: file.name, scope: 'work', content: file.content ?? '', isDefault: false });
+      }
     }
   }
 
   const { data: accountTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (accountTemplateFolder) {
-    const { data: accountFiles } = await supabase
-      .from('kb_nodes').select('id, name, content').eq('parent_id', accountTemplateFolder.id).eq('node_type', 'file').is('deleted_at', null);
-    for (const file of accountFiles ?? []) {
-      options.push({ id: file.id, name: file.name, scope: 'account_template', content: file.content ?? '', isDefault: false });
+    const categoryFolderId = await findTemplateCategoryFolder(supabase, accountTemplateFolder.id, category);
+    if (categoryFolderId) {
+      const { data: accountFiles } = await supabase
+        .from('kb_nodes').select('id, name, content').eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
+      for (const file of accountFiles ?? []) {
+        options.push({ id: file.id, name: file.name, scope: 'account_template', content: file.content ?? '', isDefault: false });
+      }
     }
   }
 
@@ -126,6 +147,123 @@ export async function listTemplateOptions(
   return options;
 }
 
+export const TEMPLATE_REVALIDATION_FAILED = '저장 템플릿이 변경되었어요. 다시 선택해주세요.';
+
+export async function validateTargetTemplate(
+  supabase: SupabaseClient,
+  { ownerId, workId, category, templateId }: { ownerId: string; workId: string; category: string; templateId: string | null }
+): Promise<{ ok: true; template: TemplateOption } | { ok: false }> {
+  const templates = await listTemplateOptions(supabase, { ownerId, workId, category: category as KbCategory });
+  const template = templateId === null
+    ? templates.find((option) => option.isDefault)
+    : templates.find((option) => option.id === templateId);
+  return template ? { ok: true, template } : { ok: false };
+}
+
+export interface FolderCandidate {
+  id: string;
+  name: string;
+  isRoot: boolean;
+  /** 카테고리 루트를 제외한 경로. 루트는 ''. 예: '주요 등장인물/핵심' */
+  path: string;
+  /** 루트→자신 'id:name' 체인. 저장 직전 재검증에 쓴다. */
+  version: string;
+}
+
+export type FolderCandidatesResult =
+  | { status: 'ok'; root: FolderCandidate; candidates: FolderCandidate[] }
+  | { status: 'root_missing' }
+  | { status: 'root_duplicate' }
+  | { status: 'query_failed' };
+
+export const MAX_FOLDER_DEPTH = 32;
+
+type CategoryFolderRow = { id: string; name: string; parent_id: string | null };
+
+/** Returns only folders connected to the single explicit structural root. */
+export async function listCategoryFolderCandidates(
+  supabase: SupabaseClient,
+  { ownerId, workId, category }: { ownerId: string; workId: string; category: string }
+): Promise<FolderCandidatesResult> {
+  const { data, error } = await supabase
+    .from('kb_nodes')
+    .select('id, name, parent_id')
+    .eq('owner_id', ownerId)
+    .eq('work_id', workId)
+    .eq('scope', 'work')
+    .eq('category', category)
+    .eq('node_type', 'folder')
+    .is('deleted_at', null);
+  if (error || !data) return { status: 'query_failed' };
+
+  const rows = data as CategoryFolderRow[];
+  const roots = rows.filter((row) => row.parent_id === null);
+  if (roots.length === 0) return { status: 'root_missing' };
+  if (roots.length > 1) return { status: 'root_duplicate' };
+
+  const rootRow = roots[0];
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  function chainToRoot(row: CategoryFolderRow): CategoryFolderRow[] | null {
+    const chain = [row];
+    const visited = new Set([row.id]);
+    let current = row;
+    while (current.parent_id !== null) {
+      if (chain.length > MAX_FOLDER_DEPTH) return null;
+      const parent = byId.get(current.parent_id);
+      if (!parent || visited.has(parent.id)) return null;
+      visited.add(parent.id);
+      chain.unshift(parent);
+      current = parent;
+    }
+    return current.id === rootRow.id ? chain : null;
+  }
+
+  const toCandidate = (chain: CategoryFolderRow[]): FolderCandidate => {
+    const self = chain[chain.length - 1];
+    return {
+      id: self.id,
+      name: self.name,
+      isRoot: chain.length === 1,
+      path: chain.slice(1).map((row) => row.name).join('/'),
+      version: chain.map((row) => `${row.id}:${row.name}`).join('/'),
+    };
+  };
+
+  const root = toCandidate([rootRow]);
+  const rest: FolderCandidate[] = [];
+  for (const row of rows) {
+    if (row.id === rootRow.id) continue;
+    const chain = chainToRoot(row);
+    if (chain) rest.push(toCandidate(chain));
+  }
+  rest.sort((a, b) => a.path.localeCompare(b.path) || a.id.localeCompare(b.id));
+  return { status: 'ok', root, candidates: [root, ...rest] };
+}
+
+export function formatFolderPath(category: string, path: string, separator: string): string {
+  return path ? `${category}${separator}${path}` : category;
+}
+
+export type TargetFolderValidation =
+  | { ok: true; folder: FolderCandidate }
+  | { ok: false; reason: keyof typeof FOLDER_COPY; error: string };
+
+/** Rechecks the selected destination and its root-to-folder version before saving. */
+export async function validateTargetFolder(
+  supabase: SupabaseClient,
+  { ownerId, workId, category, targetFolderId, expectedVersion }:
+    { ownerId: string; workId: string; category: string; targetFolderId: string; expectedVersion?: string }
+): Promise<TargetFolderValidation> {
+  const listed = await listCategoryFolderCandidates(supabase, { ownerId, workId, category });
+  if (listed.status !== 'ok') return { ok: false, reason: listed.status, error: FOLDER_COPY[listed.status] };
+  const folder = listed.candidates.find((candidate) => candidate.id === targetFolderId);
+  if (!folder || (expectedVersion !== undefined && folder.version !== expectedVersion)) {
+    return { ok: false, reason: 'folder_changed', error: FOLDER_COPY.folder_changed };
+  }
+  return { ok: true, folder };
+}
+
 export async function createNode(
   supabase: SupabaseClient,
   input: {
@@ -140,6 +278,8 @@ export async function createNode(
      * preserving prior behavior. A defined value (including `null`, meaning the
      * writer explicitly picked the canonical option) BYPASSES auto-resolution. */
     templateOverrideContent?: string | null;
+    /** Persist generated content directly in the single node insert. */
+    initialContent?: string;
   }
 ): Promise<NodeMutationResult> {
   const name = input.name.trim();
@@ -147,8 +287,35 @@ export async function createNode(
   const access = await checkWriteAccess(supabase, input.ownerId);
   if (!access.ok) return writeDenial(access);
 
+  let scope: 'work' | 'account_template' = 'work';
+  let workId: string | null = input.workId;
+  let templateCategory: KbCategory | null = null;
+  if (input.category === 'template') {
+    if (input.nodeType !== 'file') return { ok: false, error: '템플릿 폴더는 새로 만들 수 없어요.' };
+    const { data: parent } = await supabase.from('kb_nodes')
+      .select('id, parent_id, name, category, node_type, scope, work_id')
+      .eq('id', input.parentId).eq('owner_id', input.ownerId).is('deleted_at', null).maybeSingle();
+    if (!parent || (parent.scope === 'work' && parent.work_id !== input.workId)) {
+      return { ok: false, error: '템플릿 카테고리 폴더를 찾을 수 없어요.' };
+    }
+    const { data: root } = parent.parent_id
+      ? await supabase.from('kb_nodes').select('id, parent_id, name, category, node_type, scope, work_id')
+        .eq('id', parent.parent_id).eq('owner_id', input.ownerId).is('deleted_at', null).maybeSingle()
+      : { data: null };
+    templateCategory = templateCategoryOf(parent, root);
+    if (!templateCategory || !root || root.scope !== parent.scope || root.work_id !== parent.work_id) {
+      return { ok: false, error: '템플릿은 카테고리 폴더 안에만 만들 수 있어요.' };
+    }
+    scope = parent.scope;
+    workId = parent.work_id;
+  }
+
   let content: string | null = null;
-  if (input.nodeType === 'file' && input.category !== 'template') {
+  if (templateCategory) {
+    content = await readCanonicalSeed(templateCategory);
+  } else if (input.initialContent !== undefined) {
+    content = input.initialContent;
+  } else if (input.nodeType === 'file' && input.category !== 'template') {
     const category = input.category as KbCategory;
     const override = input.templateOverrideContent !== undefined
       ? input.templateOverrideContent
@@ -160,8 +327,8 @@ export async function createNode(
     .from('kb_nodes')
     .insert({
       owner_id: input.ownerId,
-      work_id: input.workId,
-      scope: 'work',
+      work_id: workId,
+      scope,
       parent_id: input.parentId,
       node_type: input.nodeType,
       category: input.category,
@@ -214,6 +381,7 @@ export async function createFolder(
     if (!parent || parent.node_type !== 'folder' || parent.scope !== input.scope || parent.work_id !== input.workId) {
       return { ok: false, error: '상위 폴더를 찾을 수 없어요.' };
     }
+    if (parent.category === 'template') return { ok: false, error: '템플릿 폴더 안에는 새 폴더를 만들 수 없어요.' };
     category = parent.category;
   }
 
@@ -237,6 +405,51 @@ export async function createFolder(
     if (error.code === '23505') return { ok: false, error: FRIENDLY_NAME_COLLISION };
     return { ok: false, error: error.message };
   }
+  return { ok: true, nodeId: data.id };
+}
+
+export async function moveTemplateFile(
+  supabase: SupabaseClient,
+  { ownerId, nodeId, targetCategoryFolderId }: { ownerId: string; nodeId: string; targetCategoryFolderId: string }
+): Promise<NodeMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
+
+  const { data: source } = await supabase.from('kb_nodes')
+    .select('id, parent_id, category, node_type, scope, work_id')
+    .eq('id', nodeId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  if (!source || source.category !== 'template' || source.node_type !== 'file' || !source.parent_id) {
+    return { ok: false, error: '이동할 템플릿 파일을 찾을 수 없어요.' };
+  }
+  const { data: target } = await supabase.from('kb_nodes')
+    .select('id, parent_id, name, category, node_type, scope, work_id')
+    .eq('id', targetCategoryFolderId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  const { data: sourceParent } = await supabase.from('kb_nodes')
+    .select('id, parent_id, name, category, node_type, scope, work_id')
+    .eq('id', source.parent_id).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  if (!target || !sourceParent || target.scope !== source.scope || target.work_id !== source.work_id ||
+      sourceParent.scope !== source.scope || sourceParent.work_id !== source.work_id) {
+    return { ok: false, error: '같은 영역의 템플릿 카테고리 폴더만 선택할 수 있어요.' };
+  }
+  const { data: root } = target.parent_id
+    ? await supabase.from('kb_nodes').select('id, parent_id, name, category, node_type, scope, work_id')
+      .eq('id', target.parent_id).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle()
+    : { data: null };
+  if (!root || root.scope !== source.scope || root.work_id !== source.work_id ||
+      !templateCategoryOf(target, root) ||
+      !(sourceParent.id === root.id || templateCategoryOf(sourceParent, root))) {
+    return { ok: false, error: '템플릿 카테고리 폴더만 선택할 수 있어요.' };
+  }
+
+  const { data, error } = await supabase.from('kb_nodes')
+    .update({ parent_id: target.id, updated_at: new Date().toISOString() })
+    .eq('id', source.id).eq('owner_id', ownerId).is('deleted_at', null)
+    .select('id').maybeSingle();
+  if (error) {
+    if (error.code === '23505') return { ok: false, error: FRIENDLY_NAME_COLLISION };
+    return { ok: false, error: error.message };
+  }
+  if (!data) return { ok: false, error: '이동할 템플릿 파일을 찾을 수 없어요.' };
   return { ok: true, nodeId: data.id };
 }
 

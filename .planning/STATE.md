@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: verifying
-stopped_at: Phase 15 context gathered
-last_updated: "2026-09-22T04:45:13.016Z"
-last_activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04 매핑
+status: executing
+stopped_at: Phase 10 UI-SPEC approved
+last_updated: "2026-09-29T15:24:02.290Z"
+last_activity: 2026-09-29 -- Phase 10 planning complete
 progress:
   total_phases: 16
-  completed_phases: 7
-  total_plans: 45
-  completed_plans: 46
+  completed_phases: 9
+  total_plans: 69
+  completed_plans: 63
+  percent: 56
 ---
 
 # Project State
@@ -20,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 09 — OpenAI · Anthropic 어댑터 + 제공자별 단가 (next)
+**Current focus:** Phase 15 — jev-ai
 
 ## Current Position
 
-Phase: 09 — context gathered (09-CONTEXT.md)
-Plan: —
-Status: Phase 09 discuss 완료 2026-09-19. BUG-04 정책 확정(사고 토큰 출력 단가 차감) 및 수정 완료 2026-09-22. Open issues: .planning/phases/08-provider-adapter-idempotent-debit/bugs/ (BUG-01, 02, 03, 05, 06 open; BUG-04 fixed, output-truncation half deferred pending real-usage data). BUG-01은 Phase 4 원인 버그로 확인되어 Phase 15로 승격됨.
-Last activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04 매핑, BUG-04 사고 토큰 차감 누락 수정 (lib/ai/cost.ts, lib/ai/chat.ts)
+Phase: 15 (jev-ai) — EXECUTING
+Plan: 11 of 11 (Task 2 browser UAT pending)
+Status: Ready to execute
+Last activity: 2026-09-29 -- Phase 10 planning complete
 
-> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 1/8 완료. v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
+> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 2/8 완료 (Phase 8, 9). v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
@@ -50,9 +51,9 @@ Last activity: 2026-09-22 — BUG-01 수정 범위를 v1.1 마지막 Phase 15로
 **v1.0 잔여 (별도 트랙, v1.1 로드맵에 포함하지 않음):**
 
 - Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
-- Phase 6 작가 90:10 정산 — 미구현
+- Phase 6 작가 90:10 정산 — 구현 완료 (2026-10-01, 0015_author_settlement.sql; 실DB 검증 대기)
 - Phase 7 Admin Moderation Surface — **완료(2026-09-17), 7/7**. 실제 DB·동시성·브라우저 UAT 통과. ⚠️ 미확인 2건(경고 확인 유지, 정지 사용자 화면) + 사소한 이슈(F-2 자기제재 문구, F-3 테스트 신고 잔여물)는 `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`에서 반드시 확인.
-- Phase 4 라이브 GEMINI_API_KEY UAT — 미완
+- Phase 4 라이브 GEMINI_API_KEY UAT — 미완. 2026-09-29 Phase 9 라이브 점검에서 `gemini-3.5-flash`가 429 RESOURCE_EXHAUSTED(키/쿼터 문제, 코드 무관) — 키·결제 상태 확인 필요
 
 ## Performance Metrics
 
@@ -165,19 +166,23 @@ Recent decisions affecting current work:
 - **[v1.1 Phase 12 선행 스파이크]** 실제 Claude 커스텀 커넥터로 discovery → 등록 → 토큰 교환 왕복을 먼저 성공시켜 authorization server를 확정(Supabase Auth OAuth 2.1 Server vs WorkOS AuthKit). 실패하면 페이즈 내용 자체가 바뀜다. `/gsd:research-phase` 필수.
 - **[v1.1 정리]** 워크트리의 `mcpres/`(수동 다운로드한 tarball + 추출 디렉터리)는 커밋 대상이 아니다 — 채택 시 npm registry에서 정식 설치하고 `mcpres/`는 삭제한다.
 - **[v1.1 Phase 15 계획 전]** BUG-01 문서의 해결 설계를 입력으로 `/gsd:discuss-phase 15`와 `/gsd:research-phase 15`를 수행한다. Jev 데이터 처리 정책과 평가 기준이 확정되기 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다.
+- **[Phase 15 활성화 절차 — 코드 수정 없음]** ① 실제 키로 `npm run eval:jev` → holdout 증거 기록(먼저 migrations 0010/0011을 실제 Supabase 프로젝트에 적용) ② golden-set hash·JEV_ACTIVATION_THRESHOLDS를 검토하고 ai_doc_activation_approvals에 policy_review 행 insert(service role SQL) ③ `AI_DOC_PLANNING_MODE=shadow`로 배포해 그림자 표본 축적 ④ 조건 충족 확인 후 `AI_DOC_PLANNING_MODE=active`. 조건이 하나라도 빠지면 resolver가 자동으로 shadow/off로 강등한다.
+- **[Phase 15 브라우저 UAT 대기]** Plan 15-09 Task 2의 저장 확인 모달·템플릿 재생성·QuickAdd 폴더 선택기 수동 검증과 승인 기록이 남아 있다.
 
 - Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end. (Phase 4 is marked Complete on the roadmap; this is the one outstanding human UAT item — see 04-VERIFICATION.md `human_verification`.)
-- **[Phase 06, v1.0 residual]** Implement the author 90/10 credit split with the 10% platform fee behind a single adjustable constant (ROADMAP Phase 6 success criterion 3, provisional per 06-CONTEXT.md D-10). Confirmed absent from lib/commerce/actions.ts and 0005_commerce.sql on 2026-09-15. Decision: keep in v1.0, handle alongside Phase 5 when the Toss keys arrive.
+- ~~**[Phase 06, v1.0 residual]** Implement the author 90/10 credit split with the 10% platform fee behind a single adjustable constant (ROADMAP Phase 6 success criterion 3, provisional per 06-CONTEXT.md D-10). Confirmed absent from lib/commerce/actions.ts and 0005_commerce.sql on 2026-09-15. Decision: keep in v1.0, handle alongside Phase 5 when the Toss keys arrive.~~ — DONE 2026-10-01 (56b0031), live-DB verification pending.
 - **[Phase 06, v1.0 residual]** Complete runtime verification against ROADMAP criteria when the environment is available. 06-VERIFICATION.md now records a source audit with gaps_found; it does not claim a gsd-verifier agent run or SQL/RLS/E2E success. Keep the user's DB-test deferral in effect.
 
 ### Blockers/Concerns
 
+- **[v1.1 Phase 15] Code complete / Activation blocked.** Jev 추천의 Production active는 lib/ai/decision/activation.ts getAiDocPlanningMode()가 다음을 모두 확인할 때만 성립한다: (1) 데이터 처리 정책 검토 승인 행(ai_doc_activation_approvals — 검토 주체: 작가 본인, D-10) (2) pinned JEV_MODEL_VERSION (3) 같은 모델·golden-set hash·EVALUATOR_VERSION의 실제 벤더 holdout 평가 통과 증거(ai_doc_activation_evidence) (4) 최근 30일 그림자 표본 ≥ 200·오류율 ≤ 5%·P95 ≤ 800ms. 그 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다(D-08). Jev 계정: live verified — 인증 `Authorization: Bearer <key>`, 요청 `{state, model, questions:{<id>:{type,instructions,criteria}}}`, 응답 `{model, answers:{<id>:{choice,probabilities,confidence}}}`, 고정 버전 태그 `jev-1.13.0`(semver, alias는 `jev-latest`/`jev-preview`). 갱신일: 2026-09-27. Phase 5 Toss 심사와 동일한 외부 대기열로 취급.
 - **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
 - **[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).
 - **[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.
 - **[v1.1] BYOK 키는 응답 본문이 아니라 Error 객체의 request config(`Authorization` 헤더)를 통해 새난다.** 관찰성 목적의 `console.error(err)` 한 줄이면 끝이고 로그는 회수 불가능하다. 스크러밍 choke point를 어댑터 인터페이스와 **같이** 출하한다(Phase 8).
 - **[v1.1] MCP 도구가 `createAdminClient()` 관행을 복사하면 confused deputy가 된다.** Server Action에서 옆았던 패턴이 bearer 토큰 호출에서는 교차 사용자 읽기/쓰기를 열어준다(Phase 13/14).
 - **[v1.1] "연결 해제 후 즉시 차단"은 stateless JWT 검증으로 구조적으로 달성 불가능하다.** 매 호출 grant introspection을 Phase 12 설계에 처음부터 넣어야 하며 나중에 붙일 수 없다.
+- **[v1.1 Phase 15] 마이그레이션 0010(kb_category_root_unique)/0011(ai_doc_planning)이 실제 Supabase 프로젝트에 아직 적용되지 않았다.** 2026-09-27 `npm run eval:jev` 실제 벤더 실행에서 `ai_doc_activation_evidence` 테이블이 없어(`PGRST205`) `recorded: false`로 실패(exit 1, 의도된 동작). Phase 15 배포 전 두 마이그레이션을 적용해야 활성화 증거 기록과 폴더 유일성 제약이 실제로 걸린다. 같은 실행에서 확인된 실제 Jev 성능: taskAccuracy≈0.60~0.62, folderTemplateAccuracy≈0.53 — AIDOC-04 임계값(0.85/0.80) 미달로 활성화는 정상적으로 차단됨.
 
 - **Toss Payments merchant keys are now the active blocker on Phase 5.** Confirmed 2026-09-15: no Toss client, widget, or webhook handler exists anywhere in the repo. Phase 5's CONTEXT/RESEARCH/UI-SPEC/VALIDATION are all complete and ready for /gsd:plan-phase — only the keys are missing. Pitfalls research flagged the merchant application + 사업자등록 (~2+ week external review) as the likely real critical path to launch.
 - 선불전자지급수단 (prepaid payment instrument) regulatory classification not yet confirmed by a PG compliance team or lawyer — current no-cash-out, single-merchant design appears to qualify for exemption but this is unverified. Not blocking v1, but must be revisited before ever scoping cash-out or an asset store.
@@ -187,11 +192,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-22T04:45:13.012Z
-Stopped at: Phase 15 context gathered
+Last session: 2026-09-29T14:39:35.463Z
+Stopped at: Phase 10 UI-SPEC approved
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
-Resume file: .planning/phases/15-jev-ai/15-CONTEXT.md
+Resume file: .planning/phases/10-byok/10-UI-SPEC.md
+
+- **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.

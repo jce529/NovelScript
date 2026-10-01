@@ -2,6 +2,7 @@
 import type { DocumentProposal } from '@/lib/ai/prompt';
 import type { WriteDenialCode } from '@/lib/auth/write-access';
 import type { RefusalReasonCode } from '@/lib/ai/providers/types';
+import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 
 export type ChatStatus = 'completed' | 'refused' | 'already_processed' | 'failed';
 
@@ -38,6 +39,7 @@ export interface ChatResult {
 }
 
 export const CHAT_COPY = {
+  byokPending: BYOK_COPY.sendBoundary,
   rate_limited: '지금 요청이 몰려 있어요. 1분 뒤 다시 시도해주세요.',
   unavailable: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해주세요.',
   config: 'AI 기능에 문제가 생겼어요. 계속되면 문의해주세요.',

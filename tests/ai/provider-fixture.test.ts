@@ -54,7 +54,7 @@ describe('createPlatformProvider with fixture', () => {
   it('ignores fixture in production (still config error without key)', () => {
     let caught: unknown;
     try {
-      createPlatformProvider({ NODE_ENV: 'production', AI_PROVIDER_FIXTURE: 'rate_limited' });
+      createPlatformProvider('gemini', { NODE_ENV: 'production', AI_PROVIDER_FIXTURE: 'rate_limited' });
     } catch (err) {
       caught = err;
     }
@@ -63,7 +63,7 @@ describe('createPlatformProvider with fixture', () => {
   });
 
   it('returns fixture provider in development without key', () => {
-    const p = createPlatformProvider({ NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'unavailable' });
+    const p = createPlatformProvider('gemini', { NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'unavailable' });
     expect(p.provider).toBe('gemini');
   });
 });
@@ -128,7 +128,7 @@ describe('chatAction drop-response hook', () => {
     ({
       workId: 'w1',
       chapterId: 'c1',
-      modelTier: 'lite',
+      providerId: 'gemini', model: 'gemini-3.5-flash',
       mentionedNodeIds: [],
       presetLevel: 'balanced',
       styleId: 'default',

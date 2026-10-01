@@ -1,20 +1,32 @@
 import 'server-only';
-import type { ProviderClient } from './types';
+import type { ProviderClient, ProviderId } from './types';
 import { ProviderCallError } from './errors';
 import { createGeminiProvider } from './gemini';
+import { createOpenAiProvider } from './openai';
+import { createAnthropicProvider } from './anthropic';
 import { createFixtureProvider, readProviderFixture } from './fixture';
 
-/** Platform (service key) provider for Phase 8 — Gemini only. Phase 9 adds OpenAI/Anthropic; Phase 10-11 add BYOK resolution. */
-export function createPlatformProvider(env: Record<string, string | undefined> = process.env): ProviderClient {
-  // Dev-only canned provider (inert unless NODE_ENV=development).
+const ENV_VAR_BY_PROVIDER: Record<ProviderId, string> = {
+  gemini: 'GEMINI_API_KEY',
+  openai: 'OPENAI_API_KEY',
+  anthropic: 'ANTHROPIC_API_KEY',
+};
+
+/** Platform service-key provider. Per-user key resolution belongs to Phase 10/11. */
+export function createPlatformProvider(
+  providerId: ProviderId,
+  env: Record<string, string | undefined> = process.env,
+): ProviderClient {
   const fixture = readProviderFixture(env);
   if (fixture) {
-    console.warn(`[ai/providers] AI_PROVIDER_FIXTURE=${fixture} is active — serving canned responses instead of Gemini. Set AI_PROVIDER_FIXTURE=off (and restart dev) to disable.`);
+    console.warn(`[ai/providers] AI_PROVIDER_FIXTURE=${fixture} is active; serving canned responses. Set AI_PROVIDER_FIXTURE=off to disable.`);
     return createFixtureProvider(fixture);
   }
-  const apiKey = env.GEMINI_API_KEY;
+  const apiKey = env[ENV_VAR_BY_PROVIDER[providerId]];
   if (!apiKey) {
-    throw new ProviderCallError({ provider: 'gemini', status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' });
+    throw new ProviderCallError({ provider: providerId, status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' });
   }
+  if (providerId === 'openai') return createOpenAiProvider({ apiKey });
+  if (providerId === 'anthropic') return createAnthropicProvider({ apiKey });
   return createGeminiProvider({ apiKey });
 }

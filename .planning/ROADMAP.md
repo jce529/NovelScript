@@ -24,13 +24,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md)
 - [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
-- [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (partially shipped outside GSD — see Phase 6 detail)
+- [x] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (completed 2026-10-01; shipped outside GSD, live-DB/E2E verification pending — see Phase 6 detail)
 - [x] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports (completed 2026-09-17)
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
 
 - [x] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
-- [ ] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
+- [x] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
 - [ ] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다
 - [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다
 
@@ -42,7 +42,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **v1.1 — 마무리 품질 페이즈**
 
-- [ ] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다
+- [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
 
 ## Phase Details
 
@@ -165,7 +165,7 @@ Plans:
   3. The chapter's author is credited 90% of the spent tokens for the unlock, with 10% retained as a platform fee — this 90/10 split is a **provisional figure** (not final; see `06-CONTEXT.md` D-10), implemented behind a single adjustable constant
 **Plans**: TBD for remaining work. Existing implementation was outside the GSD plan flow; `06-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated or marked complete.
 **UI hint**: yes
-**Status**: Partially complete. Implemented in commits `57e1c8e` / `fc8a4a5` directly against the Phase 1 token wallet, without going through `/gsd:plan-phase`. Implementation report: `docs/commerce-entitlements.md`.
+**Status**: Complete (2026-10-01) — source implementation done; live-DB/RLS/concurrency/E2E verification still pending. Purchase flow in commits `57e1c8e` / `fc8a4a5`; author settlement in `56b0031`. Originally implemented directly against the Phase 1 token wallet, without going through `/gsd:plan-phase`. Implementation report: `docs/commerce-entitlements.md`.
 
 Implemented in source (deployment/runtime verification pending):
 - `supabase/migrations/0005_commerce.sql` — `orders` / `order_items` / `entitlements` tables, RLS, purchase RPC, chapter-body column grants
@@ -175,7 +175,7 @@ Implemented in source (deployment/runtime verification pending):
 - Success Criteria 1 and 2 have source implementations. Actual SQL/RLS, independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
 
 Residual (stays in v1.0, not yet done):
-- [ ] **Implement author settlement (Success Criterion 3)** — author 90% / platform 10% is provisional. Add a single rate adjustment point and atomic author credit with purchase-time distribution snapshots. This remains roadmap work; no settlement code was added by the documentation patch.
+- [x] **Author settlement (Success Criterion 3) — implemented in source, DB verification pending.** `supabase/migrations/0015_author_settlement.sql`: single rate point `settlement_author_rate_bps()` (provisional 90%), per-item distribution snapshot on `order_items`, and atomic buyer debit + author credit (`CONTENT_SALE` ledger) inside `pay_purchase_order`. Author share rounds down; platform keeps the remainder. Static tests pass; PostgreSQL tests in `tests/commerce/settlement.test.ts` are not yet run (no `SUPABASE_DB_URL`). Pre-0015 PAID orders are not back-settled.
 - Phase 6 currently runs on the Phase 1 token wallet with **no real top-up path**, because Phase 5 has not been built. `docs/commerce-entitlements.md` states real-currency charging was explicitly out of its scope. This inverts the roadmap's intended 5 → 6 order; Phase 5 layers on top when the Toss keys arrive.
 - [ ] Apply/verify the migration in a test environment, run SQL/RLS and real concurrent-session tests, and validate the purchase E2E. Previous DB tests remain unexecuted by user choice.
 - GSD-format documentation now includes `06-CONTEXT.md`, `06-RESEARCH.md`, retrospective `06-SUMMARY.md`, `06-VERIFICATION.md` (`gaps_found`) and `06-VALIDATION.md`. The verification document records a source audit, not a completed gsd-verifier or live-DB run.
@@ -265,20 +265,20 @@ Residual (stays in v1.0, not yet done):
 **Plans**: 6 plans, 5 waves
 
 **Wave 0**
-- [ ] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
+- [x] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
 
 **Wave 1** *(blocked on 09-00)*
-- [ ] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
-- [ ] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
+- [x] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
+- [x] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
 
 **Wave 2** *(blocked on 09-01, 09-02)*
-- [ ] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
+- [x] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
 
 **Wave 3** *(blocked on 09-03)*
-- [ ] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
+- [x] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
 
 **Wave 4** *(blocked on 09-04)*
-- [ ] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
+- [x] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
 
 **UI hint**: yes
 **Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. ~~한국어 토큰 추정 상수는 provider별로 분리해 보정한다~~ — Phase 8에서 로컬 입력 추정을 제거했으므로(2026-09-18) 해당 없음. 출력 상한은 provider별 출력 단가로만 환산한다.
@@ -364,7 +364,31 @@ Residual (stays in v1.0, not yet done):
   3. 저장 시 서버가 `targetFolderId`와 템플릿 선택을 사용자·작품·범위·카테고리·삭제 상태 기준으로 다시 검증하며, 저장 전 위치가 바뀌었거나 권한이 없으면 다른 폴더에 조용히 저장하지 않는다
   4. @멘션 빠른 추가는 Jev 호출 없이 카테고리별 실제 폴더 선택기를 제공하고, 기본값은 최상위 카테고리 폴더이며, 사용자가 고른 하위 폴더에 즉시 생성된다
   5. Jev는 오프라인 평가와 그림자 계획을 거쳐 합의된 정확도·보정 기준을 충족한 뒤에만 실제 추천에 사용되고, 작품 데이터 보관·학습 사용·처리 지역·삭제 정책 검토 전에는 실제 작품 본문을 프로덕션 호출에 보내지 않는다
-**Plans**: TBD
+**Plans**: 11 plans, 6 waves (2026-09-24 cross-AI review 반영 재계획)
+
+**Wave 1**
+- [x] 15-01-PLAN.md — Jev(TypeSafe AI) 온보딩 + DecisionClient 계약(Zod 응답 검증·후보 membership·타임아웃·단일 에러 경계) (checkpoint: 계정 발급)
+- [x] 15-03-PLAN.md — BUG-01 근본 수정: 구조 루트(parent_id IS NULL) 판별 + 루트 유일성 index + version 기반 저장 직전 재검증
+- [x] 15-10-PLAN.md — 공통 paid-generation lifecycle 추출(chat 무회귀) + 문서 계획 프롬프트 지시 + 결과 계약 검증기
+
+**Wave 2** *(blocked on Wave 1)*
+- [x] 15-02-PLAN.md — Jev 2단계 계획(안정 정렬·membership·data_integrity·선별 폴백·순수 FromCandidates) *(blocked on 15-01, 15-03)*
+- [x] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출, stale 응답 reducer) *(blocked on 15-03)*
+- [x] 15-11-PLAN.md — 영속 활성화 게이트: getAiDocPlanningMode + 증거/승인/그림자/결정 로그 테이블 + 지표 *(blocked on 15-01)*
+
+**Wave 3**
+- [x] 15-04-PLAN.md — Jev→Gemini 생성 전략을 lifecycle 위에 연결 + chatAction resolver 주입 *(blocked on 15-02, 15-07, 15-10, 15-11)*
+- [x] 15-05-PLAN.md — 오프라인 평가(버전 고정 JSONL 정답셋, calibration/holdout 분리, 순서 교란, DB 증거 기록) *(blocked on 15-02, 15-11)*
+
+**Wave 4**
+- [x] 15-06-PLAN.md — 저장 확인 모달(D-11) + 원자적 저장 + lifecycle 기반 템플릿 재생성 *(blocked on 15-04, 15-07, 15-10)*
+
+**Wave 5**
+- [x] 15-08-PLAN.md — 그림자 계획(bucket별 합성 시나리오, after(), 샘플링·예산·회로 차단) + 저장 결정 로그 *(blocked on 15-04, 15-05, 15-06, 15-11)*
+
+**Wave 6**
+- [x] 15-09-PLAN.md — 전체 게이트: 스위트 + off 경로 무호출 테스트 + 브라우저 UAT + Code complete / Activation blocked 기록 *(Task 2 browser UAT pending)*
+
 **UI hint**: yes
 **Source**: Phase 4 BUG-01 (`.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`)에서 페이즈로 승격 (2026-09-22)
 **Notes**: 단순 `parent_id IS NULL` 필터는 긴급 완화책일 뿐 최종 해결안이 아니다. Jev는 자유 형식 생성 모델이 아니라 서버가 제공한 불투명 후보 키 중 계획을 고르는 결정 계층이며, Gemini는 확정된 템플릿으로 생성한다. 확신도가 낮으면 `clarify`로 전환하고, 폴더·템플릿 판단 실패 시에만 문서화된 안전 기본값을 추천한다. 운영 전 100~300건 정답셋 평가, 후보 순서 교란 평가, 그림자 계획, 템플릿 생성 비교를 수행한다.
@@ -386,15 +410,15 @@ Residual (stays in v1.0, not yet done):
 | 4. AI Gateway (Mention-Based Generation) | 6/6 | Complete (live-key UAT pending) | 2026-08-30 |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
-| 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
+| 6. Paid Chapter Unlock | n/a (outside GSD) | Complete (live-DB/E2E verification pending) | 2026-10-01 |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
-| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 0/6 | Not started | - |
-| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 0/TBD | Not started | - |
+| 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
+| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 5/7 | In Progress|  |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/TBD | Not started | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
-| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 0/TBD | Not started | - |
+| 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.

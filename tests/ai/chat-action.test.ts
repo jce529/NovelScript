@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
+import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 
 /*
  * 08-05 Server Action boundary for chatAction: session-derived owner, UUID
@@ -31,6 +32,8 @@ vi.mock('@/lib/access/actions', () => ({ readChapterContent: vi.fn() }));
 vi.mock('@/lib/chapters/actions', () => ({ saveChapterContent: vi.fn(), publishChapter: vi.fn(), unpublishChapter: vi.fn() }));
 vi.mock('@/lib/ai/mentions', () => ({ searchMentionNodes: vi.fn(), quickAddMentionNode: vi.fn() }));
 vi.mock('@/lib/kb/actions', () => ({ saveNodeContent: vi.fn() }));
+vi.mock('@/lib/ai/decision/activation', () => ({ getAiDocPlanningMode: vi.fn(async () => ({ mode: 'off' })) }));
+vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({}) }));
 
 import { chatAction } from '@/app/studio/[workId]/chapters/[chapterId]/actions';
 import { ProviderCallError } from '@/lib/ai/providers/errors';
@@ -42,7 +45,8 @@ function validInput(overrides: Record<string, unknown> = {}) {
   return {
     workId: 'w1',
     chapterId: 'c1',
-    modelTier: 'lite',
+    providerId: 'gemini',
+    model: 'gemini-3.5-flash',
     mentionedNodeIds: [],
     presetLevel: 'balanced',
     styleId: 'default',
@@ -67,6 +71,38 @@ beforeEach(() => {
 });
 
 describe('chatAction boundary', () => {
+  it('uses the shared BYOK pending copy', async () => {
+    expect(CHAT_COPY.byokPending).toBe(BYOK_COPY.sendBoundary);
+  });
+
+  it('blocks BYOK before provider creation', async () => {
+    const result = await chatAction(validInput({ keySource: 'byok' }));
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.byokPending });
+    expect(h.createPlatformProvider).not.toHaveBeenCalled();
+    expect(h.chat).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unknown key source', async () => {
+    const result = await chatAction(validInput({ keySource: 'x' }));
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
+    expect(h.createPlatformProvider).not.toHaveBeenCalled();
+    expect(h.chat).not.toHaveBeenCalled();
+  });
+
+  it('sends an explicit service selection without forwarding keySource', async () => {
+    await chatAction(validInput({ keySource: 'service', ownerId: 'forged' }));
+    expect(h.createPlatformProvider).toHaveBeenCalledTimes(1);
+    expect(h.chat).toHaveBeenCalledTimes(1);
+    expect(h.chat.mock.calls[0][2]).not.toHaveProperty('keySource');
+    expect(h.chat.mock.calls[0][2].ownerId).toBe(SESSION_USER);
+  });
+
+  it('treats missing keySource as service', async () => {
+    await chatAction(validInput());
+    expect(h.createPlatformProvider).toHaveBeenCalledTimes(1);
+    expect(h.chat).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects unauthenticated callers before provider or chat', async () => {
     h.sessionUserId = null;
     const result = await chatAction(validInput());
@@ -80,7 +116,8 @@ describe('chatAction boundary', () => {
     ['empty', { idempotencyKey: '' }],
     ['missing', { idempotencyKey: undefined }],
     ['number', { idempotencyKey: 12345 }],
-    ['bad modelTier', { modelTier: 'ultra' }],
+    ['bad provider', { providerId: 'unknown' }],
+    ['model from another provider', { providerId: 'gemini', model: 'gpt-4o-mini' }],
   ])('rejects invalid input (%s)', async (_label, overrides) => {
     const result = await chatAction(validInput(overrides));
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
@@ -95,6 +132,21 @@ describe('chatAction boundary', () => {
     expect(third).toEqual(expect.objectContaining({ ownerId: SESSION_USER, idempotencyKey: KEY }));
     expect(third.ownerId).not.toBe('attacker-id');
     expect(result).toBe(h.chatResult);
+  });
+
+  it.each([
+    ['openai', 'gpt-4o-mini'],
+    ['anthropic', 'claude-sonnet-5'],
+  ] as const)('passes %s model to the provider and chat', async (providerId, model) => {
+    await chatAction(validInput({ providerId, model }));
+    expect(h.createPlatformProvider).toHaveBeenCalledWith(providerId);
+    expect(h.chat.mock.calls[0][2]).toEqual(expect.objectContaining({ providerId, model }));
+  });
+
+  it('reports the selected provider for an unexpected config error', async () => {
+    h.createPlatformProvider.mockImplementation(() => { throw new Error('secret'); });
+    await chatAction(validInput({ providerId: 'anthropic', model: 'claude-sonnet-5' }));
+    expect(errorSpy).toHaveBeenCalledWith('[ai] provider call failed', expect.objectContaining({ provider: 'anthropic' }));
   });
 
   it('maps a ProviderCallError config failure to config copy with sanitized log', async () => {

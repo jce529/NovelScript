@@ -5,7 +5,7 @@ import { softDeleteAccount, isAccountActive } from '../../lib/auth/account';
 describe('softDeleteAccount', () => {
   const sql = pgPool();
   const admin = adminClient();
-  let users: string[] = [];
+  const users: string[] = [];
 
   afterAll(async () => {
     for (const id of users) {

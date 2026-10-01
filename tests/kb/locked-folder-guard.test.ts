@@ -8,6 +8,7 @@ describe('Locked-folder guard (Pitfall 2) — direct Server Action calls on a fi
   let workId: string;
   let lockedFolderId: string;
   let lockedFolderOriginalName: string;
+  let categoryFolderId: string;
 
   beforeAll(async () => {
     owner = await createTestUser();
@@ -22,9 +23,12 @@ describe('Locked-folder guard (Pitfall 2) — direct Server Action calls on a fi
     workId = data as string;
 
     const { data: folder } = await admin
-      .from('kb_nodes').select('id, name').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').single();
+      .from('kb_nodes').select('id, name').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).single();
     lockedFolderId = folder!.id;
     lockedFolderOriginalName = folder!.name;
+    const { data: categoryFolder } = await admin.from('kb_nodes').select('id')
+      .eq('parent_id', lockedFolderId).eq('name', '인물').eq('node_type', 'folder').single();
+    categoryFolderId = categoryFolder!.id;
   }, 30000);
 
   afterAll(async () => {
@@ -45,5 +49,12 @@ describe('Locked-folder guard (Pitfall 2) — direct Server Action calls on a fi
 
     const { data } = await admin.from('kb_nodes').select('deleted_at').eq('id', lockedFolderId).single();
     expect(data!.deleted_at).toBeNull();
+  });
+
+  it('rejects renaming and deleting a locked template category folder', async () => {
+    expect(await renameNode(admin, { ownerId: owner.id, nodeId: categoryFolderId, name: '바뀐 이름' }))
+      .toMatchObject({ ok: false });
+    expect(await deleteNode(admin, { ownerId: owner.id, nodeId: categoryFolderId }))
+      .toMatchObject({ ok: false });
   });
 });

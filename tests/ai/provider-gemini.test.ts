@@ -201,7 +201,7 @@ describe('createPlatformProvider', () => {
   it('throws a config ProviderCallError when GEMINI_API_KEY is missing', () => {
     let caught: unknown;
     try {
-      createPlatformProvider({});
+      createPlatformProvider('gemini', {});
     } catch (e) {
       caught = e;
     }
@@ -215,6 +215,6 @@ describe('createPlatformProvider', () => {
   });
 
   it('returns a gemini provider when the key is set', () => {
-    expect(createPlatformProvider({ GEMINI_API_KEY: 'k' }).provider).toBe('gemini');
+    expect(createPlatformProvider('gemini', { GEMINI_API_KEY: 'k' }).provider).toBe('gemini');
   });
 });

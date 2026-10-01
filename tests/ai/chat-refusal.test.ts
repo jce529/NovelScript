@@ -10,6 +10,7 @@ vi.mock('@/lib/ai/mentions', () => ({ getMentionedNodesContent: async () => [] }
 import { chat, type ChatInput } from '@/lib/ai/chat';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import { computeDebitAmount } from '@/lib/ai/cost';
+import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import { ProviderCallError } from '@/lib/ai/providers/errors';
 import type { GenerateResult, ProviderClient, RefusalReasonCode } from '@/lib/ai/providers/types';
 import { createFakeLedgerAdmin, type FakeLedgerOptions } from '../helpers/fake-ledger-admin';
@@ -19,7 +20,7 @@ const OWNER = '10000000-0000-4000-8000-000000000001';
 const KEY = '60000000-0000-4000-8000-000000000001';
 const input: ChatInput = {
   ownerId: OWNER, workId: '20000000-0000-4000-8000-000000000001', chapterId: '30000000-0000-4000-8000-000000000001',
-  modelTier: 'lite', mentionedNodeIds: [], presetLevel: 'beginner', styleId: 'concise-hemingway', genre: '판타지',
+  providerId: 'gemini', model: 'gemini-3.5-flash', mentionedNodeIds: [], presetLevel: 'beginner', styleId: 'concise-hemingway', genre: '판타지',
   precedingText: '', chatHistory: [{ role: 'user', content: '이어서 써줘' }], idempotencyKey: KEY,
 };
 const session = {
@@ -53,7 +54,7 @@ describe('chat() structured refusals', () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
     const provider = createMockProvider({ generateContent: async () => refusal('input', 'SAFETY', 900, 0) });
     const result = await chat(session, asClient(provider), input);
-    const amount = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 900, candidatesTokenCount: 0 });
+    const amount = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 900, candidatesTokenCount: 0 });
     expect(debitCalls(admin)).toHaveLength(1);
     expect(debitCalls(admin)[0][1]).toMatchObject({ p_reference_id: KEY, p_delta: 0 - amount });
     expect(result).toEqual({
@@ -67,7 +68,7 @@ describe('chat() structured refusals', () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
     const provider = createMockProvider({ generateContent: async () => refusal('output', code, 3000, 4000) });
     const result = await chat(session, asClient(provider), input);
-    const amount = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 3000, candidatesTokenCount: 4000 });
+    const amount = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 3000, candidatesTokenCount: 4000 });
     expect(debitCalls(admin)[0][1]).toMatchObject({ p_delta: 0 - amount });
     expect(result).toMatchObject({ status: 'refused', refusal: { stage: 'output', reasonCode: code, debitAmount: amount } });
     expect(JSON.stringify(result)).not.toContain('PARTIAL-OUTPUT');

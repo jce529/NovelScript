@@ -1,3 +1,4 @@
+import 'server-only';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -49,26 +50,37 @@ export interface KbNodeInsert {
   content: string;
 }
 
-/** D-10: both tiers' `template/` folder is pre-populated with the 5 canonical
+/** D-10: both tiers' category folders are pre-populated with the 5 canonical
  * templates as EDITABLE files (name = category, e.g. "인물"), verbatim, WITHOUT
  * title substitution (these are templates, not documents — the placeholder stays
  * literal until a real document is created from them). Idempotent: skips any
- * category that already has a file under templateRootId. Takes a minimal
+ * category that already has a file under its category folder. Takes a minimal
  * client shape so callers can pass any Supabase client (admin or
  * session-scoped) without runtime behavior differing by caller. */
 export async function seedTemplateFiles(
   supabase: SupabaseClient,
   params: { ownerId: string; workId: string | null; scope: 'account_template' | 'work'; templateRootId: string }
 ): Promise<void> {
-  const { data: existing } = await supabase
+  const { data: folders, error: foldersError } = await supabase
     .from('kb_nodes')
-    .select('name')
+    .select('id, name')
     .eq('parent_id', params.templateRootId)
-    .eq('node_type', 'file')
+    .eq('node_type', 'folder')
+    .eq('category', 'template')
     .is('deleted_at', null);
+  if (foldersError) throw new Error(foldersError.message);
+  const folderByCategory = new Map((folders ?? []).map((folder) => [folder.name, folder.id]));
+  for (const category of KB_CATEGORIES) {
+    if (!folderByCategory.has(category)) throw new Error(`템플릿 카테고리 폴더가 없어요: ${category}`);
+  }
 
-  const existingNames = new Set((existing ?? []).map((row) => row.name));
-  const missing = KB_CATEGORIES.filter((category) => !existingNames.has(category));
+  const { data: existing, error: existingError } = await supabase
+    .from('kb_nodes').select('parent_id, name')
+    .in('parent_id', [...folderByCategory.values()])
+    .eq('node_type', 'file').is('deleted_at', null);
+  if (existingError) throw new Error(existingError.message);
+  const missing = KB_CATEGORIES.filter((category) =>
+    !(existing ?? []).some((file) => file.parent_id === folderByCategory.get(category) && file.name === category));
   if (missing.length === 0) return;
 
   const rows: KbNodeInsert[] = await Promise.all(
@@ -76,7 +88,7 @@ export async function seedTemplateFiles(
       owner_id: params.ownerId,
       work_id: params.workId,
       scope: params.scope,
-      parent_id: params.templateRootId,
+      parent_id: folderByCategory.get(category)!,
       node_type: 'file' as const,
       category: 'template' as const,
       is_locked: false as const,

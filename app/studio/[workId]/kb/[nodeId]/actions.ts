@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { createNode, renameNode, deleteNode, saveNodeContent, listTemplateOptions, createFolder } from '@/lib/kb/actions';
+import { createNode, renameNode, deleteNode, saveNodeContent, listTemplateOptions, createFolder, moveTemplateFile } from '@/lib/kb/actions';
 import type { KbCategory } from '@/lib/kb/templates';
 
 export async function getNodeContentAction(nodeId: string) {
@@ -70,6 +70,15 @@ export async function createFolderAction(
     parentId,
     name,
   });
+  if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
+  return result;
+}
+
+export async function moveTemplateFileAction(workId: string, nodeId: string, targetCategoryFolderId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  const result = await moveTemplateFile(supabase, { ownerId: user.id, nodeId, targetCategoryFolderId });
   if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
   return result;
 }

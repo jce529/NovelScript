@@ -4,7 +4,7 @@ import { upgradeToWriter } from '../../lib/auth/writer';
 
 describe('upgradeToWriter', () => {
   const supabase = adminClient();
-  let users: string[] = [];
+  const users: string[] = [];
 
   afterAll(async () => {
     for (const id of users) {

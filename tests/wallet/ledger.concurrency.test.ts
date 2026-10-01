@@ -3,7 +3,7 @@ import { pgPool, createTestUser, deleteTestUser } from '../helpers/db';
 
 describe('Wallet Ledger Concurrency', () => {
   const sql = pgPool(5);
-  let users: string[] = [];
+  const users: string[] = [];
 
   afterAll(async () => {
     for (const id of users) {

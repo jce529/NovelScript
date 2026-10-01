@@ -11,6 +11,7 @@ vi.mock('@/lib/ai/mentions', () => ({ getMentionedNodesContent: async () => [] }
 import { chat, type ChatInput } from '@/lib/ai/chat';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import { computeDebitAmount } from '@/lib/ai/cost';
+import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import type { ProviderClient } from '@/lib/ai/providers/types';
 import { createFakeLedgerAdmin, type FakeLedgerOptions } from '../helpers/fake-ledger-admin';
 import { createMockProvider, okResult } from '../helpers/mock-provider';
@@ -21,7 +22,7 @@ const KEY = '60000000-0000-4000-8000-000000000001';
 const chapterId = '30000000-0000-4000-8000-000000000001';
 
 const input: ChatInput = {
-  ownerId: OWNER, workId: '20000000-0000-4000-8000-000000000001', chapterId, modelTier: 'lite',
+  ownerId: OWNER, workId: '20000000-0000-4000-8000-000000000001', chapterId, providerId: 'gemini', model: 'gemini-3.5-flash',
   mentionedNodeIds: [], presetLevel: 'beginner', styleId: 'concise-hemingway', genre: '판타지',
   precedingText: '어느 날', chatHistory: [{ role: 'user', content: '이어서 써줘' }], idempotencyKey: KEY,
 };
@@ -49,7 +50,7 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const provider = createMockProvider();
     const result = await chat(session, asClient(provider), input);
     expect(result).toMatchObject({ ok: true, status: 'completed' });
-    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 10, candidatesTokenCount: 10 });
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10, candidatesTokenCount: 10 });
     expect(debitCalls(admin)).toEqual([['apply_wallet_delta', {
       p_wallet_id: OWNER, p_delta: -debit, p_reference_type: 'ai_generation', p_reference_id: KEY, p_reason: `chapter:${chapterId}`,
     }]]);
@@ -60,8 +61,8 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\n응답', 1000, 2000, 3000) });
     const result = await chat(session, asClient(provider), input);
     expect(result).toMatchObject({ ok: true, status: 'completed' });
-    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000, thoughtsTokenCount: 3000 });
-    const debitWithoutThoughts = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 1000, candidatesTokenCount: 2000 });
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 1000, candidatesTokenCount: 2000, thoughtsTokenCount: 3000 });
+    const debitWithoutThoughts = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 1000, candidatesTokenCount: 2000 });
     expect(debit).toBeGreaterThan(debitWithoutThoughts);
     expect(debitCalls(admin)).toEqual([['apply_wallet_delta', {
       p_wallet_id: OWNER, p_delta: -debit, p_reference_type: 'ai_generation', p_reference_id: KEY, p_reason: `chapter:${chapterId}`,
@@ -83,7 +84,7 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const provider = createMockProvider({ generateContent: async () => usage });
     const first = await chat(session, asClient(provider), input);
     const second = await chat(session, asClient(provider), input);
-    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 10000, candidatesTokenCount: 10000 });
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
     expect(first.status).toBe('completed');
     expect(second).toEqual({ ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 1000 - debit });
     expect(provider.generateContent).toHaveBeenCalledTimes(1);
@@ -181,14 +182,14 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     await vi.waitFor(() => expect(provider.generateContent).toHaveBeenCalledTimes(2));
     release();
     const results = await both;
-    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 10000, candidatesTokenCount: 10000 });
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
     expect(keyRows(admin)).toHaveLength(1);
     expect(admin.state.balances[OWNER]).toBe(1000 - debit);
     for (const r of results) expect(['completed', 'already_processed']).toContain(r.status);
   });
 
   it('concurrent same key with balance for exactly one debit: loser is already_processed, never negative', async () => {
-    const debit = computeDebitAmount({ modelTier: 'lite', promptTokenCount: 10000, candidatesTokenCount: 10000 });
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
     const admin = setup({ balances: { [OWNER]: debit } });
     let release!: () => void;
     const barrier = new Promise<void>(r => { release = r; });
@@ -219,6 +220,6 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\nx', 12345, 6789) });
     await chat(session, asClient(provider), input);
     const p = debitCalls(admin)[0][1] as { p_delta: number };
-    expect(p.p_delta).toBe(-computeDebitAmount({ modelTier: 'lite', promptTokenCount: 12345, candidatesTokenCount: 6789 }));
+    expect(p.p_delta).toBe(-computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 12345, candidatesTokenCount: 6789 }));
   });
 });

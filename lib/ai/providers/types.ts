@@ -4,7 +4,7 @@
  * Client-safe module: client components type-import from here.
  */
 
-export type ProviderId = 'gemini';
+export type ProviderId = 'gemini' | 'openai' | 'anthropic';
 
 export type ModelTier = 'lite' | 'pro';
 

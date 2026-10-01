@@ -2,24 +2,26 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, FolderPlus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, FolderPlus, Pencil, Trash2, FolderInput } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel,
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { TreeNode } from '@/lib/kb/tree';
 import {
-  createNodeAction, renameNodeAction, deleteNodeAction, listTemplateOptionsAction, createFolderAction,
+  createNodeAction, renameNodeAction, deleteNodeAction, listTemplateOptionsAction, createFolderAction, moveTemplateFileAction,
 } from '@/app/studio/[workId]/kb/[nodeId]/actions';
 
 /** Rendered per tree row directly by kb-tree.tsx. 24px hit-area
  * icon buttons per UI-SPEC — every one carries a Tooltip (non-optional at this size). */
-export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode }) {
-  const [dialog, setDialog] = useState<'create' | 'create-folder' | 'rename' | 'delete' | null>(null);
+export function KbTreeActions({ workId, node, isTemplateCategoryFolder = false, categoryFolders = [] }: {
+  workId: string; node: TreeNode; isTemplateCategoryFolder?: boolean; categoryFolders?: TreeNode[];
+}) {
+  const [dialog, setDialog] = useState<'create' | 'create-folder' | 'rename' | 'delete' | 'move-template' | null>(null);
   const router = useRouter();
   const isChapterFolder = node.category === '회차';
 
@@ -31,11 +33,14 @@ export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode
             <Plus size={14} />
           </IconButton>
         )}
-        {node.node_type === 'folder' && node.category !== 'template' && !isChapterFolder && (
+        {node.node_type === 'folder' && (node.category !== 'template' || isTemplateCategoryFolder) && !isChapterFolder && (
           <IconButton label="하위 문서 추가" onClick={() => setDialog('create')}><Plus size={14} /></IconButton>
         )}
-        {node.node_type === 'folder' && (
+        {node.node_type === 'folder' && node.category !== 'template' && (
           <IconButton label="새 폴더 만들기" onClick={() => setDialog('create-folder')}><FolderPlus size={14} /></IconButton>
+        )}
+        {node.node_type === 'file' && node.category === 'template' && categoryFolders.length > 0 && (
+          <IconButton label="카테고리 폴더로 이동" onClick={() => setDialog('move-template')}><FolderInput size={14} /></IconButton>
         )}
         {!node.is_locked && (
           <>
@@ -48,6 +53,13 @@ export function KbTreeActions({ workId, node }: { workId: string; node: TreeNode
         <CreateNodeDialog
           open onOpenChange={(v) => !v && setDialog(null)}
           workId={workId} parentId={node.id} category={node.category} onCreated={() => router.refresh()}
+        />
+      )}
+      {dialog === 'move-template' && (
+        <MoveTemplateFileDialog
+          open onOpenChange={(v) => !v && setDialog(null)} workId={workId}
+          nodeId={node.id} currentParentId={node.parent_id} categoryFolders={categoryFolders}
+          onMoved={() => router.refresh()}
         />
       )}
       {dialog === 'create-folder' && (
@@ -101,6 +113,12 @@ const SCOPE_LABEL: Record<TemplateOption['scope'], string> = {
   canonical: '기본',
 };
 
+const TEMPLATE_GROUPS = [
+  { scope: 'work', label: '작품 템플릿' },
+  { scope: 'account_template', label: '계정 템플릿' },
+  { scope: 'canonical', label: '기본 템플릿' },
+] as const;
+
 export function CreateNodeDialog({
   open, onOpenChange, workId, parentId, category, onCreated,
 }: { open: boolean; onOpenChange: (v: boolean) => void; workId: string; parentId: string; category: string; onCreated: () => void }) {
@@ -114,7 +132,7 @@ export function CreateNodeDialog({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('canonical');
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || category === 'template') return;
     listTemplateOptionsAction(workId, category).then((result) => {
       if (!result.ok) return;
       setTemplateOptions(result.options);
@@ -126,12 +144,12 @@ export function CreateNodeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>새 문서 만들기</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{category === 'template' ? '새 템플릿 만들기' : '새 문서 만들기'}</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-1">
-          <Label htmlFor="new-node-name">문서 이름</Label>
-          <Input id="new-node-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="문서 이름" />
+          <Label htmlFor="new-node-name">{category === 'template' ? '템플릿 이름' : '문서 이름'}</Label>
+          <Input id="new-node-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={category === 'template' ? '템플릿 이름' : '문서 이름'} />
         </div>
-        {templateOptions.length > 0 && (
+        {category !== 'template' && templateOptions.length > 0 && (
           <div className="flex flex-col gap-1">
             <Label htmlFor="new-node-template">템플릿 선택</Label>
             <Select value={selectedTemplateId} onValueChange={(value) => setSelectedTemplateId(value ?? 'canonical')}>
@@ -144,11 +162,19 @@ export function CreateNodeDialog({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {templateOptions.map((option) => (
-                  <SelectItem key={option.id ?? 'canonical'} value={option.id ?? 'canonical'}>
-                    {option.name} ({SCOPE_LABEL[option.scope]})
-                  </SelectItem>
-                ))}
+                {TEMPLATE_GROUPS.map(({ scope, label }) => {
+                  const options = templateOptions.filter((option) => option.scope === scope);
+                  return options.length > 0 && (
+                    <SelectGroup key={scope}>
+                      <SelectLabel>{label}</SelectLabel>
+                      {options.map((option) => (
+                        <SelectItem key={option.id ?? 'canonical'} value={option.id ?? 'canonical'}>
+                          {option.name} ({SCOPE_LABEL[option.scope]}){option.isDefault ? ' (기본)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -169,8 +195,46 @@ export function CreateNodeDialog({
               onCreated();
             })}
           >
-            새 문서 만들기
+            {category === 'template' ? '새 템플릿 만들기' : '새 문서 만들기'}
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function MoveTemplateFileDialog({ open, onOpenChange, workId, nodeId, currentParentId, categoryFolders, onMoved }: {
+  open: boolean; onOpenChange: (v: boolean) => void; workId: string; nodeId: string;
+  currentParentId: string | null; categoryFolders: TreeNode[]; onMoved: () => void;
+}) {
+  const [targetId, setTargetId] = useState(currentParentId && categoryFolders.some((folder) => folder.id === currentParentId) ? currentParentId : '');
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>카테고리 폴더로 이동</DialogTitle></DialogHeader>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="template-category-folder">이동할 카테고리</Label>
+          <Select value={targetId} onValueChange={(value) => { setTargetId(value ?? ''); setError(null); }}>
+            <SelectTrigger id="template-category-folder" className="w-full">
+              <SelectValue>{(value: string) => categoryFolders.find((folder) => folder.id === value)?.name ?? '카테고리를 선택해주세요'}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {categoryFolders.map((folder) => <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        {error && <p className="text-destructive text-sm">{error}</p>}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
+          <Button disabled={isPending || !targetId || targetId === currentParentId} onClick={() => startTransition(async () => {
+            const result = await moveTemplateFileAction(workId, nodeId, targetId);
+            if (!result.ok) { setError(result.error ?? '이동하지 못했어요. 다시 시도해주세요.'); return; }
+            onOpenChange(false);
+            onMoved();
+          })}>이동하기</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

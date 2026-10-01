@@ -7,6 +7,7 @@ vi.mock('@supabase/ssr', () => ({
   createServerClient: vi.fn(() => ({ auth: { getClaims: getClaimsMock } })),
 }));
 
+import type { NextRequest } from 'next/server';
 import { proxy, config } from '../../proxy';
 
 describe('proxy.ts session refresh (AUTH-03)', () => {
@@ -28,7 +29,7 @@ describe('proxy.ts session refresh (AUTH-03)', () => {
     const request = {
       cookies: { getAll: () => [], set: vi.fn() },
       nextUrl: new URL('http://localhost:3000/account'),
-    } as any;
+    } as unknown as NextRequest;
 
     const response = await proxy(request);
     expect(getClaimsMock).toHaveBeenCalledTimes(1);

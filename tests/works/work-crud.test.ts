@@ -4,7 +4,7 @@ import { createWork, listWorks, getWork } from '../../lib/works/actions';
 
 describe('Work CRUD (lib/works/actions.ts)', () => {
   const supabase = adminClient();
-  let users: string[] = [];
+  const users: string[] = [];
 
   afterAll(async () => {
     for (const id of users) {

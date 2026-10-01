@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createNode, type NodeMutationResult } from '@/lib/kb/actions';
-import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/templates';
+import { createNode, FOLDER_COPY, listCategoryFolderCandidates, type NodeMutationResult } from '@/lib/kb/actions';
+import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 
 export interface MentionCandidate {
   id: string;
@@ -61,20 +61,17 @@ export async function searchMentionNodes(
 /** D-04 quick-add: resolves the work's fixed category folder (one of the 6 folders
  * seeded by create_work in 0002_studio.sql), so the caller never needs to know the
  * folder id ahead of time. */
-export async function resolveCategoryFolderId(
+export type DefaultFolderResolution =
+  | { ok: true; folderId: string }
+  | { ok: false; reason: 'root_missing' | 'root_duplicate' | 'query_failed' };
+
+export async function resolveDefaultCategoryFolder(
   supabase: SupabaseClient,
   { ownerId, workId, category }: { ownerId: string; workId: string; category: KbCategory }
-): Promise<string | null> {
-  const { data } = await supabase
-    .from('kb_nodes')
-    .select('id')
-    .eq('owner_id', ownerId)
-    .eq('work_id', workId)
-    .eq('category', category)
-    .eq('node_type', 'folder')
-    .is('deleted_at', null)
-    .maybeSingle();
-  return data?.id ?? null;
+): Promise<DefaultFolderResolution> {
+  const listed = await listCategoryFolderCandidates(supabase, { ownerId, workId, category });
+  if (listed.status !== 'ok') return { ok: false, reason: listed.status };
+  return { ok: true, folderId: listed.root.id };
 }
 
 /** D-04: creates the new KB document on the spot and immediately makes it
@@ -82,13 +79,19 @@ export async function resolveCategoryFolderId(
  * name-collision handling) rather than duplicating any of that logic. */
 export async function quickAddMentionNode(
   supabase: SupabaseClient,
-  { ownerId, workId, category, name }: { ownerId: string; workId: string; category: KbCategory; name: string }
+  { ownerId, workId, category, name, targetFolderId }: {
+    ownerId: string; workId: string; category: KbCategory; name: string; targetFolderId?: string;
+  }
 ): Promise<NodeMutationResult> {
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, error: '문서 이름을 입력해주세요.' };
 
-  const parentId = await resolveCategoryFolderId(supabase, { ownerId, workId, category });
-  if (!parentId) return { ok: false, error: '카테고리 폴더를 찾을 수 없어요.' };
+  let parentId = targetFolderId;
+  if (!parentId) {
+    const resolution = await resolveDefaultCategoryFolder(supabase, { ownerId, workId, category });
+    if (!resolution.ok) return { ok: false, error: FOLDER_COPY[resolution.reason] };
+    parentId = resolution.folderId;
+  }
 
   return createNode(supabase, { ownerId, workId, parentId, category, nodeType: 'file', name: trimmed });
 }
