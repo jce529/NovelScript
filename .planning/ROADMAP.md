@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md)
 - [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
 - [ ] **Phase 5: Real Payment Integration** - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
-- [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (partially shipped outside GSD — see Phase 6 detail)
+- [x] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (completed 2026-10-01; shipped outside GSD, live-DB/E2E verification pending — see Phase 6 detail)
 - [x] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports (completed 2026-09-17)
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
@@ -165,7 +165,7 @@ Plans:
   3. The chapter's author is credited 90% of the spent tokens for the unlock, with 10% retained as a platform fee — this 90/10 split is a **provisional figure** (not final; see `06-CONTEXT.md` D-10), implemented behind a single adjustable constant
 **Plans**: TBD for remaining work. Existing implementation was outside the GSD plan flow; `06-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated or marked complete.
 **UI hint**: yes
-**Status**: Partially complete. Implemented in commits `57e1c8e` / `fc8a4a5` directly against the Phase 1 token wallet, without going through `/gsd:plan-phase`. Implementation report: `docs/commerce-entitlements.md`.
+**Status**: Complete (2026-10-01) — source implementation done; live-DB/RLS/concurrency/E2E verification still pending. Purchase flow in commits `57e1c8e` / `fc8a4a5`; author settlement in `56b0031`. Originally implemented directly against the Phase 1 token wallet, without going through `/gsd:plan-phase`. Implementation report: `docs/commerce-entitlements.md`.
 
 Implemented in source (deployment/runtime verification pending):
 - `supabase/migrations/0005_commerce.sql` — `orders` / `order_items` / `entitlements` tables, RLS, purchase RPC, chapter-body column grants
@@ -175,7 +175,7 @@ Implemented in source (deployment/runtime verification pending):
 - Success Criteria 1 and 2 have source implementations. Actual SQL/RLS, independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
 
 Residual (stays in v1.0, not yet done):
-- [ ] **Implement author settlement (Success Criterion 3)** — author 90% / platform 10% is provisional. Add a single rate adjustment point and atomic author credit with purchase-time distribution snapshots. This remains roadmap work; no settlement code was added by the documentation patch.
+- [x] **Author settlement (Success Criterion 3) — implemented in source, DB verification pending.** `supabase/migrations/0015_author_settlement.sql`: single rate point `settlement_author_rate_bps()` (provisional 90%), per-item distribution snapshot on `order_items`, and atomic buyer debit + author credit (`CONTENT_SALE` ledger) inside `pay_purchase_order`. Author share rounds down; platform keeps the remainder. Static tests pass; PostgreSQL tests in `tests/commerce/settlement.test.ts` are not yet run (no `SUPABASE_DB_URL`). Pre-0015 PAID orders are not back-settled.
 - Phase 6 currently runs on the Phase 1 token wallet with **no real top-up path**, because Phase 5 has not been built. `docs/commerce-entitlements.md` states real-currency charging was explicitly out of its scope. This inverts the roadmap's intended 5 → 6 order; Phase 5 layers on top when the Toss keys arrive.
 - [ ] Apply/verify the migration in a test environment, run SQL/RLS and real concurrent-session tests, and validate the purchase E2E. Previous DB tests remain unexecuted by user choice.
 - GSD-format documentation now includes `06-CONTEXT.md`, `06-RESEARCH.md`, retrospective `06-SUMMARY.md`, `06-VERIFICATION.md` (`gaps_found`) and `06-VALIDATION.md`. The verification document records a source audit, not a completed gsd-verifier or live-DB run.
@@ -410,7 +410,7 @@ Residual (stays in v1.0, not yet done):
 | 4. AI Gateway (Mention-Based Generation) | 6/6 | Complete (live-key UAT pending) | 2026-08-30 |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 0/TBD | Blocked (Toss keys) | - |
-| 6. Paid Chapter Unlock | n/a (outside GSD) | Partial (90/10 missing) | - |
+| 6. Paid Chapter Unlock | n/a (outside GSD) | Complete (live-DB/E2E verification pending) | 2026-10-01 |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |

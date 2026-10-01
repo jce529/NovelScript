@@ -47,7 +47,7 @@
 ### Payments (PAY)
 
 - [ ] **PAY-01**: User can purchase tokens through Toss Payments and see the charge reflected as a wallet balance
-- [ ] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
+- [x] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
 - [ ] **PAY-03**: Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
 
 ### Admin / Moderation (ADMIN)
@@ -196,7 +196,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | READ-08 | Phase 3 | Mapped |
 | READ-09 | Phase 3 | Mapped |
 | PAY-01 | Phase 5 | Mapped |
-| PAY-02 | Phase 6 | Mapped |
+| PAY-02 | Phase 6 | Complete (live-DB verification pending) |
 | PAY-03 | Phase 5 | Mapped |
 | ADMIN-01 | Phase 7 | Mapped |
 | ADMIN-02 | Phase 7 | Mapped |
