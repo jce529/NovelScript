@@ -82,7 +82,11 @@ No Git write commands were run.
 - `lib/payments/toss.ts` — server-only Basic-authenticated confirm and order lookup helpers with request timeouts.
 - `tests/payments/toss-client.test.ts` — fetch-mocked Toss contract tests.
 
-## Unverified (needs test DB)
+## DB verification (updated 2026-10-01)
+
+`0015_payments.sql` was applied to the test DB and `tests/payments/order-create.test.ts` and `order-status.test.ts` passed (tests/payments 11/11). Browser/Toss end-to-end remains unverified (needs 05-03+).
+
+## Originally unverified (needs test DB) — now executed, see above
 
 - `tests/payments/order-create.test.ts` — not executed; needs `0015_payments.sql` applied to a configured Supabase test database.
 - `tests/payments/order-status.test.ts` — not executed; needs `0015_payments.sql` applied to a configured Supabase test database.

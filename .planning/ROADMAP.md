@@ -182,7 +182,7 @@ Implemented in source (deployment/runtime verification pending):
 - `lib/commerce/actions.ts` (order creation + settlement), `lib/access/actions.ts` (session-based `canView` + protected body read), `lib/chapters/actions.ts` (body RPC + bulk TOC permission read)
 - `components/reader/viewer-shell.tsx` — price display, purchase button, double-click guard, error/retry
 - `tests/commerce/actions.test.ts`, `tests/commerce/database.test.ts`
-- Success Criteria 1 and 2 have source implementations. Actual SQL/RLS, independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
+- Success Criteria 1 and 2 have source implementations. SQL/RLS and settlement DB tests passed against the live test DB on 2026-10-01 (tests/commerce 33/33, incl. 90/10 split, retry idempotency, rollback); independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
 
 Residual (stays in v1.0, not yet done):
 - [x] **Author settlement (Success Criterion 3) — implemented in source, DB verification pending.** `supabase/migrations/0015_author_settlement.sql`: single rate point `settlement_author_rate_bps()` (provisional 90%), per-item distribution snapshot on `order_items`, and atomic buyer debit + author credit (`CONTENT_SALE` ledger) inside `pay_purchase_order`. Author share rounds down; platform keeps the remainder. Static tests pass; PostgreSQL tests in `tests/commerce/settlement.test.ts` are not yet run (no `SUPABASE_DB_URL`). Pre-0015 PAID orders are not back-settled.

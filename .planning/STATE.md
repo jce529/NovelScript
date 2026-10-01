@@ -51,7 +51,7 @@ Last activity: 2026-09-30 -- Phase 10 complete
 **v1.0 잔여 (별도 트랙, v1.1 로드맵에 포함하지 않음):**
 
 - Phase 5 Real Payment Integration — Blocked (Toss 가맹점 키 대기)
-- Phase 6 작가 90:10 정산 — 구현 완료 (2026-10-01, 0015_author_settlement.sql; 실DB 검증 대기)
+- Phase 6 작가 90:10 정산 — 구현 완료 (2026-10-01, 0015_author_settlement.sql; 2026-10-01 실DB 마이그레이션 적용·DB 테스트 통과(commerce 33 + payments 11), 브라우저 E2E·독립 세션 동시성은 미검증)
 - Phase 7 Admin Moderation Surface — **완료(2026-09-17), 7/7**. 실제 DB·동시성·브라우저 UAT 통과. ⚠️ 미확인 2건(경고 확인 유지, 정지 사용자 화면) + 사소한 이슈(F-2 자기제재 문구, F-3 테스트 신고 잔여물)는 `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`에서 반드시 확인.
 - Phase 4 라이브 GEMINI_API_KEY UAT — 미완. 2026-09-29 Phase 9 라이브 점검에서 `gemini-3.5-flash`가 429 RESOURCE_EXHAUSTED(키/쿼터 문제, 코드 무관) — 키·결제 상태 확인 필요
 

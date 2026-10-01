@@ -1,4 +1,4 @@
-# Requirements: NovelScript
+| BYOK-04 |  | Complete || BYOK-03 |  | Complete || BYOK-02 |  | Complete || BYOK-01 |  | Complete || PROV-07 |  | Complete || PROV-05 |  | Complete || PROV-04 |  | Complete || PROV-03 |  | Complete || PROV-02 |  | Complete || ADMIN-04 |  | Complete || ADMIN-03 |  | Complete || ADMIN-02 |  | Complete || ADMIN-01 |  | Complete |# Requirements: NovelScript
 
 **Defined:** 2026-08-25
 **Core Value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
@@ -52,10 +52,10 @@
 
 ### Admin / Moderation (ADMIN)
 
-- [ ] **ADMIN-01**: Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
-- [ ] **ADMIN-02**: Admin can unpublish/blind a specific chapter
-- [ ] **ADMIN-03**: Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
-- [ ] **ADMIN-04**: Admin can mark a report resolved or dismissed with a short note
+- [x] **ADMIN-01**: Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
+- [x] **ADMIN-02**: Admin can unpublish/blind a specific chapter
+- [x] **ADMIN-03**: Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
+- [x] **ADMIN-04**: Admin can mark a report resolved or dismissed with a short note
 
 ## v1.1 Requirements (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)
 
@@ -64,19 +64,19 @@
 ### 프로바이더 추상화 · 선택 (PROV)
 
 - [x] **PROV-01**: 작가가 공통 프로바이더 어댑터로 이관된 뒤에도 기존과 똑같이 Gemini로 생성할 수 있다 — 멘션 주입, 3단계 프리셋, 4종 문체, `[REPLY]/[DRAFT]/[DOCUMENT]` 초안·제안 파싱이 모두 그대로 동작한다
-- [ ] **PROV-02**: 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
-- [ ] **PROV-03**: 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
-- [ ] **PROV-04**: 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
-- [ ] **PROV-05**: 모델 피커에는 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 (전역 모드 토글 없음)
+- [x] **PROV-02**: 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
+- [x] **PROV-03**: 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
+- [x] **PROV-04**: 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
+- [x] **PROV-05**: 모델 피커에는 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 (전역 모드 토글 없음)
 - [ ] **PROV-06**: 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 일어나지 않는다
-- [ ] **PROV-07**: 서비스 키 모드에서 작가는 선택한 제공자·모델의 실제 단가가 반영된 비용 추정치를 생성 전에 본다 (Gemini 단가를 다른 제공자에 재사용하지 않는다)
+- [x] **PROV-07**: 서비스 키 모드에서 작가는 선택한 제공자·모델의 실제 단가가 반영된 비용 추정치를 생성 전에 본다 (Gemini 단가를 다른 제공자에 재사용하지 않는다)
 
 ### BYOK 키 관리 (BYOK)
 
-- [ ] **BYOK-01**: 작가가 계정 설정 화면에서 제공자별로 자신의 API 키를 등록할 수 있다 (제공자당 1개)
-- [ ] **BYOK-02**: 서버가 저장 전에 제공자의 모델 목록 엔드포인트로 키의 유효성·소유권을 검증하고, 실패하면 활성 키로 저장하지 않는다 (실제 생성 호출로 검증해 사용자에게 과금하지 않는다)
-- [ ] **BYOK-03**: 저장된 키는 제공자·끝 4자리·등록일과 `연결됨/검증 실패/미등록` 상태로만 표시되고, 평문은 클라이언트 응답이나 로그로 다시 노출되지 않는다
-- [ ] **BYOK-04**: 작가가 키를 삭제할 수 있고, 삭제 시 해당 제공자가 어떻게 되는지 안내받는다. 삭제된 키가 기본 선택이었다면 선택이 자동 대체된다. 교체는 삭제 후 재등록으로 이뤄진다
+- [x] **BYOK-01**: 작가가 계정 설정 화면에서 제공자별로 자신의 API 키를 등록할 수 있다 (제공자당 1개)
+- [x] **BYOK-02**: 서버가 저장 전에 제공자의 모델 목록 엔드포인트로 키의 유효성·소유권을 검증하고, 실패하면 활성 키로 저장하지 않는다 (실제 생성 호출로 검증해 사용자에게 과금하지 않는다)
+- [x] **BYOK-03**: 저장된 키는 제공자·끝 4자리·등록일과 `연결됨/검증 실패/미등록` 상태로만 표시되고, 평문은 클라이언트 응답이나 로그로 다시 노출되지 않는다
+- [x] **BYOK-04**: 작가가 키를 삭제할 수 있고, 삭제 시 해당 제공자가 어떻게 되는지 안내받는다. 삭제된 키가 기본 선택이었다면 선택이 자동 대체된다. 교체는 삭제 후 재등록으로 이뤄진다
 - [ ] **BYOK-05**: 무효·폐기된 키 / 레이트리밋 / 크레딧 소진 / 타임아웃·장애 네 가지 실패가 각각 구분되는 메시지로 안내되고, 경우마다 키 상태 변화와 재시도 동작이 다르다 (무효 키만 `검증 실패`로 표시, 자동 재시도 없음, 서비스 키로 자동 폴백하지 않음)
 - [ ] **BYOK-06**: BYOK 모델로 호출하면 플랫폼 토큰이 전혀 차감되지 않고, 지갑 잔액이 0이어도 호출이 차단되지 않는다
 - [ ] **BYOK-07**: 작가가 이번 달 제공자별 BYOK 호출 수·토큰 수를 볼 수 있다 (금액은 표시하지 않음 — Phase 11 D-09)
@@ -196,7 +196,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | READ-08 | Phase 3 | Mapped |
 | READ-09 | Phase 3 | Mapped |
 | PAY-01 | Phase 5 | Mapped |
-| PAY-02 | Phase 6 | Complete (live-DB verification pending) |
+| PAY-02 | Phase 6 | Complete (DB tests passed 2026-10-01; browser E2E pending) |
 | PAY-03 | Phase 5 | Mapped |
 | ADMIN-01 | Phase 7 | Mapped |
 | ADMIN-02 | Phase 7 | Mapped |
@@ -234,10 +234,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | MCP-07 | Phase 14 | Mapped |
 | MCP-08 | Phase 12 | Mapped |
 | MCP-09 | Phase 13 | Mapped |
-| AIDOC-01 | Phase 15 | Mapped |
-| AIDOC-02 | Phase 15 | Mapped |
-| AIDOC-03 | Phase 15 | Mapped |
-| AIDOC-04 | Phase 15 | Mapped |
+| AIDOC-01 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
+| AIDOC-02 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
+| AIDOC-03 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
+| AIDOC-04 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
@@ -246,7 +246,8 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
+*Last updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
+*Previously updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
 *Previously updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*
 *Previously updated: 2026-09-08 — PAY-02 amended: author-credit-on-unlock confirmed at 90/10 (provisional, D-10); added PAY-04 (구독제, v2 candidate) per Phase 6 discussion follow-up*
 *Previously updated: 2026-08-31 — added KB-03/04/05 (custom folder creation, account-shared folder restructure, 회차 folder tree) for inserted Phase 04.1*

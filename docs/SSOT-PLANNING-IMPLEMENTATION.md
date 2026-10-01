@@ -1,6 +1,6 @@
 # NovelScript 기획·구현 통합 SSOT
 
-최종 대조일: 2026-09-02  
+최종 대조일: 2026-10-01  
 Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 
 ## 문서의 역할
@@ -27,9 +27,10 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 ## 현재 제품 경계
 
 - 핵심 가치: 작가의 설정 관리·집필·AI 보조와 독자의 탐색·열람이 한 서비스에서 이어지는 창작/소비 루프.
-- 현재 구현 범위: 인증, 작가 전환, 작품/KB/회차 관리, 독자 탐색/열람/반응, Gemini 기반 멘션 생성 코드, 지갑 원장 기반.
-- 다음 구현 순서: Phase 5 실제 Toss 결제 → Phase 6 유료 회차 해금 → Phase 7 관리자 검토/제재.
-- 현재 차단/확인 사항: Toss 가맹·사업자 심사 상태, 선불전자지급수단 규제 검토, 실제 `GEMINI_API_KEY` 기반 생성·비용·차감 검증.
+- 현재 구현 범위(v1.0): 인증, 작가 전환, 작품/KB/회차 관리, 독자 탐색/열람/반응, 멘션 기반 AI 생성, 지갑 원장, 유료 회차 소장과 작가 90/10 정산(Phase 6), 관리자 신고 검토·제재(Phase 7).
+- 현재 구현 범위(v1.1): 멀티 프로바이더 어댑터와 OpenAI·Anthropic 지원(Phase 8~9), BYOK 키 등록·검증·관리와 모델 피커(Phase 10), Jev 선계획 기반 AI 문서 생성(Phase 15, 코드 완료·활성화 보류).
+- 진행/다음: Phase 11 BYOK 호출 경로(계획 완료, 실행 전) → Phase 12~14 MCP. v1.0 잔여는 Phase 5 Toss 결제(05-01·05-02 서버 기반만 구현, 05-03~07 미실행).
+- 현재 차단/확인 사항: Toss 가맹·사업자 심사 상태, 선불전자지급수단 규제 검토, 라이브 `GEMINI_API_KEY` 쿼터(429), Phase 15 활성화 조건(데이터 정책 승인·벤더 holdout 평가·그림자 표본), Phase 6 브라우저 E2E와 독립 세션 동시성 검증.
 
 ## v1 요구사항 구현 매트릭스
 
@@ -59,15 +60,28 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 독자 | READ-07 새 회차 알림 구독 상태 | 구현됨 | 구독 toggle 저장; 실제 알림 전달 채널은 미정 |
 | 독자 | READ-08 선호작 저장 | 구현됨 | bookmark toggle; 좋아요와 별개 |
 | 독자 | READ-09 프로모션 배너 슬롯 | 구현됨 | 정적 슬롯이며 운영 스케줄링은 범위 아님 |
-| 결제 | PAY-01 Toss 토큰 충전 | 미구현 | Phase 5 UI 명세 승인, 구현 계획/코드 없음 |
-| 결제 | PAY-02 유료 회차 원자적 해금 | 미구현 | Phase 6 미착수; 현재 유료 회차는 잠금 표시만 수행 |
-| 결제 | PAY-03 webhook 검증 후에만 적립 | 미구현 | Phase 5 미착수; 클라이언트 redirect 적립 금지 원칙 확정 |
-| 관리자 | ADMIN-01 신고 큐 | 미구현 | 신고 접수 데이터는 있으나 관리자 화면 없음 |
-| 관리자 | ADMIN-02 회차 blind/unpublish | 미구현 | 작가의 자기 회차 취소와 관리자 조치는 별개 |
-| 관리자 | ADMIN-03 경고/정지/차단과 이력 | 미구현 | Phase 7 미착수 |
-| 관리자 | ADMIN-04 신고 해결/기각 | 미구현 | Phase 7 미착수 |
+| 결제 | PAY-01 Toss 토큰 충전 | 미구현 | Phase 5 05-01·05-02에서 `payment_orders`(0015_payments)·주문 생성·Toss 서버 클라이언트만 구현(DB 테스트 통과). 충전 UI·확정 흐름(05-03~07) 미실행 |
+| 결제 | PAY-02 유료 회차 원자적 해금 | 부분 구현 | 구매·소장·작가 90/10 정산 구현(0005, 0015_author_settlement). 2026-10-01 DB 테스트 통과(분배 스냅샷·멱등·롤백). 브라우저 E2E·독립 세션 동시성 미검증, 실충전은 Phase 5 의존 |
+| 결제 | PAY-03 webhook 검증 후에만 적립 | 미구현 | Phase 5 확정 흐름 미실행; 클라이언트 redirect 적립 금지 원칙 확정 |
+| 관리자 | ADMIN-01 신고 큐 | 구현됨 | Phase 7 완료(2026-09-17), 실DB·브라우저 UAT 통과 |
+| 관리자 | ADMIN-02 회차 blind/unpublish | 구현됨 | Phase 7, `0009_blind_access` 접근 차단 포함 |
+| 관리자 | ADMIN-03 경고/정지/차단과 이력 | 구현됨 | Phase 7, 제재 집행 `0008_sanction_enforcement`. 경고 확인 유지·정지 사용자 화면 2건은 브라우저 재확인 필요 |
+| 관리자 | ADMIN-04 신고 해결/기각 | 구현됨 | Phase 7 |
 
-집계: **구현됨 22 / 부분 구현 2 / 미구현 7 = v1 총 31개**.
+집계: **구현됨 26 / 부분 구현 3 / 미구현 2 = v1 총 31개**.
+
+## v1.1 요구사항 진행 (31개)
+
+`.planning/REQUIREMENTS.md` 추적표 기준. 이 문서는 요약만 두고 개별 판정은 요구사항 문서를 따른다.
+
+| 영역 | 상태 |
+| --- | --- |
+| PROV-01~05, 07 (어댑터·OpenAI·Anthropic·기본 제공자·모델 피커) | 완료 (Phase 8~10). 라이브 호출·브라우저 UAT 통과 |
+| BYOK-01~04 (키 등록·검증·마스킹·삭제) | 완료 (Phase 10). Vault 보관, 계정 삭제 시 시크릿 정리(0015_byok_secret_cleanup) |
+| COST-01 | 완료 (Phase 8, 멱등 차감) |
+| PROV-06, BYOK-05~09, COST-02 | 미구현 — Phase 11 계획 8개 작성, 실행 전 |
+| MCP-01~09 | 미구현 — Phase 12~14 |
+| AIDOC-01~04 | 코드 완료(Phase 15), 활성화 보류·브라우저 UAT 대기 |
 
 ## v2 및 완성형 비전
 
@@ -84,8 +98,8 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 완성형 기획 | 현재 결정 |
 | --- | --- |
 | 에셋 스토어와 판매자 대시보드 | 핵심 집필-열람-결제 검증 뒤로 유예 |
-| BYOK/API Key Vault | v1은 플랫폼 Gemini 키 하나만 운영 |
-| 작가 토큰 현금화/정산 | 초기에는 AI 비용 상쇄에 집중 |
+| BYOK/API Key Vault | v1.0은 플랫폼 Gemini 키만 운영했고, v1.1(Phase 10~11)에서 BYOK 도입 |
+| 작가 토큰 현금화 | 현금화는 범위 밖. 구매 시 작가 지갑 크레딧(90/10, 잠정)만 PAY-02로 구현 |
 | SLM 비동기 자동 사전검수 | 베타는 관리자 수동 검토로 대체 |
 | 정밀 스크롤 완독률·관계 지역성 랭킹 | 단순 조회/좋아요 기반으로 시작 |
 | 3-Strike 자동 제재 | 관리자 수동 판단 이후 검토 |
@@ -96,9 +110,9 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 ## 문서 간 충돌과 해석
 
 1. `docs/`는 완성형 서비스 청사진이고 `.planning`은 현재 MVP 계약이다. 완성형 기능이 코드에 없다는 사실은 결함이 아니라, 요구사항에 포함된 경우에만 미구현으로 판정한다.
-2. ROADMAP은 Phase 4를 `In Progress`로 표시하지만 6/6 계획은 완료됐다. 실제 의미는 코드 완료 후 **실제 Gemini 키·실잔액 검증 대기**이므로 EDIT-04/05를 부분 구현으로 유지한다.
-3. 회차는 가격 정보를 이미 저장하지만 PAY-02가 없으므로 유료 구매가 가능한 것으로 해석하면 안 된다.
-4. 신고 제출은 구현됐지만 관리자 처리 surface는 없으므로 READ-05 완료가 ADMIN-01~04 완료를 의미하지 않는다.
+2. Phase 4의 Gemini 라이브 왕복은 키 쿼터 문제(429)로 아직 재검증되지 않았다. EDIT-04/05는 부분 구현으로 유지한다. 다른 제공자(gpt-4o-mini, claude-haiku-4-5 등)의 라이브 호출은 Phase 9에서 통과했다.
+3. PAY-02는 소장·정산 로직과 DB 테스트가 있으나 실충전(PAY-01)이 없어 실제 구매 흐름 전체는 검증되지 않았다. 완료(체크)와 E2E 검증 완료를 구분한다.
+4. 신고 제출(READ-05)과 관리자 처리(ADMIN-01~04)는 모두 구현됐다. Phase 7의 미확인 2건은 `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`에서 추적한다.
 5. 기존 phase 문서의 `LayoutProps` 및 discovery test 문제 기록은 과거 worktree 환경 기록이다. 현재 사실은 최신 테스트/빌드로 다시 확인해야 한다.
 
 ## 변경 규칙
@@ -115,6 +129,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
+- 마이그레이션 번호: `0015_*`이 3개(`byok_secret_cleanup`, `author_settlement`, `payments`)로 중복되어 있다. 재번호링 결정 전까지 파일명으로 적용한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`
