@@ -64,7 +64,7 @@ Entitlement를 유일한 유료 권한 기준으로 사용한다.
 chapter_unlocks / unlock_paid_chapter를 만들지 않았다.
 현재 UI는 확인 모달 대신 구매 버튼과 refresh 흐름이다.
 로그인/실제 충전 복귀는 아직 연결되지 않았다.
-작가 90/10 정산은 구현되지 않았으며 최신 사용자 지시대로 로드맵에 구현 예정으로 남긴다.
+작가 90/10 정산은 0015_author_settlement.sql로 구현했다(DB 검증 대기). 비율은 settlement_author_rate_bps() 한 곳, 분배는 order_items 스냅샷, 작가 크레딧은 pay_purchase_order 내 원자 처리.
 Phase 6의 구매 기반이 Phase 5 실충전보다 먼저 구현됐다.
 
 ## Tests and Outcomes
@@ -79,6 +79,6 @@ DB migration은 이전 작업에서 적용하지 않았고 현재 배포 확인�
 - 실제 SQL 동시성·RLS·구매 브라우저 E2E 증거 없음.
 
 ## Next Phase Readiness
-PAY-02 전체 완료 아님. 작가 정산은 로드맵에 남겨 둔다.
+PAY-02 전체 완료 아님. 작가 정산 SQL은 구현됐으나 실제 DB 동시성·RLS·E2E 검증은 남아 있다 (tests/commerce/settlement.test.ts는 SUPABASE_DB_URL 필요).
 Phase 5 실충전과 DB 환경이 준비되면 해당 연결과 검증을 수행한다.
 멀티 AI/BYOK 목표는 이 phase와 별도다.
