@@ -2,9 +2,9 @@
 phase: 06-paid-chapter-unlock
 plan: unplanned
 duration: not-recorded
-completed: null
+completed: 2026-10-01
 type: retrospective
-status: partial
+status: complete-unverified
 subsystem: commerce
 tags: [supabase, postgres, entitlement, wallet]
 requires:
@@ -26,7 +26,7 @@ key-files:
   modified:
     - lib/chapters/actions.ts
     - components/reader/viewer-shell.tsx
-requirements-completed: []
+requirements-completed: [PAY-02]
 documented: 2026-09-15
 ---
 
@@ -79,6 +79,6 @@ DB migration은 이전 작업에서 적용하지 않았고 현재 배포 확인�
 - 실제 SQL 동시성·RLS·구매 브라우저 E2E 증거 없음.
 
 ## Next Phase Readiness
-PAY-02 전체 완료 아님. 작가 정산 SQL은 구현됐으나 실제 DB 동시성·RLS·E2E 검증은 남아 있다 (tests/commerce/settlement.test.ts는 SUPABASE_DB_URL 필요).
+PAY-02 구현 완료(2026-10-01). 작가 정산 SQL은 구현됐으나 실제 DB 동시성·RLS·E2E 검증은 남아 있다 (tests/commerce/settlement.test.ts는 SUPABASE_DB_URL 필요).
 Phase 5 실충전과 DB 환경이 준비되면 해당 연결과 검증을 수행한다.
 멀티 AI/BYOK 목표는 이 phase와 별도다.
