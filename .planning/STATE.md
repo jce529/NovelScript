@@ -9,9 +9,9 @@ last_activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문�
 progress:
   total_phases: 16
   completed_phases: 10
-  total_plans: 69
-  completed_plans: 70
-  percent: 63
+  total_plans: 84
+  completed_plans: 72
+  percent: 86
 ---
 
 # Project State
