@@ -4,6 +4,20 @@
 
 사용자와의 모든 대화는 한국어로 진행한다.
 
+# GSD plan-phase 모델 분담 (Codex planner + Claude checker)
+
+Agent 도구는 Claude 모델(`opus`/`sonnet`/`haiku`/`fable`)만 받는다. `.planning/config.json`의 `model_overrides`에 GPT 계열(`gpt-6-sol` 등)을 적어도 `resolve_model_ids: "omit"` 때문에 Agent 호출에는 적용되지 않는다. 그래서 `/gsd:plan-phase`는 다음처럼 나눠 실행한다:
+
+1. **researcher**: RESEARCH.md가 이미 있으면 건너뛴다. 새로 필요하면 `model_overrides`의 `gsd-phase-researcher` 모델을 따르되, GPT 계열이면 사용자에게 먼저 묻는다.
+2. **planner = Codex CLI**: Agent 도구 대신 `codex exec -m <planner 모델> -c model_reasoning_effort=medium -s workspace-write - < 프롬프트파일`로 호출한다. 호출 직전에 모델·추론 강도를 사용자에게 한 줄로 알리고, 로그 첫머리 `model:` 줄이 명시한 모델과 같은지 확인한다(다르면 즉시 중단·보고).
+   - 프롬프트는 scratchpad 파일로 만들고 **파일 내용이 아닌 경로만** 적는다: `~/.claude/agents/gsd-planner.md`, STATE/ROADMAP/REQUIREMENTS/CONTEXT/RESEARCH/VALIDATION/UI-SPEC, CLAUDE.md·AGENTS.md, phase 요구사항 ID, 출력 위치(`{phase_dir}/{NN}-XX-PLAN.md`), "커밋·타 파일 수정 금지".
+   - 출력은 파일로 리다이렉트하고 `head`/`tail`만 읽어 Claude 컨텍스트 소모를 줄인다.
+3. **checker = Claude 서브에이전트**: Agent 도구에 `model: "sonnet"`을 명시해 `gsd-plan-checker`를 띄운다. PLAN.md 내용은 제 컨텍스트에 읽지 않고 판정(`VERIFICATION PASSED` / `ISSUES FOUND`)만 받는다.
+4. **수정 루프(최대 3회)**: `ISSUES FOUND`면 이슈 목록을 파일로 저장해 Codex planner를 "기존 PLAN 최소 수정" 프롬프트로 다시 호출하고 checker를 재실행한다.
+5. **마무리**: 요구사항 ID 커버리지를 확인하고 `gsd-tools.cjs commit`으로 PLAN 파일을 커밋한다.
+
+모델은 `config.json`의 `model_overrides`가 기준이다(현재 planner `gpt-6-sol`, researcher/executor `gpt-6-luna`, checker `sonnet`). 지원하지 않는 모델이면 임의 대체하지 말고 사용자에게 묻는다.
+
 # GSD 실행 후 로드맵 동기화
 
 executor(gsd-executor, `/gsd:execute-phase` 등)가 plan 실행을 끝낼 때마다, 반드시 `.planning/ROADMAP.md`를 실제 완료 상태와 일치시킨다:
