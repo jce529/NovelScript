@@ -145,7 +145,7 @@ export async function regenerateDocumentWithTemplate(
       },
     });
     const linkPolicy = await linkPolicyPrompt(supabase, { ownerId: input.ownerId, workId: input.workId, selfName: input.proposal.name });
-    const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}${linkPolicy}`;
+    const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n질문이나 확인 요청 없이 [DOCUMENT] 블록만 출력할 것([REPLY]로 되묻지 말 것). 기존 결과에 없는 칸은 "미정"으로 채울 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}${linkPolicy}`;
     // BUG-06: 검증은 차감 전에(콜백 안에서) 한다. 거부되면 과금하지 않고 같은 키로 재시도할 수 있다.
     let validatedContent: string | null = null;
     const settled = await settlePaidGeneration(client, preflight.ctx, {

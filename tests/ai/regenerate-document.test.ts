@@ -69,6 +69,8 @@ describe('document template regeneration', () => {
     expect(params.systemInstruction).toContain(template.content);
     expect(params.systemInstruction).toContain('판타지');
     expect(params.contents).toContain(proposal.content);
+    expect(params.contents).toContain('[DOCUMENT] 블록만 출력');
+    expect(params.contents).toContain('[REPLY]로 되묻지 말 것');
     expect(mocks.settle).toHaveBeenCalledWith(provider, ctx, expect.objectContaining({ idempotencyKey: key, ledgerReason: `document_regenerate:${workId}` }), expect.any(Function));
   });
 
