@@ -87,3 +87,12 @@ RLS 거부·일시적 DB 오류·FK 위반으로 INSERT/DELETE가 실패해도 `
 ### 예상 규모
 
 3개 커밋 단계. 마이그레이션·코드·테스트 합계 약 300~500줄 변경 예상(실제 규모는 RPC/DB fixture 구현 후 확인).
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+BUG-02와 같은 변경 단위로 구현·커밋됨(`5a7cd57`). 상세는 BUG-02 문서의 "실제 적용 내용" 참고.
+
+- 조회·RPC 오류, 예외, 비정상 payload는 성공으로 반환하지 않고 안전한 문구의 `error`로 반환한다. 상태를 알 수 없으면 상태 필드를 생략한다(`lib/reader/toggle.ts`). 정지 계정 `denied` 경로와 사전 검사는 유지.
+- 액션은 `error`/상태 미확정 시 `ok: false`, `revalidatePath` 미호출. 기존 UI 실패 토스트가 그대로 문구를 표시하고 실패 시 상태·좋아요 수는 바뀌지 않는다.
+- 테스트: `toggle-errors.test.ts`(조회 실패·RPC 오류·예외·비정상 payload·denied), `toggle-actions.test.ts`, 동시성 DB 테스트. `vitest run tests/reader tests/admin/sanctions.test.ts` 127 통과, `tsc` 통과.
+- 계획 대비 차이: 3단계 커밋 대신 BUG-02와 합쳐 1커밋. 마이그레이션은 0019(0018은 Phase 11 예정). UI 브라우저 수동 확인은 미수행.
