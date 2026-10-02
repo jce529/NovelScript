@@ -23,7 +23,8 @@ export async function createTestUser(email?: string) {
 
 export async function deleteTestUser(userId: string) {
   const admin = adminClient();
-  await admin.auth.admin.deleteUser(userId, false);
+  const { error } = await admin.auth.admin.deleteUser(userId, false);
+  if (error) throw error;
 }
 
 export function anonClient() {

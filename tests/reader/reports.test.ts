@@ -1,15 +1,24 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
+import { adminClient, createTestUser, deleteTestUser, pgPool } from '../helpers/db';
+import { deleteFixtures, planCleanup } from '../../scripts/lib/report-fixture-cleanup.mjs';
 import { submitReport } from '../../lib/reader/reports';
 
 describe('submitReport (READ-05/D-16)', () => {
   const admin = adminClient();
   const users: string[] = [];
+  const works: string[] = [];
+  const reports: string[] = [];
 
+  // BUG-05: remove everything this file created (reports -> kb nodes -> works -> accounts) and
+  // fail loudly if anything is left behind, so the admin report queue is not polluted.
   afterAll(async () => {
-    for (const id of users) {
-      await deleteTestUser(id).catch(() => {});
+    const sql = pgPool(1);
+    try {
+      await deleteFixtures(sql, await planCleanup(sql, { reportIds: reports, workIds: works, userIds: users }));
+    } finally {
+      await sql.end();
     }
+    for (const id of users) await deleteTestUser(id);
   });
 
   async function createWork() {
@@ -23,6 +32,7 @@ describe('submitReport (READ-05/D-16)', () => {
       p_genre: null,
     });
     if (error) throw error;
+    works.push(workId as string);
     return workId as string;
   }
 
@@ -37,6 +47,7 @@ describe('submitReport (READ-05/D-16)', () => {
       chapterId: null,
       reasonCategory: '내용 불일치/표절',
     });
+    if (result.reportId) reports.push(result.reportId);
     expect(result.ok).toBe(true);
   });
 
@@ -83,6 +94,7 @@ describe('submitReport (READ-05/D-16)', () => {
       reasonCategory: '기타',
       detail: '표지 이미지가 저작권을 침해한 것 같아요.',
     });
+    if (result.reportId) reports.push(result.reportId);
     expect(result.ok).toBe(true);
   });
 
@@ -111,6 +123,7 @@ describe('submitReport (READ-05/D-16)', () => {
       chapterId: null,
       reasonCategory: '스팸/광고',
     });
+    if (result.reportId) reports.push(result.reportId);
     expect(result.ok).toBe(true);
 
     const { data: row } = await admin.from('reports').select('*').eq('id', result.reportId!).single();
@@ -129,6 +142,7 @@ describe('submitReport (READ-05/D-16)', () => {
       chapterId: null,
       reasonCategory: '혐오·유해 콘텐츠',
     });
+    if (result.reportId) reports.push(result.reportId);
     expect(result.ok).toBe(true);
 
     const { data: row } = await admin.from('reports').select('chapter_id').eq('id', result.reportId!).single();

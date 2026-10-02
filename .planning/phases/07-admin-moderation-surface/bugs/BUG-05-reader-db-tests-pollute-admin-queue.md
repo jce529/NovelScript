@@ -88,3 +88,11 @@ Phase 3 테스트는 신고 큐 소비자가 없던 시절에 작성되어 신�
 
 - 테스트·헬퍼 수정 및 신규 정리 명령 약 180~300줄(추정). DB FK별 예외 처리 범위에 따라 달라질 수 있다.
 - TDD 2단계, 단계당 커밋 1개. 과거 DB 대상 확인·실삭제 소요는 현재 **미확인**이다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `scripts/lib/report-fixture-cleanup.mjs`(신규): 명시한 신고·작품·계정 ID만 대상으로 하는 `planCleanup`/`deletionBlockers`/`deleteFixtures`. 신고 → KB 노드 → 작품 순으로 한 트랜잭션에서 삭제하고 잔여 건수를 확인한다. 관리자 감사 연결·제재 이력·비테스트 계정(`@novelscript.test` 아님)·존재하지 않는 신고 ID·ID 미지정이면 삭제를 거부한다.
+- `tests/reader/reports.test.ts`: 생성한 작품·신고 ID를 추적해 `afterAll`에서 위 정리를 수행하고 실패를 전파(기존 `.catch(() => {})` 제거). `tests/helpers/db.ts`의 `deleteTestUser`는 Auth 오류를 throw. 신규 `tests/reader/reports-cleanup.database.test.ts`: 독립 연결에서 가시성·정리 후 0건·타 작품 불변·FK로 삭제 막힐 때 오류 전파·가드 단위 테스트.
+- `scripts/cleanup-reader-report-fixtures.mjs`(신규): 과거 잔여물용 일회성 명령. 기본 dry-run, `--execute --expect-db <host>` 없이는 삭제하지 않음.
+- 검증: `reports.test.ts` 실행 전후 원격 DB `reports` 건수 110 → 110(잔여물 0), `vitest run tests/reader tests/admin` 통과, `tsc`·eslint 통과.
+- **미수행(결정 필요):** 이미 쌓인 과거 잔여물 정리. 현재 원격 DB에는 신고 110건(열린 신고 102건)이 있으나 어느 것이 테스트 잔여물인지 확정하지 못해 실삭제하지 않았다. 승인한 ID 목록을 주면 스크립트 dry-run 후 실행한다.
