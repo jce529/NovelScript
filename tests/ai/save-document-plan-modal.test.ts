@@ -69,7 +69,7 @@ function renderModal() {
   mock.onValueChange = [];
   const html = renderToStaticMarkup(createElement(SaveDocumentPlanModal, {
     workId, open: true, onOpenChange: () => {}, proposal,
-    generation: { modelTier: 'pro', presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지' },
+    generation: { providerId: 'anthropic', model: 'claude-sonnet-5', presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지' },
     onSaved: () => {},
   }));
   return [...html.matchAll(/data-slot="select-value"[^>]*>([^<]*)/g)].map((match) => match[1]);
@@ -126,7 +126,7 @@ describe('SaveDocumentPlanModal select triggers', () => {
     mock.cursor = 0;
     const html = renderToStaticMarkup(createElement(SaveDocumentPlanModal, {
       workId, open: true, onOpenChange: () => {}, proposal,
-      generation: { modelTier: 'pro', presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지' },
+      generation: { providerId: 'anthropic', model: 'claude-sonnet-5', presetLevel: 'intermediate', styleId: 'concise-hemingway', genre: '판타지' },
       onSaved: () => {},
     }));
     expect(html).toMatch(/<h3>작품 템플릿<\/h3>.*인물 \(기본\).*<h3>계정 템플릿<\/h3>.*>인물<.*<h3>기본 템플릿<\/h3>.*기본 인물 템플릿/);

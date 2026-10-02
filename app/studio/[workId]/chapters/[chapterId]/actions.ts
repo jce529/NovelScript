@@ -333,7 +333,7 @@ export async function saveDocumentProposalAction(raw: unknown): Promise<
 const regenerateSchema = z.object({
   workId: z.string().uuid(), proposal: proposalSchema, templateId: z.string().uuid().nullable(),
   targetFolderId: z.string().uuid(), folderVersion: z.string().max(4000).optional(),
-  modelTier: z.enum(['lite', 'pro']), idempotencyKey: z.string().uuid(),
+  providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), idempotencyKey: z.string().uuid(),
   presetLevel: z.enum(['beginner', 'intermediate', 'freeform']),
   styleId: z.enum(['concise-hemingway', 'maximalist-dostoevsky', 'lyrical-kimhoon', 'colloquial-kimyounha']),
   genre: z.string().max(100),
@@ -344,15 +344,18 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, failureKind: 'unauthenticated', error: CHAT_COPY.unauthenticated };
   const parsed = regenerateSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  if (!parsed.success || !isKnownModel(parsed.data.providerId, parsed.data.model)) {
+    return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  }
 
+  // 재생성은 문서를 제안한 채팅 생성과 같은 provider·모델을 쓴다.
   let client;
   try {
-    client = createPlatformProvider('gemini');
+    client = createPlatformProvider(parsed.data.providerId);
   } catch (err) {
     const info = err instanceof ProviderCallError
       ? err.info
-      : { provider: 'gemini' as const, status: null, kind: 'config' as const, providerErrorCode: null };
+      : { provider: parsed.data.providerId, status: null, kind: 'config' as const, providerErrorCode: null };
     logProviderFailure(info, parsed.data.idempotencyKey);
     return { ok: false, failureKind: 'config', error: CHAT_COPY.config };
   }

@@ -28,7 +28,7 @@ describe('AI panel model picker', () => {
     expect(html).toContain('data-model="gemini:gemini-3.5-flash:service"');
     expect(html).toContain('data-model="openai:gpt-4o-mini:service"');
     expect(html).toContain('data-model="anthropic:claude-sonnet-5:service"');
-    expect(html).toContain('이번 전송에만 적용돼요');
+    expect(html).toContain('이 대화가 끝날 때까지 유지돼요');
     expect(html).toContain('입력 1,000 + 출력 1,000 토큰 기준');
   });
 

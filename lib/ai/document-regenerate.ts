@@ -3,14 +3,14 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { validateTargetFolder, validateTargetTemplate, formatFolderPath, TEMPLATE_REVALIDATION_FAILED } from '@/lib/kb/actions';
-import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
+import { preflightPaidGeneration, settlePaidGeneration, type PaidGenerationIdentity } from '@/lib/ai/paid-generation';
 import { composeSystemInstruction, type DocumentProposal, type PresetLevel, type StylePresetId } from '@/lib/ai/prompt';
 import { validateDocumentAgainstPlan } from '@/lib/ai/document-contract';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import { parseChatResponse } from '@/lib/ai/chat-parse';
 import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 import { KB_CATEGORIES } from '@/lib/kb/categories';
-import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
+import type { ModelTier, ProviderClient, ProviderId } from '@/lib/ai/providers/types';
 
 export const REGENERATION_FAILED = '문서를 다시 생성하지 못했어요. 다시 시도해주세요.';
 
@@ -93,15 +93,18 @@ export async function regenerateDocumentWithTemplate(
   client: ProviderClient,
   input: {
     ownerId: string; workId: string; proposal: DocumentProposal; templateId: string | null;
-    targetFolderId: string; folderVersion?: string; modelTier: ModelTier; idempotencyKey: string;
+    targetFolderId: string; folderVersion?: string; idempotencyKey: string;
     presetLevel: PresetLevel; styleId: StylePresetId; genre: string;
-  },
+  } & ({ providerId: ProviderId; model: string; modelTier?: never } | { modelTier: ModelTier; providerId?: never; model?: never }),
 ): Promise<RegenerateResult> {
+  const modelIdentity = input.providerId !== undefined
+    ? { providerId: input.providerId, model: input.model }
+    : { modelTier: input.modelTier };
   if (
     !UUID.safeParse(input.idempotencyKey).success || !UUID.safeParse(input.workId).success ||
     !UUID.safeParse(input.targetFolderId).success ||
     (input.templateId !== null && !UUID.safeParse(input.templateId).success) ||
-    !['lite', 'pro'].includes(input.modelTier) ||
+    (input.providerId === undefined && !['lite', 'pro'].includes(input.modelTier as string)) ||
     !input.proposal.name.trim() || input.proposal.name.length > 100 || input.proposal.content.length > 20000 ||
     input.genre.length > 100
   ) return { ok: false, error: CHAT_COPY.invalid_input, failureKind: 'invalid_input' };
@@ -116,7 +119,7 @@ export async function regenerateDocumentWithTemplate(
   });
   if (!targetFolder.ok) return { ok: false, error: targetFolder.error };
 
-  const identity = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, modelTier: input.modelTier };
+  const identity = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, ...modelIdentity } as PaidGenerationIdentity;
   const preflight = await preflightPaidGeneration(supabase, identity);
   if (!preflight.ok) {
     return {

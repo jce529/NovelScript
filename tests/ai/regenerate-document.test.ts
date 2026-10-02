@@ -72,6 +72,15 @@ describe('document template regeneration', () => {
     expect(mocks.settle).toHaveBeenCalledWith(provider, ctx, expect.objectContaining({ idempotencyKey: key, ledgerReason: `document_regenerate:${workId}` }), expect.any(Function));
   });
 
+  it('bills the provider and model that produced the proposal when they are given instead of a tier', async () => {
+    const { modelTier: _tier, ...base } = input;
+    const result = await regenerateDocumentWithTemplate(db, provider, { ...base, providerId: 'anthropic', model: 'claude-sonnet-5' });
+    expect(result).toMatchObject({ ok: true });
+    const identity = mocks.preflight.mock.calls[0][1];
+    expect(identity).toMatchObject({ providerId: 'anthropic', model: 'claude-sonnet-5', idempotencyKey: key });
+    expect(identity).not.toHaveProperty('modelTier');
+  });
+
   it('does not generate when write access is denied', async () => {
     mocks.preflight.mockResolvedValue({ ok: false, chatResult: { ok: false, failureKind: 'write_denied', error: 'denied' } });
     expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, failureKind: 'write_denied' });

@@ -90,6 +90,9 @@ interface ChatMessage {
   proposal?: DocumentProposal | null;
   savedNodeId?: string;
   wasCapped?: boolean;
+  /** 이 응답을 만든 provider·모델 — 모델 선택은 전송 후 기본값으로 돌아가므로 재생성에는 이 값을 쓴다. */
+  providerId?: ProviderId;
+  model?: string;
 }
 
 /** Frozen snapshot of everything one send needs — retry replays it verbatim (UI-SPEC §1). */
@@ -208,12 +211,10 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     const outcome = resolveChatOutcome(result);
     if (outcome.kind === 'success') {
       failedAttemptRef.current = null;
-      setProviderId(defaultProviderId);
-      setModel(defaultModel);
-      setKeySource(defaultKeySource);
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
+        providerId: p.providerId, model: p.model,
       }]);
       if (result.wasCapped) {
         toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
@@ -312,7 +313,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
                 })}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">이번 전송에만 적용돼요</p>
+            <p className="text-xs text-muted-foreground">이 대화가 끝날 때까지 유지돼요</p>
             <div className="rounded-md border border-border p-2 text-xs text-muted-foreground">
               {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[defaultProviderId]} {'\u00B7'} {PROVIDER_MODELS[defaultProviderId].find((entry) => entry.id === defaultModel)?.displayName ?? defaultModel} <Badge variant={defaultKeySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[defaultKeySource]}</Badge>
               {' · '}<Link className="underline" href="/studio/settings/ai-providers">설정에서 변경</Link>
@@ -472,7 +473,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           open={Boolean(modalMessageId)}
           onOpenChange={(open) => { if (!open) setModalMessageId(null); }}
           proposal={modalMessage.proposal}
-          generation={{ modelTier: 'lite', presetLevel, styleId, genre }}
+          generation={{ providerId: modalMessage.providerId ?? providerId, model: modalMessage.model ?? model, presetLevel, styleId, genre }}
           onSaved={(nodeId) => {
             const proposal = modalMessage.proposal!;
             setMessages((prev) => prev.map((message) => message.id === modalMessage.id ? { ...message, savedNodeId: nodeId } : message));

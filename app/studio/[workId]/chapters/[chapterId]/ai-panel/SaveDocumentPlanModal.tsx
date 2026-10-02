@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import type { DocumentProposal, PresetLevel, StylePresetId } from '@/lib/ai/prompt';
-import type { ModelTier } from '@/lib/ai/providers/types';
+import type { ProviderId } from '@/lib/ai/providers/types';
 import { FOLDER_COPY } from '@/lib/kb/folder-copy';
 import type { FolderCandidate } from '@/lib/kb/actions';
 import {
@@ -16,7 +16,7 @@ import {
 } from '../actions';
 
 type TemplateChoice = { id: string | null; name: string; scope: 'work' | 'account_template' | 'canonical'; isDefault: boolean };
-type GenerationSettings = { modelTier: ModelTier; presetLevel: PresetLevel; styleId: StylePresetId; genre: string };
+type GenerationSettings = { providerId: ProviderId; model: string; presetLevel: PresetLevel; styleId: StylePresetId; genre: string };
 
 export interface SaveDocumentPlanModalProps {
   workId: string;

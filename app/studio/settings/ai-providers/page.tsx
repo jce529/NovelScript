@@ -61,7 +61,7 @@ export default async function AiProvidersSettingsPage({
         </div>
         <section className="rounded-lg border border-border p-6">
           <h2 className="text-lg font-medium">계정 기본값</h2>
-          <p className="mt-1 text-sm text-muted-foreground">AI 패널에서 다른 모델을 고르면 해당 전송에만 적용돼요.</p>
+          <p className="mt-1 text-sm text-muted-foreground">AI 패널에서 다른 모델을 고르면 그 대화가 끝날 때까지만 적용돼요.</p>
           <form action={saveDefaultAction} className="mt-5 flex flex-col gap-4">
             <label htmlFor="providerModel" className="text-sm font-medium">제공자와 모델</label>
             <select
