@@ -107,6 +107,13 @@
 - [ ] **AIDOC-03**: AI 제안 저장과 @멘션 빠른 추가는 사용자가 선택한 실제 폴더를 서버에서 소유권·작품·범위·카테고리·삭제 상태까지 재검증한 뒤 저장하며, 위치가 유효하지 않으면 다른 폴더로 조용히 대체하지 않는다
 - [ ] **AIDOC-04**: Jev 계획은 정답셋 오프라인 평가·후보 순서 교란 평가·그림자 운영을 거쳐 품질 기준을 충족한 뒤 활성화되고, 데이터 처리 정책 검토 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다
 
+### 스튜디오 작업 흐름 (STUDIO)
+
+- [x] **STUDIO-01**: 작가가 계정 설정에서 제공자별 BYOK 연결 상태와 키 끝 4자리를 바로 확인하고 관리 페이지로 이동할 수 있다
+- [x] **STUDIO-02**: 작가가 설정 문서 편집 화면에서 회차와 동일한 AI 패널로 대화할 수 있고, 현재 문서가 컨텍스트로 쓰이며 초안 삽입·문서 제안 저장이 동일하게 동작한다
+- [x] **STUDIO-03**: 작가가 로컬 .md/.txt를 업로드해 설정 문서로 일괄 저장하거나 이번 대화에만 첨부할 수 있고, Jev 자동 분류 시 기존 트리 위의 제안 배치를 드래그앤드롭으로 수정·승인한 뒤에만 그 배치대로 저장된다 (저장 시 서버가 폴더를 재검증)
+- [x] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
+
 **v1.1 범위 노트**
 
 - **MCP 인수 기준 클라이언트는 Claude.** ChatGPT는 쓰기 가능한 커스텀 커넥터를 Business/Enterprise/Edu 워크스페이스로 제한하고 Free는 커스텀 MCP 자체를 차단하므로, 개인 Plus 작가에게 MCP-05~07이 도달하지 못할 수 있다. ChatGPT는 best-effort로 문서화하며 성공 기준에 넣지 않는다.
@@ -238,15 +245,20 @@ Explicitly excluded. Documented to prevent scope creep.
 | AIDOC-02 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-03 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-04 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
+| STUDIO-01 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
+| STUDIO-02 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
+| STUDIO-03 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
+| STUDIO-04 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
-- v1.1 requirements: 31 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4) / mapped 31 / unmapped 0 ✓ (Phases 8–15)
-- 전체: 62 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- v1.1 requirements: 35 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4) / mapped 35 / unmapped 0 ✓ (Phases 8–16)
+- 전체: 66 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
+*Last updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
+*Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
 *Previously updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
 *Previously updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*
 *Previously updated: 2026-09-08 — PAY-02 amended: author-credit-on-unlock confirmed at 90/10 (provisional, D-10); added PAY-04 (구독제, v2 candidate) per Phase 6 discussion follow-up*

@@ -43,6 +43,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **v1.1 — 마무리 품질 페이즈**
 
 - [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
+- [x] **Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)** - 작가가 계정 설정에서 BYOK 현황을 보고, 설정 문서에서도 AI와 대화하며, 로컬 작업물을 업로드해 Jev가 제안한 배치를 트리에서 수정·승인해 저장하고, 모바일 세로 화면에서도 스튜디오를 쓴다 (completed 2026-10-02; shipped outside GSD, live Jev/browser/mobile verification pending — see Phase 16 detail)
 
 ## Phase Details
 
@@ -404,11 +405,27 @@ Residual (stays in v1.0, not yet done):
 **Notes**: 단순 `parent_id IS NULL` 필터는 긴급 완화책일 뿐 최종 해결안이 아니다. Jev는 자유 형식 생성 모델이 아니라 서버가 제공한 불투명 후보 키 중 계획을 고르는 결정 계층이며, Gemini는 확정된 템플릿으로 생성한다. 확신도가 낮으면 `clarify`로 전환하고, 폴더·템플릿 판단 실패 시에만 문서화된 안전 기본값을 추천한다. 운영 전 100~300건 정답셋 평가, 후보 순서 교란 평가, 그림자 계획, 템플릿 생성 비교를 수행한다.
 
 
+### Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)
+**Goal**: 작가가 계정 설정에서 BYOK 등록 현황을 바로 확인하고, 회차뿐 아니라 설정 문서에서도 같은 AI 대화창을 쓰며, 로컬에서 작업한 .md/.txt를 한 번에 웹으로 옮기되(저장·대화 첨부·Jev 자동 분류), Jev의 제안은 기존 트리 위에서 드래그앤드롭으로 고치고 승인한 뒤에만 저장되며, 스튜디오를 모바일 세로 화면에서도 쓸 수 있다.
+**Depends on**: Phase 10 (BYOK 키 관리), Phase 15 (Jev 결정 계층 · 폴더 재검증), Phase 04.1 (KB 폴더 트리)
+**Requirements**: STUDIO-01, STUDIO-02, STUDIO-03, STUDIO-04
+**Success Criteria** (what must be TRUE):
+  1. 작가가 `/account`에서 OpenAI·Anthropic·Gemini별 연결 상태와 키 끝 4자리를 보고, 관리 페이지로 이동할 수 있다
+  2. 작가가 설정 문서 편집 화면에서 회차와 동일한 AI 패널로 대화하고, 현재 문서를 컨텍스트로 쓰며, 초안 삽입·문서 제안 저장이 동일하게 동작한다 (과금 원장 reason `kb:<nodeId>`)
+  3. 작가가 .md/.txt를 최대 50개 선택해 카테고리 폴더에 일괄 저장하거나, 이번 대화에만(최대 5개) 첨부할 수 있다
+  4. Jev 자동 분류를 고르면 기존 카테고리 트리 위에 제안 배치가 표시되고, 작가가 트리 안에서 드래그앤드롭으로 수정한 뒤 승인하면 그 배치대로 실제 폴더에 저장되며, 승인 전에는 아무것도 저장되지 않는다. 확신하지 못한 문서는 미분류로 남아 직접 배치해야 승인할 수 있다
+  5. 승인 저장 시 서버가 `targetFolderId`를 소유자·작품·범위·카테고리·삭제 상태로 재검증하고 폴더 카테고리를 문서 카테고리로 쓰며, 폴더가 바뀌었으면 다른 폴더에 조용히 저장하지 않고 해당 파일을 실패로 보고한다
+  6. 스튜디오(작품 사이드바·편집기·AI 패널·계정/설정 페이지)가 모바일 세로 화면에서 가로 스크롤 없이 쓸 수 있다
+**Plans**: TBD. Implementation was outside the GSD plan flow; `16-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated.
+**UI hint**: yes
+**Status**: Complete (2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
+**Notes**: 설정 문서 AI 채팅에서도 BYOK 모델 전송은 Phase 11 전까지 막혀 있다. 업로드 자동 분류는 Jev 활성화 게이트(AIDOC-04)와 별개로 Jev 연결만 있으면 동작하므로, 정책 검토 전 실제 작품 본문 전송 허용 여부를 결정해야 한다. 독자 화면·admin 모바일 대응은 범위 밖. 결정 기록: `.planning/phases/16-studio-workflow-upload/16-CONTEXT.md`.
+
 ## Progress
 
 **Execution Order:**
 **v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
-**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -430,5 +447,6 @@ Residual (stays in v1.0, not yet done):
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
+| 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | n/a (outside GSD) | Complete (live Jev/browser/mobile verification pending) | 2026-10-02 |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
