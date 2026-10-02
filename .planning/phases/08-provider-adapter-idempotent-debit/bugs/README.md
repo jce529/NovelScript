@@ -7,6 +7,7 @@ Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemin
 | ID | 제목 | 심각도 | 상태 |
 |---|---|---|---|
 | [BUG-04](BUG-04-thinking-tokens-not-debited.md) | 사고(thinking) 토큰이 maxOutputTokens 예산을 잠식해 본문이 잘림 | Low | open (보류 — 실사용 데이터 확보 후 재논의) |
+| [BUG-06](BUG-06-concurrent-paid-generation-settlement.md) | 같은 지갑의 유료 AI 생성이 동시에 진행되면 정산 실패로 응답이 사라지고 모델 비용만 발생한다 | Medium | open (방향 확정: 지갑별 직렬화) |
 
 ## 다른 phase로 옮긴 버그
 
