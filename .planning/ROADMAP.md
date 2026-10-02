@@ -335,8 +335,6 @@ Plans:
 
 **하드 경계** — 1단계(Phase 8~11)가 안정화되기 전에 2단계(Phase 12~14)를 시작하지 않는다. BYOK는 "우리가 남의 비밀을 보관해 밖으로 호출", MCP OAuth는 "우리가 비밀을 발급해 밖에서 들어옴" — 방향이 반대이고 공유 코드가 없다. 하나의 '인증 페이즈'로 묶지 않는다.
 
----
-
 ### Phase 12: MCP OAuth 기반 · 연결/해제
 **Goal**: 작가가 Claude에서 NovelScript를 커스텀 커넥터로 연결해 자기 계정 데이터에만 접근하도록 승인하고, 해제하면 이미 발급된 접근이 실제로 끊긴다.
 **Depends on**: Phase 11 (1단계 안정화 이후)
@@ -431,11 +429,26 @@ Plans:
 **Status**: Complete (2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
 **Notes**: 설정 문서 AI 채팅에서도 BYOK 모델 전송은 Phase 11 전까지 막혀 있다. 업로드 자동 분류는 Jev 활성화 게이트(AIDOC-04)와 별개로 Jev 연결만 있으면 동작하므로, 정책 검토 전 실제 작품 본문 전송 허용 여부를 결정해야 한다. 독자 화면·admin 모바일 대응은 범위 밖. 결정 기록: `.planning/phases/16-studio-workflow-upload/16-CONTEXT.md`.
 
+### Phase 17: 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그)
+**Goal**: Phase 16 브라우저 UAT에서 나온 갭과 Phase 4·8·15에 흩어진 미해결 버그를 한 phase로 모아, AI 응답 잘림/소진 안내의 정확성, 문서 재생성·저장 정합성, 업로드 다이얼로그 UI 경고, 재시도 모델 반영, 테스트·린트 기준선을 정리한다. 수정은 각 버그의 원인 phase `bugs/` 문서(`/bug-plan` → `/bug-execute` → `/bug-complete`)로 추적한다.
+**Depends on**: Phase 16 (UAT 갭 출처), Phase 15 (BUG-03·04), Phase 8 (BUG-04)
+**Requirements**: BUGFIX-01, BUGFIX-02, BUGFIX-03, BUGFIX-04, BUGFIX-05
+**Success Criteria** (what must be TRUE):
+  1. 지갑 잔액이 충분한데 요청당 출력 상한이나 thinking 토큰 소진으로 응답이 잘린 경우 "토큰이 모두 소진됐어요" 안내가 나오지 않고, 원인별로 올바른 문구가 나온다 (잔액 캡 vs 요청당 상한)
+  2. 템플릿 재생성 후 저장해도 문서 이름이 바뀌지 않고(Phase 15 BUG-04), 템플릿 카테고리 폴더 관련 남은 UAT 항목(BUG-03)이 닫힌다
+  3. 업로드 다이얼로그가 콘솔 경고(Base UI Select uncontrolled→controlled) 없이 동작하고 브라우저 기본 파일 입력 문구가 시각적으로 노출되지 않는다
+  4. AI 패널 "다시 시도"가 현재 선택된 모델로 재전송된다 (확인 후 필요 시 수정)
+  5. `npx tsc --noEmit`·`eslint`가 깨끗하고, 전체 `vitest` 실패의 원인이 분류되어 환경 요인(supabaseUrl env 등)과 실제 결함이 분리된다
+**Plans**: TBD (`/gsd:plan-phase 17`로 분할)
+**UI hint**: yes
+**Source**: Phase 16 UAT 갭 4건 (`.planning/phases/16-studio-workflow-upload/16-UAT.md`) + Phase 8 BUG-04, Phase 15 BUG-03·04, Phase 8 기록의 eslint·테스트 기준선 이슈
+**Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. 수정 전 Phase 8 BUG-04(thinking 토큰 정책)는 사용자 결정이 필요하다.
+
 ## Progress
 
 **Execution Order:**
 **v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
-**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -458,5 +471,6 @@ Plans:
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | n/a (outside GSD) | Complete (live Jev/browser/mobile verification pending) | 2026-10-02 |
+| 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 0/TBD | Not started | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.

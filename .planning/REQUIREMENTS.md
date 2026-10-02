@@ -114,6 +114,14 @@
 - [x] **STUDIO-03**: 작가가 로컬 .md/.txt를 업로드해 설정 문서로 일괄 저장하거나 이번 대화에만 첨부할 수 있고, Jev 자동 분류 시 기존 트리 위의 제안 배치를 드래그앤드롭으로 수정·승인한 뒤에만 그 배치대로 저장된다 (저장 시 서버가 폴더를 재검증)
 - [x] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
 
+### 버그 수정 통합 (BUGFIX)
+
+- [ ] **BUGFIX-01**: AI 응답이 잘렸을 때 원인(잔액 캡 / 요청당 출력 상한 / thinking 토큰 소진)에 맞는 안내가 표시되고, 잔액이 충분하면 "토큰 소진" 문구가 나오지 않는다
+- [ ] **BUGFIX-02**: 템플릿 재생성·저장 후에도 문서 이름과 저장 위치가 의도대로 유지되고, 템플릿 카테고리 폴더의 남은 UAT 항목이 검증된다
+- [ ] **BUGFIX-03**: 파일 업로드 다이얼로그가 콘솔 경고 없이 동작하고 파일 입력 기본 문구가 보이지 않는다
+- [ ] **BUGFIX-04**: AI 패널 재시도가 현재 선택된 모델·제공자로 요청을 다시 보낸다
+- [ ] **BUGFIX-05**: 타입체크·린트가 깨끗하고 전체 테스트 실패가 환경 요인과 실제 결함으로 분류된다
+
 **v1.1 범위 노트**
 
 - **MCP 인수 기준 클라이언트는 Claude.** ChatGPT는 쓰기 가능한 커스텀 커넥터를 Business/Enterprise/Edu 워크스페이스로 제한하고 Free는 커스텀 MCP 자체를 차단하므로, 개인 Plus 작가에게 MCP-05~07이 도달하지 못할 수 있다. ChatGPT는 best-effort로 문서화하며 성공 기준에 넣지 않는다.
@@ -249,11 +257,16 @@ Explicitly excluded. Documented to prevent scope creep.
 | STUDIO-02 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-03 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-04 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
+| BUGFIX-01 | Phase 17 | Not started |
+| BUGFIX-02 | Phase 17 | Not started |
+| BUGFIX-03 | Phase 17 | Not started |
+| BUGFIX-04 | Phase 17 | Not started |
+| BUGFIX-05 | Phase 17 | Not started |
 
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
-- v1.1 requirements: 35 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4) / mapped 35 / unmapped 0 ✓ (Phases 8–16)
-- 전체: 66 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
+- 전체: 71 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
