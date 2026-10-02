@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: ready_to_execute
-stopped_at: Phase 11 planned (8 plans) — ready to execute
-last_updated: "2026-09-30T14:29:06.339Z"
+status: executing
+stopped_at: Phase 17 context gathered
+last_updated: "2026-10-02T02:34:57.152Z"
 last_activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문서 동기화
 progress:
-  total_phases: 16
+  total_phases: 18
   completed_phases: 10
   total_plans: 84
-  completed_plans: 72
-  percent: 86
+  completed_plans: 73
+  percent: 56
 ---
 
 # Project State
@@ -195,13 +195,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-30T14:29:06.320Z
-Stopped at: Phase 11 UI-SPEC approved
+Last session: 2026-10-02T02:34:57.142Z
+Stopped at: Phase 17 context gathered
 Next: 두 트랙이 열려 있다 —
 
   - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
   - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
 
-Resume file: .planning/phases/11-byok-ux/11-UI-SPEC.md
+Resume file: .planning/phases/17-bugfix-consolidation/17-CONTEXT.md
 
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.
