@@ -1,7 +1,7 @@
 # Phase 17: 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) - Context
 
 **Gathered:** 2026-10-02
-**Status:** Scoped (not yet planned) — `/gsd:plan-phase 17` 전에 아래 "사용자 결정 필요" 확인
+**Status:** Decisions locked — `/gsd:plan-phase 17` 가능
 
 <domain>
 ## Phase Boundary
@@ -60,12 +60,22 @@ Phase 8 BUG-04는 "실사용에서 `wasCapped` 발생 빈도"와 "thinking 예�
 </evidence>
 
 <decisions>
-## 사용자 결정 필요 (planning 전)
+## 확정된 결정 (2026-10-02 discuss-phase)
 
-1. **G1/BUG-04 방향** — (a) UI 문구만 원인별로 정확하게(잔액 캡 vs 요청당 상한), 정책은 유지 / (b) 사고 예산(`thinkingBudget`) 제한 또는 요청당 상한 상향까지 포함. 권장: **(a)를 이 phase에서, (b)는 데이터 더 모은 뒤 별도 결정.**
-2. **G3·G4 확정 방식** — 재현이 확정되기 전에는 BUG 문서를 만들지 않고 먼저 재현 확인(스크린샷·로그)부터 한다.
-3. **BUGFIX-05 범위** — 린트 2건·테스트 분류까지만 할지, 36개 파일 실패의 근본 원인(환경 변수 포함)까지 고칠지.
+1. **G1/BUG-04 = 문구 정정 + 요청당 상한 소폭 상향.** 잔액 캡 / 요청당 상한 / thinking 소진을 구분해 안내 문구를 정확히 하고, `PER_REQUEST_MAX_OUTPUT_TOKENS`(현재 2048)를 소폭 올린다. `thinkingBudget` 제한 등 thinking 예산 정책은 건드리지 않는다(Phase 8 BUG-04 정책 부분은 계속 보류). 상향폭은 research/planning에서 비용·잔액 영향 검토 후 정한다. SEED-002 재작업을 줄이도록 변경은 얇게.
+2. **G3·G4 = 재현 없이 코드를 읽고 바로 수정.** 코드 검토로 원인을 확인해 BUG 문서화(`/bug-plan`) 후 수정한다. 코드상 원인이 확인되지 않으면(예: G4가 이미 올바르게 동작) 그 사실을 근거와 함께 BUG 문서에 기록하고 종료한다.
+3. **BUGFIX-05 = 근본 원인까지 전부.** eslint 2건, `writer-upgrade` 테스트, 36개 파일 실패(supabaseUrl 등 환경변수 포함), DB 통합 테스트 병렬 교착까지 고쳐 전체 `npx vitest run`이 통과하는 기준선을 목표로 한다. 범위가 크므로 plan을 쪼개고(린트 / 환경변수·테스트 하네스 / 교착) 실패 원인 분류를 첫 plan에 둔다.
+4. **기존 확정 유지:** Phase 15 BUG-04는 C안으로 바로 실행, BUG-03은 브라우저 UAT만 남음.
+
+### Claude 재량
+- 상한 상향폭, 문구 구체 표현, BUGFIX-05 plan 분할 방식.
 </decisions>
+
+<deferred>
+## Deferred Ideas
+- thinking 예산(`thinkingBudget`) 제한 정책 — 데이터 더 모은 뒤 별도 결정
+- SEED-002 스트리밍·실시간 토큰 표시, Phase 11 BYOK 경로, Jev 활성화(AIDOC-04)
+</deferred>
 
 <notes>
 ## 진행 메모
