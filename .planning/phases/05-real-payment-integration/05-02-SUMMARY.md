@@ -84,12 +84,12 @@ No Git write commands were run.
 
 ## DB verification (updated 2026-10-01)
 
-`0015_payments.sql` was applied to the test DB and `tests/payments/order-create.test.ts` and `order-status.test.ts` passed (tests/payments 11/11). Browser/Toss end-to-end remains unverified (needs 05-03+).
+`0016_payments.sql` was applied to the test DB and `tests/payments/order-create.test.ts` and `order-status.test.ts` passed (tests/payments 11/11). Browser/Toss end-to-end remains unverified (needs 05-03+).
 
 ## Originally unverified (needs test DB) — now executed, see above
 
-- `tests/payments/order-create.test.ts` — not executed; needs `0015_payments.sql` applied to a configured Supabase test database.
-- `tests/payments/order-status.test.ts` — not executed; needs `0015_payments.sql` applied to a configured Supabase test database.
+- `tests/payments/order-create.test.ts` — not executed; needs `0016_payments.sql` applied to a configured Supabase test database.
+- `tests/payments/order-status.test.ts` — not executed; needs `0016_payments.sql` applied to a configured Supabase test database.
 - Acceptance criteria: database-backed order persistence and derived tier amounts; authenticated/unauthenticated order creation; safe/unsafe persisted return paths; owner-only status polling; foreign or missing order rejection; `credited_at` behavior independent of `confirmed_at`.
 
 ## Deviations from Plan
@@ -122,7 +122,7 @@ All six plan files and this summary exist. Toss mock tests and TypeScript verifi
 
 ## Next Phase Readiness
 
-Order creation/status and the Toss server client are ready for the payment handler plans. Apply migration `0015_payments.sql` and configure a test Supabase database before running the two listed integration test files.
+Order creation/status and the Toss server client are ready for the payment handler plans. Apply migration `0016_payments.sql` and configure a test Supabase database before running the two listed integration test files.
 
 ---
 *Phase: 05-real-payment-integration*

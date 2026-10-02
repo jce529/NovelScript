@@ -155,7 +155,7 @@ Plans:
 **Plans**: 7 plans (05-01·05-02 실행 완료, 05-03~07 미실행)
 
 Plans:
-- [x] 05-01-PLAN.md — 충전 티어·주문 ID 헬퍼·`payment_orders` 마이그레이션(0015_payments)·Toss SDK 의존성
+- [x] 05-01-PLAN.md — 충전 티어·주문 ID 헬퍼·`payment_orders` 마이그레이션(0016_payments)·Toss SDK 의존성
 - [x] 05-02-PLAN.md — 소유자 검증 주문 생성·크레딧 폴링 액션·Toss confirm/조회 서버 클라이언트 (DB 테스트 2026-10-01 통과)
 - [ ] 05-03-PLAN.md — Toss 브라우저 복귀 처리(지갑 적립은 webhook 전용)
 - [ ] 05-04-PLAN.md — 검증된 멱등 webhook 적립, 인증 proxy 우회
@@ -163,7 +163,7 @@ Plans:
 - [ ] 05-06-PLAN.md — 로컬 전체 결제 경계 검증, UI 목업 제공
 - [ ] 05-07-PLAN.md — Toss 샌드박스 흐름·렌더링 UI 최종 검증 (수동)
 **UI hint**: yes
-**Status**: In progress (2/7 plans) — 05-01·05-02 실행 완료: `payment_orders`(0015_payments)·주문 생성·Toss 서버 클라이언트, DB 테스트 2026-10-01 통과. 05-03~07(복귀 처리, webhook 적립, 충전 UI, 샌드박스 검증)은 미실행이며, 실제 샌드박스·webhook 검증은 Toss 가맹 키(사업자등록 + merchant application)에 의존한다.
+**Status**: In progress (2/7 plans) — 05-01·05-02 실행 완료: `payment_orders`(0016_payments)·주문 생성·Toss 서버 클라이언트, DB 테스트 2026-10-01 통과. 05-03~07(복귀 처리, webhook 적립, 충전 UI, 샌드박스 검증)은 미실행이며, 실제 샌드박스·webhook 검증은 Toss 가맹 키(사업자등록 + merchant application)에 의존한다.
 
 ### Phase 6: Paid Chapter Unlock
 **Goal**: Users can spend real, purchased tokens to unlock paid chapters, combining the proven wallet (Phase 1), paid-chapter metadata (Phase 2), and real payments (Phase 5).
@@ -185,7 +185,7 @@ Implemented in source (deployment/runtime verification pending):
 - Success Criteria 1 and 2 have source implementations. SQL/RLS and settlement DB tests passed against the live test DB on 2026-10-01 (tests/commerce 33/33, incl. 90/10 split, retry idempotency, rollback); independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
 
 Residual (stays in v1.0, not yet done):
-- [x] **Author settlement (Success Criterion 3) — implemented in source, DB verification pending.** `supabase/migrations/0015_author_settlement.sql`: single rate point `settlement_author_rate_bps()` (provisional 90%), per-item distribution snapshot on `order_items`, and atomic buyer debit + author credit (`CONTENT_SALE` ledger) inside `pay_purchase_order`. Author share rounds down; platform keeps the remainder. Static tests pass; PostgreSQL tests in `tests/commerce/settlement.test.ts` are not yet run (no `SUPABASE_DB_URL`). Pre-0015 PAID orders are not back-settled.
+- [x] **Author settlement (Success Criterion 3) — implemented in source, DB verification pending.** `supabase/migrations/0017_author_settlement.sql`: single rate point `settlement_author_rate_bps()` (provisional 90%), per-item distribution snapshot on `order_items`, and atomic buyer debit + author credit (`CONTENT_SALE` ledger) inside `pay_purchase_order`. Author share rounds down; platform keeps the remainder. Static tests pass; PostgreSQL tests in `tests/commerce/settlement.test.ts` are not yet run (no `SUPABASE_DB_URL`). Pre-0015 PAID orders are not back-settled.
 - Phase 6 currently runs on the Phase 1 token wallet with **no real top-up path**, because Phase 5 has not been built. `docs/commerce-entitlements.md` states real-currency charging was explicitly out of its scope. This inverts the roadmap's intended 5 → 6 order; Phase 5 layers on top when the Toss keys arrive.
 - [ ] Apply/verify the migration in a test environment, run SQL/RLS and real concurrent-session tests, and validate the purchase E2E. Previous DB tests remain unexecuted by user choice.
 - GSD-format documentation now includes `06-CONTEXT.md`, `06-RESEARCH.md`, retrospective `06-SUMMARY.md`, `06-VERIFICATION.md` (`gaps_found`) and `06-VALIDATION.md`. The verification document records a source audit, not a completed gsd-verifier or live-DB run.

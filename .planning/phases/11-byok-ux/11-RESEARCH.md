@@ -349,7 +349,7 @@ UI에 자동 재시도 코드가 없어도 OpenAI와 Anthropic SDK는 기본적�
 
 ### Wave 1 — DB와 순수 도메인
 
-- `supabase/migrations/0016_ai_usage.sql`: table/RLS/grants/index/comment/conditional `mark_byok_failed` RPC.
+- `supabase/migrations/0018_ai_usage.sql`: table/RLS/grants/index/comment/conditional `mark_byok_failed` RPC.
 - `lib/ai/usage.ts`: KST range, row validation, aggregate, best-effort insert.
 - `lib/ai/providers/types.ts`, `errors.ts`, adapters: failure union과 allowlist 분류, retry 0.
 - `lib/ai/providers/registry.ts`, `byok.ts`: trusted route resolution과 BYOK provider construction.

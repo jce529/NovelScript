@@ -23,7 +23,7 @@ key-files:
   created:
     - lib/payments/tiers.ts
     - tests/payments/tiers.test.ts
-    - supabase/migrations/0015_payments.sql
+    - supabase/migrations/0016_payments.sql
   modified:
     - package.json
     - package-lock.json
@@ -49,6 +49,8 @@ completed: 2026-10-01
 
 **Four fixed top-up products and a protected payment-order schema establish the server-authoritative payment contract.**
 
+> 2026-10-02 재번호링: 이 plan 실행 당시 파일명은 `0015_payments.sql`이었으며 번호 중복 해소(Phase 6 BUG-01)로 `0016_payments.sql`이 됐다. 본문은 변경 없음.
+
 ## Performance
 
 - **Duration:** 5 min
@@ -66,7 +68,7 @@ completed: 2026-10-01
 ## Task Results and Commits
 
 1. **Task 1: Fix the four server-authoritative tiers** — files: `lib/payments/tiers.ts`, `tests/payments/tiers.test.ts`. Dedicated tests: 4 passed. Commit: pending, committed by orchestrator.
-2. **Task 2: Add payment order persistence and Toss configuration** — files: `supabase/migrations/0015_payments.sql`, `package.json`, `package-lock.json`, `.env.example`. `npx tsc --noEmit`: passed. Commit: pending, committed by orchestrator.
+2. **Task 2: Add payment order persistence and Toss configuration** — files: `supabase/migrations/0016_payments.sql`, `package.json`, `package-lock.json`, `.env.example`. `npx tsc --noEmit`: passed. Commit: pending, committed by orchestrator.
 
 No Git write commands were run, as instructed.
 
@@ -83,7 +85,7 @@ No Git write commands were run, as instructed.
 
 - `lib/payments/tiers.ts` — immutable tier contract, validation/lookup helpers, reference type, and order ID generator.
 - `tests/payments/tiers.test.ts` — tier values, validation, lookup, immutability, and order ID tests.
-- `supabase/migrations/0015_payments.sql` — payment order table, constraints, index, RLS policy, and grants.
+- `supabase/migrations/0016_payments.sql` — payment order table, constraints, index, RLS policy, and grants.
 - `package.json` / `package-lock.json` — pinned-compatible Toss SDK dependency.
 - `.env.example` — empty client and server Toss key entries.
 
@@ -101,7 +103,7 @@ All plan-created files exist, the dedicated tests and typecheck passed, and the 
 
 ## Next Phase Readiness
 
-The payment contract and persistence foundation are ready for the later checkout and webhook plans. Apply migration `0015_payments.sql` to the configured test Supabase before later database integration tests. Use mocks for Toss behavior until test credentials are supplied; no real Toss API was called.
+The payment contract and persistence foundation are ready for the later checkout and webhook plans. Apply migration `0016_payments.sql` to the configured test Supabase before later database integration tests. Use mocks for Toss behavior until test credentials are supplied; no real Toss API was called.
 
 ---
 *Phase: 05-real-payment-integration*

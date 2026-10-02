@@ -60,8 +60,8 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 독자 | READ-07 새 회차 알림 구독 상태 | 구현됨 | 구독 toggle 저장; 실제 알림 전달 채널은 미정 |
 | 독자 | READ-08 선호작 저장 | 구현됨 | bookmark toggle; 좋아요와 별개 |
 | 독자 | READ-09 프로모션 배너 슬롯 | 구현됨 | 정적 슬롯이며 운영 스케줄링은 범위 아님 |
-| 결제 | PAY-01 Toss 토큰 충전 | 미구현 | Phase 5 05-01·05-02에서 `payment_orders`(0015_payments)·주문 생성·Toss 서버 클라이언트만 구현(DB 테스트 통과). 충전 UI·확정 흐름(05-03~07) 미실행 |
-| 결제 | PAY-02 유료 회차 원자적 해금 | 부분 구현 | 구매·소장·작가 90/10 정산 구현(0005, 0015_author_settlement). 2026-10-01 DB 테스트 통과(분배 스냅샷·멱등·롤백). 브라우저 E2E·독립 세션 동시성 미검증, 실충전은 Phase 5 의존 |
+| 결제 | PAY-01 Toss 토큰 충전 | 미구현 | Phase 5 05-01·05-02에서 `payment_orders`(0016_payments)·주문 생성·Toss 서버 클라이언트만 구현(DB 테스트 통과). 충전 UI·확정 흐름(05-03~07) 미실행 |
+| 결제 | PAY-02 유료 회차 원자적 해금 | 부분 구현 | 구매·소장·작가 90/10 정산 구현(0005, 0017_author_settlement). 2026-10-01 DB 테스트 통과(분배 스냅샷·멱등·롤백). 브라우저 E2E·독립 세션 동시성 미검증, 실충전은 Phase 5 의존 |
 | 결제 | PAY-03 webhook 검증 후에만 적립 | 미구현 | Phase 5 확정 흐름 미실행; 클라이언트 redirect 적립 금지 원칙 확정 |
 | 관리자 | ADMIN-01 신고 큐 | 구현됨 | Phase 7 완료(2026-09-17), 실DB·브라우저 UAT 통과 |
 | 관리자 | ADMIN-02 회차 blind/unpublish | 구현됨 | Phase 7, `0009_blind_access` 접근 차단 포함 |
@@ -129,7 +129,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
-- 마이그레이션 번호: `0015_*`이 3개(`byok_secret_cleanup`, `author_settlement`, `payments`)로 중복되어 있다. 재번호링 결정 전까지 파일명으로 적용한다.
+- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. 신규는 `0018`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`

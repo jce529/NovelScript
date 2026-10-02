@@ -74,7 +74,7 @@ TypeScript·변경 파일 ESLint 통과 기록. 컴파일 이후 /login 환경�
 이번에는 최신 버전을 기준으로 기록하며 이 차이를 해소하는 새 실행 계획을 만들지 않는다.
 
 ## DB Verification Update (2026-10-01)
-0015_author_settlement.sql·0015_payments.sql을 테스트 DB에 적용하고 `tests/commerce`·`tests/payments` 7파일 44개 통과(skip 0). 작가 90/10 분배·스냅샷, 반올림, 작가별 1회 정산, 재시도 멱등, 잔액 부족 시 무정산, 롤백, 교차 사용자 거부 확인. 독립 세션 동시 구매와 브라우저 E2E는 아직 미검증이며 Truth 2는 UNVERIFIED(동시성 부분)로 유지, Truth 3 구현은 DB 테스트로 확인됨.
+0017_author_settlement.sql·0016_payments.sql을 테스트 DB에 적용하고 `tests/commerce`·`tests/payments` 7파일 44개 통과(skip 0). 작가 90/10 분배·스냅샷, 반올림, 작가별 1회 정산, 재시도 멱등, 잔액 부족 시 무정산, 롤백, 교차 사용자 거부 확인. 독립 세션 동시 구매와 브라우저 E2E는 아직 미검증이며 Truth 2는 UNVERIFIED(동시성 부분)로 유지, Truth 3 구현은 DB 테스트로 확인됨.
 
 ## Human Verification Required
 - 테스트 DB에서 migration과 SQL/RLS 실행. 기존 미실행 선택 유지.

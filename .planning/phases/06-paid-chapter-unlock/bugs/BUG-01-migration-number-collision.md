@@ -99,3 +99,12 @@ files:
 
 - 구현 시 SQL 본문 변경 0줄, rename 2건, 테스트·문서 참조 수정 약 50~100줄. 신규 번호 가드는 약 30~50줄로 예상한다.
 - 작업 2단계, 단계당 커밋 1개. 배포 게이트의 원격 이력 확인·복구 소요는 현재 **미확인**이다.
+
+## 적용 결과 (bug-execute, 2026-10-02)
+
+- `0015_payments.sql` → `0016_payments.sql`, `0015_author_settlement.sql` → `0017_author_settlement.sql` (`git mv`, SQL 본문 변경 0줄). `0015_byok_secret_cleanup.sql`은 유지.
+- 신규 `tests/migrations/numbering.test.ts`: 접두부 형식·유일성 가드(순수 판별 함수 + 저장소 전체 검사). 수정 전 중복 때문에 실패하는 것을 확인한 뒤 통과시켰다.
+- `tests/commerce/settlement.test.ts`의 파일 참조를 `0017_author_settlement`로 갱신.
+- 문서 참조 갱신: Phase 5(05-01·05-02·05-04), Phase 6, STATE, ROADMAP, SSOT, Phase 11(11-01·11-03·11-RESEARCH의 `0016_ai_usage` → `0018_ai_usage`, 11-01에 실행 직전 번호 확인 게이트 추가).
+- 검증: `npx vitest run tests/migrations tests/commerce tests/payments` 8파일 48개 통과, `npx tsc --noEmit` 오류 없음.
+- **남은 일(미확인):** 원격 배포 경로의 마이그레이션 이력은 확인하지 못했다. 원격 테스트 DB에는 세 SQL이 이미 적용돼 있고 `scripts/apply-migration.mjs`는 이력을 기록하지 않으므로 DB에 영향은 없다. 이력 테이블을 쓰는 배포 도구를 도입할 때는 파일명 변경 이력을 함께 조정해야 한다.

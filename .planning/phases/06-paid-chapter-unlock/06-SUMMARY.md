@@ -64,7 +64,7 @@ Entitlement를 유일한 유료 권한 기준으로 사용한다.
 chapter_unlocks / unlock_paid_chapter를 만들지 않았다.
 현재 UI는 확인 모달 대신 구매 버튼과 refresh 흐름이다.
 로그인/실제 충전 복귀는 아직 연결되지 않았다.
-작가 90/10 정산은 0015_author_settlement.sql로 구현했다(2026-10-01 실DB 적용, tests/commerce 전체 통과 — 브라우저 E2E·독립 세션 동시성은 미검증). 비율은 settlement_author_rate_bps() 한 곳, 분배는 order_items 스냅샷, 작가 크레딧은 pay_purchase_order 내 원자 처리.
+작가 90/10 정산은 0017_author_settlement.sql로 구현했다(2026-10-01 실DB 적용, tests/commerce 전체 통과 — 브라우저 E2E·독립 세션 동시성은 미검증). 비율은 settlement_author_rate_bps() 한 곳, 분배는 order_items 스냅샷, 작가 크레딧은 pay_purchase_order 내 원자 처리.
 Phase 6의 구매 기반이 Phase 5 실충전보다 먼저 구현됐다.
 
 ## Tests and Outcomes
