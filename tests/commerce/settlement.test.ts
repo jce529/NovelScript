@@ -2,7 +2,7 @@ import postgres from 'postgres';
 import { readFileSync } from 'node:fs';
 import { beforeAll, afterAll, beforeEach, afterEach, describe, expect, it } from 'vitest';
 
-const migration = readFileSync('supabase/migrations/0015_author_settlement.sql', 'utf8');
+const migration = readFileSync('supabase/migrations/0017_author_settlement.sql', 'utf8');
 
 // Static guards that run without a database: they pin the invariants the DB test proves live.
 describe('0015 author settlement migration (static)', () => {
@@ -60,7 +60,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('author settlement (PostgreSQL)', 
       create table ${schema}.test_users(id uuid primary key);
       grant usage on schema ${schema} to anon, authenticated, service_role;`);
     const files = ['0001_init', '0002_studio', '0003_reader', '0004_kb_custom_folders', '0005_commerce',
-      '0006_admin_foundation', '0007_admin_operations', '0008_sanction_enforcement', '0009_blind_access', '0015_author_settlement'];
+      '0006_admin_foundation', '0007_admin_operations', '0008_sanction_enforcement', '0009_blind_access', '0017_author_settlement'];
     for (const file of files) {
       if (file === '0005_commerce') {
         await exec(`grant all on all tables in schema ${schema} to anon, authenticated, service_role;
