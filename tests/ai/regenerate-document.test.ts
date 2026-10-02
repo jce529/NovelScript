@@ -148,6 +148,8 @@ describe('document template regeneration', () => {
           eq: (c: string, v: unknown) => { eq.push([c, v]); return chain; },
           in: (c: string, v: unknown[]) => { inCol = { ...inCol, [c]: v }; return chain; },
           is: () => { notDeleted = true; return chain; },
+          order: () => chain,
+          limit: () => chain,
           then: (resolve: (v: unknown) => unknown) => resolve({
             error,
             data: rows.filter((r) => eq.every(([c, v]) => (r as Record<string, unknown>)[c] === v)
@@ -196,7 +198,7 @@ ${names.map((n) => `[[${n}]]`).join(' ')}
       expect(await regenerateDocumentWithTemplate(kbDb([row('채아')], { message: 'db down' }), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
     });
 
-    it('does not query the KB when there are no new links', async () => {
+    it('queries the KB only for the prompt (not for validation) when there are no new links', async () => {
       const spy = vi.fn();
       provider.generateContent = vi.fn(async () => generated(`[DOCUMENT]
 카테고리: 인물
@@ -209,7 +211,26 @@ ${names.map((n) => `[[${n}]]`).join(' ')}
       const linked = { ...proposal, content: `${proposal.content}
 [[친구]]` };
       expect(await regenerateDocumentWithTemplate(kbDb([], null, spy), provider, { ...input, proposal: linked })).toMatchObject({ ok: true });
-      expect(spy).not.toHaveBeenCalled();
+      expect(spy).toHaveBeenCalledTimes(2); // 프롬프트용 작품·계정 조회뿐, 검증용 조회 없음
+    });
+
+    it('tells the model to link only KB documents (excluding itself) in the prompt', async () => {
+      const rows = [row('채아'), row('미라'), row('왕국연대기', { work_id: null, scope: 'account_template', category: 'custom' }), row('템플릿스텁', { category: 'template' }), row('삭제됨', { deleted_at: '2026-10-01' })];
+      await regenerateDocumentWithTemplate(kbDb(rows), provider, input);
+      const params = vi.mocked(provider.generateContent).mock.calls[0][0];
+      expect(params.contents).toContain('KB 문서: 채아, 왕국연대기');
+      expect(params.contents).toContain('아래에 없는 인물·세력·장소 이름은 [[ ]] 없이 일반 텍스트');
+      expect(params.contents).not.toContain('템플릿스텁');
+      expect(params.contents).not.toContain('삭제됨');
+    });
+
+    it('forbids new links in the prompt when there are no KB documents or the lookup fails', async () => {
+      await regenerateDocumentWithTemplate(kbDb([]), provider, input);
+      expect(vi.mocked(provider.generateContent).mock.calls[0][0].contents).toContain('새로 만들지 말 것');
+      await regenerateDocumentWithTemplate(kbDb([row('채아')], { message: 'db down' }), provider, input);
+      const params = vi.mocked(provider.generateContent).mock.calls[1][0];
+      expect(params.contents).toContain('새로 만들지 말 것');
+      expect(params.contents).not.toContain('KB 문서:');
     });
 
     it('still requires the original self-link to be kept', async () => {

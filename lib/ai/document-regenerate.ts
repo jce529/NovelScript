@@ -18,23 +18,40 @@ export type RegenerateResult =
   | { ok: false; error: string; status?: ChatResult['status']; failureKind?: ChatResult['failureKind'] };
 
 const UUID = z.string().uuid();
+const LINKABLE_NAME_LIMIT = 200;
 
-/** BUG-05: 재생성 본문의 새 링크 대상이 호출자 본인의 이 작품 또는 계정 공유 KB 파일에 실제 있는지 확인한다(mentions와 같은 범위). 조회 오류는 null(fail closed). */
-async function findExistingLinkTargets(
-  supabase: SupabaseClient, { ownerId, workId, names }: { ownerId: string; workId: string; names: string[] },
-): Promise<Set<string> | null> {
+/** BUG-05: 호출자 본인의 이 작품(5개 카테고리+custom)과 계정 공유 KB의 파일 이름(mentions와 같은 범위). `names`를 주면 그 이름만 조회한다. 조회 오류는 null(fail closed). */
+async function queryKbFileNames(
+  supabase: SupabaseClient, { ownerId, workId, names }: { ownerId: string; workId: string; names?: string[] },
+): Promise<string[] | null> {
   try {
-    const [work, shared] = await Promise.all([
-      supabase.from('kb_nodes').select('name').eq('owner_id', ownerId).eq('work_id', workId).eq('scope', 'work')
-        .eq('node_type', 'file').in('category', [...KB_CATEGORIES, 'custom']).in('name', names).is('deleted_at', null),
-      supabase.from('kb_nodes').select('name').eq('owner_id', ownerId).eq('scope', 'account_template')
-        .eq('node_type', 'file').in('name', names).is('deleted_at', null),
-    ]);
-    if (work.error || shared.error) return null;
-    return new Set([...(work.data ?? []), ...(shared.data ?? [])].map((row) => String(row.name).trim()));
+    let work = supabase.from('kb_nodes').select('name').eq('owner_id', ownerId).eq('work_id', workId).eq('scope', 'work')
+      .eq('node_type', 'file').in('category', [...KB_CATEGORIES, 'custom']).is('deleted_at', null);
+    let shared = supabase.from('kb_nodes').select('name').eq('owner_id', ownerId).eq('scope', 'account_template')
+      .eq('node_type', 'file').is('deleted_at', null);
+    if (names) { work = work.in('name', names); shared = shared.in('name', names); }
+    else { work = work.order('name').limit(LINKABLE_NAME_LIMIT); shared = shared.order('name').limit(LINKABLE_NAME_LIMIT); }
+    const [w, a] = await Promise.all([work, shared]);
+    if (w.error || a.error) return null;
+    return [...new Set([...(w.data ?? []), ...(a.data ?? [])].map((row) => String(row.name).trim()))];
   } catch {
     return null;
   }
+}
+
+async function findExistingLinkTargets(
+  supabase: SupabaseClient, input: { ownerId: string; workId: string; names: string[] },
+): Promise<Set<string> | null> {
+  const found = await queryKbFileNames(supabase, input);
+  return found ? new Set(found) : null;
+}
+
+/** BUG-05: 모델에게 링크해도 되는 KB 문서 이름을 알려 주는 프롬프트 문단. 목록을 못 얻으면 새 링크를 금지한다. */
+async function linkPolicyPrompt(supabase: SupabaseClient, input: { ownerId: string; workId: string; selfName: string }): Promise<string> {
+  const names = await queryKbFileNames(supabase, input);
+  const linkable = (names ?? []).filter((name) => name !== input.selfName.trim());
+  if (linkable.length === 0) return '\n링크: 기존 생성 결과에 없는 [[링크]]를 새로 만들지 말 것. 다른 문서 이름은 링크 없이 일반 텍스트로 쓸 것.';
+  return `\n링크: [[문서 이름]] 형태의 링크는 아래 KB 문서 이름만 사용할 것(기존 생성 결과에 이미 있는 링크는 유지). 아래에 없는 인물·세력·장소 이름은 [[ ]] 없이 일반 텍스트로 쓸 것.\nKB 문서: ${linkable.join(', ')}`;
 }
 
 export async function regenerateDocumentWithTemplate(
@@ -90,7 +107,8 @@ export async function regenerateDocumentWithTemplate(
         purpose: `${input.proposal.category} 설정`,
       },
     });
-    const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}`;
+    const linkPolicy = await linkPolicyPrompt(supabase, { ownerId: input.ownerId, workId: input.workId, selfName: input.proposal.name });
+    const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}${linkPolicy}`;
     const settled = await settlePaidGeneration(client, preflight.ctx, {
       ...identity, ledgerReason: `document_regenerate:${input.workId}`,
     }, () => client.generateContent({
