@@ -13,6 +13,7 @@ export async function toggleLikeAction(workId: string) {
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await toggleLike(supabase, { workId, userId: user.id });
   if (result.denied) return { ok: false, error: result.denied.error, liked: result.liked };
+  if (result.error || result.liked === undefined) return { ok: false, error: result.error ?? '요청을 처리하지 못했어요.' };
   revalidatePath(`/works/${workId}`);
   return { ok: true, liked: result.liked };
 }
@@ -23,6 +24,7 @@ export async function toggleSubscriptionAction(workId: string) {
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await toggleSubscription(supabase, { workId, userId: user.id });
   if (result.denied) return { ok: false, error: result.denied.error, subscribed: result.subscribed };
+  if (result.error || result.subscribed === undefined) return { ok: false, error: result.error ?? '요청을 처리하지 못했어요.' };
   revalidatePath(`/works/${workId}`);
   return { ok: true, subscribed: result.subscribed };
 }
@@ -33,6 +35,7 @@ export async function toggleBookmarkAction(workId: string) {
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await toggleBookmark(supabase, { workId, userId: user.id });
   if (result.denied) return { ok: false, error: result.denied.error, bookmarked: result.bookmarked };
+  if (result.error || result.bookmarked === undefined) return { ok: false, error: result.error ?? '요청을 처리하지 못했어요.' };
   revalidatePath(`/works/${workId}`);
   return { ok: true, bookmarked: result.bookmarked };
 }

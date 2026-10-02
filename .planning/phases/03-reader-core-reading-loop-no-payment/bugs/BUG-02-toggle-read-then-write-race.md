@@ -97,3 +97,12 @@ files:
 ### 예상 규모
 
 - 구현 시 3개 커밋 단계, SQL·코드·테스트 합계 약 300~500줄 변경 예상(Phase 3 BUG-01과 공유하는 변경 포함). RPC·DB fixture의 실제 줄 수와 DB 배포 소요는 **미확인**이다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `supabase/migrations/0019_reader_atomic_toggle.sql`: `toggle_work_likes/bookmarks/subscriptions(p_work_id)` RPC. 사용자는 `auth.uid()`에서만 얻고 `user_can_write` 검사, `anon`/`public` 실행권 회수·`authenticated`만 부여. **계획과 달리 작품 행 `FOR UPDATE` 대신 (테이블, 작품, 사용자) 단위 `pg_advisory_xact_lock`으로 직렬화**했다(같은 작품의 다른 사용자끼리 대기하지 않도록; 계획의 "인기 작품 대기 시간" 위험 제거). 번호는 0018이 Phase 11 `ai_usage`용으로 조율돼 있어 0019를 사용했다.
+- `lib/reader/toggle.ts`(신규 공통) + `likes/bookmarks/subscriptions.ts`: RPC 호출로 교체. 반환 상태는 RPC boolean만 사용, RPC 오류·예외·비정상 payload는 `error`(DB 원문 미노출)로 반환하고 상태는 추정하지 않음. 정지 계정 사전 검사(D-07)와 DB `write_access_denied`는 `denied`로 유지. (Phase 3 BUG-01의 오류 반환 계약도 이 변경으로 함께 구현됨 — `/bug-complete` 때 BUG-01도 같이 검토.)
+- `actions.ts`: `error`/상태 미확정이면 `ok: false`, `revalidatePath`는 성공 시에만. `like-button.tsx`, `work-header-actions.tsx`: 버튼별 `useTransition` pending으로 비활성화·재클릭 무시.
+- 테스트: `toggle-concurrency-db.test.ts`(독립 연결 동시 2회 빈/기존 상태, on→off→on, 타 사용자 불변, 무인증·영구정지 거부; 3 테이블×4), `toggle-errors.test.ts`, `toggle-actions.test.ts`, 기존 likes/bookmarks/subscriptions 테스트를 인증 세션(`signedInClient`) 경로 + on→off→on으로 갱신.
+- 검증: `vitest run tests/reader tests/admin/sanctions.test.ts` 127 통과(DB 테스트 skip 0), `tsc --noEmit` 통과, 변경 파일 eslint 오류 0(기존 경고 2). 0019는 원격 Supabase DB(SUPABASE_DB_URL)에 적용함.
+- 미수행: UI 브라우저 수동 확인(로그인 세션 필요), 인기 작품 부하 측정. 롤백: 앱 커밋 revert 후 RPC 미사용 확인 → 새 번호 마이그레이션으로 함수 drop.

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
+import { adminClient, createTestUser, deleteTestUser, signedInClient } from '../helpers/db';
 import { toggleSubscription, getSubscriptionState } from '../../lib/reader/subscriptions';
 
 describe('subscriptions (READ-07/D-18)', () => {
@@ -31,7 +31,7 @@ describe('subscriptions (READ-07/D-18)', () => {
     const reader = await createTestUser();
     users.push(reader.id);
 
-    const result = await toggleSubscription(admin, { workId, userId: reader.id });
+    const result = await toggleSubscription(await signedInClient(reader), { workId, userId: reader.id });
     expect(result).toEqual({ subscribed: true });
   });
 
@@ -40,8 +40,8 @@ describe('subscriptions (READ-07/D-18)', () => {
     const reader = await createTestUser();
     users.push(reader.id);
 
-    await toggleSubscription(admin, { workId, userId: reader.id });
-    const second = await toggleSubscription(admin, { workId, userId: reader.id });
+    await toggleSubscription(await signedInClient(reader), { workId, userId: reader.id });
+    const second = await toggleSubscription(await signedInClient(reader), { workId, userId: reader.id });
     expect(second).toEqual({ subscribed: false });
   });
 
@@ -51,7 +51,18 @@ describe('subscriptions (READ-07/D-18)', () => {
     users.push(reader.id);
 
     expect(await getSubscriptionState(admin, { workId, userId: reader.id })).toBe(false);
-    await toggleSubscription(admin, { workId, userId: reader.id });
+    await toggleSubscription(await signedInClient(reader), { workId, userId: reader.id });
     expect(await getSubscriptionState(admin, { workId, userId: reader.id })).toBe(true);
+  });
+
+  it('sequential on -> off -> on reports the DB state each time', async () => {
+    const workId = await createWork();
+    const reader = await createTestUser();
+    users.push(reader.id);
+    const client = await signedInClient(reader);
+
+    expect(await toggleSubscription(client, { workId, userId: reader.id })).toEqual({ subscribed: true });
+    expect(await toggleSubscription(client, { workId, userId: reader.id })).toEqual({ subscribed: false });
+    expect(await toggleSubscription(client, { workId, userId: reader.id })).toEqual({ subscribed: true });
   });
 });

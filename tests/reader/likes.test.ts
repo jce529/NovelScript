@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
+import { adminClient, createTestUser, deleteTestUser, signedInClient } from '../helpers/db';
 import { toggleLike, getLikeState, getLikeCount } from '../../lib/reader/likes';
 
 describe('likes (D-08)', () => {
@@ -31,7 +31,7 @@ describe('likes (D-08)', () => {
     const reader = await createTestUser();
     users.push(reader.id);
 
-    const result = await toggleLike(admin, { workId, userId: reader.id });
+    const result = await toggleLike(await signedInClient(reader), { workId, userId: reader.id });
     expect(result).toEqual({ liked: true });
   });
 
@@ -40,8 +40,8 @@ describe('likes (D-08)', () => {
     const reader = await createTestUser();
     users.push(reader.id);
 
-    await toggleLike(admin, { workId, userId: reader.id });
-    const second = await toggleLike(admin, { workId, userId: reader.id });
+    await toggleLike(await signedInClient(reader), { workId, userId: reader.id });
+    const second = await toggleLike(await signedInClient(reader), { workId, userId: reader.id });
     expect(second).toEqual({ liked: false });
   });
 
@@ -51,7 +51,7 @@ describe('likes (D-08)', () => {
     users.push(reader.id);
 
     expect(await getLikeState(admin, { workId, userId: reader.id })).toBe(false);
-    await toggleLike(admin, { workId, userId: reader.id });
+    await toggleLike(await signedInClient(reader), { workId, userId: reader.id });
     expect(await getLikeState(admin, { workId, userId: reader.id })).toBe(true);
   });
 
@@ -62,11 +62,22 @@ describe('likes (D-08)', () => {
     const readerB = await createTestUser();
     users.push(readerB.id);
 
-    await toggleLike(admin, { workId, userId: readerA.id });
-    await toggleLike(admin, { workId, userId: readerB.id });
+    await toggleLike(await signedInClient(readerA), { workId, userId: readerA.id });
+    await toggleLike(await signedInClient(readerB), { workId, userId: readerB.id });
     expect(await getLikeCount(admin, { workId })).toBe(2);
 
-    await toggleLike(admin, { workId, userId: readerA.id });
+    await toggleLike(await signedInClient(readerA), { workId, userId: readerA.id });
     expect(await getLikeCount(admin, { workId })).toBe(1);
+  });
+
+  it('sequential on -> off -> on reports the DB state each time', async () => {
+    const workId = await createWork();
+    const reader = await createTestUser();
+    users.push(reader.id);
+    const client = await signedInClient(reader);
+
+    expect(await toggleLike(client, { workId, userId: reader.id })).toEqual({ liked: true });
+    expect(await toggleLike(client, { workId, userId: reader.id })).toEqual({ liked: false });
+    expect(await toggleLike(client, { workId, userId: reader.id })).toEqual({ liked: true });
   });
 });

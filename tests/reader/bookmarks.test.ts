@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { adminClient, createTestUser, deleteTestUser } from '../helpers/db';
+import { adminClient, createTestUser, deleteTestUser, signedInClient } from '../helpers/db';
 import { toggleBookmark, getBookmarkState } from '../../lib/reader/bookmarks';
 
 describe('bookmarks (READ-08/D-19)', () => {
@@ -31,7 +31,7 @@ describe('bookmarks (READ-08/D-19)', () => {
     const reader = await createTestUser();
     users.push(reader.id);
 
-    const result = await toggleBookmark(admin, { workId, userId: reader.id });
+    const result = await toggleBookmark(await signedInClient(reader), { workId, userId: reader.id });
     expect(result).toEqual({ bookmarked: true });
   });
 
@@ -40,8 +40,8 @@ describe('bookmarks (READ-08/D-19)', () => {
     const reader = await createTestUser();
     users.push(reader.id);
 
-    await toggleBookmark(admin, { workId, userId: reader.id });
-    const second = await toggleBookmark(admin, { workId, userId: reader.id });
+    await toggleBookmark(await signedInClient(reader), { workId, userId: reader.id });
+    const second = await toggleBookmark(await signedInClient(reader), { workId, userId: reader.id });
     expect(second).toEqual({ bookmarked: false });
   });
 
@@ -51,7 +51,18 @@ describe('bookmarks (READ-08/D-19)', () => {
     users.push(reader.id);
 
     expect(await getBookmarkState(admin, { workId, userId: reader.id })).toBe(false);
-    await toggleBookmark(admin, { workId, userId: reader.id });
+    await toggleBookmark(await signedInClient(reader), { workId, userId: reader.id });
     expect(await getBookmarkState(admin, { workId, userId: reader.id })).toBe(true);
+  });
+
+  it('sequential on -> off -> on reports the DB state each time', async () => {
+    const workId = await createWork();
+    const reader = await createTestUser();
+    users.push(reader.id);
+    const client = await signedInClient(reader);
+
+    expect(await toggleBookmark(client, { workId, userId: reader.id })).toEqual({ bookmarked: true });
+    expect(await toggleBookmark(client, { workId, userId: reader.id })).toEqual({ bookmarked: false });
+    expect(await toggleBookmark(client, { workId, userId: reader.id })).toEqual({ bookmarked: true });
   });
 });

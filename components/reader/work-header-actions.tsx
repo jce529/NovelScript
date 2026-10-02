@@ -12,7 +12,8 @@ export function WorkHeaderActions({
 }: { workId: string; initialSubscribed: boolean; initialBookmarked: boolean; loggedIn: boolean }) {
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
-  const [, startTransition] = useTransition();
+  const [subscribing, startSubscribe] = useTransition();
+  const [bookmarking, startBookmark] = useTransition();
 
   function requireLogin() {
     toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => { window.location.href = '/login'; } } });
@@ -20,7 +21,8 @@ export function WorkHeaderActions({
 
   function onToggleSubscription() {
     if (!loggedIn) return requireLogin();
-    startTransition(async () => {
+    if (subscribing) return;
+    startSubscribe(async () => {
       const result = await toggleSubscriptionAction(workId);
       if (result.ok) setSubscribed(result.subscribed!);
       else toast.error(result.error ?? '알림 설정을 변경하지 못했어요.');
@@ -29,7 +31,8 @@ export function WorkHeaderActions({
 
   function onToggleBookmark() {
     if (!loggedIn) return requireLogin();
-    startTransition(async () => {
+    if (bookmarking) return;
+    startBookmark(async () => {
       const result = await toggleBookmarkAction(workId);
       if (result.ok) setBookmarked(result.bookmarked!);
       else toast.error(result.error ?? '선호작 설정을 변경하지 못했어요.');
@@ -41,7 +44,7 @@ export function WorkHeaderActions({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button variant="ghost" size="icon-sm" onClick={onToggleSubscription} aria-label={subscribed ? '알림 해제하기' : '알림 받기'}>
+            <Button variant="ghost" size="icon-sm" onClick={onToggleSubscription} disabled={subscribing} aria-label={subscribed ? '알림 해제하기' : '알림 받기'}>
               <Bell className={subscribed ? 'fill-primary text-primary' : ''} />
             </Button>
           }
@@ -51,7 +54,7 @@ export function WorkHeaderActions({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button variant="ghost" size="icon-sm" onClick={onToggleBookmark} aria-label={bookmarked ? '선호작 해제' : '선호작 등록'}>
+            <Button variant="ghost" size="icon-sm" onClick={onToggleBookmark} disabled={bookmarking} aria-label={bookmarked ? '선호작 해제' : '선호작 등록'}>
               <Bookmark className={bookmarked ? 'fill-primary text-primary' : ''} />
             </Button>
           }

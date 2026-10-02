@@ -33,3 +33,16 @@ export function anonClient() {
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 }
+
+/** Supabase client signed in as `user` (real session, so auth.uid() works inside RPCs). */
+export async function signedInClient(user: { email?: string }) {
+  const admin = adminClient();
+  const { data: link, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email: user.email! });
+  if (error) throw error;
+  const client = anonClient();
+  const { error: otpError } = await client.auth.verifyOtp({
+    type: 'magiclink', token_hash: link.properties.hashed_token,
+  });
+  if (otpError) throw otpError;
+  return client;
+}

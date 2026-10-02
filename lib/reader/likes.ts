@@ -1,22 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { checkWriteAccess, type ToggleDenial } from '../auth/write-access';
+import type { ToggleDenial } from '../auth/write-access';
+import { toggleRow } from './toggle';
 
-/** D-08: toggleable, login-gated. Select-then-insert-or-delete (RESEARCH.md Pattern 6). */
+/** D-08: toggleable, login-gated. Atomic via DB RPC (BUG-02). */
 export async function toggleLike(
   supabase: SupabaseClient,
   { workId, userId }: { workId: string; userId: string }
-): Promise<{ liked: boolean; denied?: ToggleDenial }> {
-  // D-07: checked before BOTH branches so un-toggling cannot bypass suspension.
-  const access = await checkWriteAccess(supabase, userId);
-  const { data: existing } = await supabase
-    .from('work_likes').select('work_id').eq('work_id', workId).eq('user_id', userId).maybeSingle();
-  if (!access.ok) return { liked: Boolean(existing), denied: { error: access.error, code: access.code } };
-  if (existing) {
-    await supabase.from('work_likes').delete().eq('work_id', workId).eq('user_id', userId);
-    return { liked: false };
-  }
-  await supabase.from('work_likes').insert({ work_id: workId, user_id: userId });
-  return { liked: true };
+): Promise<{ liked?: boolean; denied?: ToggleDenial; error?: string }> {
+  const { state, denied, error } = await toggleRow(supabase, 'work_likes', { workId, userId }, '좋아요를 반영하지 못했어요.');
+  return { ...(state === undefined ? {} : { liked: state }), ...(denied ? { denied } : {}), ...(error ? { error } : {}) };
 }
 
 export async function getLikeState(

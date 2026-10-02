@@ -9,9 +9,10 @@ import { toggleLikeAction } from '@/app/works/[workId]/actions';
 export function LikeButton({ workId, initialLiked, initialCount, loggedIn }: { workId: string; initialLiked: boolean; initialCount: number; loggedIn: boolean }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
 
   function onClick() {
+    if (pending) return;
     if (!loggedIn) {
       toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => { window.location.href = '/login'; } } });
       return;
@@ -28,7 +29,7 @@ export function LikeButton({ workId, initialLiked, initialCount, loggedIn }: { w
   }
 
   return (
-    <Button variant={liked ? 'default' : 'outline'} size="sm" onClick={onClick}>
+    <Button variant={liked ? 'default' : 'outline'} size="sm" onClick={onClick} disabled={pending}>
       <Heart className={liked ? 'fill-current' : ''} />좋아요 {count}
     </Button>
   );
