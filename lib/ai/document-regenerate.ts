@@ -8,6 +8,7 @@ import { composeSystemInstruction, type DocumentProposal, type PresetLevel, type
 import { validateDocumentAgainstPlan } from '@/lib/ai/document-contract';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import { parseChatResponse } from '@/lib/ai/chat-parse';
+import { KB_CATEGORIES } from '@/lib/kb/categories';
 import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
 
 export const REGENERATION_FAILED = '문서를 다시 생성하지 못했어요. 다시 시도해주세요.';
@@ -17,6 +18,24 @@ export type RegenerateResult =
   | { ok: false; error: string; status?: ChatResult['status']; failureKind?: ChatResult['failureKind'] };
 
 const UUID = z.string().uuid();
+
+/** BUG-05: 재생성 본문의 새 링크 대상이 호출자 본인의 이 작품 또는 계정 공유 KB 파일에 실제 있는지 확인한다(mentions와 같은 범위). 조회 오류는 null(fail closed). */
+async function findExistingLinkTargets(
+  supabase: SupabaseClient, { ownerId, workId, names }: { ownerId: string; workId: string; names: string[] },
+): Promise<Set<string> | null> {
+  try {
+    const [work, shared] = await Promise.all([
+      supabase.from('kb_nodes').select('name').eq('owner_id', ownerId).eq('work_id', workId).eq('scope', 'work')
+        .eq('node_type', 'file').in('category', [...KB_CATEGORIES, 'custom']).in('name', names).is('deleted_at', null),
+      supabase.from('kb_nodes').select('name').eq('owner_id', ownerId).eq('scope', 'account_template')
+        .eq('node_type', 'file').in('name', names).is('deleted_at', null),
+    ]);
+    if (work.error || shared.error) return null;
+    return new Set([...(work.data ?? []), ...(shared.data ?? [])].map((row) => String(row.name).trim()));
+  } catch {
+    return null;
+  }
+}
 
 export async function regenerateDocumentWithTemplate(
   supabase: SupabaseClient,
@@ -98,10 +117,15 @@ export async function regenerateDocumentWithTemplate(
     const originalLinks = links(input.proposal.content);
     const regeneratedLinks = links(parsed.proposal!.content);
     if (
-      regeneratedLinks.some((target) => !originalLinks.includes(target)) ||
       regeneratedLinks.filter((target) => target === input.proposal.name).length <
         originalLinks.filter((target) => target === input.proposal.name).length
     ) return { ok: false, error: REGENERATION_FAILED };
+    // BUG-05: 원본에 없던 링크는 KB에 실제 있는 문서일 때만 허용한다(지어낸 링크 차단).
+    const newTargets = [...new Set(regeneratedLinks.filter((target) => !originalLinks.includes(target)).map((target) => target.trim()))];
+    if (newTargets.length > 0) {
+      const existing = await findExistingLinkTargets(supabase, { ownerId: input.ownerId, workId: input.workId, names: newTargets });
+      if (!existing || newTargets.some((target) => !existing.has(target))) return { ok: false, error: REGENERATION_FAILED };
+    }
     return {
       ok: true,
       content: parsed.proposal!.content,

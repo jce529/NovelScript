@@ -134,6 +134,92 @@ describe('document template regeneration', () => {
       .toEqual({ ok: false, error: REGENERATION_FAILED });
   });
 
+  describe('wikilinks to existing KB documents (BUG-05)', () => {
+    type Row = { owner_id: string; work_id: string | null; scope: string; node_type: string; category: string; name: string; deleted_at: string | null };
+    const row = (name: string, extra: Partial<Row> = {}): Row => ({
+      owner_id: ownerId, work_id: workId, scope: 'work', node_type: 'file', category: '인물', name, deleted_at: null, ...extra,
+    });
+    const kbDb = (rows: Row[], error: unknown = null, spy = vi.fn()) => ({
+      from: (table: string) => {
+        spy(table);
+        const eq: Array<[string, unknown]> = []; let inCol: Record<string, unknown[]> = {}; let notDeleted = false;
+        const chain: Record<string, unknown> = {
+          select: () => chain,
+          eq: (c: string, v: unknown) => { eq.push([c, v]); return chain; },
+          in: (c: string, v: unknown[]) => { inCol = { ...inCol, [c]: v }; return chain; },
+          is: () => { notDeleted = true; return chain; },
+          then: (resolve: (v: unknown) => unknown) => resolve({
+            error,
+            data: rows.filter((r) => eq.every(([c, v]) => (r as Record<string, unknown>)[c] === v)
+              && Object.entries(inCol).every(([c, v]) => v.includes((r as Record<string, unknown>)[c]))
+              && (!notDeleted || r.deleted_at === null)).map((r) => ({ name: r.name })),
+          }),
+        };
+        return chain;
+      },
+    }) as unknown as SupabaseClient;
+    const withLinks = (names: string[]) => {
+      provider.generateContent = vi.fn(async () => generated(`[DOCUMENT]
+카테고리: 인물
+이름: 미라
+내용:
+# 미라
+## 성격
+${names.map((n) => `[[${n}]]`).join(' ')}
+[/DOCUMENT]`));
+    };
+
+    it('accepts new links when every target exists in this work or the account space', async () => {
+      withLinks(['채아', '템플릿공유']);
+      const rows = [row('채아'), row('템플릿공유', { work_id: null, scope: 'account_template', category: 'custom' })];
+      expect(await regenerateDocumentWithTemplate(kbDb(rows), provider, input)).toMatchObject({ ok: true, name: '미라' });
+    });
+
+    it('rejects when any new link target does not exist', async () => {
+      withLinks(['채아', '지어낸사람']);
+      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')]), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
+    });
+
+    it('does not count other works, other owners, deleted nodes, folders, or template stubs', async () => {
+      const others = [
+        row('A', { work_id: '99999999-9999-4999-8999-999999999999' }), row('B', { owner_id: 'other' }),
+        row('C', { deleted_at: '2026-10-01' }), row('D', { node_type: 'folder' }), row('E', { category: 'template' }),
+      ];
+      for (const name of ['A', 'B', 'C', 'D', 'E']) {
+        withLinks([name]);
+        expect(await regenerateDocumentWithTemplate(kbDb(others), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
+      }
+    });
+
+    it('fails closed when the KB lookup errors', async () => {
+      withLinks(['채아']);
+      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')], { message: 'db down' }), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
+    });
+
+    it('does not query the KB when there are no new links', async () => {
+      const spy = vi.fn();
+      provider.generateContent = vi.fn(async () => generated(`[DOCUMENT]
+카테고리: 인물
+이름: 미라
+내용:
+# 미라
+## 성격
+[[친구]]
+[/DOCUMENT]`));
+      const linked = { ...proposal, content: `${proposal.content}
+[[친구]]` };
+      expect(await regenerateDocumentWithTemplate(kbDb([], null, spy), provider, { ...input, proposal: linked })).toMatchObject({ ok: true });
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('still requires the original self-link to be kept', async () => {
+      withLinks(['채아']);
+      const linked = { ...proposal, content: `${proposal.content}
+[[미라]]` };
+      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')]), provider, { ...input, proposal: linked })).toEqual({ ok: false, error: REGENERATION_FAILED });
+    });
+  });
+
   it('maps provider rate limits without bypassing settlement lifecycle', async () => {
     mocks.settle.mockResolvedValue({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'rate_limited', error: 'rate limit' } });
     expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, failureKind: 'rate_limited', error: 'rate limit' });
