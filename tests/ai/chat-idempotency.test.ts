@@ -5,13 +5,20 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 // recorded key is never charged or generated twice.
 
 const adminState = vi.hoisted(() => ({ client: null as unknown }));
+const mentionsMock = vi.hoisted(() => ({ fail: false }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => adminState.client }));
-vi.mock('@/lib/ai/mentions', () => ({ getMentionedNodesContent: async () => [] }));
+vi.mock('@/lib/ai/mentions', () => ({
+  getMentionedNodesContent: async () => {
+    if (mentionsMock.fail) throw new Error('mention lookup failed');
+    return [];
+  },
+}));
 
 import { chat, type ChatInput } from '@/lib/ai/chat';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import { computeDebitAmount } from '@/lib/ai/cost';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
+import { ProviderCallError } from '@/lib/ai/providers/errors';
 import type { ProviderClient } from '@/lib/ai/providers/types';
 import { createFakeLedgerAdmin, type FakeLedgerOptions } from '../helpers/fake-ledger-admin';
 import { createMockProvider, okResult } from '../helpers/mock-provider';
@@ -173,34 +180,112 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement });
   });
 
-  it('concurrent same key (barrier): exactly one ledger row and one debit', async () => {
+  // BUG-06: same-wallet generations are serialized by a lease, so a concurrent same-key request
+  // is refused before any provider call instead of racing to the debit.
+  it('concurrent same key (barrier): one provider call, one ledger row, loser told generation is in progress', async () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
     let release!: () => void;
     const barrier = new Promise<void>(r => { release = r; });
     const provider = createMockProvider({ generateContent: async () => { await barrier; return okResult('[REPLY]\n응답', 10000, 10000); } });
-    const both = Promise.all([chat(session, asClient(provider), input), chat(session, asClient(provider), input)]);
-    await vi.waitFor(() => expect(provider.generateContent).toHaveBeenCalledTimes(2));
+    const first = chat(session, asClient(provider), input);
+    await vi.waitFor(() => expect(provider.generateContent).toHaveBeenCalledTimes(1));
+    const second = await chat(session, asClient(provider), input);
+    expect(second).toEqual({ ok: false, status: 'failed', failureKind: 'generation_in_progress', error: CHAT_COPY.generation_in_progress });
     release();
-    const results = await both;
+    const firstResult = await first;
     const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+    expect(firstResult.status).toBe('completed');
     expect(keyRows(admin)).toHaveLength(1);
     expect(admin.state.balances[OWNER]).toBe(1000 - debit);
-    for (const r of results) expect(['completed', 'already_processed']).toContain(r.status);
+    expect(admin.state.locks).toEqual({});
   });
 
-  it('concurrent same key with balance for exactly one debit: loser is already_processed, never negative', async () => {
+  it('concurrent requests with balance for one debit: the loser never reaches settlement, balance never negative', async () => {
     const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
     const admin = setup({ balances: { [OWNER]: debit } });
     let release!: () => void;
     const barrier = new Promise<void>(r => { release = r; });
     const provider = createMockProvider({ generateContent: async () => { await barrier; return okResult('[REPLY]\n응답', 10000, 10000); } });
-    const both = Promise.all([chat(session, asClient(provider), input), chat(session, asClient(provider), input)]);
-    await vi.waitFor(() => expect(provider.generateContent).toHaveBeenCalledTimes(2));
+    const otherKey = { ...input, idempotencyKey: '60000000-0000-4000-8000-000000000002' };
+    const first = chat(session, asClient(provider), input);
+    await vi.waitFor(() => expect(provider.generateContent).toHaveBeenCalledTimes(1));
+    const second = await chat(session, asClient(provider), otherKey);
+    expect(second.failureKind).toBe('generation_in_progress');
     release();
-    const results = await both;
+    expect((await first).status).toBe('completed');
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
     expect(keyRows(admin)).toHaveLength(1);
     expect(admin.state.balances[OWNER]).toBe(0);
-    expect(results.map(r => r.status).sort()).toEqual(['already_processed', 'completed']);
+    expect(debitCalls(admin)).toHaveLength(1);
+  });
+
+  it('a different wallet is not blocked while another wallet generates', async () => {
+    const OTHER = '10000000-0000-4000-8000-000000000009';
+    const admin = setup({ balances: { [OWNER]: 1000, [OTHER]: 1000 } });
+    let release!: () => void;
+    const barrier = new Promise<void>(r => { release = r; });
+    const slow = createMockProvider({ generateContent: async () => { await barrier; return okResult('[REPLY]\n응답', 10, 10); } });
+    const first = chat(session, asClient(slow), input);
+    await vi.waitFor(() => expect(slow.generateContent).toHaveBeenCalledTimes(1));
+    const fast = createMockProvider({ generateContent: async () => okResult('[REPLY]\n응답', 10, 10) });
+    const other = await chat(session, asClient(fast), { ...input, ownerId: OTHER });
+    expect(other.status).toBe('completed');
+    release();
+    await first;
+    expect(admin.state.locks).toEqual({});
+  });
+
+  describe('wallet lease release on every exit (BUG-06)', () => {
+    it.each([
+      ['success', {}, async () => okResult('[REPLY]\n응답', 10, 10)],
+      ['provider failure', {}, async () => { throw new ProviderCallError({ provider: 'gemini', status: 503, kind: 'unavailable', providerErrorCode: 'UNAVAILABLE' }); }],
+      ['refusal', {}, async () => ({ ...okResult('', 10, 0), finishReason: 'refusal' as const, refusal: { stage: 'output' as const, reasonCode: 'SAFETY' as const } })],
+      ['settlement failure', { debitError: 'rpc' as const }, async () => okResult('[REPLY]\n응답', 10, 10)],
+      ['write access revoked', { access: 'suspended' as const }, async () => okResult('[REPLY]\n응답', 10, 10)],
+    ])('%s: the next request can generate', async (_name, extra, generate) => {
+      const admin = setup({ balances: { [OWNER]: 1000 }, ...extra });
+      const provider = createMockProvider({ generateContent: generate });
+      await chat(session, asClient(provider), input);
+      expect(admin.state.locks).toEqual({});
+    });
+
+    it('a throw before settle (mention lookup) still releases the lease', async () => {
+      const admin = setup({ balances: { [OWNER]: 1000 } });
+      mentionsMock.fail = true;
+      try {
+        await expect(chat(session, asClient(createMockProvider()), input)).rejects.toThrow('mention lookup failed');
+      } finally {
+        mentionsMock.fail = false;
+      }
+      expect(admin.state.locks).toEqual({});
+    });
+
+    it('a failed release is logged and does not break the result', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const admin = setup({ balances: { [OWNER]: 1000 }, releaseError: true });
+      const result = await chat(session, asClient(createMockProvider()), input);
+      expect(result.status).toBe('completed');
+      expect(spy).toHaveBeenCalledWith('[ai] generation lease release failed', { stage: 'lease_release' });
+      expect(Object.keys(admin.state.locks)).toEqual([OWNER]);
+    });
+  });
+
+  it('lease acquire errors fail closed before any provider call', async () => {
+    for (const lock of ['rpc', 'throw'] as const) {
+      setup({ balances: { [OWNER]: 1000 }, lock });
+      const provider = createMockProvider();
+      const result = await chat(session, asClient(provider), input);
+      expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'unavailable', error: CHAT_COPY.unavailable });
+      expect(provider.generateContent).not.toHaveBeenCalled();
+    }
+  });
+
+  it('insufficient balance releases the lease so a later request can retry', async () => {
+    const admin = setup({ balances: { [OWNER]: 0 } });
+    const result = await chat(session, asClient(createMockProvider()), input);
+    expect(result.failureKind).toBe('insufficient_balance');
+    expect(admin.state.locks).toEqual({});
   });
 
   it('zero usage debits +0 (never -0) and still records the key', async () => {

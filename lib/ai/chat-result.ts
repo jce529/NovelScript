@@ -12,6 +12,7 @@ export type ChatFailureKind =
   | 'config'
   | 'settlement'
   | 'insufficient_balance'
+  | 'generation_in_progress'
   | 'write_denied'
   | 'unauthenticated'
   | 'invalid_input'
@@ -45,6 +46,7 @@ export const CHAT_COPY = {
   config: 'AI 기능에 문제가 생겼어요. 계속되면 문의해주세요.',
   settlement: '토큰 차감에 실패해 응답을 표시하지 못했어요. 잠시 후 다시 시도해주세요.',
   insufficient_balance: '보유 토큰을 모두 사용해서 대화할 수 없어요.',
+  generation_in_progress: '이미 생성 중이에요. 현재 생성이 끝난 뒤 다시 시도해주세요.',
   unauthenticated: '로그인이 필요해요.',
   invalid_input: '요청 형식이 올바르지 않아요. 새로고침 후 다시 시도해주세요.',
   unknown: '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.',

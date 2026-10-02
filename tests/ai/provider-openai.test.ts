@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PROVIDER_CALL_TIMEOUT_MS } from '@/lib/ai/providers/types';
 import { createOpenAiProvider, mapOpenAiResponse } from '@/lib/ai/providers/openai';
 import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
 import { ProviderCallError, toSanitizedProviderError } from '@/lib/ai/providers/errors';
@@ -72,7 +73,7 @@ describe('createOpenAiProvider', () => {
     expect(sdk.create).toHaveBeenCalledTimes(1);
     expect(sdk.create).toHaveBeenCalledWith({
       model: 'gpt-4o-mini', instructions: 'S', input: 'C', max_output_tokens: 512, temperature: 0.9,
-    });
+    }, { signal: expect.any(AbortSignal), timeout: PROVIDER_CALL_TIMEOUT_MS, maxRetries: 0 });
     expect(result).toEqual(mapOpenAiResponse(response));
   });
 
@@ -82,7 +83,7 @@ describe('createOpenAiProvider', () => {
     await provider.generateContent({ ...params, model: 'gpt-5.6-terra' });
     expect(sdk.create).toHaveBeenCalledWith({
       model: 'gpt-5.6-terra', instructions: 'S', input: 'C', max_output_tokens: 512,
-    });
+    }, expect.any(Object));
   });
 
   it('converts SDK errors to a sanitized ProviderCallError without raw fields', async () => {

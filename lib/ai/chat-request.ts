@@ -96,6 +96,7 @@ const RETRYABLE_KINDS: ReadonlySet<ChatFailureKind> = new Set<ChatFailureKind>([
   'unavailable',
   'config',
   'settlement',
+  'generation_in_progress',
   'unknown',
 ]);
 
@@ -105,6 +106,7 @@ const COPY_TITLE_KINDS: ReadonlySet<ChatFailureKind> = new Set<ChatFailureKind>(
   'config',
   'settlement',
   'insufficient_balance',
+  'generation_in_progress',
 ]);
 
 export function resolveChatOutcome(result: ChatResult): ChatOutcome {

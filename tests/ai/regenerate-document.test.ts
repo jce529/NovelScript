@@ -140,3 +140,26 @@ describe('document template regeneration', () => {
     expect(mocks.settle).toHaveBeenCalled();
   });
 });
+
+describe('wallet lease release on regeneration exits (BUG-06)', () => {
+  it('releases the lease after a normal run', async () => {
+    const release = vi.fn(async () => {});
+    mocks.preflight.mockResolvedValue({ ok: true, ctx: { ...ctx, release } });
+    await regenerateDocumentWithTemplate(db, provider, input);
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases the lease when settle throws', async () => {
+    const release = vi.fn(async () => {});
+    mocks.preflight.mockResolvedValue({ ok: true, ctx: { ...ctx, release } });
+    mocks.settle.mockRejectedValue(new Error('boom'));
+    await expect(regenerateDocumentWithTemplate(db, provider, input)).rejects.toThrow('boom');
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces the in-progress notice from preflight without generating', async () => {
+    mocks.preflight.mockResolvedValue({ ok: false, chatResult: { ok: false, status: 'failed', failureKind: 'generation_in_progress', error: 'busy' } });
+    expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: false, failureKind: 'generation_in_progress', error: 'busy' });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+  });
+});

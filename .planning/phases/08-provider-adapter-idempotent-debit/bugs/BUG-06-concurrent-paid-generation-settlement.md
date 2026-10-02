@@ -97,3 +97,14 @@ files:
 ### 예상 규모
 
 - **5단계·5커밋**, 애플리케이션·SQL·테스트 합계 약 **450~750줄 변경** 예상. 공급자 SDK의 취소 방식과 Phase 11 선행 여부에 따라 달라지는 추정치다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `supabase/migrations/0021_ai_generation_locks.sql`: 지갑별 lease 테이블 `ai_generation_locks`(RLS 켬, anon/authenticated 권한 없음)와 service-role 전용 RPC `acquire_ai_generation_lock(wallet, token, ttl)`(DB 시각 기준, 만료된 lease만 회수)·`release_ai_generation_lock(wallet, token)`(토큰 일치 시에만 해제). 번호는 0018(Phase 11)·0019·0020(다른 버그) 다음인 0021.
+- `lib/ai/paid-generation.ts`: preflight를 원장 조회 → lease 획득 → 잔액 조회 순으로 변경. 점유 중이면 공급자 호출 전에 `generation_in_progress`("이미 생성 중이에요…")를 반환, 획득 오류는 fail-closed(`unavailable`). ctx에 멱등 `release()`를 담고 settle이 모든 결과(성공·거절·공급자 실패·권한 거부·원장 재조회·차감 실패·예외)에서 해제. 잔액 부족·지갑 없음 등 preflight 조기 종료에서도 해제. `chat()`·`regenerateDocumentWithTemplate`는 settle 전 예외/조기 반환 대비 `finally`에서 추가 해제(문서 계획 분기는 `chat()`의 finally가 커버). 해제 RPC 실패는 로그만 남기고 TTL로 복구.
+- 시간 경계(정책 A): `PROVIDER_CALL_TIMEOUT_MS = 120s`를 Gemini(`abortSignal`)·OpenAI·Anthropic(`signal`+`timeout`, `maxRetries: 0`) 호출에 적용, lease TTL = 상한 + 60초(`GENERATION_LEASE_TTL_SECONDS` = 180). 타임아웃은 기존 오류 정규화를 거쳐 `unavailable`이 된다. 갱신(B안) 없음.
+- `chat-result.ts`/`chat-request.ts`: `generation_in_progress` 종류와 문구 추가(재시도 가능 알림으로 표시).
+- 테스트: `paid-generation-lock.database.test.ts`(독립 연결 동시 획득 1건만 성공, 다른 지갑 병행, 토큰 조건 해제, 만료 회수 후 구 토큰 해제 거부, 권한), `paid-generation.test.ts`·`chat-idempotency.test.ts`·`regenerate-document.test.ts`에 점유·해제·fail-closed 케이스 추가, 기존 "같은 키 동시 2회 호출" 기대를 직렬화 정책에 맞게 갱신, 공급자 테스트에 abort/timeout 인자 반영, fake 원장·sanctions 테스트에 lease RPC 지원 추가.
+- 검증: `vitest run tests/ai tests/admin tests/chapters tests/reader --no-file-parallelism` 930 통과(DB 테스트 skip 0), `tsc --noEmit` 통과, `lib/ai`·`tests/ai` eslint 오류 0(기존 경고 2). 0021은 원격 Supabase DB에 적용함.
+- 한계(문서화): lease 만료 시점에 이미 발송된 외부 요청의 중복 과금은 완전히 배제하지 못한다. 배포 중 구버전 요청은 lease를 잡지 않으므로 롤링 배포 구간에는 직렬화가 보장되지 않는다. 공급자별 실제 취소 후 과금 여부, 배포 플랫폼 실행 시간 제한은 미확인.
+- 계획 대비 차이: 5커밋 대신 1커밋. Phase 11 11-04/11-05는 아직 BYOK 분기를 넣지 않은 상태라 BYOK 제외 회귀 테스트는 해당 phase 구현 시 추가해야 한다(service 분기에만 lease 유지).

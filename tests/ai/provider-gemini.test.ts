@@ -147,7 +147,7 @@ describe('createGeminiProvider', () => {
     expect(sdk.generateContent).toHaveBeenCalledWith({
       model: 'gemini-3.5-flash',
       contents: 'C',
-      config: { systemInstruction: 'S', maxOutputTokens: 512, temperature: 0.9 },
+      config: { systemInstruction: 'S', maxOutputTokens: 512, temperature: 0.9, abortSignal: expect.any(AbortSignal) },
     });
     expect(result).toEqual(mapGeminiResponse(sdkResponse));
   });

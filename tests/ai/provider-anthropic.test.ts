@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PROVIDER_CALL_TIMEOUT_MS } from '@/lib/ai/providers/types';
 import { createAnthropicProvider, mapAnthropicResponse } from '@/lib/ai/providers/anthropic';
 import { ProviderCallError, toSanitizedProviderError } from '@/lib/ai/providers/errors';
 import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
@@ -61,7 +62,7 @@ describe('createAnthropicProvider', () => {
     expect(sdk.create).toHaveBeenCalledTimes(1);
     expect(sdk.create).toHaveBeenCalledWith({
       model: 'claude-haiku-4-5', system: 'S', messages: [{ role: 'user', content: 'C' }], max_tokens: 512,
-    });
+    }, { signal: expect.any(AbortSignal), timeout: PROVIDER_CALL_TIMEOUT_MS, maxRetries: 0 });
     const callArgs = sdk.create.mock.calls[0][0] as Record<string, unknown>;
     expect(callArgs).not.toHaveProperty('temperature');
     expect(result).toEqual(mapAnthropicResponse(response));

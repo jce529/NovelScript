@@ -290,7 +290,7 @@ describe('AI generation checks write access before provider work and before char
 
   it('a suspension landing during generation discards the output and never charges', async () => {
     const session = fakeClient({ access: ACCESS.ok });
-    const admin = fakeClient({ access: ACCESS.suspended, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990 } });
+    const admin = fakeClient({ access: ACCESS.suspended, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990, acquire_ai_generation_lock: true, release_ai_generation_lock: true } });
     adminState.client = admin.client;
     const gemini = provider();
     const result = await chat(session.client, gemini as unknown as ProviderClient, input);
@@ -302,11 +302,11 @@ describe('AI generation checks write access before provider work and before char
 
   it('charges normally when access holds through generation (control)', async () => {
     const session = fakeClient({ access: ACCESS.ok });
-    const admin = fakeClient({ access: ACCESS.ok, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990 } });
+    const admin = fakeClient({ access: ACCESS.ok, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990, acquire_ai_generation_lock: true, release_ai_generation_lock: true } });
     adminState.client = admin.client;
     const result = await chat(session.client, provider() as unknown as ProviderClient, input);
     expect(result).toMatchObject({ ok: true, status: 'completed', draft: '본문', remainingBalance: 990 });
-    expect(admin.rpcCalls).toEqual(['get_write_access', 'apply_wallet_delta']);
+    expect(admin.rpcCalls).toEqual(['acquire_ai_generation_lock', 'get_write_access', 'apply_wallet_delta', 'release_ai_generation_lock']);
     expect(admin.rpc).toHaveBeenCalledWith('apply_wallet_delta', expect.objectContaining({
       p_reference_type: 'ai_generation', p_reference_id: '60000000-0000-4000-8000-000000000001',
     }));

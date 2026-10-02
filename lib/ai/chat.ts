@@ -87,26 +87,31 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   const pre = await preflightPaidGeneration(supabase, id);
   if (!pre.ok) return pre.chatResult;
 
-  const mentioned = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
-  const mentionedDocs = [...mentioned, ...(input.attachments ?? []).map((file) => ({ category: '첨부 파일', name: file.name, content: file.content }))] as typeof mentioned;
-  if (input.planning?.mode === 'active') {
-    const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: client, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
-    if (strategy.kind === 'result') return strategy.chatResult;
-  }
-  const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
-  const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
-  const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: chatLedgerReason(input) },
-    () => client.generateContent({ model: pre.ctx.model, systemInstruction, contents, maxOutputTokens: pre.ctx.maxOutputTokens, temperature: 0.9 }));
-  if (settled.kind === 'terminal') return settled.chatResult;
+  // BUG-06: settle releases the wallet lease; this also covers early exits before settle.
+  try {
+    const mentioned = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
+    const mentionedDocs = [...mentioned, ...(input.attachments ?? []).map((file) => ({ category: '첨부 파일', name: file.name, content: file.content }))] as typeof mentioned;
+    if (input.planning?.mode === 'active') {
+      const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: client, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
+      if (strategy.kind === 'result') return strategy.chatResult;
+    }
+    const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
+    const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
+    const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: chatLedgerReason(input) },
+      () => client.generateContent({ model: pre.ctx.model, systemInstruction, contents, maxOutputTokens: pre.ctx.maxOutputTokens, temperature: 0.9 }));
+    if (settled.kind === 'terminal') return settled.chatResult;
 
-  const { reply, draft, proposal } = parseChatResponse(settled.result.text);
-  return {
-    ok: true,
-    status: 'completed',
-    reply,
-    draft,
-    proposal,
-    wasCapped: settled.result.finishReason === 'max_tokens',
-    remainingBalance: settled.remainingBalance,
-  };
+    const { reply, draft, proposal } = parseChatResponse(settled.result.text);
+    return {
+      ok: true,
+      status: 'completed',
+      reply,
+      draft,
+      proposal,
+      wasCapped: settled.result.finishReason === 'max_tokens',
+      remainingBalance: settled.remainingBalance,
+    };
+  } finally {
+    await pre.ctx.release?.();
+  }
 }

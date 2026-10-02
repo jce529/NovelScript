@@ -234,7 +234,7 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       }
     });
 
-    it('concurrent same-key calls debit once', async () => {
+    it('concurrent same-key calls debit once (wallet lease refuses the second)', async () => {
       const user = await grantedUser();
       try {
         const KEY = crypto.randomUUID();
@@ -248,7 +248,9 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
         setTimeout(release, 50);
         const results = await both;
 
-        for (const r of results) expect(['completed', 'already_processed']).toContain(r.status);
+        // BUG-06: the per-wallet lease lets only one of them reach the provider.
+        expect(results.filter((r) => r.status === 'completed')).toHaveLength(1);
+        expect(results.filter((r) => r.failureKind === 'generation_in_progress')).toHaveLength(1);
         expect((await ledgerRows(user.id, KEY)).count).toBe(1);
         expect(await balanceOf(user.id)).toBe(999);
       } finally {

@@ -23,6 +23,10 @@ export interface FakeLedgerOptions {
    * number[]: only these 1-based lookup indices error. */
   ledgerLookupError?: boolean | 'second' | number[];
   debitError?: 'rpc' | 'throw';
+  /** Wallet generation lease (BUG-06). 'busy': another holder owns it; 'rpc'/'throw': acquire fails. */
+  lock?: 'busy' | 'rpc' | 'throw';
+  /** true: release_ai_generation_lock returns an error. */
+  releaseError?: boolean;
   /** Runs synchronously at the start of apply_wallet_delta (e.g. a racing request inserts a row). */
   beforeDebit?: (state: { balances: Record<string, number>; ledger: FakeLedgerRow[] }) => void;
 }
@@ -33,12 +37,30 @@ const ACCESS = {
 };
 
 export function createFakeLedgerAdmin(opts: FakeLedgerOptions) {
-  const state = { balances: { ...opts.balances }, ledger: [...(opts.ledger ?? [])] };
+  const state = {
+    balances: { ...opts.balances }, ledger: [...(opts.ledger ?? [])],
+    /** wallet_id -> owner token of the live lease (mirrors ai_generation_locks, no expiry modelled). */
+    locks: {} as Record<string, string>,
+  };
   let lookups = 0;
 
   const rpc = vi.fn(async (name: string, p: Record<string, unknown> = {}) => {
     if (name === 'get_write_access') {
       return { data: ACCESS[opts.access ?? 'ok'], error: null };
+    }
+    if (name === 'acquire_ai_generation_lock') {
+      if (opts.lock === 'throw') throw new Error('fetch failed');
+      if (opts.lock === 'rpc') return { data: null, error: { message: 'lock rpc failed' } };
+      const walletId = p.p_wallet_id as string;
+      if (opts.lock === 'busy' || walletId in state.locks) return { data: false, error: null };
+      state.locks[walletId] = p.p_owner_token as string;
+      return { data: true, error: null };
+    }
+    if (name === 'release_ai_generation_lock') {
+      if (opts.releaseError) return { data: null, error: { message: 'release failed' } };
+      const walletId = p.p_wallet_id as string;
+      if (state.locks[walletId] === p.p_owner_token) { delete state.locks[walletId]; return { data: true, error: null }; }
+      return { data: false, error: null };
     }
     if (name === 'apply_wallet_delta') {
       opts.beforeDebit?.(state);

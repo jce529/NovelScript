@@ -9,7 +9,7 @@ import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
 import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
-import type { GenerateResult, ModelTier, ProviderClient, ProviderId } from '@/lib/ai/providers/types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ModelTier, type ProviderClient, type ProviderId } from '@/lib/ai/providers/types';
 
 /**
  * Shared Phase 8 payment lifecycle for every paid Gemini generation.
@@ -21,7 +21,15 @@ import type { GenerateResult, ModelTier, ProviderClient, ProviderId } from '@/li
  * D-10..D-12: provider failures are sanitized through the shared allowlist before logging/result.
  * D-13: cap from the observed wallet, charge actual usage, and clamp debit to that balance.
  * Write access is checked before wallet reads and once more after generation before settlement.
- */export const AI_GENERATION_REFERENCE_TYPE = 'ai_generation';
+ * BUG-06: one paid generation per wallet at a time. After the ledger pre-check, preflight takes a
+ * per-wallet lease (migration 0021) before reading the balance; a second concurrent request gets
+ * 'generation_in_progress' before any provider call. settle releases the lease on every outcome
+ * and callers release in `finally` on early exits; `release` is idempotent. If a process dies the
+ * lease expires after GENERATION_LEASE_TTL_SECONDS (> provider call cap + settle margin).
+ * Residual risk: a provider request already sent when the lease expires may still bill.
+ */
+export const AI_GENERATION_REFERENCE_TYPE = 'ai_generation';
+export const GENERATION_LEASE_TTL_SECONDS = Math.ceil(PROVIDER_CALL_TIMEOUT_MS / 1000) + 60;
 
 export interface PaidGenerationContext {
   admin: SupabaseClient;
@@ -29,6 +37,8 @@ export interface PaidGenerationContext {
   model: string;
   pricing: VendorPricing;
   maxOutputTokens: number;
+  /** Releases this request's wallet lease. Idempotent; absent for contexts built without a lease. */
+  release?: () => Promise<void>;
 }
 
 export type PaidGenerationIdentity = {
@@ -65,6 +75,34 @@ async function readBalance(admin: SupabaseClient, ownerId: string): Promise<numb
   }
 }
 
+/** Atomic wallet lease. 'busy' = another live generation holds it; 'error' = could not tell (fail closed). */
+async function acquireLease(admin: SupabaseClient, ownerId: string, token: string): Promise<'acquired' | 'busy' | 'error'> {
+  try {
+    const { data, error } = await admin.rpc('acquire_ai_generation_lock', {
+      p_wallet_id: ownerId, p_owner_token: token, p_ttl_seconds: GENERATION_LEASE_TTL_SECONDS,
+    });
+    if (error || typeof data !== 'boolean') return 'error';
+    return data ? 'acquired' : 'busy';
+  } catch {
+    return 'error';
+  }
+}
+
+function leaseReleaser(admin: SupabaseClient, ownerId: string, token: string): () => Promise<void> {
+  let done: Promise<void> | null = null;
+  return () => {
+    done ??= (async () => {
+      try {
+        const { error } = await admin.rpc('release_ai_generation_lock', { p_wallet_id: ownerId, p_owner_token: token });
+        if (error) console.error('[ai] generation lease release failed', { stage: 'lease_release' });
+      } catch {
+        console.error('[ai] generation lease release failed', { stage: 'lease_release' });
+      }
+    })();
+    return done;
+  };
+}
+
 function failed(kind: ChatFailureKind, error: string, extra: Partial<ChatResult> = {}): ChatResult {
   return { ok: false, status: 'failed', failureKind: kind, error, ...extra };
 }
@@ -87,15 +125,30 @@ export async function preflightPaidGeneration(
   if (pre === 'error') return { ok: false, chatResult: failed('unavailable', CHAT_COPY.unavailable) };
   if (pre === 'found') return { ok: false, chatResult: await alreadyProcessed(admin, id.ownerId) };
 
-  const balance = await readBalance(admin, id.ownerId);
-  if (balance === undefined) return { ok: false, chatResult: failed('unknown', CHAT_COPY.walletMissing) };
-  const model = id.model ?? MODEL_TIER_TO_ID[id.modelTier!];
-  const pricing = resolvePricing(id.providerId ?? 'gemini', model);
-  const maxOutputTokens = computeMaxOutputTokens({ walletBalance: balance, pricing });
-  if (maxOutputTokens <= 0) {
-    return { ok: false, chatResult: failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: balance }) };
+  const token = crypto.randomUUID();
+  const lease = await acquireLease(admin, id.ownerId, token);
+  if (lease === 'error') return { ok: false, chatResult: failed('unavailable', CHAT_COPY.unavailable) };
+  if (lease === 'busy') return { ok: false, chatResult: failed('generation_in_progress', CHAT_COPY.generation_in_progress) };
+  const release = leaseReleaser(admin, id.ownerId, token);
+
+  try {
+    const balance = await readBalance(admin, id.ownerId);
+    if (balance === undefined) {
+      await release();
+      return { ok: false, chatResult: failed('unknown', CHAT_COPY.walletMissing) };
+    }
+    const model = id.model ?? MODEL_TIER_TO_ID[id.modelTier!];
+    const pricing = resolvePricing(id.providerId ?? 'gemini', model);
+    const maxOutputTokens = computeMaxOutputTokens({ walletBalance: balance, pricing });
+    if (maxOutputTokens <= 0) {
+      await release();
+      return { ok: false, chatResult: failed('insufficient_balance', CHAT_COPY.insufficient_balance, { wasCapped: true, remainingBalance: balance }) };
+    }
+    return { ok: true, ctx: { admin, walletBalance: balance, model, pricing, maxOutputTokens, release } };
+  } catch (err) {
+    await release();
+    throw err;
   }
-  return { ok: true, ctx: { admin, walletBalance: balance, model, pricing, maxOutputTokens } };
 }
 
 export type SettleOutcome =
@@ -103,6 +156,19 @@ export type SettleOutcome =
   | { kind: 'terminal'; chatResult: ChatResult };
 
 export async function settlePaidGeneration(
+  client: ProviderClient,
+  ctx: PaidGenerationContext,
+  id: PaidGenerationIdentity & { ledgerReason: string },
+  generate: () => Promise<GenerateResult>,
+): Promise<SettleOutcome> {
+  try {
+    return await settleInner(client, ctx, id, generate);
+  } finally {
+    await ctx.release?.();
+  }
+}
+
+async function settleInner(
   client: ProviderClient,
   ctx: PaidGenerationContext,
   id: PaidGenerationIdentity & { ledgerReason: string },

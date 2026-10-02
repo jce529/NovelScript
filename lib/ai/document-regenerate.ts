@@ -57,53 +57,58 @@ export async function regenerateDocumentWithTemplate(
     };
   }
 
-  const systemInstruction = composeSystemInstruction({
-    presetLevel: input.presetLevel,
-    styleId: input.styleId,
-    genre: input.genre,
-    documentPlan: {
-      category: input.proposal.category,
-      folderPath: formatFolderPath(input.proposal.category, targetFolder.folder.path, '/'),
-      templateName: targetTemplate.template.name,
-      templateContent: targetTemplate.template.content,
-      purpose: `${input.proposal.category} 설정`,
-    },
-  });
-  const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}`;
-  const settled = await settlePaidGeneration(client, preflight.ctx, {
-    ...identity, ledgerReason: `document_regenerate:${input.workId}`,
-  }, () => client.generateContent({
-    model: preflight.ctx.model, systemInstruction, contents,
-    maxOutputTokens: preflight.ctx.maxOutputTokens, temperature: 0.7,
-  }));
-  if (settled.kind === 'terminal') {
-    return {
-      ok: false,
-      error: settled.chatResult.error ?? (settled.chatResult.status === 'refused' ? CHAT_COPY.refusedTitle : CHAT_COPY.unknown),
-      status: settled.chatResult.status,
-      failureKind: settled.chatResult.failureKind,
-    };
-  }
+  // BUG-06: settle releases the wallet lease; this also covers exits before settle.
+  try {
+    const systemInstruction = composeSystemInstruction({
+      presetLevel: input.presetLevel,
+      styleId: input.styleId,
+      genre: input.genre,
+      documentPlan: {
+        category: input.proposal.category,
+        folderPath: formatFolderPath(input.proposal.category, targetFolder.folder.path, '/'),
+        templateName: targetTemplate.template.name,
+        templateContent: targetTemplate.template.content,
+        purpose: `${input.proposal.category} 설정`,
+      },
+    });
+    const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}`;
+    const settled = await settlePaidGeneration(client, preflight.ctx, {
+      ...identity, ledgerReason: `document_regenerate:${input.workId}`,
+    }, () => client.generateContent({
+      model: preflight.ctx.model, systemInstruction, contents,
+      maxOutputTokens: preflight.ctx.maxOutputTokens, temperature: 0.7,
+    }));
+    if (settled.kind === 'terminal') {
+      return {
+        ok: false,
+        error: settled.chatResult.error ?? (settled.chatResult.status === 'refused' ? CHAT_COPY.refusedTitle : CHAT_COPY.unknown),
+        status: settled.chatResult.status,
+        failureKind: settled.chatResult.failureKind,
+      };
+    }
 
-  const parsed = parseChatResponse(settled.result.text);
-  if (!validateDocumentAgainstPlan(parsed.proposal, {
-    category: input.proposal.category, templateContent: targetTemplate.template.content,
-  }).ok) return { ok: false, error: REGENERATION_FAILED };
-  // BUG-04: 템플릿만 바꾸는 재생성이므로 이름은 원본을 강제하고, 본문 제목이 원본 이름과 다르면 실패 처리한다.
-  const title = parsed.proposal!.content.split('\n').map((line) => line.trim()).find((line) => /^#\s+\S/.test(line));
-  if (title && !title.includes(input.proposal.name.trim())) return { ok: false, error: REGENERATION_FAILED };
-  const links = (content: string) => [...content.matchAll(/\[\[([^\[\]]+)\]\]/g)].map((match) => match[1]);
-  const originalLinks = links(input.proposal.content);
-  const regeneratedLinks = links(parsed.proposal!.content);
-  if (
-    regeneratedLinks.some((target) => !originalLinks.includes(target)) ||
-    regeneratedLinks.filter((target) => target === input.proposal.name).length <
-      originalLinks.filter((target) => target === input.proposal.name).length
-  ) return { ok: false, error: REGENERATION_FAILED };
-  return {
-    ok: true,
-    content: parsed.proposal!.content,
-    name: input.proposal.name,
-    remainingBalance: settled.remainingBalance,
-  };
+    const parsed = parseChatResponse(settled.result.text);
+    if (!validateDocumentAgainstPlan(parsed.proposal, {
+      category: input.proposal.category, templateContent: targetTemplate.template.content,
+    }).ok) return { ok: false, error: REGENERATION_FAILED };
+    // BUG-04: 템플릿만 바꾸는 재생성이므로 이름은 원본을 강제하고, 본문 제목이 원본 이름과 다르면 실패 처리한다.
+    const title = parsed.proposal!.content.split('\n').map((line) => line.trim()).find((line) => /^#\s+\S/.test(line));
+    if (title && !title.includes(input.proposal.name.trim())) return { ok: false, error: REGENERATION_FAILED };
+    const links = (content: string) => [...content.matchAll(/\[\[([^\[\]]+)\]\]/g)].map((match) => match[1]);
+    const originalLinks = links(input.proposal.content);
+    const regeneratedLinks = links(parsed.proposal!.content);
+    if (
+      regeneratedLinks.some((target) => !originalLinks.includes(target)) ||
+      regeneratedLinks.filter((target) => target === input.proposal.name).length <
+        originalLinks.filter((target) => target === input.proposal.name).length
+    ) return { ok: false, error: REGENERATION_FAILED };
+    return {
+      ok: true,
+      content: parsed.proposal!.content,
+      name: input.proposal.name,
+      remainingBalance: settled.remainingBalance,
+    };
+  } finally {
+    await preflight.ctx.release?.();
+  }
 }

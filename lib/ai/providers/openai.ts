@@ -1,6 +1,6 @@
 import 'server-only';
 import OpenAI from 'openai';
-import type { GenerateResult, ProviderClient, UsageReport } from './types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
 
 /** Convert structured Responses API signals to the shared provider result. */
@@ -41,16 +41,17 @@ export function createOpenAiProvider({ apiKey }: { apiKey: string }): ProviderCl
   const client = new OpenAI({ apiKey });
   return {
     provider: 'openai',
-    async generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature }) {
+    async generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature, timeoutMs }) {
       let response: OpenAI.Responses.Response;
       try {
+        const limit = timeoutMs ?? PROVIDER_CALL_TIMEOUT_MS;
         response = await client.responses.create({
           model,
           instructions: systemInstruction,
           input: contents,
           max_output_tokens: maxOutputTokens,
           ...(supportsTemperature(model) ? { temperature } : {}),
-        });
+        }, { signal: AbortSignal.timeout(limit), timeout: limit, maxRetries: 0 });
       } catch (err) {
         throw new ProviderCallError(toSanitizedProviderError('openai', err));
       }

@@ -38,12 +38,17 @@ export interface UsageReport {
   reported: { input: boolean; output: boolean };
 }
 
+/** Upper bound for one provider call. The wallet generation lease TTL is derived from it (BUG-06). */
+export const PROVIDER_CALL_TIMEOUT_MS = 120_000;
+
 export interface GenerateParams {
   model: string;
   systemInstruction: string;
   contents: string;
   maxOutputTokens: number;
   temperature: number;
+  /** Abort the vendor request after this many ms. Defaults to PROVIDER_CALL_TIMEOUT_MS. */
+  timeoutMs?: number;
 }
 
 export interface GenerateResult {

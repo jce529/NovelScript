@@ -1,6 +1,6 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
-import type { GenerateResult, ProviderClient, UsageReport } from './types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
 
 /** Convert a Messages response to the shared provider result. */
@@ -29,16 +29,17 @@ export function createAnthropicProvider({ apiKey }: { apiKey: string }): Provide
   const client = new Anthropic({ apiKey });
   return {
     provider: 'anthropic',
-    async generateContent({ model, systemInstruction, contents, maxOutputTokens }) {
+    async generateContent({ model, systemInstruction, contents, maxOutputTokens, timeoutMs }) {
       // Current catalog models reject temperature; build the SDK arguments explicitly.
       let response: Anthropic.Messages.Message;
       try {
+        const limit = timeoutMs ?? PROVIDER_CALL_TIMEOUT_MS;
         response = await client.messages.create({
           model,
           system: systemInstruction,
           messages: [{ role: 'user', content: contents }],
           max_tokens: maxOutputTokens,
-        });
+        }, { signal: AbortSignal.timeout(limit), timeout: limit, maxRetries: 0 });
       } catch (err) {
         throw new ProviderCallError(toSanitizedProviderError('anthropic', err));
       }

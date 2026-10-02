@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const adminState = vi.hoisted(() => ({ client: null as unknown }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => adminState.client }));
 
-import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
+import { GENERATION_LEASE_TTL_SECONDS, preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import { ProviderCallError } from '@/lib/ai/providers/errors';
 import type { ProviderClient } from '@/lib/ai/providers/types';
@@ -107,5 +107,76 @@ describe('paid generation lifecycle', () => {
     if (settled.kind !== 'completed') throw new Error('settlement failed');
     expect(settled.debitAmount).toBe(computeDebitAmount({ pricing: pre.ctx.pricing, promptTokenCount: 1000, candidatesTokenCount: 2000 }));
     expect(settled.debitAmount).not.toBe(computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 1000, candidatesTokenCount: 2000 }));
+  });
+});
+
+describe('wallet generation lease (BUG-06)', () => {
+  it('acquires the lease after the ledger check and before reading the balance', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 } });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre.ok).toBe(true);
+    const names = admin.rpc.mock.calls.map((c) => c[0]);
+    expect(names).toContain('acquire_ai_generation_lock');
+    expect(admin.state.locks[OWNER]).toBeTruthy();
+    expect(admin.rpc.mock.calls.find((c) => c[0] === 'acquire_ai_generation_lock')![1]).toMatchObject({
+      p_wallet_id: OWNER, p_ttl_seconds: GENERATION_LEASE_TTL_SECONDS,
+    });
+  });
+
+  it('a recorded key is answered before the lease is touched', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 }, ledger: [{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY }] });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { status: 'already_processed' } });
+    expect(admin.rpc.mock.calls.map((c) => c[0])).not.toContain('acquire_ai_generation_lock');
+  });
+
+  it('refuses a second preflight for the same wallet and releases on settle', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 } });
+    const first = await preflightPaidGeneration(session(), identity);
+    if (!first.ok) throw new Error('expected first preflight to pass');
+    const second = await preflightPaidGeneration(session(), { ...identity, idempotencyKey: '60000000-0000-4000-8000-000000000002' });
+    expect(second).toEqual({ ok: false, chatResult: { ok: false, status: 'failed', failureKind: 'generation_in_progress', error: CHAT_COPY.generation_in_progress } });
+    await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, first.ctx, { ...identity, ledgerReason: 'test' }, async () => okResult());
+    expect(admin.state.locks).toEqual({});
+    expect((await preflightPaidGeneration(session(), { ...identity, idempotencyKey: '60000000-0000-4000-8000-000000000002' })).ok).toBe(true);
+  });
+
+  it('release is idempotent and only releases its own lease', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 } });
+    const pre = await preflightPaidGeneration(session(), identity);
+    if (!pre.ok) throw new Error('expected preflight to pass');
+    await pre.ctx.release!();
+    await pre.ctx.release!();
+    expect(admin.rpc.mock.calls.filter((c) => c[0] === 'release_ai_generation_lock')).toHaveLength(1);
+  });
+
+  it('releases the lease when the balance cannot cover a generation', async () => {
+    const admin = setup({ balances: { [OWNER]: 0 } });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { failureKind: 'insufficient_balance' } });
+    expect(admin.state.locks).toEqual({});
+  });
+
+  it('releases the lease when the wallet is missing', async () => {
+    const admin = setup({ balances: {} });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { failureKind: 'unknown' } });
+    expect(admin.state.locks).toEqual({});
+  });
+
+  it('fails closed when the lease RPC errors', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 }, lock: 'rpc' });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { failureKind: 'unavailable' } });
+    expect(admin.from.mock.calls.map((c) => c[0])).not.toContain('wallets');
+  });
+
+  it('settle releases even when the generate callback throws unexpectedly', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 } });
+    const pre = await preflightPaidGeneration(session(), identity);
+    if (!pre.ok) throw new Error('expected preflight to pass');
+    const settled = await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, pre.ctx, { ...identity, ledgerReason: 'test' }, async () => { throw new Error('boom'); });
+    expect(settled.kind).toBe('terminal');
+    expect(admin.state.locks).toEqual({});
   });
 });

@@ -1,6 +1,6 @@
 import 'server-only';
 import { GoogleGenAI, type GenerateContentResponse } from '@google/genai';
-import type { GenerateResult, ProviderClient, RefusalReasonCode, UsageReport } from './types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type RefusalReasonCode, type UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
 
 /** D-05 (B): safety-family finish reasons. Partial text is dropped, never surfaced. */
@@ -72,10 +72,10 @@ export function createGeminiProvider({ apiKey }: GeminiProviderOptions): Provide
   const ai = new GoogleGenAI({ apiKey, httpOptions: { retryOptions: { attempts: 1 } } });
   return {
     provider: 'gemini',
-    async generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature }) {
+    async generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature, timeoutMs }) {
       let response: GenerateContentResponse;
       try {
-        response = await ai.models.generateContent({ model, contents, config: { systemInstruction, maxOutputTokens, temperature } });
+        response = await ai.models.generateContent({ model, contents, config: { systemInstruction, maxOutputTokens, temperature, abortSignal: AbortSignal.timeout(timeoutMs ?? PROVIDER_CALL_TIMEOUT_MS) } });
       } catch (err) {
         throw new ProviderCallError(toSanitizedProviderError('gemini', err));
       }
