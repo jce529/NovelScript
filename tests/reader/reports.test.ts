@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest';
-import { adminClient, createTestUser, deleteTestUser, pgPool } from '../helpers/db';
+import { adminClient, createTestUser, deleteTestUserStrict, pgPool } from '../helpers/db';
 import { deleteFixtures, planCleanup } from '../../scripts/lib/report-fixture-cleanup.mjs';
 import { submitReport } from '../../lib/reader/reports';
 
@@ -18,7 +18,7 @@ describe('submitReport (READ-05/D-16)', () => {
     } finally {
       await sql.end();
     }
-    for (const id of users) await deleteTestUser(id);
+    for (const id of users) await deleteTestUserStrict(id);
   });
 
   async function createWork() {

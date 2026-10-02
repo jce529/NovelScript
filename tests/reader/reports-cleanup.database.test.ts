@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import postgres from 'postgres';
-import { adminClient, createTestUser, deleteTestUser, pgPool } from '../helpers/db';
+import { adminClient, createTestUser, deleteTestUser, deleteTestUserStrict, pgPool } from '../helpers/db';
 import { submitReport } from '../../lib/reader/reports';
 import { deleteFixtures, deletionBlockers, planCleanup } from '../../scripts/lib/report-fixture-cleanup.mjs';
 
@@ -15,7 +15,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('reader report fixture cleanup', (
   afterAll(async () => {
     await writer.end();
     await reader.end();
-    for (const id of users) await deleteTestUser(id).catch(() => {});
+    for (const id of users) await deleteTestUser(id);
   });
 
   async function fixture() {
@@ -46,13 +46,13 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('reader report fixture cleanup', (
     await deleteFixtures(writer, await planCleanup(writer, { reportIds: [f.reportId], workIds: [f.workId], userIds: [f.owner.id, f.reporter.id] }));
     expect((await counts(reader, f))[0]).toEqual({ reports: 0, works: 0, kb: 0 });
 
-    await deleteTestUser(f.owner.id);
-    await deleteTestUser(f.reporter.id);
+    await deleteTestUserStrict(f.owner.id);
+    await deleteTestUserStrict(f.reporter.id);
   });
 
   it('deleteTestUser surfaces the failure while a report still references the account', async () => {
     const f = await fixture();
-    await expect(deleteTestUser(f.reporter.id)).rejects.toBeTruthy();
+    await expect(deleteTestUserStrict(f.reporter.id)).rejects.toBeTruthy();
     await deleteFixtures(writer, await planCleanup(writer, { reportIds: [f.reportId], workIds: [f.workId], userIds: [f.owner.id, f.reporter.id] }));
   });
 

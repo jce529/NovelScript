@@ -249,8 +249,11 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
         const results = await both;
 
         // BUG-06: the per-wallet lease lets only one of them reach the provider.
+        // The loser is refused by the lease, or (if the winner already finished on a slow DB) sees the
+        // recorded key; either way exactly one generation completes.
         expect(results.filter((r) => r.status === 'completed')).toHaveLength(1);
-        expect(results.filter((r) => r.failureKind === 'generation_in_progress')).toHaveLength(1);
+        const loser = results.find((r) => r.status !== 'completed')!;
+        expect(loser.failureKind === 'generation_in_progress' || loser.status === 'already_processed').toBe(true);
         expect((await ledgerRows(user.id, KEY)).count).toBe(1);
         expect(await balanceOf(user.id)).toBe(999);
       } finally {

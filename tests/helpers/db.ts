@@ -21,7 +21,14 @@ export async function createTestUser(email?: string) {
   return data.user!;
 }
 
+/** Best-effort cleanup: many suites leave ledger rows that block the delete (Phase 9 BUG-01), so a failure is not raised. */
 export async function deleteTestUser(userId: string) {
+  const admin = adminClient();
+  await admin.auth.admin.deleteUser(userId, false);
+}
+
+/** Raises Auth deletion errors. Use when the test has already removed every row that references the account. */
+export async function deleteTestUserStrict(userId: string) {
   const admin = adminClient();
   const { error } = await admin.auth.admin.deleteUser(userId, false);
   if (error) throw error;

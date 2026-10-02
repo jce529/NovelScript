@@ -79,3 +79,11 @@ files:
 ### 예상 규모
 
 - 구현 1단계·1커밋. `vitest.config.ts` 약 20~40줄 변경, 신규 배정 테스트 약 40~70줄, 총 약 60~110줄을 예상한다. 테스트/DB 상태에 따라 실제 소요 시간은 **미확인**이다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `vitest.config.ts`: `test.projects`로 `unit`(파일 병렬 유지)과 `db`(`fileParallelism: false`)를 분리하고 공통 `env`·alias·타임아웃(30초)은 `extends: true`로 상속. DB 프로젝트 배정은 파일 **내용** 기준(`helpers/db` import, `SUPABASE_DB_URL`·`SUPABASE_SERVICE_ROLE_KEY`·`postgres(` 사용)으로 자동 분류한다. 계획은 직접 DB 연결 8개 파일만 대상으로 했지만, 실제로는 Auth/PostgREST로 계정을 만드는 약 48개 파일이 원격 프로젝트에 부하를 주므로 이 범위로 넓혔다. `poolOptions`는 사용하지 않음(Vitest 4). 타임아웃은 상향하지 않았다(재측정 결과 실패 원인이 시간 초과가 아니었음).
+- 신규 `tests/config/vitest-projects.test.ts`: 모든 테스트 파일이 정확히 한 프로젝트에 배정, DB만 직렬, 대표 DB·단위 파일 배정, 상속 설정 유지 검증.
+- 기준선 재측정(변경 전, 병렬 `npx vitest run`): 8~9건 실패 / 1132 통과, 약 250~270초. 단, 이 기준선의 실패는 타임아웃이 아니라 같은 시점에 바꾼 `deleteTestUser`가 Auth 삭제 오류를 던져 생긴 것이었다(원장 행이 있는 테스트 계정은 삭제 불가, Phase 9 BUG-01). `deleteTestUser`를 원래의 best-effort로 되돌리고 오류를 던지는 `deleteTestUserStrict`를 별도로 추가해 해결.
+- 변경 후 `npm test`: 1회 113파일 1147개 전부 통과(213초), 2회 1건 실패(Phase 8 BUG-06 동시성 DB 테스트의 타이밍 가정 — 테스트를 수정함), 3회 전부 통과(217초). 수정 후 최종 재실행 결과는 아래 최종 보고 참고. 변경 전 병렬 실행의 원격 DB 타임아웃(약 11건 기록)은 이번 환경에서는 재현되지 않았고, 시간 단축 효과는 확인되지 않았다(직렬화로 안정성을 우선).
+- 미수행: `--no-file-parallelism` 전체 직렬 실행과의 시간 비교, `tests/ai/ai-usage-db.test.ts`(Phase 11 예정)가 `db`로 분류되는지는 파일 생성 후 확인 필요(`helpers/db` 사용 시 자동 분류).
