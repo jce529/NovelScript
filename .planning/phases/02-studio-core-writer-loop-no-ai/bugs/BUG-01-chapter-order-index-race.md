@@ -87,3 +87,11 @@ files:
 
 ### 예상 규모
 - **2단계·2커밋**, 마이그레이션 약 60~100줄, 호출부 약 15~30줄 수정, 신규/기존 테스트 약 140~220줄(총 변경량 대략 215~350줄). DB 경합 테스트 환경과 번호 조율이 소요를 좌우한다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `supabase/migrations/0020_create_chapter_atomic.sql`: `create_chapter_atomic(p_owner_id, p_work_id, p_title, p_folder_id)` RPC. 작품 행 `FOR UPDATE` 잠금 → 삭제 회차 포함 `max(order_index)+1` → INSERT → ID 반환. `SECURITY DEFINER`, 고정 `search_path`, 브라우저 세션은 `auth.uid()`가 `p_owner_id`와 같아야 하고(서비스 롤은 서버 액션이 세션에서 얻은 ID로 호출), `user_can_write`·소유권·폴더·제목 검사, `public`/`anon` 회수 후 `authenticated`/`service_role`에만 실행권. 번호는 0018(Phase 11 예정)·0019(Phase 3 BUG-01/02) 다음인 0020.
+- `lib/chapters/actions.ts`: `createChapter`의 MAX 조회+직접 INSERT를 RPC 호출로 교체. 기존 사전 검사(쓰기 권한·소유권·폴더)는 유지, RPC 오류·예외·비정상 응답은 DB 원문 없는 문구로 변환.
+- `tests/chapters/order-race.database.test.ts`(신규): 동시 6회 생성→0..5 연속, 잠금 대기 후 다음 순번, 롤백 시 순번 미소비, 작품별 독립, 삭제 회차 순번 유지, 타 소유자·세션 불일치·anon·무효 폴더·정지 계정 거부, 원문 오류 비노출.
+- 검증: `vitest run tests/chapters tests/admin/sanctions.test.ts` 86 통과(skip 0), `tsc --noEmit`·eslint 통과. 0020은 원격 Supabase DB에 적용함.
+- 계획 대비 차이: 격리 스키마 대신 기존 DB에 커밋 fixture + 별도 연결 사용, 2커밋 대신 1커밋. `reorder_chapters`와의 경합은 범위 밖(기존 그대로).

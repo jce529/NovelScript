@@ -5,6 +5,7 @@ import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/wri
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
 
+const ERROR_CREATE_FAILED = '회차를 만들지 못했어요. 잠시 후 다시 시도해주세요.';
 const ERROR_INVALID_FOLDER = '선택한 폴더를 찾을 수 없어요. 새로고침 후 다시 시도해주세요.';
 
 const createChapterSchema = z.object({
@@ -62,24 +63,25 @@ export async function createChapter(
     return { ok: false, error: ERROR_INVALID_FOLDER };
   }
 
-  const { data: maxRow } = await supabase
-    .from('chapters')
-    .select('order_index')
-    .eq('work_id', input.workId)
-    .order('order_index', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // BUG-01: order assignment happens in one DB transaction (migration 0020) so concurrent
+  // creates get consecutive orders instead of colliding on chapters_work_order_uniq.
+  try {
+    const { data, error } = await supabase.rpc('create_chapter_atomic', {
+      p_owner_id: input.ownerId, p_work_id: input.workId, p_title: parsed.data.title, p_folder_id: folderId,
+    });
+    if (error) return { ok: false, error: createChapterErrorMessage(error.message) };
+    if (typeof data !== 'string') return { ok: false, error: ERROR_CREATE_FAILED };
+    return { ok: true, chapterId: data };
+  } catch {
+    return { ok: false, error: ERROR_CREATE_FAILED };
+  }
+}
 
-  const nextOrder = maxRow ? maxRow.order_index + 1 : 0;
-
-  const { data, error } = await supabase
-    .from('chapters')
-    .insert({ work_id: input.workId, title: parsed.data.title, order_index: nextOrder, folder_id: folderId })
-    .select('id')
-    .single();
-
-  if (error) return { ok: false, error: error.message };
-  return { ok: true, chapterId: data.id };
+function createChapterErrorMessage(message: string | undefined): string {
+  if (message?.includes('work_not_found')) return '작품을 찾을 수 없어요.';
+  if (message?.includes('invalid_folder')) return ERROR_INVALID_FOLDER;
+  if (message?.includes('invalid_title')) return '회차 제목을 입력해주세요.';
+  return ERROR_CREATE_FAILED;
 }
 
 async function findOwnedChapter(supabase: SupabaseClient, { ownerId, chapterId }: { ownerId: string; chapterId: string }) {
