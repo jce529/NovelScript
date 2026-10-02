@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { toggleLikeAction } from '@/app/works/[workId]/actions';
 
 export function LikeButton({ workId, initialLiked, initialCount, loggedIn }: { workId: string; initialLiked: boolean; initialCount: number; loggedIn: boolean }) {
+  const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [pending, startTransition] = useTransition();
@@ -14,7 +16,7 @@ export function LikeButton({ workId, initialLiked, initialCount, loggedIn }: { w
   function onClick() {
     if (pending) return;
     if (!loggedIn) {
-      toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => { window.location.href = '/login'; } } });
+      toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => router.push('/login') } });
       return;
     }
     startTransition(async () => {

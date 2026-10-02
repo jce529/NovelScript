@@ -14,7 +14,7 @@ import { chat, type ChatInput } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
-import type { ModelTier, ProviderId } from '@/lib/ai/providers/types';
+import type { ProviderId } from '@/lib/ai/providers/types';
 import { isKnownModel } from '@/lib/ai/providers/catalog';
 import { getDefaultProviderModel } from '@/lib/ai/providers/settings';
 import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
@@ -520,4 +520,3 @@ export async function importClassifiedFilesAction(raw: unknown): Promise<ImportF
   if (created.length > 0) revalidatePath(`/studio/${workId}`, 'layout');
   return { ok: true, created, failed };
 }
-const FOLDER_COPY_FALLBACK = '저장할 폴더를 찾지 못했어요.';

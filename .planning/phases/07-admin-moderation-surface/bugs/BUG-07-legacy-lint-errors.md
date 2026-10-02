@@ -97,3 +97,10 @@ files:
 
 - 구현 변경 약 20~35줄(삭제·추가 합계), 신규 테스트 파일 0개, 마이그레이션 0개. 실제 차이는 실행 시점의 Phase 11 편집 상태에 따라 달라질 수 있다.
 - 작업 2단계·커밋 2개, 추가 브라우저 확인 1회. Phase 11과 동시 편집 충돌 해결 소요는 **미확인**이다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- 미사용 선언 4건 제거: `app/studio/[workId]/chapters/[chapterId]/actions.ts`(`ModelTier` import, `FOLDER_COPY_FALLBACK`), `lib/ai/providers/byok-validate.ts`(`anthropicModels`의 미사용 `signal` 인자), `lib/ai/providers/byok.ts`(`ByokFailureReason` import).
+- 비로그인 토스트의 `window.location.href = '/login'` 3건을 `useRouter().push('/login')`로 교체(`like-button.tsx`, `report-dialog.tsx`, `work-header-actions.tsx`).
+- `package.json`의 `lint`를 `eslint --max-warnings=0`으로 변경해 새 경고도 실패시킨다.
+- 검증: `npm run lint` 오류·경고 0건, `npx tsc --noEmit` 통과. 미수행: 비로그인 상태에서 좋아요·신고·구독·북마크 토스트의 로그인 버튼이 `/login`으로 이동하는 브라우저 확인(전체 새로고침 → 클라이언트 이동으로 바뀜). 2커밋 계획은 1커밋으로 합침.

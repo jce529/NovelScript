@@ -2,7 +2,7 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PROVIDER_MODELS } from './catalog';
 import { BYOK_COPY, PROVIDER_LABEL, byokFailureMessage } from './byok-copy';
-import { checkKeyFormat, validateByokKey, type ByokFailureReason } from './byok-validate';
+import { checkKeyFormat, validateByokKey } from './byok-validate';
 import { intersectWithCatalog } from './selection';
 import type { ProviderId } from './types';
 import { getDefaultProviderModel } from './settings';

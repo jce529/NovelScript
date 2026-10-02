@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -18,6 +19,7 @@ export function ReportDialog({
   loggedIn: boolean;
   onSubmit: (input: { workId: string; chapterId: string | null; reasonCategory: string; detail: string | null }) => Promise<{ ok: boolean; error?: string }>;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<string>(REPORT_CATEGORIES[0]);
   const [detail, setDetail] = useState('');
@@ -25,7 +27,7 @@ export function ReportDialog({
 
   function handleOpenChange(next: boolean) {
     if (next && !loggedIn) {
-      toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => { window.location.href = '/login'; } } });
+      toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => router.push('/login') } });
       return;
     }
     setOpen(next);

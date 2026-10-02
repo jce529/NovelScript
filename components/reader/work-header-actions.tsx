@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Bell, Bookmark } from 'lucide-react';
@@ -10,13 +11,14 @@ import { toggleSubscriptionAction, toggleBookmarkAction } from '@/app/works/[wor
 export function WorkHeaderActions({
   workId, initialSubscribed, initialBookmarked, loggedIn,
 }: { workId: string; initialSubscribed: boolean; initialBookmarked: boolean; loggedIn: boolean }) {
+  const router = useRouter();
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [subscribing, startSubscribe] = useTransition();
   const [bookmarking, startBookmark] = useTransition();
 
   function requireLogin() {
-    toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => { window.location.href = '/login'; } } });
+    toast.error('로그인이 필요해요.', { action: { label: '로그인하기', onClick: () => router.push('/login') } });
   }
 
   function onToggleSubscription() {

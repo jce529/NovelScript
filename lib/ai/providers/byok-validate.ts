@@ -19,7 +19,7 @@ async function* openAiModels(apiKey: string, { signal }: { signal: AbortSignal }
   const client = new OpenAI({ apiKey, maxRetries: 0, timeout: TIMEOUT_MS });
   for await (const model of client.models.list({ signal })) yield model.id;
 }
-async function* anthropicModels(apiKey: string, { signal }: { signal: AbortSignal }): AsyncIterable<string> {
+async function* anthropicModels(apiKey: string): AsyncIterable<string> {
   // Model listing validates access without invoking generation.
   const client = new Anthropic({ apiKey, maxRetries: 0, timeout: TIMEOUT_MS });
   for await (const model of client.models.list()) yield model.id;
