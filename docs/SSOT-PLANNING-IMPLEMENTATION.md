@@ -48,8 +48,8 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | AI | EDIT-02 컨텍스트 문서 목록 | 구현됨 | AI panel chip list |
 | AI | EDIT-03 3단계 프리셋 | 구현됨 | 초보자/중급자/자유형 및 자유 입력 |
 | AI | EDIT-04 Gemini 생성 후 캔버스 삽입 | 부분 구현 | 코드·mock 테스트·일부 실연동 근거는 있으나 현재 STATE는 실제 키 기반 전체 흐름 재검증을 요구 |
-| AI | EDIT-05 생성 전 비용 추정 | 부분 구현 | 추정 및 실제 사용량 차감 코드 존재; 실제 키/실잔액 정확도 검증 미완료 |
-| 콘텐츠 | CONT-01 회차 초안 생성/저장 | 구현됨 | chapter actions와 편집 UI |
+| AI | EDIT-05 생성 전 비용 추정 | 부분 구현 | 추정 및 실제 사용량 차감 코드 존재; 실제 키/실잔액 정확도 검증 미완료. 같은 지갑의 유료 생성은 한 번에 하나(지갑별 lease `ai_generation_locks`, 0021)이며 공급자 호출 120초 상한·lease TTL 180초 |
+| 콘텐츠 | CONT-01 회차 초안 생성/저장 | 구현됨 | chapter actions와 편집 UI. 순번 부여는 `create_chapter_atomic` RPC(0020)로 원자화해 동시 생성도 연속 순번(2026-10-02) |
 | 콘텐츠 | CONT-02 무료/유료 발행 | 구현됨 | 발행 상태와 0/10/30/50/100 가격 tier |
 | 콘텐츠 | CONT-03 수정/발행 취소 | 구현됨 | ownership guard와 unpublish flow |
 | 독자 | READ-01 디스커버리 피드 | 구현됨 | 조회·좋아요 중심 간소화 점수; 정밀 완독률은 제외 |
@@ -57,8 +57,8 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 독자 | READ-03 글꼴/테마 설정 | 구현됨 | viewer settings |
 | 독자 | READ-04 이어보기 | 구현됨 | reading progress와 recently-read |
 | 독자 | READ-05 작품/회차 신고 | 구현됨 | report dialog와 reports table |
-| 독자 | READ-07 새 회차 알림 구독 상태 | 구현됨 | 구독 toggle 저장; 실제 알림 전달 채널은 미정 |
-| 독자 | READ-08 선호작 저장 | 구현됨 | bookmark toggle; 좋아요와 별개 |
+| 독자 | READ-07 새 회차 알림 구독 상태 | 구현됨 | 구독 toggle 저장(`toggle_work_subscriptions` RPC, 0019); 실제 알림 전달 채널은 미정 |
+| 독자 | READ-08 선호작 저장 | 구현됨 | bookmark toggle(`toggle_work_bookmarks` RPC, 0019); 좋아요와 별개. 좋아요·구독·북마크 토글은 DB에서 원자 반전하고 오류는 `ok: false`로 전달, 진행 중 버튼 비활성(브라우저 확인 대기) |
 | 독자 | READ-09 프로모션 배너 슬롯 | 구현됨 | 정적 슬롯이며 운영 스케줄링은 범위 아님 |
 | 결제 | PAY-01 Toss 토큰 충전 | 미구현 | Phase 5 05-01·05-02에서 `payment_orders`(0016_payments)·주문 생성·Toss 서버 클라이언트만 구현(DB 테스트 통과). 충전 UI·확정 흐름(05-03~07) 미실행 |
 | 결제 | PAY-02 유료 회차 원자적 해금 | 부분 구현 | 구매·소장·작가 90/10 정산 구현(0005, 0017_author_settlement). 2026-10-01 DB 테스트 통과(분배 스냅샷·멱등·롤백). 브라우저 E2E·독립 세션 동시성 미검증, 실충전은 Phase 5 의존 |
@@ -121,6 +121,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - 새 기능은 먼저 v1/v2/범위 밖 중 하나로 분류한다.
 - 코드 변경 후 `platty sync static-map`, sync plan/run/confirm을 거쳐 `docs/ssot`를 재생성한다.
 - 인간의 의도·정책 변경은 Platty `memory`에 근거 문서 경로와 함께 기록한다.
+- 테스트: `npm test`는 `vitest.config.ts`의 `unit`(병렬)·`db`(원격 Supabase를 쓰는 파일, 직렬) 두 프로젝트로 실행되며 DB 파일은 내용으로 자동 분류된다. `npm run lint`는 `--max-warnings=0`이다(2026-10-02).
 - 이 문서와 `.planning/REQUIREMENTS.md`가 달라지면 요구사항 문서를 먼저 수정하고 이 매트릭스를 동기화한다.
 
 ## 근거 문서 레지스트리
@@ -129,7 +130,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
-- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. 신규는 `0018`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다.
+- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018`은 Phase 11 `ai_usage`용으로 예약됐고 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터(Phase 11이 `0018`을 쓰기 전이면 번호 조율)이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`
