@@ -1,7 +1,7 @@
 ---
 id: BUG-07
 title: Phase 7 이전 파일에 기존 lint 오류가 누적되어 있다
-status: open
+status: implemented (브라우저 확인 대기)
 severity: low
 found: 2026-09-17
 found_during: Phase 7 검증 (todo 기록: "기존 lint 오류 23건")

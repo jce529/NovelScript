@@ -4,7 +4,8 @@ Phase 9(OpenAI·Anthropic 어댑터) 코드/절차에서 원인이 발생한 버
 
 | ID | 제목 | 심각도 | 발견 | 상태 |
 |---|---|---|---|---|
-| [BUG-01](BUG-01-uat-accounts-not-deletable.md) | UAT용 일회용 계정이 원장 FK 때문에 삭제되지 않고 남는다 | low | 2026-09-29 | open (방향 확정: 테스트 프로젝트 전용 정리 CLI A안, 실제 삭제는 대상 승인 후) |
+
+완전히 고쳐진 버그는 이 폴더에서 지우고 `.planning/fixed/`로 옮긴다 — 현재: [`09-01 UAT 계정 정리 CLI.md`](../../../fixed/09-01%20UAT%20%EA%B3%84%EC%A0%95%20%EC%A0%95%EB%A6%AC%20CLI.md) (BUG-01)
 
 ## 템플릿
 

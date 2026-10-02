@@ -1,7 +1,7 @@
 ---
 id: BUG-02
 title: 토글이 읽기 후 쓰기라서 빠른 연속 클릭 시 한 번만 반영될 수 있다
-status: open
+status: implemented (브라우저 확인 대기)
 severity: low
 found: 2026-10-02
 found_during: Codex(gpt-6-luna) 코드베이스 리스크 점검(risk-report.md) 후 코드 대조

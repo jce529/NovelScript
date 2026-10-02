@@ -1,7 +1,7 @@
 ---
 id: BUG-04
 title: 관리자가 자기 자신을 제재하면 일반 검증 문구만 표시된다 (F-2)
-status: open
+status: implemented (브라우저 확인 대기)
 severity: low
 found: 2026-09-17
 found_during: Phase 7 브라우저 UAT 후속 todo (2026-09-17-phase-07-deferred-browser-checks.md)

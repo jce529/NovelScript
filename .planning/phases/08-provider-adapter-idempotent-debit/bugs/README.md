@@ -2,12 +2,11 @@
 
 Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemini + fixture) 중 발견한 버그와 미결 이슈를 모았다. 이 폴더에는 **코드 원인이 Phase 8에 있는 버그만** 남긴다 — 원인이 다른 phase에 있는 버그는 그 phase의 `bugs/` 폴더로 옮겼다(2026-09-22, CLAUDE.md "버그 문서화 규칙").
 
-완전히 고쳐진 버그는 이 폴더에서 지우고 `.planning/fixed/`로 옮긴다 — 현재: [`08-04 사고 토큰 차감 누락 수정.md`](../../../fixed/08-04%20사고%20토큰%20차감%20누락%20수정.md), [`08-05 fixture env off 미반영 수정.md`](../../../fixed/08-05%20fixture%20env%20off%20미반영%20수정.md).
+완전히 고쳐진 버그는 이 폴더에서 지우고 `.planning/fixed/`로 옮긴다 — 현재: [`08-04 사고 토큰 차감 누락 수정.md`](../../../fixed/08-04%20사고%20토큰%20차감%20누락%20수정.md), [`08-05 fixture env off 미반영 수정.md`](../../../fixed/08-05%20fixture%20env%20off%20미반영%20수정.md), [`08-06 동시 유료 생성 지갑 직렬화.md`](../../../fixed/08-06%20%EB%8F%99%EC%8B%9C%20%EC%9C%A0%EB%A3%8C%20%EC%83%9D%EC%84%B1%20%EC%A7%80%EA%B0%91%20%EC%A7%81%EB%A0%AC%ED%99%94.md).
 
 | ID | 제목 | 심각도 | 상태 |
 |---|---|---|---|
 | [BUG-04](BUG-04-thinking-tokens-not-debited.md) | 사고(thinking) 토큰이 maxOutputTokens 예산을 잠식해 본문이 잘림 | Low | open (보류 — 실사용 데이터 확보 후 재논의) |
-| [BUG-06](BUG-06-concurrent-paid-generation-settlement.md) | 같은 지갑의 유료 AI 생성이 동시에 진행되면 정산 실패로 응답이 사라지고 모델 비용만 발생한다 | Medium | open (방향 확정: 지갑별 직렬화 + 호출 상한/TTL A안, 수정 계획 작성) |
 
 ## 다른 phase로 옮긴 버그
 

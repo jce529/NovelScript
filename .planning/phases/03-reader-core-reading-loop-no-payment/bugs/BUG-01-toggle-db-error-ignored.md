@@ -1,7 +1,7 @@
 ---
 id: BUG-01
 title: 좋아요·북마크·구독 토글이 DB 쓰기 오류를 무시하고 성공을 반환한다
-status: open
+status: implemented (브라우저 확인 대기)
 severity: medium
 found: 2026-10-02
 found_during: Codex(gpt-6-luna) 코드베이스 리스크 점검(risk-report.md) 후 코드 대조
