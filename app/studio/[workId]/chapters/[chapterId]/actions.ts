@@ -7,8 +7,9 @@ import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
-import { listCategoryFolderCandidates, listTemplateOptions, validateTargetFolder, validateTargetTemplate, createNode, formatFolderPath, TEMPLATE_REVALIDATION_FAILED, type FolderCandidate, type FolderCandidatesResult, type TemplateOption } from '@/lib/kb/actions';
+import { listCategoryFolderCandidates, getWorkKbNodes, listTemplateOptions, validateTargetFolder, validateTargetTemplate, createNode, formatFolderPath, TEMPLATE_REVALIDATION_FAILED, type FolderCandidate, type FolderCandidatesResult, type TemplateOption } from '@/lib/kb/actions';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
+import type { FlatKbNode } from '@/lib/kb/tree';
 import { chat, type ChatInput } from '@/lib/ai/chat';
 import { createPlatformProvider } from '@/lib/ai/providers/registry';
 import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
@@ -25,7 +26,9 @@ import { createJevClient } from '@/lib/ai/decision/jev';
 import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decision/fixture';
 import { DecisionCallError } from '@/lib/ai/decision/errors';
 import { regenerateDocumentWithTemplate, type RegenerateResult } from '@/lib/ai/document-regenerate';
+import { planCategoryOnly, planFolderAndTemplate } from '@/lib/ai/decision/plan';
 import { recordDocumentSaveDecision, runShadowPlan } from '@/lib/ai/decision/shadow';
+import { MAX_ATTACHMENTS, MAX_ATTACHMENT_CHARS, MAX_IMPORT_FILES, MAX_IMPORT_CHARS, documentNameFromFile } from '@/lib/ai/attachments';
 
 export async function getChapterAction(chapterId: string) {
   const supabase = await createClient();
@@ -103,7 +106,11 @@ export async function quickAddMentionAction(workId: string, category: KbCategory
 
 export interface ChatActionInput {
   workId: string;
-  chapterId: string;
+  /** 회차 편집기에서 호출하면 chapterId, 설정 문서 편집기에서 호출하면 nodeId (둘 중 하나). */
+  chapterId?: string;
+  nodeId?: string;
+  /** Files attached to this conversation only (never saved). */
+  attachments?: { name: string; content: string }[];
   providerId: ProviderId;
   model: string;
   keySource?: 'service' | 'byok';
@@ -126,7 +133,11 @@ const chatActionSchema = z.object({
   providerId: z.enum(['gemini', 'openai', 'anthropic']),
   model: z.string(),
   keySource: z.enum(['service', 'byok']).optional().default('service'),
-}).refine((value) => isKnownModel(value.providerId, value.model), { message: 'unknown model for provider' });
+  chapterId: z.string().min(1).max(100).optional(),
+  nodeId: z.string().min(1).max(100).optional(),
+  attachments: z.array(z.object({ name: z.string().max(200), content: z.string().max(MAX_ATTACHMENT_CHARS) })).max(MAX_ATTACHMENTS).optional(),
+}).refine((value) => isKnownModel(value.providerId, value.model), { message: 'unknown model for provider' })
+  .refine((value) => Boolean(value.chapterId) !== Boolean(value.nodeId), { message: 'exactly one of chapterId/nodeId' });
 
 // Dev fixture only: keys whose response was already dropped once (in-memory, per server process).
 const droppedFixtureKeys = new Set<string>();
@@ -179,7 +190,10 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
   // Explicit field list (never spread input) so a forged ownerId cannot ride along.
   const result = await chat(supabase, client, {
     workId: input.workId,
-    chapterId: input.chapterId,
+    chapterId: parsed.data.chapterId,
+    nodeId: parsed.data.nodeId,
+    contextKind: parsed.data.nodeId ? 'document' : 'chapter',
+    attachments: parsed.data.attachments,
     providerId: parsed.data.providerId,
     model: parsed.data.model,
     mentionedNodeIds: input.mentionedNodeIds,
@@ -344,3 +358,166 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
   }
   return regenerateDocumentWithTemplate(supabase, client, { ...parsed.data, ownerId: user.id });
 }
+
+/** 설정 문서 편집기의 AI 패널이 필요로 하는 값: 기본 모델·BYOK 모델·작품 장르. */
+export async function getNodeAiContextAction(workId: string, nodeId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: node } = await supabase.from('kb_nodes').select('id, work_id, name, category')
+    .eq('id', nodeId).eq('owner_id', user.id).is('deleted_at', null).maybeSingle();
+  if (!node || node.work_id !== workId) return null;
+  const { data: work } = await supabase.from('works').select('genre').eq('id', workId).eq('owner_id', user.id).maybeSingle();
+  const byokModels = await loadConnectedByokModels(supabase, user.id);
+  const defaultProviderModel = await getDefaultProviderModel(supabase, user.id, byokModels);
+  return { genre: work?.genre ?? null, defaultProviderModel, byokModels, node: { id: node.id, name: node.name, category: node.category } };
+}
+
+const importSchema = z.object({
+  workId: z.string().uuid(),
+  category: z.enum(KB_CATEGORIES),
+  targetFolderId: z.string().uuid(),
+  folderVersion: z.string().max(4000).optional(),
+  files: z.array(z.object({ name: z.string().min(1).max(200), content: z.string().max(MAX_IMPORT_CHARS) })).min(1).max(MAX_IMPORT_FILES),
+});
+
+export type ImportFilesResult =
+  | { ok: true; created: { fileName: string; nodeId: string; name: string }[]; failed: { fileName: string; error: string }[] }
+  | { ok: false; error: string };
+
+/** 로컬에서 작업한 .md/.txt 여러 개를 선택한 카테고리 폴더에 설정 문서로 한 번에 저장한다. */
+export async function importFilesAction(raw: unknown): Promise<ImportFilesResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: CHAT_COPY.unauthenticated };
+  const parsed = importSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: '파일 개수나 크기가 한도를 넘었어요.' };
+  const { workId, category, targetFolderId, folderVersion, files } = parsed.data;
+  const folder = await validateTargetFolder(supabase, { ownerId: user.id, workId, category, targetFolderId, expectedVersion: folderVersion });
+  if (!folder.ok) return { ok: false, error: folder.error };
+
+  const created: { fileName: string; nodeId: string; name: string }[] = [];
+  const failed: { fileName: string; error: string }[] = [];
+  for (const file of files) {
+    const name = documentNameFromFile(file.name);
+    if (!name) { failed.push({ fileName: file.name, error: '파일 이름이 비어 있어요.' }); continue; }
+    const result = await createNode(supabase, {
+      ownerId: user.id, workId, parentId: targetFolderId, category, nodeType: 'file', name, initialContent: file.content,
+    });
+    if (result.ok && result.nodeId) created.push({ fileName: file.name, nodeId: result.nodeId, name });
+    else failed.push({ fileName: file.name, error: result.error ?? '저장하지 못했어요.' });
+  }
+  if (created.length > 0) revalidatePath(`/studio/${workId}`, 'layout');
+  return { ok: true, created, failed };
+}
+
+export interface UploadClassification {
+  fileName: string;
+  /** null = Jev가 확신하지 못함 → 사용자가 직접 고르도록 둔다. */
+  category: KbCategory | null;
+  folderId: string | null;
+  folderPath: string | null;
+  folderVersion: string | null;
+  confidence: number | null;
+}
+export type ClassifyUploadResult =
+  | { ok: true; items: UploadClassification[] }
+  | { ok: false; reason: 'unauthenticated' | 'invalid_input' | 'unavailable'; error: string };
+
+const classifySchema = z.object({
+  workId: z.string().uuid(),
+  files: z.array(z.object({ name: z.string().min(1).max(200), content: z.string().max(MAX_IMPORT_CHARS) })).min(1).max(MAX_IMPORT_FILES),
+});
+
+/** Jev가 업로드 파일마다 카테고리·폴더를 제안한다. 저장은 하지 않고, 사용자가 승인한 뒤 importClassifiedFilesAction이 저장한다. */
+export async function classifyUploadFilesAction(raw: unknown): Promise<ClassifyUploadResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, reason: 'unauthenticated', error: CHAT_COPY.unauthenticated };
+  const parsed = classifySchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, reason: 'invalid_input', error: '파일 개수나 크기가 한도를 넘었어요.' };
+  const { workId, files } = parsed.data;
+  const { data: work } = await supabase.from('works').select('id').eq('id', workId).eq('owner_id', user.id).maybeSingle();
+  if (!work) return { ok: false, reason: 'invalid_input', error: '작품을 찾을 수 없어요.' };
+
+  const fixtureMode = readDecisionFixture(process.env);
+  let client;
+  try { client = fixtureMode ? createFixtureDecisionClient(fixtureMode) : createJevClient(); } catch {
+    return { ok: false, reason: 'unavailable', error: '자동 분류를 지금 쓸 수 없어요. 폴더를 직접 선택해 주세요.' };
+  }
+
+  const items: UploadClassification[] = [];
+  const classifyOne = async (file: { name: string; content: string }): Promise<UploadClassification> => {
+    const empty = { fileName: file.name, category: null, folderId: null, folderPath: null, folderVersion: null, confidence: null };
+    try {
+      const state = { userRequest: '업로드한 설정 파일을 알맞은 설정집 카테고리에 분류', fileName: documentNameFromFile(file.name), fileContent: file.content.slice(0, 3000) };
+      const category = await planCategoryOnly(client, state);
+      if (category.kind !== 'category') return empty;
+      const selected = await planFolderAndTemplate(client, supabase, { ownerId: user.id, workId, category: category.category, state });
+      if (selected.kind !== 'planned') return { ...empty, category: category.category, confidence: category.confidence };
+      return {
+        fileName: file.name, category: category.category, confidence: category.confidence,
+        folderId: selected.folder.id, folderVersion: selected.folder.version,
+        folderPath: formatFolderPath(category.category, selected.folder.path, ' › '),
+      };
+    } catch { return empty; }
+  };
+  for (let i = 0; i < files.length; i += 5) {
+    items.push(...await Promise.all(files.slice(i, i + 5).map(classifyOne)));
+  }
+  return { ok: true, items };
+}
+
+const importClassifiedSchema = z.object({
+  workId: z.string().uuid(),
+  files: z.array(z.object({
+    name: z.string().min(1).max(200), content: z.string().max(MAX_IMPORT_CHARS),
+    targetFolderId: z.string().uuid(),
+  })).min(1).max(MAX_IMPORT_FILES),
+});
+
+/** 승인 화면 트리용: 작품의 카테고리(인물·장소…) 폴더와 기존 문서만 돌려준다. 회차·템플릿 영역은 배치 대상이 아니다. */
+export async function loadPlacementTreeAction(workId: string): Promise<FlatKbNode[] | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const nodes = await getWorkKbNodes(supabase, { ownerId: user.id, workId });
+  return nodes.filter((node) => (KB_CATEGORIES as string[]).includes(node.category));
+}
+
+/** 사용자가 트리에서 확정한 위치대로 저장한다. 폴더의 카테고리는 폴더 자체에서 읽고, 저장 직전에 폴더를 다시 검증한다. */
+export async function importClassifiedFilesAction(raw: unknown): Promise<ImportFilesResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: CHAT_COPY.unauthenticated };
+  const parsed = importClassifiedSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: '파일 개수나 크기가 한도를 넘었어요.' };
+  const { workId, files } = parsed.data;
+
+  const folderCategory = new Map<string, KbCategory | null>();
+  async function categoryOf(folderId: string): Promise<KbCategory | null> {
+    if (folderCategory.has(folderId)) return folderCategory.get(folderId)!;
+    const { data } = await supabase.from('kb_nodes').select('category, node_type')
+      .eq('id', folderId).eq('owner_id', user!.id).eq('work_id', workId).eq('scope', 'work').is('deleted_at', null).maybeSingle();
+    const category = data?.node_type === 'folder' && (KB_CATEGORIES as string[]).includes(data.category) ? data.category as KbCategory : null;
+    folderCategory.set(folderId, category);
+    return category;
+  }
+
+  const created: { fileName: string; nodeId: string; name: string }[] = [];
+  const failed: { fileName: string; error: string }[] = [];
+  for (const file of files) {
+    const category = await categoryOf(file.targetFolderId);
+    if (!category) { failed.push({ fileName: file.name, error: '문서를 넣을 수 없는 폴더예요.' }); continue; }
+    const folder = await validateTargetFolder(supabase, { ownerId: user.id, workId, category, targetFolderId: file.targetFolderId });
+    if (!folder.ok) { failed.push({ fileName: file.name, error: folder.error }); continue; }
+    const name = documentNameFromFile(file.name);
+    if (!name) { failed.push({ fileName: file.name, error: '파일 이름이 비어 있어요.' }); continue; }
+    const result = await createNode(supabase, { ownerId: user.id, workId, parentId: file.targetFolderId, category, nodeType: 'file', name, initialContent: file.content });
+    if (result.ok && result.nodeId) created.push({ fileName: file.name, nodeId: result.nodeId, name });
+    else failed.push({ fileName: file.name, error: result.error ?? '저장하지 못했어요.' });
+  }
+  if (created.length > 0) revalidatePath(`/studio/${workId}`, 'layout');
+  return { ok: true, created, failed };
+}
+const FOLDER_COPY_FALLBACK = '저장할 폴더를 찾지 못했어요.';

@@ -41,36 +41,51 @@ export default async function WorkLayout({
   );
   const hasCustomSharedFolders = accountTree.some((n) => n.category !== 'template');
 
+  const sidebar = (
+    <>
+      <Link
+        href="/studio"
+        className="flex items-center gap-1 px-4 pt-4 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft size={12} /> 작품 목록
+      </Link>
+      <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
+        <span className="truncate">{work.title}</span>
+        <CreateRootFolderButton workId={workId} scope="work" />
+      </div>
+      <KbTree nodes={workTree} chaptersByFolderId={chaptersByFolderId} workId={workId} />
+
+      <Separator className="my-6" />
+
+      <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
+        <span>계정 공유 폴더</span>
+        <CreateRootFolderButton workId={workId} scope="account_template" />
+      </div>
+      {!hasCustomSharedFolders && (
+        <div className="flex flex-col gap-1 px-4 py-6 text-center">
+          <h3 className="text-sm font-semibold">공유 폴더가 아직 없어요</h3>
+          <p className="text-xs text-muted-foreground">여러 작품에서 함께 쓸 폴더를 만들어보세요.</p>
+        </div>
+      )}
+      <KbTree nodes={accountTree} chaptersByFolderId={{}} workId={workId} />
+    </>
+  );
+
   return (
-    <div className="flex min-h-screen">
-      <ScrollArea className="w-64 border-r bg-secondary">
-        <Link
-          href="/studio"
-          className="flex items-center gap-1 px-4 pt-4 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft size={12} /> 작품 목록
-        </Link>
-        <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
-          <span className="truncate">{work.title}</span>
-          <CreateRootFolderButton workId={workId} scope="work" />
-        </div>
-        <KbTree nodes={workTree} chaptersByFolderId={chaptersByFolderId} workId={workId} />
-
-        <Separator className="my-6" />
-
-        <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
-          <span>계정 공유 폴더</span>
-          <CreateRootFolderButton workId={workId} scope="account_template" />
-        </div>
-        {!hasCustomSharedFolders && (
-          <div className="flex flex-col gap-1 px-4 py-6 text-center">
-            <h3 className="text-sm font-semibold">공유 폴더가 아직 없어요</h3>
-            <p className="text-xs text-muted-foreground">여러 작품에서 함께 쓸 폴더를 만들어보세요.</p>
-          </div>
-        )}
-        <KbTree nodes={accountTree} chaptersByFolderId={{}} workId={workId} />
+    <div className="flex min-h-screen flex-col md:flex-row">
+      {/* 모바일: 문서 트리를 접이식 패널로 위에 두고, md 이상에서는 왼쪽 고정 사이드바 */}
+      <details className="group border-b bg-secondary md:hidden">
+        <summary className="flex h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium">
+          <span className="truncate">{work.title} · 문서 목록</span>
+          <span className="text-xs text-muted-foreground group-open:hidden">열기</span>
+          <span className="hidden text-xs text-muted-foreground group-open:inline">닫기</span>
+        </summary>
+        {sidebar}
+      </details>
+      <ScrollArea className="hidden w-64 shrink-0 border-r bg-secondary md:block">
+        {sidebar}
       </ScrollArea>
-      <main className="flex-1 p-8">{children}</main>
+      <main className="min-w-0 flex-1 p-4 md:p-8">{children}</main>
     </div>
   );
 }

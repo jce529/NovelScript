@@ -186,3 +186,25 @@ export async function planFolderAndTemplate(
   const templates = await listTemplateOptions(supabase, { ownerId, workId, category });
   return planFolderAndTemplateFromCandidates(client, { state, folders: listed.candidates, templates, seed });
 }
+
+export type CategoryOnlyPlan =
+  | { kind: 'category'; category: KbCategory; confidence: number; calls: DecisionCallRecord[] }
+  | { kind: 'clarify'; confidence: number | null; calls: DecisionCallRecord[] }
+  | { kind: 'unavailable'; calls: DecisionCallRecord[] };
+
+/** Category decision alone — for content that is already known to be a 설정 문서 (e.g. uploaded files). */
+export async function planCategoryOnly(
+  client: DecisionClient,
+  state: Record<string, unknown>,
+  opts: PlanOptions = {},
+): Promise<CategoryOnlyPlan> {
+  const calls: DecisionCallRecord[] = [];
+  const candidates = order(CATEGORY_CANDIDATES, opts.seed).map((key) => ({ key }));
+  const result = await tryDecide(client, { decisionType: 'category', state, candidates }, calls);
+  if (!result) return { kind: 'unavailable', calls };
+  const category = (KB_CATEGORIES as readonly string[]).includes(result.key) ? result.key as KbCategory : null;
+  if (!category || result.confidence < JEV_CONFIDENCE_THRESHOLDS.taskAndCategory) {
+    return { kind: 'clarify', confidence: result.confidence, calls };
+  }
+  return { kind: 'category', category, confidence: result.confidence, calls };
+}

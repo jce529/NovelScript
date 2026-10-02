@@ -174,13 +174,15 @@ export interface AssembleUserContentInput {
    * message as the last entry — the caller's responsibility to append it
    * before calling (see lib/ai/chat.ts). */
   chatHistory: ChatTurn[];
+  /** 'document' when the chat runs inside a 설정 문서 instead of a chapter. */
+  contextKind?: 'chapter' | 'document';
 }
 
 /** Assembles the Gemini `contents` string: mentioned KB doc content (if any) +
  * the chat session so far + the preceding canvas text. Per 02-CONTEXT.md
  * D-13, `content` is injected verbatim — wiki-link `[[ ]]` syntax is inert
  * plain text, never resolved here. */
-export function assembleUserContent({ mentionedDocs, precedingText, chatHistory }: AssembleUserContentInput): string {
+export function assembleUserContent({ mentionedDocs, precedingText, chatHistory, contextKind }: AssembleUserContentInput): string {
   const sections: string[] = [];
   if (mentionedDocs.length > 0) {
     const kbContext = mentionedDocs
@@ -188,7 +190,7 @@ export function assembleUserContent({ mentionedDocs, precedingText, chatHistory 
       .join('\n\n');
     sections.push(`다음은 참고할 설정집(KB) 문서입니다:\n\n${kbContext}`);
   }
-  sections.push(`다음은 이전까지 작성된 본문입니다:\n\n${precedingText}`);
+  sections.push(`${contextKind === 'document' ? '다음은 지금 편집 중인 설정 문서입니다' : '다음은 이전까지 작성된 본문입니다'}:\n\n${precedingText}`);
   if (chatHistory.length > 0) {
     const history = chatHistory
       .map((turn) => `${turn.role === 'user' ? '작가' : 'AI'}: ${turn.content}`)

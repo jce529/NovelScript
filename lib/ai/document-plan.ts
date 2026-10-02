@@ -70,9 +70,9 @@ export async function runDocumentPlanningStrategy(args: {
     presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre,
     documentPlan: { category: plan.category as ChatInput['planning'] extends never ? never : import('@/lib/kb/categories').KbCategory, folderPath: plan.folderPath, templateName: plan.templateName, templateContent: plan.templateContent, purpose: plan.purpose },
   });
-  const contents = assembleUserContent({ mentionedDocs: mentionedDocs as Array<{ name: string; category: string; content: string }>, precedingText: input.precedingText, chatHistory: input.chatHistory });
+  const contents = assembleUserContent({ mentionedDocs: mentionedDocs as Array<{ name: string; category: string; content: string }>, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
   const id = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, providerId: input.providerId, model: input.model };
-  const settled = await settlePaidGeneration(providerClient, ctx, { ...id, ledgerReason: `chapter:${input.chapterId}` }, () =>
+  const settled = await settlePaidGeneration(providerClient, ctx, { ...id, ledgerReason: input.chapterId ? `chapter:${input.chapterId}` : `kb:${input.nodeId ?? 'unknown'}` }, () =>
     providerClient.generateContent({ model: ctx.model, systemInstruction, contents, maxOutputTokens: ctx.maxOutputTokens, temperature: 0.9 }));
   if (settled.kind === 'terminal') return { kind: 'result', chatResult: settled.chatResult };
 

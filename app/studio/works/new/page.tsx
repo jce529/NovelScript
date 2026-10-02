@@ -35,7 +35,7 @@ export default function NewWorkPage() {
     });
 
   return (
-    <main className="mx-auto max-w-md p-8 flex flex-col gap-6">
+    <main className="mx-auto max-w-md p-4 md:p-8 flex flex-col gap-6">
       <h1 className="text-xl font-semibold">새 작품 만들기</h1>
       {error && <p className="text-destructive text-sm">{error}</p>}
       <div className="flex flex-col gap-4">

@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Settings2, X } from 'lucide-react';
+import { Paperclip, Settings2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { GENRES } from '@/lib/works/genres';
 import {
@@ -38,6 +38,8 @@ import { chatAction } from '../actions';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { AiPanelNotice } from './AiPanelNotice';
 import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
+import { UploadFilesDialog } from './UploadFilesDialog';
+import type { ChatAttachment } from '@/lib/ai/attachments';
 
 const PROVIDER_LABELS: Record<ProviderId, string> = { gemini: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
 
@@ -49,12 +51,14 @@ export interface MentionedNode {
 
 export interface AiPanelProps {
   workId: string;
-  chapterId: string;
+  /** 회차 편집기에서는 chapterId, 설정 문서 편집기에서는 nodeId를 넘긴다. */
+  chapterId?: string;
+  nodeId?: string;
   defaultProviderId: ProviderId;
   defaultModel: string;
   defaultKeySource: KeySource;
   byokModels: ByokModelMap;
-  /** Current chapter textarea content — used as precedingText for cost estimate + generation. */
+  /** Current editor textarea content (chapter body or 설정 문서) — used as precedingText for cost estimate + generation. */
   content: string;
   /** Work's own genre (Phase 2 D-04) — D-07's default. null falls back to GENRES[0]. */
   defaultGenre: string | null;
@@ -101,9 +105,10 @@ interface SendPayload {
   styleId: StylePresetId;
   mentionedNodeIds: string[];
   precedingText: string;
+  attachments: ChatAttachment[];
 }
 
-export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
+export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [providerId, setProviderId] = useState<ProviderId>(defaultProviderId);
   const [model, setModel] = useState<string>(defaultModel);
   const [keySource, setKeySource] = useState<KeySource>(defaultKeySource);
@@ -115,6 +120,8 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
   const [modalMessageId, setModalMessageId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const chatLogRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const lockRef = useRef(createSendLock());
@@ -148,6 +155,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
       userTurnId: crypto.randomUUID(),
       userMessage, history, providerId, model, keySource, genre, presetLevel, styleId, mentionedNodeIds,
       precedingText: content,
+      attachments,
     };
   }
 
@@ -171,7 +179,8 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
     let result: ChatResult | null = null;
     try {
       result = await chatAction({
-        workId, chapterId,
+        workId, chapterId, nodeId,
+        attachments: p.attachments,
         providerId: p.providerId,
         model: p.model,
         keySource: p.keySource,
@@ -270,7 +279,7 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
   const modalMessage = messages.find((message) => message.id === modalMessageId);
 
   return (
-    <aside className="sticky top-8 flex h-[calc(100vh-4rem)] w-full flex-col gap-6 rounded-lg border border-border bg-background p-6 lg:w-96 lg:shrink-0">
+    <aside className="flex h-[85vh] w-full flex-col gap-4 rounded-lg border border-border bg-background p-4 lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-96 lg:shrink-0 lg:gap-6 lg:p-6">
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
       <div className="flex flex-col gap-2">
@@ -377,6 +386,27 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
       </div>
 
       <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">첨부 파일 (이번 대화만)</span>
+          <Button type="button" variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
+            <Paperclip className="size-3" /> 파일 업로드
+          </Button>
+        </div>
+        {attachments.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {attachments.map((file) => (
+              <Badge key={file.name} variant="secondary" className="gap-1">
+                {file.name}
+                <button type="button" aria-label={`${file.name} 첨부 해제`} onClick={() => setAttachments((prev) => prev.filter((f) => f.name !== file.name))}>
+                  <X className="size-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
         <span className="text-xs text-muted-foreground">멘션된 문서</span>
         {mentionedNodes.length === 0 ? (
           <p className="text-xs text-muted-foreground">@ 를 입력해 KB 문서를 멘션해보세요.</p>
@@ -427,6 +457,14 @@ export function AiPanel({ workId, chapterId, content, defaultGenre, defaultProvi
         )}
         {isGenerating && <p className="text-xs text-muted-foreground">AI가 응답을 생성하고 있어요...</p>}
       </div>
+
+      <UploadFilesDialog
+        workId={workId}
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        attachedCount={attachments.length}
+        onAttach={(files) => setAttachments((prev) => [...prev, ...files.filter((f) => !prev.some((p) => p.name === f.name))])}
+      />
 
       {modalMessage?.proposal && (
         <SaveDocumentPlanModal

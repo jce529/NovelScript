@@ -54,7 +54,7 @@ export default async function AiProvidersSettingsPage({
 
   return (
     <>
-      <main className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+      <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4 md:p-8">
         <div>
           <h1 className="text-2xl font-semibold">AI 제공자 설정</h1>
           <p className="mt-2 text-sm text-muted-foreground">집필에 사용할 계정 기본 모델을 선택하세요.</p>

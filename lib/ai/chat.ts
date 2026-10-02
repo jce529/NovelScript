@@ -10,15 +10,26 @@ import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-gen
 import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
 import type { DecisionClient } from '@/lib/ai/decision/types';
 import { parseChatResponse } from '@/lib/ai/chat-parse';
+import type { ChatAttachment } from '@/lib/ai/attachments';
 
 export { AI_GENERATION_REFERENCE_TYPE } from './paid-generation';
 export { parseChatResponse, type ParsedChatResponse } from '@/lib/ai/chat-parse';
 export type { ChatResult, DocumentProposal };
 
+export function chatLedgerReason(input: { chapterId?: string; nodeId?: string }): string {
+  return input.chapterId ? `chapter:${input.chapterId}` : `kb:${input.nodeId ?? 'unknown'}`;
+}
+
 export interface ChatInput {
   ownerId: string;
   workId: string;
-  chapterId: string;
+  /** Exactly one of chapterId (회차 편집기) / nodeId (설정 문서 편집기) identifies where the chat runs. */
+  chapterId?: string;
+  nodeId?: string;
+  /** What `precedingText` is: the chapter body (default) or the open 설정 문서. */
+  contextKind?: 'chapter' | 'document';
+  /** Files the writer attached to this conversation only — never persisted. */
+  attachments?: ChatAttachment[];
   providerId: ProviderId;
   model: string;
   mentionedNodeIds: string[];
@@ -76,14 +87,15 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
   const pre = await preflightPaidGeneration(supabase, id);
   if (!pre.ok) return pre.chatResult;
 
-  const mentionedDocs = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
+  const mentioned = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
+  const mentionedDocs = [...mentioned, ...(input.attachments ?? []).map((file) => ({ category: '첨부 파일', name: file.name, content: file.content }))] as typeof mentioned;
   if (input.planning?.mode === 'active') {
     const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: client, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
     if (strategy.kind === 'result') return strategy.chatResult;
   }
   const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
-  const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory });
-  const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: `chapter:${input.chapterId}` },
+  const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
+  const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: chatLedgerReason(input) },
     () => client.generateContent({ model: pre.ctx.model, systemInstruction, contents, maxOutputTokens: pre.ctx.maxOutputTokens, temperature: 0.9 }));
   if (settled.kind === 'terminal') return settled.chatResult;
 
