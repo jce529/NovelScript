@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { checkWriteAccess } from '@/lib/auth/write-access';
 import { computeDebitAmount, computeMaxOutputTokens, type VendorPricing } from '@/lib/ai/cost';
 import { CHAT_COPY, type ChatFailureKind, type ChatResult } from '@/lib/ai/chat-result';
+import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 import { ProviderCallError, logProviderFailure, toSanitizedProviderError } from '@/lib/ai/providers/errors';
 import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
@@ -178,6 +179,11 @@ async function settleInner(
   try {
     result = await generate();
   } catch (err) {
+    // BUG-06: 우리 검증이 응답을 거부 — 차감·원장 기록 없이 실패로 돌려 같은 키로 재시도할 수 있게 한다.
+    if (err instanceof GenerationRejectedError) {
+      console.warn('[ai] output rejected', { provider: client.provider, reason: err.reason, idempotencyKey: id.idempotencyKey });
+      return { kind: 'terminal', chatResult: failed('rejected_output', err.userMessage) };
+    }
     const info = err instanceof ProviderCallError ? err.info : toSanitizedProviderError(client.provider, err);
     logProviderFailure(info, id.idempotencyKey);
     return { kind: 'terminal', chatResult: failed(info.kind, CHAT_COPY[info.kind]) };

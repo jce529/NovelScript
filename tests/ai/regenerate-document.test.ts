@@ -15,6 +15,7 @@ vi.mock('@/lib/kb/actions', async (importOriginal) => ({
 vi.mock('@/lib/ai/paid-generation', () => ({ preflightPaidGeneration: mocks.preflight, settlePaidGeneration: mocks.settle }));
 
 import { REGENERATION_FAILED, regenerateDocumentWithTemplate } from '@/lib/ai/document-regenerate';
+import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 
 const workId = '11111111-1111-4111-8111-111111111111';
 const ownerId = 'owner';
@@ -34,6 +35,18 @@ const input = {
 };
 const provider = { provider: 'gemini' as const, generateContent: vi.fn(async () => generated()) } as ProviderClient;
 const db = {} as SupabaseClient;
+const debits = vi.hoisted(() => ({ count: 0 }));
+async function settleLike(generate: () => Promise<GenerateResult>) {
+  try {
+    const result = await generate();
+    debits.count += 1;
+    if (result.refusal) return { kind: 'terminal', chatResult: { ok: false, status: 'refused', error: 'refused', remainingBalance: 990 } };
+    return { kind: 'completed', result, debitAmount: 10, remainingBalance: 990 };
+  } catch (err) {
+    if (err instanceof GenerationRejectedError) return { kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'rejected_output', error: err.userMessage } };
+    throw err;
+  }
+}
 const ctx = { admin: db, walletBalance: 1000, model: 'gemini-lite', maxOutputTokens: 2000 };
 
 beforeEach(() => {
@@ -41,7 +54,8 @@ beforeEach(() => {
   mocks.template.mockResolvedValue({ ok: true, template });
   mocks.folder.mockResolvedValue({ ok: true, folder: { id: folderId, path: '조연', version: `${folderId}:조연` } });
   mocks.preflight.mockResolvedValue({ ok: true, ctx });
-  mocks.settle.mockImplementation(async (_client, _ctx, _id, generate) => ({ kind: 'completed', result: await generate(), debitAmount: 10, remainingBalance: 990 }));
+  debits.count = 0;
+  mocks.settle.mockImplementation(async (_client, _ctx, _id, generate) => settleLike(generate));
   provider.generateContent = vi.fn(async () => generated());
 });
 
@@ -117,7 +131,7 @@ describe('document template regeneration', () => {
     provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n[[친구]]와 [[낯선 사람]]\n[/DOCUMENT]'));
     const linkedProposal = { ...proposal, content: `${proposal.content}\n[[친구]]` };
     expect(await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: linkedProposal }))
-      .toEqual({ ok: false, error: REGENERATION_FAILED });
+      .toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
   });
 
   it('accepts unchanged wikilinks (BUG-04)', async () => {
@@ -131,7 +145,7 @@ describe('document template regeneration', () => {
     provider.generateContent = vi.fn(async () => generated('[DOCUMENT]\n카테고리: 인물\n이름: 미라\n내용:\n# 미라\n## 성격\n[[친구]]\n[/DOCUMENT]'));
     const linkedProposal = { ...proposal, content: `${proposal.content}\n[[미라]]와 [[친구]]` };
     expect(await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: linkedProposal }))
-      .toEqual({ ok: false, error: REGENERATION_FAILED });
+      .toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
   });
 
   describe('wikilinks to existing KB documents (BUG-05)', () => {
@@ -179,7 +193,7 @@ ${names.map((n) => `[[${n}]]`).join(' ')}
 
     it('rejects when any new link target does not exist', async () => {
       withLinks(['채아', '지어낸사람']);
-      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')]), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
+      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')]), provider, input)).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
     });
 
     it('does not count other works, other owners, deleted nodes, folders, or template stubs', async () => {
@@ -189,13 +203,13 @@ ${names.map((n) => `[[${n}]]`).join(' ')}
       ];
       for (const name of ['A', 'B', 'C', 'D', 'E']) {
         withLinks([name]);
-        expect(await regenerateDocumentWithTemplate(kbDb(others), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
+        expect(await regenerateDocumentWithTemplate(kbDb(others), provider, input)).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
       }
     });
 
     it('fails closed when the KB lookup errors', async () => {
       withLinks(['채아']);
-      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')], { message: 'db down' }), provider, input)).toEqual({ ok: false, error: REGENERATION_FAILED });
+      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')], { message: 'db down' }), provider, input)).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
     });
 
     it('queries the KB only for the prompt (not for validation) when there are no new links', async () => {
@@ -237,7 +251,57 @@ ${names.map((n) => `[[${n}]]`).join(' ')}
       withLinks(['채아']);
       const linked = { ...proposal, content: `${proposal.content}
 [[미라]]` };
-      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')]), provider, { ...input, proposal: linked })).toEqual({ ok: false, error: REGENERATION_FAILED });
+      expect(await regenerateDocumentWithTemplate(kbDb([row('채아')]), provider, { ...input, proposal: linked })).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
+    });
+  });
+
+  describe('rejected output is not charged (BUG-06)', () => {
+    const doc = (body: string) => `[DOCUMENT]
+카테고리: 인물
+이름: 미라
+내용:
+${body}
+[/DOCUMENT]`;
+    const rejections: Array<[string, string, typeof proposal]> = [
+      ['structure', doc(`# 미라`), proposal],
+      ['title', doc(`# 시후
+## 성격
+차분함`), proposal],
+      ['self_link', doc(`# 미라
+## 성격
+[[친구]]`), { ...proposal, content: `${proposal.content}
+[[미라]] [[친구]]` }],
+      ['unknown_link', doc(`# 미라
+## 성격
+[[지어낸]]`), proposal],
+    ];
+
+    it.each(rejections)('does not debit when validation rejects (%s) and reports rejected_output', async (_name, text, prop) => {
+      provider.generateContent = vi.fn(async () => generated(text));
+      const result = await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: prop });
+      expect(result).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
+      expect(debits.count).toBe(0);
+    });
+
+    it('does not debit when the KB lookup fails (fail closed)', async () => {
+      provider.generateContent = vi.fn(async () => generated(doc(`# 미라
+## 성격
+[[채아]]`)));
+      const result = await regenerateDocumentWithTemplate({ from: () => { throw new Error('down'); } } as unknown as SupabaseClient, provider, input);
+      expect(result).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
+      expect(debits.count).toBe(0);
+    });
+
+    it('still debits a passing generation exactly once', async () => {
+      expect(await regenerateDocumentWithTemplate(db, provider, input)).toMatchObject({ ok: true, remainingBalance: 990 });
+      expect(debits.count).toBe(1);
+    });
+
+    it('does not validate a safety refusal and keeps its existing charge', async () => {
+      provider.generateContent = vi.fn(async () => ({ ...generated(''), refusal: { stage: 'output', reasonCode: 'SAFETY' } }) as GenerateResult);
+      const result = await regenerateDocumentWithTemplate(db, provider, input);
+      expect(result).toMatchObject({ ok: false, status: 'refused' });
+      expect(debits.count).toBe(1);
     });
   });
 

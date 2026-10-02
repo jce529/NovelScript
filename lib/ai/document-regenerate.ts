@@ -8,6 +8,7 @@ import { composeSystemInstruction, type DocumentProposal, type PresetLevel, type
 import { validateDocumentAgainstPlan } from '@/lib/ai/document-contract';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import { parseChatResponse } from '@/lib/ai/chat-parse';
+import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 import { KB_CATEGORIES } from '@/lib/kb/categories';
 import type { ModelTier, ProviderClient } from '@/lib/ai/providers/types';
 
@@ -52,6 +53,39 @@ async function linkPolicyPrompt(supabase: SupabaseClient, input: { ownerId: stri
   const linkable = (names ?? []).filter((name) => name !== input.selfName.trim());
   if (linkable.length === 0) return '\n링크: 기존 생성 결과에 없는 [[링크]]를 새로 만들지 말 것. 다른 문서 이름은 링크 없이 일반 텍스트로 쓸 것.';
   return `\n링크: [[문서 이름]] 형태의 링크는 아래 KB 문서 이름만 사용할 것(기존 생성 결과에 이미 있는 링크는 유지). 아래에 없는 인물·세력·장소 이름은 [[ ]] 없이 일반 텍스트로 쓸 것.\nKB 문서: ${linkable.join(', ')}`;
+}
+
+type RegenerationCheck = { reason: string; content: null } | { reason: null; content: string };
+
+/** 재생성 응답 검증(구조·본문 제목·자기 링크 보존·새 링크 KB 존재). 통과하면 본문을, 거부하면 사유 코드를 돌려준다. */
+async function validateRegeneratedDocument(
+  supabase: SupabaseClient,
+  input: { text: string; ownerId: string; workId: string; proposal: DocumentProposal; templateContent: string },
+): Promise<RegenerationCheck> {
+  const reject = (reason: string): RegenerationCheck => ({ reason, content: null });
+  const parsed = parseChatResponse(input.text);
+  if (!validateDocumentAgainstPlan(parsed.proposal, {
+    category: input.proposal.category, templateContent: input.templateContent,
+  }).ok) return reject('structure');
+  const content = parsed.proposal!.content;
+  // BUG-04: 템플릿만 바꾸는 재생성이므로 본문 제목이 원본 이름과 다르면 거부한다(이름 자체는 호출자가 원본으로 강제).
+  const title = content.split('\n').map((line) => line.trim()).find((line) => /^#\s+\S/.test(line));
+  if (title && !title.includes(input.proposal.name.trim())) return reject('title');
+  const links = (text: string) => [...text.matchAll(/\[\[([^\[\]]+)\]\]/g)].map((match) => match[1]);
+  const originalLinks = links(input.proposal.content);
+  const regeneratedLinks = links(content);
+  if (
+    regeneratedLinks.filter((target) => target === input.proposal.name).length <
+      originalLinks.filter((target) => target === input.proposal.name).length
+  ) return reject('self_link');
+  // BUG-05: 원본에 없던 링크는 KB에 실제 있는 문서일 때만 허용한다(지어낸 링크 차단).
+  const newTargets = [...new Set(regeneratedLinks.filter((target) => !originalLinks.includes(target)).map((target) => target.trim()))];
+  if (newTargets.length > 0) {
+    const existing = await findExistingLinkTargets(supabase, { ownerId: input.ownerId, workId: input.workId, names: newTargets });
+    if (!existing) return reject('link_lookup');
+    if (newTargets.some((target) => !existing.has(target))) return reject('unknown_link');
+  }
+  return { reason: null, content };
 }
 
 export async function regenerateDocumentWithTemplate(
@@ -109,12 +143,24 @@ export async function regenerateDocumentWithTemplate(
     });
     const linkPolicy = await linkPolicyPrompt(supabase, { ownerId: input.ownerId, workId: input.workId, selfName: input.proposal.name });
     const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}${linkPolicy}`;
+    // BUG-06: 검증은 차감 전에(콜백 안에서) 한다. 거부되면 과금하지 않고 같은 키로 재시도할 수 있다.
+    let validatedContent: string | null = null;
     const settled = await settlePaidGeneration(client, preflight.ctx, {
       ...identity, ledgerReason: `document_regenerate:${input.workId}`,
-    }, () => client.generateContent({
-      model: preflight.ctx.model, systemInstruction, contents,
-      maxOutputTokens: preflight.ctx.maxOutputTokens, temperature: 0.7,
-    }));
+    }, async () => {
+      const generated = await client.generateContent({
+        model: preflight.ctx.model, systemInstruction, contents,
+        maxOutputTokens: preflight.ctx.maxOutputTokens, temperature: 0.7,
+      });
+      if (generated.refusal) return generated; // 안전 거부는 기존대로 사용량만큼 과금된다(D-05..D-08)
+      const rejection = await validateRegeneratedDocument(supabase, {
+        text: generated.text, ownerId: input.ownerId, workId: input.workId, proposal: input.proposal,
+        templateContent: targetTemplate.template.content,
+      });
+      if (rejection.reason) throw new GenerationRejectedError(REGENERATION_FAILED, rejection.reason);
+      validatedContent = rejection.content;
+      return generated;
+    });
     if (settled.kind === 'terminal') {
       return {
         ok: false,
@@ -123,30 +169,10 @@ export async function regenerateDocumentWithTemplate(
         failureKind: settled.chatResult.failureKind,
       };
     }
-
-    const parsed = parseChatResponse(settled.result.text);
-    if (!validateDocumentAgainstPlan(parsed.proposal, {
-      category: input.proposal.category, templateContent: targetTemplate.template.content,
-    }).ok) return { ok: false, error: REGENERATION_FAILED };
-    // BUG-04: 템플릿만 바꾸는 재생성이므로 이름은 원본을 강제하고, 본문 제목이 원본 이름과 다르면 실패 처리한다.
-    const title = parsed.proposal!.content.split('\n').map((line) => line.trim()).find((line) => /^#\s+\S/.test(line));
-    if (title && !title.includes(input.proposal.name.trim())) return { ok: false, error: REGENERATION_FAILED };
-    const links = (content: string) => [...content.matchAll(/\[\[([^\[\]]+)\]\]/g)].map((match) => match[1]);
-    const originalLinks = links(input.proposal.content);
-    const regeneratedLinks = links(parsed.proposal!.content);
-    if (
-      regeneratedLinks.filter((target) => target === input.proposal.name).length <
-        originalLinks.filter((target) => target === input.proposal.name).length
-    ) return { ok: false, error: REGENERATION_FAILED };
-    // BUG-05: 원본에 없던 링크는 KB에 실제 있는 문서일 때만 허용한다(지어낸 링크 차단).
-    const newTargets = [...new Set(regeneratedLinks.filter((target) => !originalLinks.includes(target)).map((target) => target.trim()))];
-    if (newTargets.length > 0) {
-      const existing = await findExistingLinkTargets(supabase, { ownerId: input.ownerId, workId: input.workId, names: newTargets });
-      if (!existing || newTargets.some((target) => !existing.has(target))) return { ok: false, error: REGENERATION_FAILED };
-    }
+    if (validatedContent === null) return { ok: false, error: REGENERATION_FAILED };
     return {
       ok: true,
-      content: parsed.proposal!.content,
+      content: validatedContent,
       name: input.proposal.name,
       remainingBalance: settled.remainingBalance,
     };

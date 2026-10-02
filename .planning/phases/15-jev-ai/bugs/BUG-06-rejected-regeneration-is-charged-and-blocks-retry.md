@@ -54,3 +54,13 @@ files:
 - DB 테스트(독립 지갑·실제 `settlePaidGeneration`): 거부된 생성 후 원장 항목이 생기지 않고 지갑 잔액이 그대로이며, 같은 키로 다시 호출하면 `already_processed`가 아닌 새 생성이 진행된다.
 - 브라우저: 거부를 자연 발생시키기 어려우므로, 거부 직후 지갑 잔액·원장이 변하지 않았는지와 같은 템플릿 재시도가 "같은 요청이 두 번 전송돼…" 없이 진행되는지를 거부가 관측될 때 확인한다(관측 불가 시 DB 테스트로 대체하고 미확인으로 기록).
 - 회귀: 기존 `tests/ai tests/kb tests/studio`, `tsc`, `npm run lint`.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+- `lib/ai/generation-rejected.ts`(신규): `GenerationRejectedError(userMessage, reason)`. `paid-generation.ts`와 `document-regenerate.ts`가 공유하도록 `server-only` 없는 별도 모듈로 뒀다(재생성 테스트가 `paid-generation`을 통째로 목킹하기 때문).
+- `lib/ai/paid-generation.ts`: `settleInner`의 `catch`가 `GenerationRejectedError`를 먼저 처리해 **차감·원장 기록 없이** `terminal`(`failed('rejected_output', userMessage)`)을 반환하고 `[ai] output rejected`(provider, reason, idempotencyKey)를 로그로 남긴다. lease는 기존대로 `finally`에서 해제.
+- `lib/ai/chat-result.ts`: `ChatFailureKind`에 `rejected_output` 추가.
+- `lib/ai/document-regenerate.ts`: 검증을 `validateRegeneratedDocument`(구조·본문 제목·자기 링크·새 링크 KB 존재/조회 오류, 사유 코드 `structure`/`title`/`self_link`/`unknown_link`/`link_lookup`)로 분리해 `generateContent` 콜백 안에서 실행. 거부면 `GenerationRejectedError(REGENERATION_FAILED, reason)`. **안전 거부(`generated.refusal`)는 검증하지 않고 기존대로 사용량만큼 과금**(D-05..D-08 유지). 통과하면 검증된 본문을 클로저로 받아 `settled` 이후 반환. 모달은 수정하지 않았다.
+- 테스트: `paid-generation.test.ts`에 거부 시 차감 없음·lease 해제·같은 키 preflight 통과 1건, `regenerate-document.test.ts`에 거부 4종(it.each)+KB 조회 실패(fail closed) 무과금, 통과 시 1회 과금, 안전 거부 비검증·기존 과금 4건 추가. 실제 settle처럼 동작하는 `settleLike` 목으로 교체하고 기존 거부 단언 6건을 `failureKind: 'rejected_output'` 포함 `toMatchObject`로 갱신.
+- 검증: `tests/ai tests/kb tests/studio` 62파일 651 통과, `tsc --noEmit`·`npm run lint` 통과.
+- 계획 대비 차이: 문서의 "DB 테스트(실제 settlePaidGeneration)"는 만들지 않고 fake ledger 기반 단위 테스트(원장 RPC 미호출·동일 키 preflight 통과)로 대체했다.
+- **미확인(브라우저)**: 거부 직후 잔액·원장 불변과 같은 키 재시도는 실제 거부를 만들지 못해 확인하지 못했다. 이번 시도에서는 Gemini가 분당 제한(429)에 걸려 재생성 자체를 완료하지 못했다(지갑 `balance=10916`, `ai_generation` 원장 47건을 기준값으로 기록). 계정 템플릿 `인물` 재생성도 같은 이유로 여전히 미확인이다.

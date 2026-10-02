@@ -16,6 +16,7 @@ export type ChatFailureKind =
   | 'write_denied'
   | 'unauthenticated'
   | 'invalid_input'
+  | 'rejected_output'
   | 'unknown';
 
 export interface ChatRefusalInfo {

@@ -7,6 +7,7 @@ vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => adminState.cli
 import { GENERATION_LEASE_TTL_SECONDS, preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import { ProviderCallError } from '@/lib/ai/providers/errors';
+import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 import type { ProviderClient } from '@/lib/ai/providers/types';
 import { createFakeLedgerAdmin, type FakeLedgerOptions } from '../helpers/fake-ledger-admin';
 import { createMockProvider, okResult } from '../helpers/mock-provider';
@@ -60,6 +61,22 @@ describe('paid generation lifecycle', () => {
     });
     expect(settled).toMatchObject({ kind: 'terminal', chatResult: { failureKind: 'rate_limited' } });
     expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(0);
+  });
+
+  it('does not debit a GenerationRejectedError and leaves the key reusable (BUG-06)', async () => {
+    const admin = setup({ balances: { [OWNER]: 100000 } });
+    const pre = await preflightPaidGeneration(session(), identity);
+    if (!pre.ok) throw new Error('preflight failed');
+    const client = createMockProvider() as unknown as ProviderClient;
+    const settled = await settlePaidGeneration(client, pre.ctx, { ...identity, ledgerReason: 'test' }, async () => {
+      throw new GenerationRejectedError('rejected copy', 'structure');
+    });
+    expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'rejected_output', error: 'rejected copy' } });
+    expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(0);
+    expect(admin.state.locks).toEqual({});
+    // 같은 키로 다시 preflight해도 already_processed가 아니다
+    const again = await preflightPaidGeneration(session(), identity);
+    expect(again.ok).toBe(true);
   });
 
   it('settles the original result once with the supplied ledger reason', async () => {
