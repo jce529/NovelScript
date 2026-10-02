@@ -90,3 +90,10 @@ UAT 계정을 만들고 생성·차감을 한 번 수행한 뒤 계정을 삭제
 
 - A안 기준 신규 CLI·단위/DB 테스트·헬퍼 수정 약 200~350줄(추정). 실제 FK 분포와 Phase 7 BUG-05의 선행 구현에 따라 달라진다.
 - TDD 3단계, 단계당 커밋 1개 제안. 기존 잔여물 조사·실행 및 B안의 전용 프로젝트 구축 소요는 **미확인**이다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `scripts/lib/uat-account-cleanup.mjs` + `scripts/cleanup-uat-accounts.mjs`(신규): 테스트 프로젝트 전용 정리 CLI(A안). 정확한 `--ids`·`--emails` 쌍과 `--expect-count`가 있어야 하고(`@novelscript.test`만 허용), 기본은 dry-run이다. 실제 삭제는 `--execute --expect-db <호스트 일부>`가 연결 호스트와 일치할 때만 수행한다. `pg_constraint`로 `profiles`·`wallets`를 참조하는 모든 FK의 행 수를 조회해, 도구가 직접 정리하는 `ledger_entries.wallet_id`·`reports.reporter_id`와 CASCADE FK 외의 참조(작품 소유, 관리자 감사·제재 이력 등)가 하나라도 있으면 중단한다. 삭제는 DB 자식 행(트랜잭션) → Auth Admin API 순이며 Auth 오류는 대상별 결과와 함께 throw하고, 삭제 후 재조회로 잔여 0건을 확인한다. 같은 목록을 재실행해도 안전하다(이미 없으면 `found_0_expected_N`로 중단).
+- `tests/uat/cleanup-uat-accounts.test.ts`(DB 없는 가드·FK 순서·오류 전파 단위 테스트), `tests/uat/cleanup-uat-accounts.database.test.ts`(원장·신고가 걸려 Auth 삭제가 막히는 상태 재현 → 정리 후 계정·원장·지갑 0건, 비대상 계정 보존, 작품 보유 계정 거부, 재실행 멱등). `deleteTestUser`는 Phase 7 BUG-05에서 Auth 오류를 throw하도록 이미 수정됨.
+- 검증: 위 두 파일과 `tests/config` 통과, `tsc` 통과.
+- **미수행(승인 필요):** 기존 UAT 잔여 계정의 실제 삭제(계획 3단계). 대상 이메일·UUID 목록을 승인받아 dry-run 결과를 확인한 뒤 `--execute`로 실행해야 한다. 원격 DB의 백업·복구 방법은 미확인.
