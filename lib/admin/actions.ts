@@ -104,7 +104,7 @@ const RPC_ERRORS: [string, AdminErrorCode][] = [
   ['review_request_not_found', 'not_found'],
   ['profile_not_found', 'not_found'],
   ['report_target_mismatch', 'validation_failed'],
-  ['self_sanction_forbidden', 'validation_failed'],
+  ['self_sanction_forbidden', 'self_sanction_forbidden'],
   ['invalid_sanction_expiry', 'validation_failed'],
   ['invalid_report_ids', 'validation_failed'],
   ['invalid_action', 'validation_failed'],

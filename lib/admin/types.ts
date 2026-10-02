@@ -178,6 +178,7 @@ export type AdminErrorCode =
   | 'not_found'
   | 'unauthorized'
   | 'validation_failed'
+  | 'self_sanction_forbidden'
   | 'reason_required'
   | 'stale_target'
   | 'conflict'

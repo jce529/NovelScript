@@ -85,3 +85,10 @@ files:
 
 - 구현 약 5~15줄, 기존 테스트 수정·추가 약 5~15줄, 신규 UI 문구 테스트 약 25~50줄로 예상한다. DB·마이그레이션 변경은 0줄이다.
 - 작업 2단계, 단계당 커밋 1개. 브라우저 확인에 필요한 테스트 데이터 준비 시간은 **미확인**이다.
+
+## 실제 적용 내용 (bug-execute, 2026-10-02)
+
+- `lib/admin/types.ts`: `AdminErrorCode`에 `self_sanction_forbidden` 추가. `lib/admin/actions.ts`: RPC 오류 매핑을 전용 코드로 변경(원문 미노출 유지).
+- `components/admin/moderation-form.tsx`: `describeFailure`에 "자기 자신은 제재할 수 없어요." 분기 추가(테스트용으로 `describeFailure`·`StatusMessage` export).
+- 테스트: `moderation.test.ts`·`action-boundary.test.ts`의 매핑 기대 갱신, 신규 `moderation-form-message.test.ts`(`role="alert"` 문구, 일반 검증/기본 문구 회귀).
+- 검증: `vitest run tests/admin/moderation-form-message.test.ts tests/admin/moderation.test.ts tests/admin/action-boundary.test.ts` 95 통과, `tsc`·eslint 통과. 미수행: 실제 브라우저에서 자기 작품 신고 제재 확인(관리자 계정·신고 데이터 필요). 2커밋 계획은 1커밋으로 합침.

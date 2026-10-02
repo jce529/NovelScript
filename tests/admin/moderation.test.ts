@@ -312,7 +312,7 @@ describe('moderateReportGroup', () => {
     ['idempotency_conflict', undefined, 'conflict'],
     ['duplicate key value violates unique constraint', '23505', 'conflict'],
     ['report_target_mismatch', undefined, 'validation_failed'],
-    ['self_sanction_forbidden', undefined, 'validation_failed'],
+    ['self_sanction_forbidden', undefined, 'self_sanction_forbidden'],
     ['actor_not_admin', undefined, 'not_found'],
     ['connection to 10.0.0.1 failed: password for service_role', undefined, 'unavailable'],
   ])('maps database error %s to a safe code', async (message, code, error) => {

@@ -292,6 +292,7 @@ describe('revalidation only after successful writes', () => {
   it.each([
     ['stale_target: reviewed reports changed', 'stale_target'],
     ['idempotency_conflict', 'conflict'],
+    ['self_sanction_forbidden', 'self_sanction_forbidden'],
     ['connection reset', 'unavailable'],
   ])('RPC failure "%s" maps to %s without revalidation or raw message', async (message, code) => {
     h.rpcError = { message };

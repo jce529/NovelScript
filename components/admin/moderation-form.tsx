@@ -32,6 +32,7 @@ import type { AdminResult, ModerationAction, ReviewOutcome } from '@/lib/admin/t
  */
 
 const REASON_REQUIRED = '조치 사유를 입력해 주세요.';
+const SELF_SANCTION_FORBIDDEN = '자기 자신은 제재할 수 없어요.';
 const CONFLICT = '다른 관리자가 이 항목을 변경했습니다. 새로고침 후 확인해 주세요.';
 const BLIND_EFFECT = '이 콘텐츠의 본문을 차단합니다. 기존 구매 내역은 유지됩니다.';
 const SUSPEND_EFFECT = '이 사용자의 쓰기 활동을 제한합니다. 기존 구매 콘텐츠 열람은 유지됩니다.';
@@ -78,7 +79,7 @@ function localTimeZone(): string {
   }
 }
 
-function describeFailure(result: Extract<AdminResult<unknown>, { ok: false }>): Status {
+export function describeFailure(result: Extract<AdminResult<unknown>, { ok: false }>): Status {
   switch (result.error) {
     case 'stale_target':
     case 'conflict':
@@ -89,6 +90,8 @@ function describeFailure(result: Extract<AdminResult<unknown>, { ok: false }>): 
       return { kind: 'error', message: REASON_REQUIRED };
     case 'validation_failed':
       return { kind: 'error', message: '입력 내용을 확인해 주세요.' };
+    case 'self_sanction_forbidden':
+      return { kind: 'error', message: SELF_SANCTION_FORBIDDEN };
     default:
       return { kind: 'error', message: '처리하지 못했습니다. 다시 시도해 주세요.' };
   }
@@ -171,7 +174,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-function StatusMessage({ status, onRefresh }: { status: Status; onRefresh: () => void }) {
+export function StatusMessage({ status, onRefresh }: { status: Status; onRefresh: () => void }) {
   return (
     <div aria-live="polite" className="min-h-0">
       {status.kind === 'stale' ? (
