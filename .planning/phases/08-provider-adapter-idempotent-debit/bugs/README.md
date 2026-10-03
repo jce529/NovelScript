@@ -6,7 +6,7 @@ Phase 8 실행과 08-09 체크포인트 검증(2026-09-18, Chrome + 실제 Gemin
 
 | ID | 제목 | 심각도 | 상태 |
 |---|---|---|---|
-| [BUG-04](BUG-04-thinking-tokens-not-debited.md) | 사고(thinking) 토큰이 maxOutputTokens 예산을 잠식해 본문이 잘림 | Low | open (보류 — 실사용 데이터 확보 후 재논의) |
+| [BUG-04](BUG-04-thinking-tokens-not-debited.md) | 사고(thinking) 토큰이 maxOutputTokens 예산을 잠식해 본문이 잘림 | Low | open (보류 — 후보 4 사고/본문 몫 분리 유력, 키 있는 환경에서 구현) |
 
 ## 다른 phase로 옮긴 버그
 
