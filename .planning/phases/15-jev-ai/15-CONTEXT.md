@@ -15,7 +15,7 @@
 
 @멘션 빠른 추가는 Jev를 호출하지 않고 카테고리별 실제 폴더 선택기를 직접 제공한다.
 
-이 페이즈는 `.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`에서 승격되었으며, 그 문서의 "해결 설계" 섹션이 이 페이즈의 1차 설계 입력이다. 새 기능 추가(문서 종류 확장, 검색/필터 등)는 범위 밖이다.
+이 페이즈는 `.planning/phases/15-jev-ai/15-DESIGN-SOURCE-04-BUG-01.md`에서 승격되었으며, 그 문서의 "해결 설계" 섹션이 이 페이즈의 1차 설계 입력이다. 새 기능 추가(문서 종류 확장, 검색/필터 등)는 범위 밖이다.
 
 </domain>
 
@@ -55,7 +55,7 @@
 **Downstream agents MUST read these before planning or implementing.**
 
 ### 원인 분석 · 해결 설계 (1차 입력)
-- `.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md` — Jev 선계획 흐름, 역할 경계, Jev 입력 계약, Gemini 생성 계약, 후보·예외 처리 규칙, 단계적 도입 절차의 전체 원본 설계
+- `.planning/phases/15-jev-ai/15-DESIGN-SOURCE-04-BUG-01.md` — Jev 선계획 흐름, 역할 경계, Jev 입력 계약, Gemini 생성 계약, 후보·예외 처리 규칙, 단계적 도입 절차의 전체 원본 설계
 
 ### 요구사항
 - `.planning/REQUIREMENTS.md` AIDOC-01~04 (섹션 "AI 문서 계획 · 저장")

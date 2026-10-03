@@ -409,7 +409,7 @@ Plans:
 - [x] 15-09-PLAN.md — 전체 게이트: 스위트 + off 경로 무호출 테스트 + 브라우저 UAT + Code complete / Activation blocked 기록 *(Task 2 browser UAT pending)*
 
 **UI hint**: yes
-**Source**: Phase 4 BUG-01 (`.planning/phases/04-ai-gateway-mention-based-generation/bugs/BUG-01-proposal-save-nested-category-folder.md`)에서 페이즈로 승격 (2026-09-22)
+**Source**: Phase 4 BUG-01 (`.planning/phases/15-jev-ai/15-DESIGN-SOURCE-04-BUG-01.md`)에서 페이즈로 승격 (2026-09-22)
 **Notes**: 단순 `parent_id IS NULL` 필터는 긴급 완화책일 뿐 최종 해결안이 아니다. Jev는 자유 형식 생성 모델이 아니라 서버가 제공한 불투명 후보 키 중 계획을 고르는 결정 계층이며, Gemini는 확정된 템플릿으로 생성한다. 확신도가 낮으면 `clarify`로 전환하고, 폴더·템플릿 판단 실패 시에만 문서화된 안전 기본값을 추천한다. 운영 전 100~300건 정답셋 평가, 후보 순서 교란 평가, 그림자 계획, 템플릿 생성 비교를 수행한다.
 
 

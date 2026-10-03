@@ -1,7 +1,7 @@
 ---
 id: BUG-01
 title: 하위 폴더가 있는 카테고리에서 AI 문서 제안 저장·빠른 추가 실패
-status: promoted-to-phase-15
+status: fixed (Phase 15, 설계 원본으로 보존)
 severity: high
 found: 2026-09-18
 found_during: 08-09 체크포인트 (실제 Gemini, Chrome)
