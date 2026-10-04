@@ -38,7 +38,7 @@
 - Phase 7 todo의 F-2·F-3·병렬·lint "미수정" 표기 → 해결됨(fixed/07-04~07).
 - 09 폴더 중복(`09-openai-anthropic-adapters-pricing`, 09-19자 구버전 CONTEXT) 삭제.
 
-미정정(실제 검증이 필요해 문서만으로 못 고침): 마이그레이션 0010/0011 실DB 적용 여부, Phase 10 VERIFICATION.md 부재(UAT 10·11단계 일부 미확인).
+미정정(실제 검증이 필요해 문서만으로 못 고침): 마이그레이션 0010/0011 실DB 적용 여부, ~~Phase 10 VERIFICATION.md 부재~~ — 작성함(`phases/10-byok/10-VERIFICATION.md`, 기존 SUMMARY·VALIDATION 근거). UAT 10·11단계 일부 미확인은 그 문서 residual에 남음.
 
 ## 4. 열린 결정·버그
 
