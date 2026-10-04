@@ -444,6 +444,22 @@ Plans:
 **Source**: Phase 16 UAT 갭 4건 (`.planning/phases/16-studio-workflow-upload/16-UAT.md`) + Phase 8 BUG-04, Phase 15 BUG-03·04, Phase 8 기록의 eslint·테스트 기준선 이슈
 **Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. 수정 전 Phase 8 BUG-04(thinking 토큰 정책)는 사용자 결정이 필요하다.
 
+## Launch Gate (법무) — phase 아님
+
+코드 phase와 별도로, **서비스 공개 전** 충족해야 하는 조건이다. 어떤 phase의 완료 여부와도 독립이며, 모든 항목이 끝나기 전에는 공개 출시를 하지 않는다 (베타·내부 테스트는 제외).
+
+**Requirements**: LEGAL-01, LEGAL-02, LEGAL-03, LEGAL-04 (`REQUIREMENTS.md` 출시 게이트 절)
+**Source**: `.planning/business/이용약관_저작권리스크_대응안.md`, `변호사_자문_필요사항.md`
+**Status**: Not started — 약관은 초안, 변호사 자문 전. 자문은 약관 게시 전 1회(대응안 §5 결정).
+**Success Criteria**:
+  1. 변호사 자문 결과로 약관 초안의 미확정 값이 모두 확정·게시된다
+  2. 법령 사실 확인 표의 불일치 항목이 원문 대조로 해소된다
+  3. AI기본법 생성형 AI 고지 의무가 검토되고 필요 시 반영된다
+  4. BYOK 개인정보 국외 이전 고지가 처리방침에 반영된다
+**Notes**: Phase 5(실결제)·Phase 6(작가 정산)·BYOK(Phase 11)는 약관 조항 7(정산 보류·상계)·10④와 직접 얽힌다. 이 phase들의 **실사용자 공개 전**에 자문을 마치는 것이 안전하다. 외부 대기열(변호사)이라 Toss 심사처럼 일찍 시작할수록 좋다.
+
+---
+
 ## Progress
 
 **Execution Order:**

@@ -130,6 +130,15 @@
 - **멱등 차감(COST-01)이 재시도 로직보다 먼저 와야 한다.** 순서가 뒤집히면 429 재시도가 이중 차감을 만든다.
 - **BYOK 경로는 "상한 0인 서비스 경로"가 아니다.** 현재 `maxOutputTokens <= 0`에서 하드 에러를 던지는 분기를 BYOK에서는 구조적으로 건너뛰어야 한다.
 
+## 출시 게이트 (LEGAL) — phase가 아닌 출시 조건
+
+코드 phase가 아니라 **서비스 공개 전에 충족해야 하는 조건**이다. 원문·질문 목록은 `.planning/business/` (`이용약관_저작권리스크_대응안.md`, `변호사_자문_필요사항.md`). 이 문서의 AI 검토 결과는 법률 판단이 아니며, 법령 사실은 원문 대조 전까지 확정으로 쓰지 않는다.
+
+- [ ] **LEGAL-01**: 이용약관 초안이 변호사 자문(`변호사_자문_필요사항.md` 우선순위 A: OSP 책임 제한, 책임 귀속 문구, 정산 보류·상계, 제103조 신고 절차, 제44조의2 재게시, BYOK 국외 이전)을 거쳐 `[ ]` 미확정 값이 모두 확정되고 게시된다
+- [ ] **LEGAL-02**: 법령 사실 확인 표의 불일치·미확인 항목(저작권법 제103조 기한·재개예정일 산정, 정당한 권리 없이 중단 요구한 자의 책임, 개인정보보호법 제28조의8 고지사항, 약관규제법 제8~11조, AI 학습 면책 개정안 현황)이 원문 대조로 해소된다
+- [ ] **LEGAL-03**: AI기본법(2026.1 시행)의 생성형 AI 고지 의무 해당 여부가 검토되고, 해당하면 약관·화면에 반영된다 (현재 문서에 미반영)
+- [ ] **LEGAL-04**: BYOK 사용 시 개인정보 국외 이전·제3자 제공 고지와 동의 구조(약관 조항 10④)가 처리방침에 반영된다
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -262,11 +271,16 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
+| LEGAL-01 | Launch Gate | Not started |
+| LEGAL-02 | Launch Gate | Not started |
+| LEGAL-03 | Launch Gate | Not started |
+| LEGAL-04 | Launch Gate | Not started |
 
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
-- 전체: 71 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
+- 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*

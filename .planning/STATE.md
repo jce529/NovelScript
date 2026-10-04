@@ -30,6 +30,8 @@ Plan: 0 of 8 (실행 전)
 Status: Ready to execute
 Last activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문서 동기화
 
+**출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
+
 **부족한 부분·다음 할 일 점검:** `.planning/gaps/2026-10-04-gap-analysis.md` (우선순위·공백·법무 게이트 정리)
 
 병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-03~07(Toss 키 대기), Phase 6 브라우저 E2E.
