@@ -23,7 +23,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 
 **Milestone notes:**
 - v1.0 잔여 작업(Phase 5 Toss 결제 / Phase 6 작가 90:10 정산 / Phase 7 운영자 도구)은 v1.0 트랙에 그대로 남긴다. v1.1 로드맵에 포함하지 않으며, 페이즈 번호는 8부터 이어간다.
-- BYOK 키 암호화 저장 방식(Supabase Vault vs 앱 레벨 AES-GCM)은 리서치 단계에서 결정한다.
+- BYOK 키 암호화 저장은 Supabase Vault로 결정됐다 (Phase 10 D-01).
 - MCP 클라이언트별 공식 커넥터 지원 범위는 2차 착수 시 재확인한다 — 모든 구독 서비스 일괄 지원을 가정하지 않는다.
 - 작업 브랜치 `codex/multi-provider-byok`, 목표 원문 `docs/ai-integration-roadmap.md`.
 
@@ -37,15 +37,15 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 - [x] 독자 디스커버리에 간소화된 인기/추천 지표(조회수·좋아요·다음화 이동률 등)가 반영된다 — Validated in Phase 3: reader-core-reading-loop-no-payment
 - [x] Gemini 생성이 공통 프로바이더 어댑터(`ProviderClient`)로 이관된 뒤에도 멘션·프리셋·문체·초안/제안 파싱이 그대로 동작한다 (PROV-01) — Validated in Phase 8: provider-adapter-idempotent-debit
 - [x] 같은 AI 호출을 재시도해도 지갑 토큰이 한 번만 차감된다 — 전송마다 고정 idempotencyKey (COST-01) — Validated in Phase 8: provider-adapter-idempotent-debit
+- [x] 운영자가 신고된/문제 있는 콘텐츠를 수동으로 검토하고 조치할 수 있는 최소한의 운영 도구가 있다 — Validated in Phase 7: admin-moderation-surface (경고 확인·정지 사용자 화면 브라우저 검수 2건 미확인, `.planning/todos/pending/`)
+- [x] 작가가 Gemini 외 다른 AI 제공자(OpenAI, Anthropic)를 선택해 집필 기능을 쓸 수 있다 (PROV-02~04, PROV-07) — Validated in Phase 9: openai-anthropic
 
 ### Active
 
 - [ ] 작가가 본문 에디터에서 `@` 멘션으로 설정 문서를 선택 주입하고 AI로 본문을 생성/어시스트 받을 수 있다 (외부 LLM API 1개 벤더, 플랫폼 키)
 - [ ] 작가가 3단계 프리셋(초보자/중급자/자유형) 중 선택해 AI 톤을 제어할 수 있다
 - [ ] 유저가 실제 결제(PG 연동)로 토큰을 충전하고, 유료 회차 열람 등에 토큰을 소비할 수 있다
-- [ ] 운영자가 신고된/문제 있는 콘텐츠를 수동으로 검토하고 조치할 수 있는 최소한의 운영 도구가 있다
-- [ ] 작가가 Gemini 외 다른 AI 제공자(OpenAI, Anthropic)를 선택해 집필 기능을 쓸 수 있다 (v1.1)
-- [ ] 작가가 자신의 API 키를 등록(BYOK)해 플랫폼 토큰 차감 없이 AI를 쓸 수 있다 (v1.1)
+- [ ] 작가가 자신의 API 키를 등록(BYOK)해 플랫폼 토큰 차감 없이 AI를 쓸 수 있다 (v1.1) — 키 등록·검증·관리는 Phase 10에서 완료(BYOK-01~04), 호출 경로·사용 기록은 Phase 11 대기
 - [ ] 작가가 평소 쓰는 구독형 AI에서 MCP로 자신의 작품·설정집을 읽고 초안을 저장할 수 있다 (v1.1)
 - [ ] 작가가 AI 설정 문서의 추천 저장 위치와 템플릿을 확인·변경하고, 선택한 폴더에 안전하게 저장할 수 있다 (v1.1 Phase 15)
 
@@ -83,7 +83,7 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 | v1.1 추가 제공자는 OpenAI, Anthropic 2개로 한정 | docs/ai-integration-roadmap.md 기준. 커스텀 OpenAI 호환 엔드포인트는 범위 밖 | 결정됨 |
 | BYOK 모드는 플랫폼 AI 토큰을 차감하지 않는다 | 사용자가 자기 비용으로 호출하므로 이중 과금이 됨. 사용 기록만 남겨 한도·남용 방지에 사용 | 결정됨 |
 | MCP는 원격 HTTP + OAuth 계정 연결, 읽기 + 초안 저장까지만 | 설치 없이 공식 커넥터 경로를 타고, 외부 AI가 기존 본문을 덮어쓰지 못하게 초안/제안으로만 되돌린다 | 결정됨 |
-| BYOK 키 암호화 저장 방식은 리서치 단계에서 결정 | Supabase Vault와 앱 레벨 AES-GCM의 현재 지원 상태·운영 부담 비교 필요 | — Pending |
+| BYOK 키 암호화 저장은 Supabase Vault | Vault 확장(`supabase_vault` 0.3.1) 실측으로 가용성·ACL 확인 후 채택, 앱 레벨 AES-GCM은 쓰지 않음 (`.planning/phases/10-byok/10-CONTEXT.md` D-01, `10-VAULT-PROBE.md`) | 결정됨 (Phase 10) |
 | 랭킹/큐레이션은 간소화 지표로 시작 | 스크롤 심도 알고리즘은 정밀 설계·튜닝 비용이 크고, 베타에서는 반응 확인이 우선 | — Pending |
 | SLM 자동 사전검수 대신 운영자 수동 검토 | 베타 규모에서는 자동화 인프라(Cloud Run 큐 등) 구축 비용 대비 효용이 낮음 | — Pending |
 | 비용 상한에 로컬 입력 토큰 추정을 쓰지 않는다 — 출력 상한은 잔액 전체 기준, 차감은 실사용량을 호출 전 잔액까지만 | 실측에서 로컬 추정이 실제의 약 3배로 부정확했고, 호출 전 입력 비용 예약은 잔액이 바닥난 사용자에게만 의미가 있음 (2026-09-18) | 결정됨 — 사고 토큰 차감 여부는 미결(Phase 8 bugs/BUG-04) |
@@ -108,5 +108,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-18 — Phase 8 완료 (프로바이더 어댑터 + 멱등 차감, 로컬 토큰 추정 제거)*
+*Last updated: 2026-10-04 — Phase 7·9 검증 항목 이동, BYOK 암호화 결정(Vault) 기록, Phase 10 완료 반영*
+*Previously updated: 2026-09-18 — Phase 8 완료 (프로바이더 어댑터 + 멱등 차감, 로컬 토큰 추정 제거)*
 *Previously updated: 2026-09-08 — added 구독제(월정액) to Out of Scope as an explicit v2 candidate (per Phase 6 discussion follow-up)*

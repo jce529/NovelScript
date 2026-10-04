@@ -452,6 +452,13 @@ Plans:
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
+**상태 용어 (2026-10-04 통일):**
+- **Complete** — 코드 완료 + 해당 phase 검증 통과.
+- **Complete (… pending)** — 코드는 끝났으나 괄호의 검증(live·브라우저·UAT)이 남음. 체크박스 `[x]`는 이 경우도 포함한다.
+- **Code complete (activation blocked)** — 코드 완료, 외부 조건(정책 검토·평가·키)이 풀려야 운영 활성화 (Phase 15).
+- **Planned** — 계획·검증 완료, 실행 전. **In progress / Not started** — 문자 그대로.
+검증 대기 항목의 상세는 STATE.md Pending Todos와 `.planning/gaps/` 점검 문서에 둔다.
+
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
