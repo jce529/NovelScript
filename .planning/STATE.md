@@ -30,6 +30,8 @@ Plan: 0 of 8 (실행 전)
 Status: Ready to execute
 Last activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문서 동기화
 
+**부족한 부분·다음 할 일 점검:** `.planning/gaps/2026-10-04-gap-analysis.md` (우선순위·공백·법무 게이트 정리)
+
 병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-03~07(Toss 키 대기), Phase 6 브라우저 E2E.
 
 > **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 2/8 완료 (Phase 8, 9). v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
