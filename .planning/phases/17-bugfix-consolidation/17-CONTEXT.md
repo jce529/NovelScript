@@ -62,7 +62,7 @@ Phase 8 BUG-04는 "실사용에서 `wasCapped` 발생 빈도"와 "thinking 예�
 <decisions>
 ## 확정된 결정 (2026-10-02 discuss-phase)
 
-1. **G1/BUG-04 = 문구 정정 + 요청당 상한 소폭 상향.** 잔액 캡 / 요청당 상한 / thinking 소진을 구분해 안내 문구를 정확히 하고, `PER_REQUEST_MAX_OUTPUT_TOKENS`(현재 2048)를 소폭 올린다. `thinkingBudget` 제한 등 thinking 예산 정책은 건드리지 않는다(Phase 8 BUG-04 정책 부분은 계속 보류). 상향폭은 research/planning에서 비용·잔액 영향 검토 후 정한다. SEED-002 재작업을 줄이도록 변경은 얇게.
+1. **G1/BUG-04 = 문구 정정 + 요청당 상한 소폭 상향.** 잔액 캡 / 요청당 상한 / thinking 소진을 구분해 안내 문구를 정확히 하고, `PER_REQUEST_MAX_OUTPUT_TOKENS`(현재 2048)를 소폭 올린다. `thinkingBudget` 제한 등 thinking 예산 정책은 건드리지 않는다(Phase 8 BUG-04 정책 부분은 계속 보류). 상향폭은 research/planning에서 비용·잔액 영향 검토 후 정한다. SEED-002 재작업을 줄이도록 변경은 얇게. (2026-10-04: 이 결정은 BUG-04의 "단계 A"이며, 후속 정책인 사고/본문 몫 분리(후보 4)는 `phases/08-.../bugs/BUG-04-...md` "정책 정리"에서 사용자 결정 대기.)
 2. **G3·G4 = 재현 없이 코드를 읽고 바로 수정.** 코드 검토로 원인을 확인해 BUG 문서화(`/bug-plan`) 후 수정한다. 코드상 원인이 확인되지 않으면(예: G4가 이미 올바르게 동작) 그 사실을 근거와 함께 BUG 문서에 기록하고 종료한다.
 3. **BUGFIX-05 = 근본 원인까지 전부.** eslint 2건, `writer-upgrade` 테스트, 36개 파일 실패(supabaseUrl 등 환경변수 포함), DB 통합 테스트 병렬 교착까지 고쳐 전체 `npx vitest run`이 통과하는 기준선을 목표로 한다. 범위가 크므로 plan을 쪼개고(린트 / 환경변수·테스트 하네스 / 교착) 실패 원인 분류를 첫 plan에 둔다.
 4. **기존 확정 유지:** Phase 15 BUG-04는 C안으로 바로 실행, BUG-03은 브라우저 UAT만 남음.
