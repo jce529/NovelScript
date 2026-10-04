@@ -307,7 +307,7 @@ Residual (stays in v1.0, not yet done):
 **Notes**: 키 검증(models-list)과 피커는 **같은 기능**이다 — 검증 결과가 피커의 모델 목록을 생산하므로 페이즈를 가르지 않는다. 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)은 **이 페이즈 계획 시점에 확정**한다 — 구현 중 미루면 데이터 마이그레이션이 된다. 별도 평문 `masked_hint` 컬럼이 BYOK 슬라이스에서 가장 중요한 스키마 결정. 평문 키가 어떤 경로로도 로그에 닿지 않음을 테스트로 확인한다.
 
 ### Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX
-**Goal**: 지갑 잔액이 0인 작가도 자기 키로 막힘없이 생성하고, 실패했을 때 원인별로 다른 안내를 받으며, 이번 달 자기 키로 얼마나 썼는지 확인할 수 있다.
+**Goal**: 지갑 잔액이 0인 작가도 자기 키로 막힘없이 생성하고, 실패했을 때 원인별로 다른 안내를 받으며, 이번 달 자기 키의 제공자별 호출 수·토큰 수를 확인할 수 있다.
 **Depends on**: Phase 10
 **Requirements**: PROV-06, BYOK-05, BYOK-06, BYOK-07, BYOK-08, BYOK-09, COST-02
 **Success Criteria** (what must be TRUE):
