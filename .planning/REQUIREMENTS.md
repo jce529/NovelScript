@@ -1,4 +1,4 @@
-| BYOK-04 |  | Complete || BYOK-03 |  | Complete || BYOK-02 |  | Complete || BYOK-01 |  | Complete || PROV-07 |  | Complete || PROV-05 |  | Complete || PROV-04 |  | Complete || PROV-03 |  | Complete || PROV-02 |  | Complete || ADMIN-04 |  | Complete || ADMIN-03 |  | Complete || ADMIN-02 |  | Complete || ADMIN-01 |  | Complete |# Requirements: NovelScript
+# Requirements: NovelScript
 
 **Defined:** 2026-08-25
 **Core Value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
@@ -213,26 +213,26 @@ Explicitly excluded. Documented to prevent scope creep.
 | PAY-01 | Phase 5 | Mapped |
 | PAY-02 | Phase 6 | Complete (DB tests passed 2026-10-01; browser E2E pending) |
 | PAY-03 | Phase 5 | Mapped |
-| ADMIN-01 | Phase 7 | Mapped |
-| ADMIN-02 | Phase 7 | Mapped |
-| ADMIN-03 | Phase 7 | Mapped |
-| ADMIN-04 | Phase 7 | Mapped |
+| ADMIN-01 | Phase 7 | Complete |
+| ADMIN-02 | Phase 7 | Complete |
+| ADMIN-03 | Phase 7 | Complete |
+| ADMIN-04 | Phase 7 | Complete |
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PROV-01 | Phase 8 | Complete |
-| PROV-02 | Phase 9 | Mapped |
-| PROV-03 | Phase 9 | Mapped |
-| PROV-04 | Phase 9 | Mapped |
-| PROV-05 | Phase 10 | Mapped |
+| PROV-02 | Phase 9 | Complete |
+| PROV-03 | Phase 9 | Complete |
+| PROV-04 | Phase 9 | Complete |
+| PROV-05 | Phase 10 | Complete |
 | PROV-06 | Phase 11 | Mapped |
-| PROV-07 | Phase 9 | Mapped |
-| BYOK-01 | Phase 10 | Mapped |
-| BYOK-02 | Phase 10 | Mapped |
-| BYOK-03 | Phase 10 | Mapped |
-| BYOK-04 | Phase 10 | Mapped |
+| PROV-07 | Phase 9 | Complete |
+| BYOK-01 | Phase 10 | Complete |
+| BYOK-02 | Phase 10 | Complete |
+| BYOK-03 | Phase 10 | Complete |
+| BYOK-04 | Phase 10 | Complete |
 | BYOK-05 | Phase 11 | Mapped |
 | BYOK-06 | Phase 11 | Mapped |
 | BYOK-07 | Phase 11 | Mapped |

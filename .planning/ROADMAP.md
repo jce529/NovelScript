@@ -462,7 +462,7 @@ Plans:
 | 5. Real Payment Integration | 2/7 | In progress (05-03~07 미실행; 샌드박스 검증은 Toss keys 대기) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Complete (live-DB/E2E verification pending) | 2026-10-01 |
 | 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
-| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (build red: pre-existing BUG-03) | 2026-09-18 |
+| 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (BUG-03 빌드 실패는 07-03으로 수정) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 7/7 | Complete (UAT 10단계·11단계 일부 미확인) | 2026-09-30 |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/8 | Planned (ready to execute) | - |

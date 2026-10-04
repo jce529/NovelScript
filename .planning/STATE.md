@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: Overview
 status: executing
 stopped_at: Phase 17 context gathered
-last_updated: "2026-10-02T02:34:57.152Z"
-last_activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문서 동기화
+last_updated: "2026-10-04T00:00:00.000Z"
+last_activity: 2026-10-04 -- 문서-실제 괴리 정정 (STATE·REQUIREMENTS·ROADMAP·Phase 7 todo)
 progress:
   total_phases: 18
-  completed_phases: 10
+  completed_phases: 12
   total_plans: 84
-  completed_plans: 73
-  percent: 56
+  completed_plans: 71
+  percent: 85
 ---
 
 # Project State
@@ -34,7 +34,7 @@ Last activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문�
 
 병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-03~07(Toss 키 대기), Phase 6 브라우저 E2E.
 
-> **progress 카운터는 마일스톤(v1.1) 기준이다** — Phase 8~15 기준 2/8 완료 (Phase 8, 9). v1.0에서 완료된 29개 plan은 아래 "v1.0 잔여"와 ROADMAP.md Progress 표에서 확인한다.
+> **progress 카운터 기준 (2026-10-04 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 12개(1,2,3,4,04.1,6,7,8,9,10,15,16), `completed_plans`는 SUMMARY.md가 있는 GSD plan 71/84다. Phase 6·16은 GSD 밖에서 구현돼 plan 카운트에 없다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
@@ -51,6 +51,8 @@ Last activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문�
 | 13 | MCP 읽기 도구 + 집필 컨텍스트 번들 | MCP-02, MCP-03, MCP-04, MCP-09 |
 | 14 | MCP 쓰기 도구 + 스튜디오 리뷰 큐 | MCP-05, MCP-06, MCP-07 |
 | 15 | Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | AIDOC-01~04 |
+| 16 | 스튜디오 작업 흐름 확장 (GSD 밖 구현) | STUDIO-01~04 |
+| 17 | 버그 수정 통합 (계획 전) | BUGFIX-01~05 |
 
 **v1.0 잔여 (별도 트랙, v1.1 로드맵에 포함하지 않음):**
 
@@ -61,52 +63,7 @@ Last activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문�
 
 ## Performance Metrics
 
-**Velocity:**
-
-- Total plans completed: 0
-- Average duration: - min
-- Total execution time: 0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 P05 | 2 tasks | 8min | 8 files |
-| 02 P01 | 3 tasks | 12min | 19 files |
-
-**Recent Trend:**
-
-- Last 5 plans: -
-- Trend: -
-
-*Updated after each plan completion*
-| Phase 02 P02 | 15min | 2 tasks | 7 files |
-| Phase 02 P03 | 6min | 2 tasks | 8 files |
-| Phase 02 P04 | 15min | 2 tasks | 6 files |
-| Phase 02 P05 | 5min | 2 tasks | 7 files |
-| Phase 02 P06 | 12min | 2 tasks | 7 files |
-| Phase 03 P01 | 20min | 2 tasks | 3 files |
-| Phase 03 P02 | 15 | 2 tasks | 7 files |
-| Phase 03 P03 | 10 | 2 tasks | 4 files |
-| Phase 03 P04 | 10 | 2 tasks | 9 files |
-| Phase 03 P05 | 12 | 2 tasks | 5 files |
-| Phase 03 P06 | 25min | 3 tasks | 6 files |
-| Phase 03 P07 | 15min | 3 tasks | 7 files |
-| Phase 04 P01 | 15 | 3 tasks | 11 files |
-| Phase 04 P02 | 25min | 3 tasks | 4 files |
-| Phase 04 P03 | 8min | 2 tasks | 2 files |
-| Phase 04 P04 | 12min | 3 tasks | 3 files |
-| Phase 04 P05 | 12min | 3 tasks | 2 files |
-| Phase 04 P06 | 35min | 3 tasks | 6 files |
-| Phase 04.1 P01 | 25min | 2 tasks | 3 files |
-| Phase 04.1 P02 | 12min | 2 tasks | 6 files |
-| Phase 04.1 P03 | 20min | 2 tasks | 6 files |
-| Phase 04.1 P04 | 20min | 3 tasks | 3 files |
-| Phase 04.1-kb P05 | 25min | 3 tasks | 4 files |
-| Phase 07 P01 | 25min | 2 tasks | 6 files |
-| Phase 07 P02 | 35min | 2 tasks | 6 files |
-| Phase 07 P04 | 25min | 2 tasks | 10 files |
-| Phase 07 P06 | 35min | 2 tasks | 12 files |
+집계는 각 phase의 `*-SUMMARY.md` frontmatter(duration·tasks·files)에 있다. 이전의 수동 누적 표는 갱신이 끊겨 실제와 어긋나 삭제했다 (2026-10-04).
 
 ## Accumulated Context
 
@@ -166,14 +123,15 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- **[v1.1 Phase 8 병행 착수]** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청을 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐라서 늦게 시작하면 Phase 9가 통째로 대기한다.
-- **[v1.1 Phase 10 계획 시점 결정]** BYOK 키 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)을 페이즈 **계획 시점에** 확정한다 — 구현 중 미루면 데이터 마이그레이션이 된다. (PROJECT.md Key Decisions의 Pending 항목)
+- ~~**[v1.1 Phase 8 병행 착수]** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청을 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐라서 늦게 시작하면 Phase 9가 통째로 대기한다.~~ — DONE: Phase 9 라이브 키 점검 통과 (2026-09-29).
+- ~~**[v1.1 Phase 10 계획 시점 결정]** BYOK 키 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)을 페이즈 **계획 시점에** 확정한다 — 구현 중 미루면 데이터 마이그레이션이 된다. (PROJECT.md Key Decisions의 Pending 항목)~~ — DONE: Phase 10 완료 (`10-VAULT-PROBE.md` 참조). PROJECT.md Key Decisions의 Pending 표기가 남아 있으면 확인해 정리한다.
 - **[v1.1 Phase 12 선행 스파이크]** 실제 Claude 커스텀 커넥터로 discovery → 등록 → 토큰 교환 왕복을 먼저 성공시켜 authorization server를 확정(Supabase Auth OAuth 2.1 Server vs WorkOS AuthKit). 실패하면 페이즈 내용 자체가 바뀜다. `/gsd:research-phase` 필수.
 - **[v1.1 정리]** 워크트리의 `mcpres/`(수동 다운로드한 tarball + 추출 디렉터리)는 커밋 대상이 아니다 — 채택 시 npm registry에서 정식 설치하고 `mcpres/`는 삭제한다.
-- **[v1.1 Phase 15 계획 전]** BUG-01 문서의 해결 설계를 입력으로 `/gsd:discuss-phase 15`와 `/gsd:research-phase 15`를 수행한다. Jev 데이터 처리 정책과 평가 기준이 확정되기 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다.
+- ~~**[v1.1 Phase 15 계획 전]** BUG-01 문서의 해결 설계를 입력으로 `/gsd:discuss-phase 15`와 `/gsd:research-phase 15`를 수행한다. Jev 데이터 처리 정책과 평가 기준이 확정되기 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다.~~ — DONE: Phase 15 코드 완료.
 - **[Phase 15 활성화 절차 — 코드 수정 없음]** ① 실제 키로 `npm run eval:jev` → holdout 증거 기록(먼저 migrations 0010/0011을 실제 Supabase 프로젝트에 적용) ② golden-set hash·JEV_ACTIVATION_THRESHOLDS를 검토하고 ai_doc_activation_approvals에 policy_review 행 insert(service role SQL) ③ `AI_DOC_PLANNING_MODE=shadow`로 배포해 그림자 표본 축적 ④ 조건 충족 확인 후 `AI_DOC_PLANNING_MODE=active`. 조건이 하나라도 빠지면 resolver가 자동으로 shadow/off로 강등한다.
 - **[Phase 15 브라우저 UAT 대기]** Plan 15-09 Task 2의 저장 확인 모달·템플릿 재생성·QuickAdd 폴더 선택기 수동 검증과 승인 기록이 남아 있다.
 
+- **[Phase 7, 열림]** 경고 확인 유지·정지 사용자 화면 브라우저 검수 2건 — `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md` (F-2 문구·F-3 잔여물·병렬 DB·lint는 `fixed/07-04~07-07`로 해결됨).
 - Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end. (Phase 4 is marked Complete on the roadmap; this is the one outstanding human UAT item — see 04-VERIFICATION.md `human_verification`.)
 - ~~**[Phase 06, v1.0 residual]** Implement the author 90/10 credit split with the 10% platform fee behind a single adjustable constant (ROADMAP Phase 6 success criterion 3, provisional per 06-CONTEXT.md D-10). Confirmed absent from lib/commerce/actions.ts and 0005_commerce.sql on 2026-09-15. Decision: keep in v1.0, handle alongside Phase 5 when the Toss keys arrive.~~ — DONE 2026-10-01 (56b0031), live-DB verification pending.
 - **[Phase 06, v1.0 residual]** Complete runtime verification against ROADMAP criteria when the environment is available. 06-VERIFICATION.md now records a source audit with gaps_found; it does not claim a gsd-verifier agent run or SQL/RLS/E2E success. Keep the user's DB-test deferral in effect.
@@ -182,27 +140,27 @@ Recent decisions affecting current work:
 
 - **[v1.1 Phase 15] Code complete / Activation blocked.** Jev 추천의 Production active는 lib/ai/decision/activation.ts getAiDocPlanningMode()가 다음을 모두 확인할 때만 성립한다: (1) 데이터 처리 정책 검토 승인 행(ai_doc_activation_approvals — 검토 주체: 작가 본인, D-10) (2) pinned JEV_MODEL_VERSION (3) 같은 모델·golden-set hash·EVALUATOR_VERSION의 실제 벤더 holdout 평가 통과 증거(ai_doc_activation_evidence) (4) 최근 30일 그림자 표본 ≥ 200·오류율 ≤ 5%·P95 ≤ 800ms. 그 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다(D-08). Jev 계정: live verified — 인증 `Authorization: Bearer <key>`, 요청 `{state, model, questions:{<id>:{type,instructions,criteria}}}`, 응답 `{model, answers:{<id>:{choice,probabilities,confidence}}}`, 고정 버전 태그 `jev-1.13.0`(semver, alias는 `jev-latest`/`jev-preview`). 갱신일: 2026-09-27. Phase 5 Toss 심사와 동일한 외부 대기열로 취급.
 - **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
-- **[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).
-- **[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.
+- ~~**[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).~~ — RESOLVED: BUG-04 차감 누락은 `fixed/08-04`로 수정됨 (남은 출력 잘림 문제는 `phases/08-.../bugs/BUG-04` 보류). 고성능 슬롯용 Google 결제는 별개 외부 작업.
+- ~~**[v1.1] 현존하는 정합성 버그:** `lib/ai/chat.ts`가 `p_reference_id`에 매 호출 새 `crypto.randomUUID()`를 넘겨 원장의 중복 방지 제약을 무력화하고 있다(COST-01, Phase 8). 재시도 로직을 먼저 넣으면 429 재시도가 이중 차감을 만든다.~~ — RESOLVED: COST-01 Phase 8에서 안정 reference_id로 수정됨.
 - **[v1.1] BYOK 키는 응답 본문이 아니라 Error 객체의 request config(`Authorization` 헤더)를 통해 새난다.** 관찰성 목적의 `console.error(err)` 한 줄이면 끝이고 로그는 회수 불가능하다. 스크러밍 choke point를 어댑터 인터페이스와 **같이** 출하한다(Phase 8).
 - **[v1.1] MCP 도구가 `createAdminClient()` 관행을 복사하면 confused deputy가 된다.** Server Action에서 옆았던 패턴이 bearer 토큰 호출에서는 교차 사용자 읽기/쓰기를 열어준다(Phase 13/14).
 - **[v1.1] "연결 해제 후 즉시 차단"은 stateless JWT 검증으로 구조적으로 달성 불가능하다.** 매 호출 grant introspection을 Phase 12 설계에 처음부터 넣어야 하며 나중에 붙일 수 없다.
-- **[v1.1 Phase 15] 마이그레이션 0010(kb_category_root_unique)/0011(ai_doc_planning)이 실제 Supabase 프로젝트에 아직 적용되지 않았다.** 2026-09-27 `npm run eval:jev` 실제 벤더 실행에서 `ai_doc_activation_evidence` 테이블이 없어(`PGRST205`) `recorded: false`로 실패(exit 1, 의도된 동작). Phase 15 배포 전 두 마이그레이션을 적용해야 활성화 증거 기록과 폴더 유일성 제약이 실제로 걸린다. 같은 실행에서 확인된 실제 Jev 성능: taskAccuracy≈0.60~0.62, folderTemplateAccuracy≈0.53 — AIDOC-04 임계값(0.85/0.80) 미달로 활성화는 정상적으로 차단됨.
+- **[v1.1 Phase 15] 마이그레이션 0010(kb_category_root_unique)/0011(ai_doc_planning)이 실제 Supabase 프로젝트에 적용됐는지 이 문서로는 확인되지 않는다(2026-09-27 시점엔 미적용). 적용 여부를 먼저 확인할 것.** 2026-09-27 `npm run eval:jev` 실제 벤더 실행에서 `ai_doc_activation_evidence` 테이블이 없어(`PGRST205`) `recorded: false`로 실패(exit 1, 의도된 동작). Phase 15 배포 전 두 마이그레이션을 적용해야 활성화 증거 기록과 폴더 유일성 제약이 실제로 걸린다. 같은 실행에서 확인된 실제 Jev 성능: taskAccuracy≈0.60~0.62, folderTemplateAccuracy≈0.53 — AIDOC-04 임계값(0.85/0.80) 미달로 활성화는 정상적으로 차단됨.
 
 - **Toss Payments merchant keys are now the active blocker on Phase 5.** Confirmed 2026-09-15: no Toss client, widget, or webhook handler exists anywhere in the repo. Phase 5's CONTEXT/RESEARCH/UI-SPEC/VALIDATION are all complete and ready for /gsd:plan-phase — only the keys are missing. Pitfalls research flagged the merchant application + 사업자등록 (~2+ week external review) as the likely real critical path to launch.
 - 선불전자지급수단 (prepaid payment instrument) regulatory classification not yet confirmed by a PG compliance team or lawyer — current no-cash-out, single-merchant design appears to qualify for exemption but this is unverified. Not blocking v1, but must be revisited before ever scoping cash-out or an asset store.
 - Phase 4 (AI Gateway) and Phase 5 (Real Payment Integration) were flagged by research as needing a dedicated research-phase pass before detailed planning (Gemini rate-limit/pricing/context-window specifics; Toss webhook payload verification against live docs).
 - (Resolved 2026-08-28) Kakao login was blocked by KOE205: Supabase's Kakao provider requests `account_email profile_image profile_nickname` as a fixed scope set, but only `account_email` was enabled as a consent item in Kakao Developers console. Fixed by enabling all three consent items. Any future Kakao/OAuth provider work should check ALL requested scopes against console config, not just the one business logic cares about.
-- SUPABASE_DB_URL unreachable (tenant/user not found) - Phase 7 DB suites verified only on local PGlite; real Supabase apply + rerun required before 07-07
+- ~~SUPABASE_DB_URL unreachable (tenant/user not found) - Phase 7 DB suites verified only on local PGlite; real Supabase apply + rerun required before 07-07~~ — RESOLVED: Phase 7 DB 검증이 실제 DB로 통과 (07-07). 현재 환경 접속 가능 여부는 별도.
 
 ## Session Continuity
 
 Last session: 2026-10-02T02:34:57.142Z
 Stopped at: Phase 17 context gathered
-Next: 두 트랙이 열려 있다 —
+Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
-  - **v1.1:** `/gsd:plan-phase 8` (Phase 8은 기존 `lib/ai/gemini.ts` DI 패턴 일반화 + commerce `idempotencyKey` 패턴 복제라 research-phase 생략 가능; Phase 12는 research-phase 필수)
-  - **v1.0 잔여:** `/gsd:plan-phase 7` — 컨텍스트 수집 완료. 프론트 비중이 커 `/gsd:ui-phase 7`을 먼저 돌리는 것도 가능
+  - **v1.1:** Phase 11 실행 대기 (`/gsd:execute-phase 11`, 계획 8개 완료). 그 전에 Phase 8 BUG-04(사고·본문 몫 분리) 정책 결정. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
+  - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
 Resume file: .planning/phases/17-bugfix-consolidation/17-CONTEXT.md
 

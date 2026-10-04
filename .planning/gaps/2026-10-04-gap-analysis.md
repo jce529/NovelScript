@@ -25,21 +25,26 @@
 - Phase 6 (유료 회차·90:10 정산): DB 테스트 통과, 브라우저 E2E·독립 세션 동시성 미검증. 정산율 90%는 잠정값.
 - Phase 15 (Jev AI 문서): 코드 완료. 데이터 정책 검토·실제 벤더 평가·shadow 샘플·브라우저 UAT 없어 활성화 차단 (15-09 Task 2).
 - Phase 16: Jev·브라우저·모바일 실사용 검증 대기.
-- Phase 7: 경고 확인 유지·정지 사용자 화면 2건 미확인 + F-2(자기제재 문구)·F-3(테스트 신고 잔여물). `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md` 참조.
+- Phase 7: 경고 확인 유지·정지 사용자 화면 2건 미확인; F-2·F-3은 이미 수정됨(fixed/07-04, 07-05). `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md` 참조.
 - Phase 4: 라이브 GEMINI_API_KEY UAT 미완 (2026-09-29 `gemini-3.5-flash` 429, 키·쿼터 문제).
 
-## 3. 문서 불일치
+## 3. 문서 불일치 — 2026-10-04 정정 완료
 
-- ROADMAP의 "완료" 기준이 phase마다 다름: Phase 6·15·16은 `[x]`인데 검증 대기, Phase 5는 `[ ]`.
-- STATE.md: `completed_plans: 73` vs Performance Metrics `Total plans completed: 0` 모순.
-- STATE.md: Phase 11은 PLANNED인데 `stopped_at`은 "Phase 17 context gathered" → 현재 위치 불명확.
-- progress 카운터가 v1.1 기준과 v1.0 잔여분이 섞여 읽기 어려움.
+실제 파일 대조로 찾아 고친 항목:
+- REQUIREMENTS.md 1행에 traceability 쓰레기 표가 제목과 한 줄로 붙어 있던 것 제거.
+- REQUIREMENTS.md traceability: ADMIN-01~04, PROV-02~05·07, BYOK-01~04가 체크박스는 `[x]`인데 표는 `Mapped`였던 것 → `Complete`.
+- STATE.md: `completed_phases` 10→12, `completed_plans` 73→71(SUMMARY 실측), percent 56→85; 마일스톤 카운터 설명 정정; phase 표에 16·17 추가; 갱신 끊긴 Performance Metrics 삭제; 해결된 Pending Todos·Blockers 취소선 처리; Phase 7 todo 링크 추가; Next 갱신.
+- ROADMAP.md Phase 8 행의 "build red: BUG-03" 제거(07-03에서 수정됨).
+- Phase 7 todo의 F-2·F-3·병렬·lint "미수정" 표기 → 해결됨(fixed/07-04~07).
+- 09 폴더 중복(`09-openai-anthropic-adapters-pricing`, 09-19자 구버전 CONTEXT) 삭제.
+
+미정정(실제 검증이 필요해 문서만으로 못 고침): 마이그레이션 0010/0011 실DB 적용 여부, Phase 10 VERIFICATION.md 부재(UAT 10·11단계 일부 미확인).
 
 ## 4. 열린 결정·버그
 
 - BUG-04 (Phase 8): 사고 토큰이 출력 예산을 잠식해 본문 잘림. 정책 결정 보류 — **사용자 판단 필요**. 후보 4(사고·본문 몫 분리)와 정적 검사·리서치는 기록됨.
 - SEED-001: 안전 거절 환불 루프 아이디어 (dormant, v1.1 이후 재검토).
-- eslint 기존 경고 23건 누적 (Phase 7 이전 파일).
+- ~~eslint 23건~~ — 이미 해결(fixed/07-07, 재측정 오류 0·경고 7건 정리, `--max-warnings=0`).
 - 코드 내 TODO/FIXME: 0건.
 
 ## 5. 법무·비즈니스 (`origin/business` 브랜치에만 존재, master와 공통 조상 없음)
