@@ -40,6 +40,8 @@
 
 미정정(실제 검증이 필요해 문서만으로 못 고침): 마이그레이션 0010/0011 실DB 적용 여부, ~~Phase 10 VERIFICATION.md 부재~~ — 작성함(`phases/10-byok/10-VERIFICATION.md`, 기존 SUMMARY·VALIDATION 근거). UAT 10·11단계 일부 미확인은 그 문서 residual에 남음.
 
+> 추가 처리(2026-10-04): Phase 7·Phase 1 VERIFICATION.md 작성, REQUIREMENTS v1 traceability `Mapped`→`Complete`(EDIT-04/05는 라이브 키 UAT 대기 표기).
+
 ## 4. 열린 결정·버그
 
 - BUG-04 (Phase 8): 사고 토큰이 출력 예산을 잠식해 본문 잘림. 정책 결정 보류 — **사용자 판단 필요**. 후보 4(사고·본문 몫 분리)와 정적 검사·리서치는 기록됨.

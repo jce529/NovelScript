@@ -195,30 +195,30 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Mapped |
-| AUTH-02 | Phase 1 | Mapped |
-| AUTH-03 | Phase 1 | Mapped |
-| KB-01 | Phase 2 | Mapped |
-| KB-02 | Phase 2 | Mapped |
-| KB-03 | Phase 04.1 | Mapped |
-| KB-04 | Phase 04.1 | Mapped |
-| KB-05 | Phase 04.1 | Mapped |
-| EDIT-01 | Phase 4 | Mapped |
-| EDIT-02 | Phase 4 | Mapped |
-| EDIT-03 | Phase 4 | Mapped |
-| EDIT-04 | Phase 4 | Mapped |
-| EDIT-05 | Phase 4 | Mapped |
-| CONT-01 | Phase 2 | Mapped |
-| CONT-02 | Phase 2 | Mapped |
-| CONT-03 | Phase 2 | Mapped |
-| READ-01 | Phase 3 | Mapped |
-| READ-02 | Phase 3 | Mapped |
-| READ-03 | Phase 3 | Mapped |
-| READ-04 | Phase 3 | Mapped |
-| READ-05 | Phase 3 | Mapped |
-| READ-07 | Phase 3 | Mapped |
-| READ-08 | Phase 3 | Mapped |
-| READ-09 | Phase 3 | Mapped |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| KB-01 | Phase 2 | Complete |
+| KB-02 | Phase 2 | Complete |
+| KB-03 | Phase 04.1 | Complete |
+| KB-04 | Phase 04.1 | Complete |
+| KB-05 | Phase 04.1 | Complete |
+| EDIT-01 | Phase 4 | Complete |
+| EDIT-02 | Phase 4 | Complete |
+| EDIT-03 | Phase 4 | Complete |
+| EDIT-04 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
+| EDIT-05 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
+| CONT-01 | Phase 2 | Complete |
+| CONT-02 | Phase 2 | Complete |
+| CONT-03 | Phase 2 | Complete |
+| READ-01 | Phase 3 | Complete |
+| READ-02 | Phase 3 | Complete |
+| READ-03 | Phase 3 | Complete |
+| READ-04 | Phase 3 | Complete |
+| READ-05 | Phase 3 | Complete |
+| READ-07 | Phase 3 | Complete |
+| READ-08 | Phase 3 | Complete |
+| READ-09 | Phase 3 | Complete |
 | PAY-01 | Phase 5 | Mapped |
 | PAY-02 | Phase 6 | Complete (DB tests passed 2026-10-01; browser E2E pending) |
 | PAY-03 | Phase 5 | Mapped |
