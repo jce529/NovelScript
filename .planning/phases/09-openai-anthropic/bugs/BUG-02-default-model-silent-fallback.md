@@ -1,7 +1,7 @@
 ---
 id: BUG-02
 title: 계정 기본 모델을 쓸 수 없을 때 이유 설명 없이 조용히 다른 모델로 대체됨
-status: open (수정 방향 확정 2026-10-07 — 세부 정책 몇 건은 사용자 결정 대기)
+status: open (서버 부분 수정 완료 2026-10-07 — UI 선택 창은 Phase 11 이후)
 severity: medium (BYOK→서비스 키 대체는 작가가 거부한 플랫폼 비용을 조용히 쓰게 할 수 있음)
 found: 2026-10-07
 found_during: Phase 9 옛 CONTEXT(2026-09-19, 삭제본) 결정 D-10c와 현행 코드 대조 중
@@ -90,6 +90,25 @@ BYOK → 서비스 키 대체는 작가의 지갑 토큰이 쓰인다. 선택 �
 3. **서비스 키 → 서비스 키 대체**(퇴역 모델 → Gemini 기본 등 비용 주체가 같은 경우)도 선택 창을 띄울지, 안내 배너만으로 충분한지.
 4. **`service_key_missing`**(서버 환경변수 누락)을 대체 대상으로 볼지, 목록에서 숨길지(옛 D-03)는 [BUG-03](BUG-03-service-key-missing-models-listed.md)에서 논의한다(사용자가 나중에 논의하기로 함, 2026-10-07). 그때까지 위 원인 표와 링크 표의 해당 행은 잠정안이다.
 5. 창을 **Phase 11 실패 UX**(`11-UI-SPEC.md`의 알림 슬롯·1탭 재시도)와 같은 컴포넌트로 만들지 — Phase 11이 실행 전이라 UI 패턴 확정 전이다.
+
+## 사용자 결정 (2026-10-07) 및 적용 내용
+
+결정: ① 선택 창이 뜨면 전송 차단 ② 동의 결과는 이번 패널 세션만(계정 기본값 보존) ③ 서비스→서비스 대체는 안내 배너만 ④ 서버 부분만 먼저, UI는 Phase 11 이후. `service_key_missing`은 BUG-03 논의 후.
+
+**적용(서버 부분):**
+- `lib/ai/providers/settings.ts`: `resolveDefaultProviderModel`이 `{ selection, fallback? }` 반환. `fallback.reason`은 `not_set | model_retired | byok_key_missing | byok_model_unavailable`, `original`/`suggested`/`requiresConsent`(BYOK→서비스 키일 때만 true). `getDefaultProviderModel`은 기존 시그니처 유지(selection만 반환)해 설정 페이지·`byok.ts` 호출부는 그대로.
+- `actions.ts`: `loadChapter`·`getNodeAiContextAction`이 `defaultFallback`을 함께 내려보냄(클라이언트는 아직 미사용).
+- 테스트: `tests/ai/provider-settings.test.ts`에 원인별 5건 추가.
+
+### 사전 리서치 (2026-10-07, Haiku 서브에이전트 조사 — 구현 전 코드·문서 대조 필요)
+
+- **Phase 11과 겹침:** `11-CONTEXT.md` D-06 / `11-UI-SPEC.md`의 "대체 동의" 카드(제목·본문·"서비스 키로 보내기 (지갑 토큰 차감)"/"취소", 초기 포커스 취소, 보조 링크 "설정에서 키 확인")가 BYOK→서비스 키 선택 창과 같은 UI다. 별도 컴포넌트를 만들지 말고 Phase 11 카드를 재사용한다(결정 5).
+- **Phase 11이 다루지 않는 부분(BUG-02 몫):** `not_set`·`model_retired` 이유 배너, 서비스→서비스 대체 안내 배너, AiPanel "계정 기본값" 박스(`AiPanel.tsx` ~318행)의 대체 이유 표시, `defaultFallback` props 전달.
+- **키 무효:** `loadConnectedByokModels`는 `status === 'connected'`만 포함하므로 무효 키는 연결 목록에서 빠지고 `byok_key_missing`으로 분류된다. 삭제와 무효를 구분하려면 별도 조회가 필요하다(현재는 구분하지 않음).
+- **테스트 패턴:** `tests/ai/ai-panel-model.test.ts`(`renderToStaticMarkup` 기반), `ai-panel-notice.test.ts`.
+- **상태:** Phase 11은 Planned(0/8, 실행 전).
+
+**남은 부분(Phase 11 이후):** AiPanel 선택 창·배너(전송 차단, 패널 세션 한정 동의, Phase 11 대체 동의 카드 재사용), 원인 문구 한곳 모음(`byok-copy.ts`), `resolveDeleteReplacement`와 원인 코드 통일, 동의 전 BYOK→서비스 호출 차단 서버 테스트(chatAction에 BYOK 경로가 붙은 뒤), 키 삭제 vs 무효 구분 여부 결정.
 
 ## 의존·주의
 

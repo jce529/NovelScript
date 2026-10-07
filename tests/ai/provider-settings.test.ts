@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getDefaultProviderModel, setDefaultProviderModel } from '@/lib/ai/providers/settings';
+import { getDefaultProviderModel, resolveDefaultProviderModel, setDefaultProviderModel } from '@/lib/ai/providers/settings';
 
 function profileStore(initial: { default_provider: string | null; default_model: string | null; default_key_source?: string | null } | null = null) {
   let row = initial;
@@ -83,5 +83,36 @@ describe('account default provider/model', () => {
     expect(await setDefaultProviderModel(store.supabase, 'owner-1', { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' }, {}))
       .toMatchObject({ ok: false, error: '연결된 BYOK 키에서 확인된 모델이 아니에요.' });
     expect(store.writes).toBe(1);
+  });
+
+  describe('resolveDefaultProviderModel fallback reasons', () => {
+    const gemini = { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' };
+    it('reports not_set for an empty profile', async () => {
+      const r = await resolveDefaultProviderModel(profileStore().supabase, 'owner-1');
+      expect(r).toEqual({ selection: gemini, fallback: { reason: 'not_set', original: null, suggested: gemini, requiresConsent: false } });
+    });
+    it('reports model_retired for an unknown model', async () => {
+      const r = await resolveDefaultProviderModel(profileStore({ default_provider: 'openai', default_model: 'gone-model' }).supabase, 'owner-1');
+      expect(r.fallback).toMatchObject({ reason: 'model_retired', requiresConsent: false });
+      expect(r.selection).toEqual(gemini);
+    });
+    it('reports byok_key_missing and requires consent before switching to the service key', async () => {
+      const store = profileStore({ default_provider: 'openai', default_model: 'gpt-4o-mini', default_key_source: 'byok' });
+      const r = await resolveDefaultProviderModel(store.supabase, 'owner-1', {});
+      expect(r.fallback).toMatchObject({ reason: 'byok_key_missing', requiresConsent: true });
+      expect(r.fallback?.original).toEqual({ providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' });
+      expect(r.selection.keySource).toBe('service');
+    });
+    it('reports byok_model_unavailable when the key exists but the model is not connected', async () => {
+      const store = profileStore({ default_provider: 'openai', default_model: 'gpt-4o-mini', default_key_source: 'byok' });
+      const r = await resolveDefaultProviderModel(store.supabase, 'owner-1', { openai: ['gpt-4o'] });
+      expect(r.fallback).toMatchObject({ reason: 'byok_model_unavailable', requiresConsent: true });
+    });
+    it('has no fallback when the default is usable', async () => {
+      const byok = profileStore({ default_provider: 'openai', default_model: 'gpt-4o-mini', default_key_source: 'byok' });
+      expect((await resolveDefaultProviderModel(byok.supabase, 'owner-1', { openai: ['gpt-4o-mini'] })).fallback).toBeUndefined();
+      const svc = profileStore({ default_provider: 'openai', default_model: 'gpt-4o-mini' });
+      expect((await resolveDefaultProviderModel(svc.supabase, 'owner-1')).fallback).toBeUndefined();
+    });
   });
 });

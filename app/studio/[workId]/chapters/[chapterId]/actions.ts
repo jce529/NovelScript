@@ -16,7 +16,7 @@ import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { isKnownModel } from '@/lib/ai/providers/catalog';
-import { getDefaultProviderModel } from '@/lib/ai/providers/settings';
+import { resolveDefaultProviderModel } from '@/lib/ai/providers/settings';
 import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
@@ -46,8 +46,8 @@ export async function getChapterAction(chapterId: string) {
   const content = await readChapterContent(supabase, chapterId);
   if (content === null) return null;
   const byokModels = await loadConnectedByokModels(supabase, user.id);
-  const defaultProviderModel = await getDefaultProviderModel(supabase, user.id, byokModels);
-  return { ...data, content, genre: work?.genre ?? null, defaultProviderModel, byokModels };
+  const { selection: defaultProviderModel, fallback: defaultFallback } = await resolveDefaultProviderModel(supabase, user.id, byokModels);
+  return { ...data, content, genre: work?.genre ?? null, defaultProviderModel, defaultFallback, byokModels };
 }
 
 export async function saveChapterContentAction(workId: string, chapterId: string, content: string) {
@@ -372,8 +372,8 @@ export async function getNodeAiContextAction(workId: string, nodeId: string) {
   if (!node || node.work_id !== workId) return null;
   const { data: work } = await supabase.from('works').select('genre').eq('id', workId).eq('owner_id', user.id).maybeSingle();
   const byokModels = await loadConnectedByokModels(supabase, user.id);
-  const defaultProviderModel = await getDefaultProviderModel(supabase, user.id, byokModels);
-  return { genre: work?.genre ?? null, defaultProviderModel, byokModels, node: { id: node.id, name: node.name, category: node.category } };
+  const { selection: defaultProviderModel, fallback: defaultFallback } = await resolveDefaultProviderModel(supabase, user.id, byokModels);
+  return { genre: work?.genre ?? null, defaultProviderModel, defaultFallback, byokModels, node: { id: node.id, name: node.name, category: node.category } };
 }
 
 const importSchema = z.object({
