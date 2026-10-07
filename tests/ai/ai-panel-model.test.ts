@@ -107,6 +107,13 @@ describe('AI panel model picker', () => {
       expect(sendDisabled(html)).toBe(true);
     });
 
+    it('keeps the account default box on the original BYOK setting while the notice is shown', () => {
+      const html = render({ defaultProviderId: 'openai', defaultModel: 'gpt-4o-mini', defaultKeySource: 'service', byokModels: {}, defaultFallback: consent });
+      const box = html.slice(html.indexOf('계정 기본값'), html.indexOf('설정에서 변경'));
+      expect(box).toContain('BYOK');
+      expect(box).not.toContain('서비스 키');
+    });
+
     it('shows a dismissable banner without blocking when no cost owner change is involved', () => {
       const html = render({ ...serviceDefault, byokModels: {}, defaultFallback: { reason: 'model_retired', original: null, suggested: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' }, requiresConsent: false } });
       expect(html).toContain('data-fallback-reason="model_retired"');

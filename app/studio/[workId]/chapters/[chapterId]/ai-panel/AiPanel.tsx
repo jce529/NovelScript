@@ -122,6 +122,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const modelChoices = buildModelChoices(byokModels);
   // 대체 동의·다른 모델 선택·배너 닫기 중 하나가 일어나면 해소된다(이번 패널 세션만, 계정 기본값은 그대로).
   const [fallbackResolved, setFallbackResolved] = useState(false);
+  // 계정 기본값 박스는 대체된 값이 아니라 작가가 실제로 설정한 값을 보여 준다.
+  const accountDefault = defaultFallback?.original ?? { providerId: defaultProviderId, model: defaultModel, keySource: defaultKeySource };
   const consentPending = Boolean(defaultFallback?.requiresConsent) && !fallbackResolved;
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
@@ -331,7 +333,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
             </Select>
             <p className="text-xs text-muted-foreground">이 대화가 끝날 때까지 유지돼요</p>
             <div className="rounded-md border border-border p-2 text-xs text-muted-foreground">
-              {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[defaultProviderId]} {'\u00B7'} {PROVIDER_MODELS[defaultProviderId].find((entry) => entry.id === defaultModel)?.displayName ?? defaultModel} <Badge variant={defaultKeySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[defaultKeySource]}</Badge>
+              {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[accountDefault.providerId]} {'\u00B7'} {PROVIDER_MODELS[accountDefault.providerId].find((entry) => entry.id === accountDefault.model)?.displayName ?? accountDefault.model} <Badge variant={accountDefault.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[accountDefault.keySource]}</Badge>
               {' · '}<Link className="underline" href="/studio/settings/ai-providers">설정에서 변경</Link>
             </div>
             <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
