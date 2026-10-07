@@ -112,9 +112,9 @@ BYOK → 서비스 키 대체는 작가의 지갑 토큰이 쓰인다. 선택 �
 - `DefaultFallbackNotice.tsx`(신규): 원인 문구 + "설정에서 확인" 링크(`/studio/settings/ai-providers`) + 선택지. `requiresConsent`이면 동의 카드("서비스 키로 계속 (지갑 토큰 차감)" / "다른 모델 고르기"), 아니면 닫을 수 있는 안내 배너.
 - `AiPanel.tsx`: `defaultFallback` props. 동의 대기 중에는 입력·보내기·재시도·재생성 차단. 동의·다른 모델 선택·배너 닫기 중 하나로 해소(패널 세션 한정, 계정 기본값은 저장하지 않음). 두 페이지(`chapters/[chapterId]/page.tsx`, `kb/[nodeId]/page.tsx`)가 `defaultFallback`을 전달.
 - `byok-copy.ts`: `FALLBACK_COPY` 문구 모음.
-- 테스트 3건(`tests/ai/ai-panel-model.test.ts`). 전체 1172건 통과, `tsc`·`eslint` 통과. 임시 미리보기 페이지(mock props, 커밋 안 함)에서 동의 카드·배너·차단/해제 동작을 브라우저로 확인했다(동의 클릭, 다른 모델 선택, 배너 닫기). 실제 계정 화면 확인은 원격 DB 쓰기가 권한 검사에서 막혀 하지 못했다.
+- 테스트 3건(`tests/ai/ai-panel-model.test.ts`). 전체 1172건 통과, `tsc`·`eslint` 통과. 임시 미리보기 페이지(mock props, 커밋 안 함)에서 동의 카드·배너·차단/해제 동작을 브라우저로 확인했다(동의 클릭, 다른 모델 선택, 배너 닫기). 실제 `/studio` 챕터 편집기에서도 확인했다(2026-10-07, 사용자가 `profiles`를 openai/gpt-4o-mini/byok로 임시 변경): 서버 `byok_key_missing` → 동의 카드 표시, 입력 차단, 동의 후 해제. **발견:** 이때 "계정 기본값" 박스가 원래 설정(BYOK)이 아니라 대체된 값(`OpenAI GPT-4o mini 서비스 키`)을 표시한다 — `fallback.original`을 보여 주도록 후속 수정 필요.
 
-**남은 부분:** Phase 11에서 AiPanel의 `keySource === 'byok'` 차단이 제거되고 알림 슬롯이 확장될 때 `DefaultFallbackNotice`를 11-UI-SPEC 대체 동의 카드와 통합(중복 문구·포커스 규칙 정리), `resolveDeleteReplacement`와 원인 코드 통일, 동의 전 BYOK→서비스 호출 차단 서버 테스트(`chatAction`에 BYOK 경로가 붙은 뒤), 키 삭제 vs 무효 구분 여부 결정, 실제 `/studio` 화면 수동 확인(`profiles.default_key_source='byok'`인데 키 없는 계정으로 챕터 편집기 열기).
+**남은 부분:** Phase 11에서 AiPanel의 `keySource === 'byok'` 차단이 제거되고 알림 슬롯이 확장될 때 `DefaultFallbackNotice`를 11-UI-SPEC 대체 동의 카드와 통합(중복 문구·포커스 규칙 정리), `resolveDeleteReplacement`와 원인 코드 통일, 동의 전 BYOK→서비스 호출 차단 서버 테스트(`chatAction`에 BYOK 경로가 붙은 뒤), 키 삭제 vs 무효 구분 여부 결정, "계정 기본값" 박스가 `fallback.original`(원래 설정)을 표시하도록 수정.
 
 ## 의존·주의
 
