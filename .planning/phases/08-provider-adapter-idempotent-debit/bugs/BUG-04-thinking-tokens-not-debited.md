@@ -1,7 +1,7 @@
 ---
 id: BUG-04
 title: 사고(thinking) 토큰이 maxOutputTokens 예산을 잠식해 본문이 잘림
-status: open (단계 A는 Phase 17에서 확정, 단계 B는 2026-10-07 후보 4 채택 — 범위·BYOK·시점 방침 확정, 구현은 관측 후)
+status: open (정책 결정 완료 2026-10-08 — 단계 A는 Phase 17, 단계 B는 후보 4 Gemini만·BYOK 제외, `T` 기본값은 관측 후. 남은 일은 구현뿐)
 severity: low (품질 체감 문제, 빈도 미확인)
 found: 2026-09-18
 found_during: 08-09 실제 Gemini 보정 측정
@@ -56,6 +56,7 @@ related_fixed: .planning/fixed/08-04 사고 토큰 차감 누락 수정.md
 3. ~~BYOK 호출에도 사고 상한 `T`를 적용할지~~ — **적용하지 않음, 제공자 기본 동작 (2026-10-07, 추천안 수용)**. BYOK는 작가 비용이고 출력 상한 8192가 이미 확정(BYOK-09)이라 서비스 키용 `T`를 강제하지 않는다. 재논의는 후보 5(작가 조절형) 때 한다.
 4. ~~관측을 어느 시점에 시작할지~~ — **관측 로그 먼저, `T/B` 구현은 Phase 11 이후 (2026-10-07, 추천안 수용)**. 순서는 관측 로그 → 실키 A/B → 채택·조정이다. `wasCapped`·사고 비율 로그는 `paid-generation.ts` 정산 후 성공 반환 전에 추가하고, `cost.ts` 상한 계산·`gemini.ts` `config` 변경은 Phase 11의 `preflightPaidGeneration`/`settlePaidGeneration` 수정 뒤에 한다. 참고: Phase 11의 `ai_usage`(성공·거부 호출의 토큰 수 기록)가 사고 토큰을 별도 필드로 남기므로(`11-CONTEXT.md` D-14) 사고 비율은 그 데이터로도 일부 볼 수 있다. 단 `wasCapped`는 `ai_usage`에 없다.
 5. 후보 5(작가 조절형): **보류 (2026-10-07)** — 후보 4를 먼저 진행하고 효과를 본 뒤 별도 phase로 재논의한다. 사고 "끔/최소" 기본값(F)을 UI 없이 먼저 넣을지는 후보 4의 `T` 기본값 설계에서 같이 정한다.
+6. ~~`T` 기본값·사고 "끔/최소"(F) 여부~~ — **관측 후 결정 (2026-10-08, 추천안 수용)**. 지금은 `thinkingConfig`를 건드리지 않는다. 관측 로그 → 실키 A/B 결과로 `T` 기본값과 F를 함께 정한다. 이로써 **정책 결정은 모두 끝났고, 남은 것은 관측 데이터가 필요한 구현 단계뿐이다.** Phase 11 실행을 막는 정책 결정은 없다.
 
 ### 의존 관계
 - **Phase 11:** `preflightPaidGeneration`/`settlePaidGeneration` 공통 경로를 수정한다. 후보 4의 상한 계산(`cost.ts`)과 같은 영역이라 Phase 11 이후에 구현하면 BYOK 분기와 두 번 겹쳐 고치지 않아도 된다.

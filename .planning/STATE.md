@@ -4,14 +4,13 @@ milestone: v1.1
 milestone_name: Overview
 status: executing
 stopped_at: Phase 17 context gathered
-last_updated: "2026-10-04T00:00:00.000Z"
-last_activity: 2026-10-04 -- 문서-실제 괴리 정정 (STATE·REQUIREMENTS·ROADMAP·Phase 7 todo)
+last_updated: "2026-10-07T23:59:23.611Z"
+last_activity: 2026-10-07 -- Phase 11 execution started
 progress:
   total_phases: 18
-  completed_phases: 12
+  completed_phases: 10
   total_plans: 84
-  completed_plans: 71
-  percent: 85
+  completed_plans: 73
 ---
 
 # Project State
@@ -21,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 11 — byok-ux (계획 완료, 실행 대기)
+**Current focus:** Phase 11 — byok-ux
 
 ## Current Position
 
-Phase: 11 (byok-ux) — PLANNED
-Plan: 0 of 8 (실행 전)
-Status: Ready to execute
-Last activity: 2026-10-01 -- Phase 5·6 DB 검증, Phase 11 계획 완료, 문서 동기화
+Phase: 11 (byok-ux) — EXECUTING
+Plan: 1 of 8
+Status: Executing Phase 11
+Last activity: 2026-10-07 -- Phase 11 execution started
 
 **출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
 
@@ -161,7 +160,7 @@ Last session: 2026-10-02T02:34:57.142Z
 Stopped at: Phase 17 context gathered
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
-  - **v1.1:** Phase 11 실행 대기 (`/gsd:execute-phase 11`, 계획 8개 완료). 그 전에 Phase 8 BUG-04(사고·본문 몫 분리) 정책 결정. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
+  - **v1.1:** Phase 11 실행 대기 (`/gsd:execute-phase 11`, 계획 8개 완료). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
 Resume file: .planning/phases/17-bugfix-consolidation/17-CONTEXT.md
