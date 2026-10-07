@@ -14,7 +14,7 @@ import {
 } from './actions';
 import { ReviewRequestPanel } from '@/components/moderation/review-request';
 import { AiPanel, type MentionedNode } from './ai-panel/AiPanel';
-import type { ProviderModelPair } from '@/lib/ai/providers/settings';
+import type { DefaultFallback, ProviderModelPair } from '@/lib/ai/providers/settings';
 import type { ByokModelMap } from '@/lib/ai/providers/selection';
 import { MentionAutocomplete, type MentionCandidate } from './ai-panel/MentionAutocomplete';
 
@@ -31,6 +31,7 @@ export default function ChapterEditorPage({
   const [isPaid, setIsPaid] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [defaultProviderModel, setDefaultProviderModel] = useState<ProviderModelPair | null>(null);
+  const [defaultFallback, setDefaultFallback] = useState<DefaultFallback | null>(null);
   const [byokModels, setByokModels] = useState<ByokModelMap>({});
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -46,6 +47,7 @@ export default function ChapterEditorPage({
         setIsPaid(chapter.price_tier !== null);
         setGenre(chapter.genre ?? null);
         setDefaultProviderModel(chapter.defaultProviderModel);
+        setDefaultFallback(chapter.defaultFallback ?? null);
         setByokModels(chapter.byokModels);
       }
       setLoaded(true);
@@ -186,6 +188,7 @@ export default function ChapterEditorPage({
           defaultProviderId={defaultProviderModel.providerId}
           defaultModel={defaultProviderModel.model}
           defaultKeySource={defaultProviderModel.keySource}
+          defaultFallback={defaultFallback}
           byokModels={byokModels}
           workId={workId}
           chapterId={chapterId}

@@ -12,6 +12,21 @@ export function byokFailureMessage(reason: ByokFailureReason, providerLabel: str
   };
   return copy[reason];
 }
+export const FALLBACK_COPY = {
+  reason: {
+    not_set: () => '계정 기본 모델이 설정돼 있지 않아서 시스템 기본 모델을 쓰고 있어요.',
+    model_retired: () => '설정해 둔 기본 모델을 더 이상 쓸 수 없어서 시스템 기본 모델로 바꿨어요.',
+    byok_key_missing: (label: string) => `설정해 둔 ${label} [내 키]를 쓸 수 없어요. 등록된 키가 없거나 키 확인에 실패했어요.`,
+    byok_model_unavailable: (label: string) => `설정해 둔 ${label} [내 키]는 지금 연결된 키에서 쓸 수 없는 모델이에요.`,
+  },
+  consentTitle: '대신 서비스 키로 보낼까요?',
+  consentBody: (label: string) => `${label} [서비스 키]로 보낼 수 있어요. 이 경우 지갑 토큰이 차감돼요.`,
+  consent: '서비스 키로 계속 (지갑 토큰 차감)',
+  fixLink: '설정에서 확인',
+  pickOther: '다른 모델 고르기',
+  bannerTitle: '기본 모델이 바뀌어 있어요',
+  dismiss: '닫기',
+} as const;
 export const BYOK_COPY = {
   sectionHeading: '내 API 키',
   sectionBody: '제공자별로 키를 하나씩 등록할 수 있어요. 키 검증은 모델 목록 조회로 진행되며 생성 요금은 발생하지 않아요.',

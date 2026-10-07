@@ -37,6 +37,8 @@ import type { KbCategory } from '@/lib/kb/categories';
 import { chatAction } from '../actions';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { AiPanelNotice } from './AiPanelNotice';
+import { DefaultFallbackNotice } from './DefaultFallbackNotice';
+import type { DefaultFallback } from '@/lib/ai/providers/settings';
 import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
 import { UploadFilesDialog } from './UploadFilesDialog';
 import type { ChatAttachment } from '@/lib/ai/attachments';
@@ -57,6 +59,8 @@ export interface AiPanelProps {
   defaultProviderId: ProviderId;
   defaultModel: string;
   defaultKeySource: KeySource;
+  /** 계정 기본 모델이 대체됐을 때의 이유(BUG-02). 없으면 대체 없음. */
+  defaultFallback?: DefaultFallback | null;
   byokModels: ByokModelMap;
   /** Current editor textarea content (chapter body or 설정 문서) — used as precedingText for cost estimate + generation. */
   content: string;
@@ -111,11 +115,14 @@ interface SendPayload {
   attachments: ChatAttachment[];
 }
 
-export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
+export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, defaultFallback, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [providerId, setProviderId] = useState<ProviderId>(defaultProviderId);
   const [model, setModel] = useState<string>(defaultModel);
   const [keySource, setKeySource] = useState<KeySource>(defaultKeySource);
   const modelChoices = buildModelChoices(byokModels);
+  // 대체 동의·다른 모델 선택·배너 닫기 중 하나가 일어나면 해소된다(이번 패널 세션만, 계정 기본값은 그대로).
+  const [fallbackResolved, setFallbackResolved] = useState(false);
+  const consentPending = Boolean(defaultFallback?.requiresConsent) && !fallbackResolved;
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
@@ -232,7 +239,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   }
 
   function handleSend() {
-    if (keySource === 'byok') return;
+    if (keySource === 'byok' || consentPending) return;
     const trimmed = chatInput.trim();
     if (!trimmed || isGenerating || lockRef.current.locked) return;
     const failed = failedAttemptRef.current;
@@ -245,7 +252,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
 
   /** 다시 시도: same key, same snapshot (UI-SPEC §1 row 2). */
   function handleRetry() {
-    if (keySource === 'byok') return;
+    if (keySource === 'byok' || consentPending) return;
     const attempt = failedAttemptRef.current;
     if (!attempt || isGenerating || lockRef.current.locked) return;
     void runAttempt(attempt);
@@ -259,7 +266,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   /** Drops the last AI turn (and the user message that prompted it, if any)
    * and resends the same request with a NEW key — a "redo" of the last exchange. */
   function handleRegenerate() {
-    if (keySource === 'byok') return;
+    if (keySource === 'byok' || consentPending) return;
     if (isGenerating || lockRef.current.locked) return;
     const withoutLastAssistant = messages.slice(0, -1);
     const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
@@ -283,6 +290,15 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     <aside className="flex h-[85vh] w-full flex-col gap-4 rounded-lg border border-border bg-background p-4 lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-96 lg:shrink-0 lg:gap-6 lg:p-6">
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
+      {defaultFallback && !fallbackResolved && (
+        <DefaultFallbackNotice
+          fallback={defaultFallback}
+          onConsent={() => setFallbackResolved(true)}
+          onPickOther={() => document.getElementById('ai-model-select')?.focus()}
+          onDismiss={() => setFallbackResolved(true)}
+        />
+      )}
+
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex w-full min-w-0 flex-col gap-1">
@@ -290,9 +306,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
             <Select value={encodeSelection({ providerId, model, keySource })} onValueChange={(value) => {
               const selection = value ? decodeSelection(value) : null;
               if (!selection || !modelChoices.some((choice) => choice.value === encodeSelection(selection))) return;
-              setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource);
+              setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource); setFallbackResolved(true);
             }}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="ai-model-select" className="w-full">
                 <SelectValue>
                   {(value: string) => {
                     const selection = decodeSelection(value);
@@ -510,10 +526,10 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
           placeholder="AI에게 메시지 보내기"
-          disabled={isGenerating}
+          disabled={isGenerating || consentPending}
           className="flex-1"
         />
-        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || keySource === 'byok'} onClick={handleSend}>
+        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || keySource === 'byok' || consentPending} onClick={handleSend}>
           보내기
         </Button>
       </div>

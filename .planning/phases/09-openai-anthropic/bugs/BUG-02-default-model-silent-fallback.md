@@ -1,7 +1,7 @@
 ---
 id: BUG-02
 title: 계정 기본 모델을 쓸 수 없을 때 이유 설명 없이 조용히 다른 모델로 대체됨
-status: open (서버 부분 수정 완료 2026-10-07 — UI 선택 창은 Phase 11 이후)
+status: open (서버·UI 수정 완료 2026-10-07 — 남은 항목은 Phase 11 연결 후, /bug-complete 대기)
 severity: medium (BYOK→서비스 키 대체는 작가가 거부한 플랫폼 비용을 조용히 쓰게 할 수 있음)
 found: 2026-10-07
 found_during: Phase 9 옛 CONTEXT(2026-09-19, 삭제본) 결정 D-10c와 현행 코드 대조 중
@@ -108,7 +108,13 @@ BYOK → 서비스 키 대체는 작가의 지갑 토큰이 쓰인다. 선택 �
 - **테스트 패턴:** `tests/ai/ai-panel-model.test.ts`(`renderToStaticMarkup` 기반), `ai-panel-notice.test.ts`.
 - **상태:** Phase 11은 Planned(0/8, 실행 전).
 
-**남은 부분(Phase 11 이후):** AiPanel 선택 창·배너(전송 차단, 패널 세션 한정 동의, Phase 11 대체 동의 카드 재사용), 원인 문구 한곳 모음(`byok-copy.ts`), `resolveDeleteReplacement`와 원인 코드 통일, 동의 전 BYOK→서비스 호출 차단 서버 테스트(chatAction에 BYOK 경로가 붙은 뒤), 키 삭제 vs 무효 구분 여부 결정.
+**적용(UI, 같은 날 사용자 요청으로 Phase 11 전에 진행):**
+- `DefaultFallbackNotice.tsx`(신규): 원인 문구 + "설정에서 확인" 링크(`/studio/settings/ai-providers`) + 선택지. `requiresConsent`이면 동의 카드("서비스 키로 계속 (지갑 토큰 차감)" / "다른 모델 고르기"), 아니면 닫을 수 있는 안내 배너.
+- `AiPanel.tsx`: `defaultFallback` props. 동의 대기 중에는 입력·보내기·재시도·재생성 차단. 동의·다른 모델 선택·배너 닫기 중 하나로 해소(패널 세션 한정, 계정 기본값은 저장하지 않음). 두 페이지(`chapters/[chapterId]/page.tsx`, `kb/[nodeId]/page.tsx`)가 `defaultFallback`을 전달.
+- `byok-copy.ts`: `FALLBACK_COPY` 문구 모음.
+- 테스트 3건(`tests/ai/ai-panel-model.test.ts`). 전체 1172건 통과, `tsc`·`eslint` 통과. 브라우저 수동 확인은 하지 않음.
+
+**남은 부분:** Phase 11에서 AiPanel의 `keySource === 'byok'` 차단이 제거되고 알림 슬롯이 확장될 때 `DefaultFallbackNotice`를 11-UI-SPEC 대체 동의 카드와 통합(중복 문구·포커스 규칙 정리), `resolveDeleteReplacement`와 원인 코드 통일, 동의 전 BYOK→서비스 호출 차단 서버 테스트(`chatAction`에 BYOK 경로가 붙은 뒤), 키 삭제 vs 무효 구분 여부 결정, 브라우저 수동 확인.
 
 ## 의존·주의
 

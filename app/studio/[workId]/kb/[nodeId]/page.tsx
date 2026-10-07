@@ -8,7 +8,7 @@ import { saveNodeContentAction, getNodeContentAction } from './actions';
 import { getNodeAiContextAction } from '../../chapters/[chapterId]/actions';
 import { AiPanel, type MentionedNode } from '../../chapters/[chapterId]/ai-panel/AiPanel';
 import { MentionAutocomplete, type MentionCandidate } from '../../chapters/[chapterId]/ai-panel/MentionAutocomplete';
-import type { ProviderModelPair } from '@/lib/ai/providers/settings';
+import type { DefaultFallback, ProviderModelPair } from '@/lib/ai/providers/settings';
 import type { ByokModelMap } from '@/lib/ai/providers/selection';
 
 export default function KbNodeEditorPage({
@@ -23,6 +23,7 @@ export default function KbNodeEditorPage({
   const [isPending, startTransition] = useTransition();
   const [genre, setGenre] = useState<string | null>(null);
   const [defaultProviderModel, setDefaultProviderModel] = useState<ProviderModelPair | null>(null);
+  const [defaultFallback, setDefaultFallback] = useState<DefaultFallback | null>(null);
   const [byokModels, setByokModels] = useState<ByokModelMap>({});
   const [mentionedNodes, setMentionedNodes] = useState<MentionedNode[]>([]);
 
@@ -35,6 +36,7 @@ export default function KbNodeEditorPage({
       if (ai) {
         setGenre(ai.genre);
         setDefaultProviderModel(ai.defaultProviderModel);
+        setDefaultFallback(ai.defaultFallback ?? null);
         setByokModels(ai.byokModels);
       } else {
         setDefaultProviderModel(null);
@@ -105,6 +107,7 @@ export default function KbNodeEditorPage({
           defaultProviderId={defaultProviderModel.providerId}
           defaultModel={defaultProviderModel.model}
           defaultKeySource={defaultProviderModel.keySource}
+          defaultFallback={defaultFallback}
           byokModels={byokModels}
           workId={workId}
           nodeId={nodeId}

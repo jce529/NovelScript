@@ -85,4 +85,34 @@ describe('AI panel model picker', () => {
     expect(byokHtml).toContain('BYOK 모델 호출은 아직 준비 중이에요');
     expect(render({ ...serviceDefault, ...withKey })).not.toContain('BYOK 모델 호출은 아직 준비 중이에요');
   });
+
+  describe('default model fallback notice (BUG-02)', () => {
+    const svc = { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' };
+    const consent = { reason: 'byok_key_missing', original: { ...svc, keySource: 'byok' }, suggested: svc, requiresConsent: true };
+    const sendDisabled = (html: string) => /<input[^>]*\sdisabled(=""|\s|>)/.test(html);
+
+    it('shows nothing when there is no fallback', () => {
+      const html = render({ defaultProviderId: 'openai', defaultModel: 'gpt-4o-mini', defaultKeySource: 'service', byokModels: {}, defaultFallback: null });
+      expect(html).not.toContain('data-fallback-reason');
+      expect(sendDisabled(html)).toBe(false);
+    });
+
+    it('shows reason, settings link and a consent choice, and blocks sending until resolved', () => {
+      const html = render({ defaultProviderId: 'openai', defaultModel: 'gpt-4o-mini', defaultKeySource: 'service', byokModels: {}, defaultFallback: consent });
+      expect(html).toContain('data-fallback-reason="byok_key_missing"');
+      expect(html).toContain('[내 키]를 쓸 수 없어요');
+      expect(html).toContain('서비스 키로 계속 (지갑 토큰 차감)');
+      expect(html).toContain('다른 모델 고르기');
+      expect(html).toContain('href="/studio/settings/ai-providers"');
+      expect(sendDisabled(html)).toBe(true);
+    });
+
+    it('shows a dismissable banner without blocking when no cost owner change is involved', () => {
+      const html = render({ ...serviceDefault, byokModels: {}, defaultFallback: { reason: 'model_retired', original: null, suggested: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' }, requiresConsent: false } });
+      expect(html).toContain('data-fallback-reason="model_retired"');
+      expect(html).toContain('기본 모델이 바뀌어 있어요');
+      expect(html).not.toContain('서비스 키로 계속');
+      expect(sendDisabled(html)).toBe(false);
+    });
+  });
 });
