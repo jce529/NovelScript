@@ -65,5 +65,11 @@ Tracked in `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.
 
 Both require logging in as the *sanctioned* user, which the single OAuth admin account cannot be (self-sanction is forbidden by design). Automated coverage exists (`tests/admin/user-flows.test.ts`, `sanctions*.test.ts`), but browser acceptance is not yet observed:
 
+> 2026-10-08 진행 기록: 두 번째 계정(Google "새작가")이 브라우저에 로그인된 상태에서 영구 정지 부분을 확인했다(항목 2의 일부). 제재는 관리자 UI 대신 DB에서 admin_actions 행 + apply_user_sanction으로 부여했고(관리자 계정은 Kakao라 같은 브라우저 세션 불가), 해제도 같은 경로의 `user_sanction_lift`로 했다.
+> - PASS 작품 생성, 회차 저장(토스트), 작품 좋아요, 작품 신고, 유료 회차 구매 모두 "계정 이용이 제한되어 이 작업을 할 수 없어요. 기존 작품과 구매한 회차는 계속 볼 수 있어요." 문구로 차단, DB에 신고·작품 생성 0건.
+> - PASS 이미 구매한 유료 회차(2화 유료 회차)와 무료 회차 열람은 그대로 됨. 프로필 캐시 sanction_kind=permanent_suspension(ends 없음).
+> - PASS 해제 후 sanction_kind=none, 회차 저장이 다시 "저장했어요."로 동작.
+> - 미확인: 경고 확인 흐름(1번), 지갑 잔액 표시 화면, 기간 정지 만료 자동 복구.
+
 1. **Warning acknowledgement survives reload** — log in with a second account, have the admin warn it, confirm the notice appears, acknowledge, reload, confirm it stays acknowledged.
 2. **Suspended user UI** — same second account suspended: write actions (studio save, like, report, purchase) show the suspension copy; purchased chapters and wallet balance remain visible.

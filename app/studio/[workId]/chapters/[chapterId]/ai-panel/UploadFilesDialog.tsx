@@ -256,7 +256,7 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
               <div className="flex flex-col gap-1">
                 <Label>저장 폴더</Label>
                 <Select
-                  value={folderState.selectedFolderId}
+                  value={folderState.selectedFolderId ?? null}
                   onValueChange={(value) => value && dispatch({ type: 'select', folderId: value })}
                 >
                   <SelectTrigger className="w-full" disabled={folderState.loading || folderState.folders.length === 0}>

@@ -23,8 +23,9 @@ vi.mock('@/lib/supabase/server', () => ({ createClient: async () => h.client }))
 
 import {
   getAccountNotices, getReviewTargetState, requestReview,
-  REVIEW_ERRORS, SUSPENSION_DENIAL_COPY, NOTICE_ACK_ERROR,
+  REVIEW_ERRORS, NOTICE_ACK_ERROR,
 } from '../../lib/moderation/user-actions';
+import { WRITE_SUSPENDED_MESSAGE } from '../../lib/auth/write-access';
 import {
   acknowledgeWarningAction, getAccountNoticesAction, getReviewPanelStateAction, requestReviewAction,
 } from '../../lib/moderation/actions';
@@ -362,10 +363,10 @@ describe('writer re-review requests (D-15/D-16)', () => {
   it('suspended writers are refused with the contract copy before any DB access', async () => {
     db.sanction[WRITER] = 'permanent_suspension';
     const result = await requestReviewAction({ workId: WORK, chapterId: null });
-    expect(result).toEqual({ ok: false, code: 'write_suspended', error: SUSPENSION_DENIAL_COPY });
+    expect(result).toEqual({ ok: false, code: 'write_suspended', error: WRITE_SUSPENDED_MESSAGE });
     expect(db.calls).toEqual(['rpc:get_write_access']);
     const panel = await getReviewPanelStateAction(WORK, null);
-    expect(panel.writeDenied).toBe(SUSPENSION_DENIAL_COPY);
+    expect(panel.writeDenied).toBe(WRITE_SUSPENDED_MESSAGE);
     // Reading the review state still works while suspended (D-07).
     expect(panel.target).toMatchObject({ ok: true, state: { blinded: true } });
   });

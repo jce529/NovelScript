@@ -26,7 +26,6 @@ export const NOTICE_TITLE = '운영 알림';
 export const NOTICE_ACK_LABEL = '확인했습니다';
 export const NOTICE_LOAD_ERROR = '운영 알림을 불러오지 못했어요. 다시 시도해주세요.';
 export const NOTICE_ACK_ERROR = '확인 처리를 하지 못했어요. 다시 시도해주세요.';
-export const SUSPENSION_DENIAL_COPY = '계정 정지로 이 작업을 수행할 수 없습니다.';
 export const REVIEW_BADGE = '검토 중';
 export const REVIEW_REQUEST_LABEL = '재검토 요청';
 export const REVIEW_REQUESTED_LABEL = '검토 요청됨';
@@ -216,7 +215,7 @@ export async function requestReview(
   if (!access.ok) {
     return {
       ok: false, code: access.code,
-      error: access.code === 'write_suspended' ? SUSPENSION_DENIAL_COPY : access.error,
+      error: access.error,
     };
   }
   try {
