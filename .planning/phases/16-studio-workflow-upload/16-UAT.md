@@ -69,8 +69,8 @@ partial: 2
   missing: ["잔액 캡으로 잘린 경우와 요청당 상한으로 잘린 경우를 구분해 문구를 달리하거나, 잔액이 충분하면 '소진' 문구를 쓰지 않음"]
 
 - truth: "파일 업로드 다이얼로그가 콘솔 경고 없이 동작한다."
-  status: failed
-  reason: "개발 서버 콘솔에 'Base UI: A component is changing the uncontrolled value state of Select to be controlled.' 경고가 반복되고 Next 오버레이에 '1 Issue' 배지가 뜸. 업로드 다이얼로그의 템플릿 종류/저장 폴더 Select가 value를 undefined에서 값으로 바꿔 쓰는 것으로 추정(UploadFilesDialog.tsx). 동작에는 영향 없음."
+  status: fixed
+  reason: "(2026-10-08 수정: 저장 폴더 Select value를 selectedFolderId ?? null로 넘겨 처음부터 제어형으로 통일, UploadFilesDialog·QuickAddDialog. 수정 전 코드에서는 다이얼로그를 열 때 경고가 재현되고, 수정 후에는 사라짐을 브라우저 콘솔로 대조 확인. 원인은 템플릿 종류가 아니라 저장 폴더 Select — 폴더 로드 전 selectedFolderId가 undefined.) 개발 서버 콘솔에 'Base UI: A component is changing the uncontrolled value state of Select to be controlled.' 경고가 반복되고 Next 오버레이에 '1 Issue' 배지가 뜸. 업로드 다이얼로그의 템플릿 종류/저장 폴더 Select가 value를 undefined에서 값으로 바꿔 쓰는 것으로 추정(UploadFilesDialog.tsx). 동작에는 영향 없음."
   severity: cosmetic
   test: 4
   artifacts: [app/studio/[workId]/chapters/[chapterId]/ai-panel/UploadFilesDialog.tsx]
