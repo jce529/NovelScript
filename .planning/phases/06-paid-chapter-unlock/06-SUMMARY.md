@@ -82,3 +82,13 @@ DB migration은 이전 작업에서 적용하지 않았고 현재 배포 확인�
 PAY-02 구현 완료(2026-10-01). 작가 정산 SQL은 구현됐으나 실제 DB 동시성·RLS·E2E 검증은 남아 있다 (tests/commerce/settlement.test.ts는 SUPABASE_DB_URL 필요).
 Phase 5 실충전과 DB 환경이 준비되면 해당 연결과 검증을 수행한다.
 멀티 AI/BYOK 목표는 이 phase와 별도다.
+
+## 독립 세션 동시성 검증 (2026-10-08)
+테스트 DB에 임시 스키마(커밋)를 만들고 독립된 PostgreSQL 연결 여러 개로 create_purchase_order/pay_purchase_order를 동시에 호출했다(종료 후 스키마 삭제, 잔여 0). 6/6 통과:
+- T1 같은 구매자·회차를 서로 다른 멱등 키로 동시 구매 → 1건만 성공(다른 쪽 content_unavailable_or_owned), 구매자 -30·작가 +27·열람권 1.
+- T2 같은 멱등 키 동시 구매 → 이중 차감 없음.
+- T3 한 주문에 pay_purchase_order 동시 호출 → CONTENT_SALE 원장 1건.
+- T4 잔액 40에서 30/50 동시 구매 → 1건 성공, 다른 쪽 insufficient balance, 잔액 10(음수 없음).
+- T5 구매자 2명이 작가 2명 회차를 반대 순서로 동시 구매 → 데드락 없음, 작가 54/90.
+- T6 같은 구매자·회차 8세션 동시 구매 → 성공 1/8, 열람권 1.
+스크립트는 저장소에 넣지 않았다(scratchpad 일회용). 브라우저 구매 E2E는 별도로 남음.
