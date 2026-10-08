@@ -41,8 +41,8 @@ result: PASS (2026-10-02, 실패 보고 경로는 미확인) — 인물/장소/�
 
 ### 7. 배치 트리 드래그앤드롭 수정 (STUDIO-03)
 expected: PlacementTree에서 파일을 다른 카테고리/폴더로 드래그(데스크탑 마우스, 모바일 터치 핸들)해 배치를 수정할 수 있다.
-result: skipped
-reason: "브라우저 자동화의 합성 드래그/포인터 이벤트로는 dnd-kit이 이동을 완료하지 못함(드래그 핸들과 'Draggable item … was dropped' 접근성 안내는 동작하나 항목 위치 불변). 도구 한계일 수 있어 실제 마우스·터치로 사람이 확인 필요."
+result: partial (2026-10-08) — 데스크탑 포인터 드래그는 확인, 실기기 터치는 미확인
+reported: "인앱 브라우저에서 실제 마우스 드래그(left_click_drag)로 사건→미분류 트레이→사건→세력 폴더 이동이 모두 반영되고 이동한 파일에 '수정됨' 표시가 붙음. 승인 전 저장 없음(취소 후 DB에 DnD* 문서 0건). 이전 'skipped'의 원인은 합성 이벤트가 아니라 인앱 브라우저가 약 2초마다·도구 조작마다 visibilitychange를 발생시키고 dnd-kit(Pointer/KeyboardSensor)이 이를 드래그 취소로 처리하기 때문(Dragging was cancelled 안내). 테스트 세션에서만 visibilitychange 전파를 막으면 드래그 완료. 관찰: 자동화 드래그가 의도한 행의 한 칸 위 폴더에 떨어짐(아이템 목표→세력, 세력 목표→미분류/사건) — 도구 좌표 오차인지 collision 문제인지 사람 확인 필요. 모바일 터치 핸들(TouchSensor delay 150ms)은 실기기에서 확인 필요."
 
 ### 8. 모바일 세로 화면 사용성 (STUDIO-04)
 expected: md 미만 폭에서 사이드바가 접이식이고, AiPanel이 세로 스택이며, 여백이 줄고 업로드 다이얼로그가 스크롤된다.
@@ -54,9 +54,9 @@ total: 8
 passed: 5
 issues: 0
 pending: 0
-skipped: 1
+skipped: 0
 blocked: 1
-partial: 1
+partial: 2
 
 ## Gaps
 
@@ -69,8 +69,8 @@ partial: 1
   missing: ["잔액 캡으로 잘린 경우와 요청당 상한으로 잘린 경우를 구분해 문구를 달리하거나, 잔액이 충분하면 '소진' 문구를 쓰지 않음"]
 
 - truth: "파일 업로드 다이얼로그가 콘솔 경고 없이 동작한다."
-  status: failed
-  reason: "개발 서버 콘솔에 'Base UI: A component is changing the uncontrolled value state of Select to be controlled.' 경고가 반복되고 Next 오버레이에 '1 Issue' 배지가 뜸. 업로드 다이얼로그의 템플릿 종류/저장 폴더 Select가 value를 undefined에서 값으로 바꿔 쓰는 것으로 추정(UploadFilesDialog.tsx). 동작에는 영향 없음."
+  status: fixed
+  reason: "(2026-10-08 수정: 저장 폴더 Select value를 selectedFolderId ?? null로 넘겨 처음부터 제어형으로 통일, UploadFilesDialog·QuickAddDialog. 수정 전 코드에서는 다이얼로그를 열 때 경고가 재현되고, 수정 후에는 사라짐을 브라우저 콘솔로 대조 확인. 원인은 템플릿 종류가 아니라 저장 폴더 Select — 폴더 로드 전 selectedFolderId가 undefined.) 개발 서버 콘솔에 'Base UI: A component is changing the uncontrolled value state of Select to be controlled.' 경고가 반복되고 Next 오버레이에 '1 Issue' 배지가 뜸. 업로드 다이얼로그의 템플릿 종류/저장 폴더 Select가 value를 undefined에서 값으로 바꿔 쓰는 것으로 추정(UploadFilesDialog.tsx). 동작에는 영향 없음."
   severity: cosmetic
   test: 4
   artifacts: [app/studio/[workId]/chapters/[chapterId]/ai-panel/UploadFilesDialog.tsx]

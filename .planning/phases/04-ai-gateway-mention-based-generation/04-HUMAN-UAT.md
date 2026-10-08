@@ -33,6 +33,10 @@ result: PASS (2026-10-02) — 지갑 잔액을 apply_wallet_delta(UAT_ADJUST)로
 expected: Typing feedback (e.g. "더 짧게") in GenerationPreview's free-text row and pressing Enter produces a NEW real generation whose content is visibly influenced by the feedback, replacing the old preview.
 result: PASS (2026-10-02) — 채팅에서 "더 짧게, 세 문단으로 줄여줘." 입력 → 실제 Gemini 호출로 세 문단 분량의 새 본문 초안 생성(응답 문구에 요청 반영 언급). 첫 시도는 Gemini 503으로 실패했으나 "다시 시도"로 성공.
 
+### 4-재검증. 잔액 부족 배너 (2026-10-08, 계정 새작가·서비스 키 Gemini 3.5 Flash)
+result: PASS — 지갑을 apply_wallet_delta(UAT_ADJUST)로 1로 낮추고 챕터 AI 채팅을 보내자 실제 호출이 상한으로 잘려 "토큰이 모두 소진됐어요 / 남은 토큰 범위까지만 응답했어요." 배너와 토스트 "보유 토큰을 모두 사용해서 여기까지만 응답했어요."가 표시됨. 원장에 ai_generation -1(chapter:…) 기록. 잔액 10860으로 복구 후 같은 계정에서 긴 응답 요청은 정상 완료되어 배너 없음.
+gap(16-UAT: 잔액이 충분한데 요청당 상한 2048에서 잘릴 때 '소진' 배너가 뜨는 문제)은 이번에 상한에 걸리는 응답을 만들지 못해 재현하지 못함 — 코드(lib/ai/chat.ts wasCapped) 기준으로는 여전히 열려 있음.
+
 ## Summary
 
 total: 5
