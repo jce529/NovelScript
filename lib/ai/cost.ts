@@ -2,6 +2,7 @@
 export const KRW_PER_WALLET_TOKEN = 10;
 export const USD_TO_KRW = 1400;
 export const PER_REQUEST_MAX_OUTPUT_TOKENS = 2048;
+export const BYOK_MAX_OUTPUT_TOKENS = 8192;
 
 export interface VendorPricing { input: number; output: number }
 

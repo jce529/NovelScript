@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const adminState = vi.hoisted(() => ({ client: null as unknown }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => adminState.client }));
 vi.mock('@/lib/ai/mentions', () => ({ getMentionedNodesContent: async () => [] }));
+vi.mock('@/lib/ai/usage', () => ({ recordAiUsage: async () => ({ ok: true }) }));
 
 import { chat, type ChatInput } from '@/lib/ai/chat';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
