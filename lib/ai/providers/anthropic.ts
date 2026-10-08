@@ -1,6 +1,6 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
-import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type UsageReport } from './types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type ProviderErrorContext, type UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
 
 /** Convert a Messages response to the shared provider result. */
@@ -25,8 +25,8 @@ export function mapAnthropicResponse(response: Anthropic.Messages.Message): Gene
 }
 
 /** Construct the SDK once; only sanitized errors leave the adapter boundary. */
-export function createAnthropicProvider({ apiKey }: { apiKey: string }): ProviderClient {
-  const client = new Anthropic({ apiKey });
+export function createAnthropicProvider({ apiKey, errorContext = { keySource: 'service' } }: { apiKey: string; errorContext?: ProviderErrorContext }): ProviderClient {
+  const client = new Anthropic({ apiKey, maxRetries: 0 });
   return {
     provider: 'anthropic',
     async generateContent({ model, systemInstruction, contents, maxOutputTokens, timeoutMs }) {
@@ -41,7 +41,7 @@ export function createAnthropicProvider({ apiKey }: { apiKey: string }): Provide
           max_tokens: maxOutputTokens,
         }, { signal: AbortSignal.timeout(limit), timeout: limit, maxRetries: 0 });
       } catch (err) {
-        throw new ProviderCallError(toSanitizedProviderError('anthropic', err));
+        throw new ProviderCallError(toSanitizedProviderError('anthropic', err, errorContext));
       }
       return mapAnthropicResponse(response);
     },

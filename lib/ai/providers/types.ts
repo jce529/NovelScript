@@ -64,7 +64,11 @@ export interface ProviderClient {
   generateContent(params: GenerateParams): Promise<GenerateResult>;
 }
 
-export type ProviderErrorKind = 'rate_limited' | 'unavailable' | 'config';
+export type ProviderErrorKind = 'invalid_key' | 'rate_limited' | 'credit_exhausted' | 'unavailable' | 'config';
+
+export interface ProviderErrorContext {
+  keySource: 'service' | 'byok';
+}
 
 export const PROVIDER_ERROR_CODES = [
   'RESOURCE_EXHAUSTED',
@@ -76,6 +80,12 @@ export const PROVIDER_ERROR_CODES = [
   'NOT_FOUND',
   'INVALID_ARGUMENT',
   'API_KEY_MISSING',
+  'PAYMENT_REQUIRED',
+  'CREDIT_BALANCE_EXHAUSTED',
+  'ORGANIZATION_SPEND_LIMIT_EXCEEDED',
+  'PROJECT_SPEND_LIMIT_EXCEEDED',
+  'ORGANIZATION_USAGE_LIMIT_EXCEEDED',
+  'ENFORCED_SPEND_LIMIT_REACHED',
 ] as const;
 
 export type ProviderErrorCode = (typeof PROVIDER_ERROR_CODES)[number];

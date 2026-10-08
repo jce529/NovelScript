@@ -128,6 +128,13 @@ describe('createGeminiProvider', () => {
     expect(sdk.ctorOptions).toEqual([{ apiKey: 'k', httpOptions: { retryOptions: { attempts: 1 } } }]);
   });
 
+  it('classifies BYOK authentication failures as invalid_key', async () => {
+    sdk.generateContent.mockRejectedValue(Object.assign(new Error('secret'), { status: 401 }));
+    const provider = createGeminiProvider({ apiKey: 'k', errorContext: { keySource: 'byok' } });
+    await expect(provider.generateContent({ model: 'm', systemInstruction: 'S', contents: 'C', maxOutputTokens: 10, temperature: 0.9 }))
+      .rejects.toMatchObject({ info: { kind: 'invalid_key', status: 401 } });
+  });
+
   it('sends the unchanged call shape and maps the response', async () => {
     const sdkResponse = fx({
       candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'hi' }] } }],

@@ -57,6 +57,37 @@ describe('toSanitizedProviderError', () => {
     });
   });
 
+  it.each([
+    ['openai', { status: 401 }, 'byok', 'invalid_key', 'UNAUTHENTICATED'],
+    ['openai', { status: 401 }, 'service', 'config', 'UNAUTHENTICATED'],
+    ['openai', { status: 403 }, 'byok', 'config', 'PERMISSION_DENIED'],
+    ['openai', { status: 429, code: 'organization_spend_limit_exceeded' }, 'byok', 'credit_exhausted', 'ORGANIZATION_SPEND_LIMIT_EXCEEDED'],
+    ['openai', { status: 429, error: { code: 'project_spend_limit_exceeded' } }, 'byok', 'credit_exhausted', 'PROJECT_SPEND_LIMIT_EXCEEDED'],
+    ['openai', { status: 429, code: 'rate_limit_exceeded' }, 'byok', 'rate_limited', 'RESOURCE_EXHAUSTED'],
+    ['anthropic', { status: 401 }, 'byok', 'invalid_key', 'UNAUTHENTICATED'],
+    ['anthropic', { status: 403 }, 'byok', 'invalid_key', 'PERMISSION_DENIED'],
+    ['anthropic', { status: 402 }, 'byok', 'credit_exhausted', null],
+    ['anthropic', { status: 429, error: { details: { error_code: 'enforced_spend_limit_reached' } } }, 'byok', 'credit_exhausted', 'ENFORCED_SPEND_LIMIT_REACHED'],
+    ['anthropic', { status: 429, type: 'rate_limit_error' }, 'byok', 'rate_limited', 'RESOURCE_EXHAUSTED'],
+    ['anthropic', { status: 400, message: 'spend limit reached' }, 'byok', 'config', 'INVALID_ARGUMENT'],
+    ['gemini', { status: 401 }, 'byok', 'invalid_key', 'UNAUTHENTICATED'],
+    ['gemini', { status: 403 }, 'byok', 'invalid_key', 'PERMISSION_DENIED'],
+    ['gemini', { status: 402, code: 'PAYMENT_REQUIRED' }, 'byok', 'credit_exhausted', 'PAYMENT_REQUIRED'],
+    ['gemini', { status: 429, code: 'RESOURCE_EXHAUSTED' }, 'byok', 'rate_limited', 'RESOURCE_EXHAUSTED'],
+  ] as const)('%s structured error maps to %s', (provider, err, keySource, kind, providerErrorCode) => {
+    expect(toSanitizedProviderError(provider, err, { keySource })).toEqual({ provider, status: err.status, kind, providerErrorCode });
+  });
+
+  it.each([
+    ['openai', { status: 429, code: 'untrusted-secret-code' }],
+    ['anthropic', { status: 429, type: 'untrusted-secret-code' }],
+    ['gemini', { status: 429, code: 'untrusted-secret-code' }],
+  ] as const)('%s unknown structured codes are not copied', (provider, err) => {
+    expect(toSanitizedProviderError(provider, err, { keySource: 'byok' })).toEqual({
+      provider, status: 429, kind: 'rate_limited', providerErrorCode: 'RESOURCE_EXHAUSTED',
+    });
+  });
+
   const abort = Object.assign(new Error('aborted'), { name: 'AbortError' });
   it.each([
     ['TypeError', new TypeError('fetch failed')],

@@ -1,6 +1,6 @@
 import 'server-only';
 import OpenAI from 'openai';
-import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type UsageReport } from './types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type ProviderErrorContext, type UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
 
 /** Convert structured Responses API signals to the shared provider result. */
@@ -37,8 +37,8 @@ export function supportsTemperature(model: string): boolean {
 }
 
 /** Construct the SDK once; only sanitized errors leave the adapter boundary. */
-export function createOpenAiProvider({ apiKey }: { apiKey: string }): ProviderClient {
-  const client = new OpenAI({ apiKey });
+export function createOpenAiProvider({ apiKey, errorContext = { keySource: 'service' } }: { apiKey: string; errorContext?: ProviderErrorContext }): ProviderClient {
+  const client = new OpenAI({ apiKey, maxRetries: 0 });
   return {
     provider: 'openai',
     async generateContent({ model, systemInstruction, contents, maxOutputTokens, temperature, timeoutMs }) {
@@ -53,7 +53,7 @@ export function createOpenAiProvider({ apiKey }: { apiKey: string }): ProviderCl
           ...(supportsTemperature(model) ? { temperature } : {}),
         }, { signal: AbortSignal.timeout(limit), timeout: limit, maxRetries: 0 });
       } catch (err) {
-        throw new ProviderCallError(toSanitizedProviderError('openai', err));
+        throw new ProviderCallError(toSanitizedProviderError('openai', err, errorContext));
       }
       return mapOpenAiResponse(response);
     },

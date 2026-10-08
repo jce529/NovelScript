@@ -68,7 +68,7 @@ describe('createOpenAiProvider', () => {
     sdk.create.mockResolvedValue(response);
     const provider = createOpenAiProvider({ apiKey: 'k' });
     expect(provider.provider).toBe('openai');
-    expect(sdk.ctorOptions).toEqual([{ apiKey: 'k' }]);
+    expect(sdk.ctorOptions).toEqual([{ apiKey: 'k', maxRetries: 0 }]);
     const result = await provider.generateContent(params);
     expect(sdk.create).toHaveBeenCalledTimes(1);
     expect(sdk.create).toHaveBeenCalledWith({
@@ -100,5 +100,11 @@ describe('createOpenAiProvider', () => {
     expect(String(sanitized.stack)).not.toContain('sk-SENTINEL');
     expect(sanitized.cause).toBeUndefined();
     expect(sdk.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('classifies BYOK authentication failures as invalid_key', async () => {
+    sdk.create.mockRejectedValue(Object.assign(new Error('secret'), { status: 401 }));
+    const provider = createOpenAiProvider({ apiKey: 'k', errorContext: { keySource: 'byok' } });
+    await expect(provider.generateContent(params)).rejects.toMatchObject({ info: { kind: 'invalid_key', status: 401 } });
   });
 });

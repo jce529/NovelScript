@@ -1,6 +1,6 @@
 import 'server-only';
 import { GoogleGenAI, type GenerateContentResponse } from '@google/genai';
-import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type RefusalReasonCode, type UsageReport } from './types';
+import { PROVIDER_CALL_TIMEOUT_MS, type GenerateResult, type ProviderClient, type ProviderErrorContext, type RefusalReasonCode, type UsageReport } from './types';
 import { ProviderCallError, toSanitizedProviderError } from './errors';
 
 /** D-05 (B): safety-family finish reasons. Partial text is dropped, never surfaced. */
@@ -65,10 +65,11 @@ export function mapGeminiResponse(response: GenerateContentResponse): GenerateRe
 
 export interface GeminiProviderOptions {
   apiKey: string;
+  errorContext?: ProviderErrorContext;
 }
 
 /** The only Gemini SDK construction site. Retry attempts pinned to one HTTP attempt; Phase 11 owns retry policy. */
-export function createGeminiProvider({ apiKey }: GeminiProviderOptions): ProviderClient {
+export function createGeminiProvider({ apiKey, errorContext = { keySource: 'service' } }: GeminiProviderOptions): ProviderClient {
   const ai = new GoogleGenAI({ apiKey, httpOptions: { retryOptions: { attempts: 1 } } });
   return {
     provider: 'gemini',
@@ -77,7 +78,7 @@ export function createGeminiProvider({ apiKey }: GeminiProviderOptions): Provide
       try {
         response = await ai.models.generateContent({ model, contents, config: { systemInstruction, maxOutputTokens, temperature, abortSignal: AbortSignal.timeout(timeoutMs ?? PROVIDER_CALL_TIMEOUT_MS) } });
       } catch (err) {
-        throw new ProviderCallError(toSanitizedProviderError('gemini', err));
+        throw new ProviderCallError(toSanitizedProviderError('gemini', err, errorContext));
       }
       return mapGeminiResponse(response);
     },

@@ -57,7 +57,7 @@ describe('createAnthropicProvider', () => {
     sdk.create.mockResolvedValue(response);
     const provider = createAnthropicProvider({ apiKey: 'k' });
     expect(provider.provider).toBe('anthropic');
-    expect(sdk.ctorOptions).toEqual([{ apiKey: 'k' }]);
+    expect(sdk.ctorOptions).toEqual([{ apiKey: 'k', maxRetries: 0 }]);
     const result = await provider.generateContent(params);
     expect(sdk.create).toHaveBeenCalledTimes(1);
     expect(sdk.create).toHaveBeenCalledWith({
@@ -82,5 +82,11 @@ describe('createAnthropicProvider', () => {
     expect(String(sanitized.stack)).not.toContain('sk-SENTINEL');
     expect(sanitized.cause).toBeUndefined();
     expect(sdk.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('classifies BYOK permission failures as invalid_key', async () => {
+    sdk.create.mockRejectedValue(Object.assign(new Error('secret'), { status: 403 }));
+    const provider = createAnthropicProvider({ apiKey: 'k', errorContext: { keySource: 'byok' } });
+    await expect(provider.generateContent(params)).rejects.toMatchObject({ info: { kind: 'invalid_key', status: 403 } });
   });
 });
