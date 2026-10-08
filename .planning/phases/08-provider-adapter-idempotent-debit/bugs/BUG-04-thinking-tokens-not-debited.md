@@ -63,6 +63,52 @@ related_fixed: .planning/fixed/08-04 사고 토큰 차감 누락 수정.md
 - **Phase 17 (BUGFIX-01):** 단계 A 실행처. 성공 기준 1("잔액이 충분하면 '토큰 소진' 문구가 나오지 않는다")이 단계 A를 요구한다.
 - **미확인:** 사용 모델 ID별 `thinkingBudget`/`thinkingLevel` 지원, 예산이 엄격한 상한인지, 최소 사고량(끌 수 없는 모델)이 있는지.
 
+## 단계 A-1 수정 방향 — 잘림 원인별 안내 (2026-10-08, 지금 실행 / `/bug-plan` 결과)
+
+> 단계 A 중 **문구 정정만** Phase 11 완료를 기다리지 않고 먼저 한다. Phase 11이 수정 중인 `paid-generation.ts`·`cost.ts`는 건드리지 않는다. `PER_REQUEST_MAX_OUTPUT_TOKENS` 상향(`cost.ts`)과 관측 로그(`paid-generation.ts`)는 단계 A-2로 Phase 11 이후에 한다. Phase 17(BUGFIX-01)은 A-1이 끝나면 문구 정정을 범위에서 뺀다.
+
+### 원인 (코드 확인)
+- `wasCapped = settled.result.finishReason === 'max_tokens'` 가 `lib/ai/chat.ts:111`, `lib/ai/document-plan.ts:82,87` 세 곳에 있다. 잘림의 원인을 구분하지 않는다.
+- UI는 `ChatMessageBubble.tsx:43`("토큰이 모두 소진됐어요")와 `AiPanel.tsx:229`(토스트 "보유 토큰을 모두 사용해서…") 두 곳에서 `wasCapped`만 보고 항상 잔액 소진 문구를 보인다.
+- 정말 잔액이 바닥난 경우의 `wasCapped: true`(`paid-generation.ts:146`, `insufficient_balance`)는 별개 경로라 그대로 둔다.
+
+### 원인 구분에 필요한 값이 이미 있다 (cost.ts·paid-generation.ts 수정 불필요)
+- `pre.ctx.maxOutputTokens`는 `min(잔액 환산, PER_REQUEST_MAX_OUTPUT_TOKENS)`다. 이 값이 `PER_REQUEST_MAX_OUTPUT_TOKENS`보다 **작으면 잔액 한도**, **같으면 요청당 상한**이다. (`PER_REQUEST_MAX_OUTPUT_TOKENS`는 `cost.ts`에서 읽기만 한다.)
+- `settled.result.usage.thoughtsTokens`와 `outputTokens`로 사고 소진을 판별한다.
+
+### 분류 (`cappedReason`, 새 선택 필드)
+| 값 | 조건 | 안내 문구 방향 |
+|---|---|---|
+| `balance` | 잘림 + `ctx.maxOutputTokens < PER_REQUEST_MAX_OUTPUT_TOKENS` | 기존 "토큰이 모두 소진됐어요 / 남은 토큰 범위까지만 응답했어요" 유지 |
+| `thinking` | 잘림 + 잔액 한도 아님 + `thoughtsTokens >= outputTokens` (사고량이 보이는 응답 이상) | "응답을 준비하다 길이 제한에 닿았어요. 잔액은 충분해요. 같은 요청을 다시 보내거나 요청을 나눠 보내세요" |
+| `request_limit` | 잘림 + 잔액 한도 아님 + 그 외 | "한 번에 낼 수 있는 길이에 닿아 여기까지만 응답했어요. 잔액은 충분해요. '이어서 써줘'로 이어갈 수 있어요" |
+
+- `wasCapped`는 그대로 두고 `cappedReason`만 추가한다(`ChatResult` in `chat-result.ts`). 이전 필드를 쓰는 곳이 깨지지 않는다.
+- 분류 함수는 `chat-result.ts` 또는 `lib/ai/` 안 새 파일의 순수 함수로 두어 `chat.ts`·`document-plan.ts`가 공유한다.
+- 사고 토큰이 보고되지 않으면(`null`) `thinking` 판정을 하지 않고 `request_limit`으로 간다.
+- `thinking` 판정 기준(`thoughts >= output`)은 임시 휴리스틱이다. 관측 데이터가 쌓이면 A-2에서 조정한다. 정책이 아니라 안내 문구 선택일 뿐이라 차감·상한에는 영향이 없다.
+
+### 변경 범위
+| 파일 | 내용 |
+|---|---|
+| `lib/ai/chat-result.ts` | `cappedReason` 타입·필드, 원인별 문구 상수, 분류 함수 |
+| `lib/ai/chat.ts` | `wasCapped` 옆에 `cappedReason` 계산해 반환 |
+| `lib/ai/document-plan.ts` | 82·87행 두 곳 동일 처리 |
+| `AiPanel.tsx` | 토스트를 원인별 문구로 (`wasCapped` 시 `cappedReason` 사용) |
+| `ChatMessageBubble.tsx` | 제목·본문을 원인별로, `AiPanel` 메시지 상태에 `cappedReason` 전달 |
+| 테스트 | `tests/ai/chat.test.ts`, `document-plan-generation.test.ts` 기대값 추가, 분류 함수 단위 테스트 |
+
+건드리지 않는 것: `cost.ts`, `paid-generation.ts`, `providers/gemini.ts`, 차감 로직, `thinkingConfig`.
+
+### 검증
+- 단위 테스트로 세 분류(잔액 한도 / 사고 우세 / 요청당 상한)와 사고 토큰 미보고 케이스를 확인한다.
+- `chat.test.ts`: 잔액이 충분할 때(`ctx.maxOutputTokens === 2048`) 잘림이면 "모두 소진" 문구가 나오지 않는다. 잔액이 적을 때 잘림이면 기존 문구가 유지된다.
+- 브라우저 미리보기에서 fixture 응답으로 말풍선 문구를 확인한다(실키 없음).
+- Phase 17 성공 기준 1("잔액이 충분하면 '토큰 소진' 문구가 나오지 않는다")을 충족한다.
+
+### 후속 (Phase 11 이후, 단계 A-2)
+`PER_REQUEST_MAX_OUTPUT_TOKENS` 소폭 상향, 관측 로그(`wasCapped`·`cappedReason`·사고 비율), `thinking` 판정 기준 조정. 그 뒤 단계 B(`T/B`).
+
 ## 증상
 
 `maxOutputTokens`는 Gemini에서 "사고 토큰 + 본문 토큰"의 합계에 적용된다. 사고가 길면 본문이 그만큼 짧아지거나 아예 잘릴 수 있다(`finishReason: max_tokens`).

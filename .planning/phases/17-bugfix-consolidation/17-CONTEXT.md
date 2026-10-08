@@ -82,5 +82,6 @@ Phase 8 BUG-04는 "실사용에서 `wasCapped` 발생 빈도"와 "thinking 예�
 
 - 이 phase 번호(17)는 v1.1 트랙의 마지막에 붙었다. 로드맵 순서 제약(Phase 11 → 하드 경계 → 12~14)과 무관한 정리 phase이므로 Phase 11 실행과 병행해도 된다. 단, Phase 11이 `AiPanel.tsx`·`chat.ts`·`paid-generation.ts`를 수정하므로 같은 파일을 건드리는 BUGFIX-01/04는 **충돌에 주의**한다 (세션 간 동시 편집 시 파일이 깨진 사례: 2026-10-02 `kb/[nodeId]/actions.ts`).
 - Gemini 3.5 Flash가 큰 요청에 503(고수요)을 자주 반환해 UAT 재검증이 막힐 수 있다 — D 항목은 Gemini 상태를 보고 진행한다.
+- 2026-10-08: G1의 문구 정정은 Phase 8 BUG-04 "단계 A-1"로 Phase 17 밖에서 먼저 실행하기로 했다(`phases/08-.../bugs/BUG-04-...md`). A-1이 끝나면 BUGFIX-01에서 문구 정정을 뺀다. 상한 상향과 관측 로그는 Phase 11 이후(A-2)로 남는다.
 - SEED-002(스트리밍·실시간 토큰)가 구현되면 G1의 `wasCapped` 의미와 안내 UI가 바뀌므로, BUGFIX-01을 먼저 하면 SEED-002에서 재작업이 생길 수 있다. 문구 정정은 얇게(최소 변경) 한다.
 </notes>
