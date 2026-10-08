@@ -46,15 +46,15 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('AI usage database contract', () =
   it('sets work and chapter references null when their rows are deleted', async () => {
     const work = await admin().from('works').insert({ owner_id: ownerId, title: 'Usage test' }).select('id').single();
     expect(work.error).toBeNull();
-    const chapter = await admin().from('chapters').insert({ work_id: work.data.id, title: 'Usage test chapter', content: '', order_index: 0 }).select('id').single();
+    const chapter = await admin().from('chapters').insert({ work_id: work.data!.id, title: 'Usage test chapter', content: '', order_index: 0 }).select('id').single();
     expect(chapter.error).toBeNull();
     const id = crypto.randomUUID();
-    const inserted = await admin().from('ai_usage').insert({ owner_id: ownerId, provider: 'openai', model: 'gpt-4o-mini', key_source: 'byok', status: 'completed', work_id: work.data.id, chapter_id: chapter.data.id, idempotency_key: id }).select('id').single();
+    const inserted = await admin().from('ai_usage').insert({ owner_id: ownerId, provider: 'openai', model: 'gpt-4o-mini', key_source: 'byok', status: 'completed', work_id: work.data!.id, chapter_id: chapter.data!.id, idempotency_key: id }).select('id').single();
     expect(inserted.error).toBeNull();
-    await admin().from('chapters').delete().eq('id', chapter.data.id);
-    await admin().from('works').delete().eq('id', work.data.id);
-    const row = await admin().from('ai_usage').select('work_id, chapter_id').eq('id', inserted.data.id).single();
-    expect(row.data).toEqual({ work_id: null, chapter_id: null });
+    await admin().from('chapters').delete().eq('id', chapter.data!.id);
+    await admin().from('works').delete().eq('id', work.data!.id);
+    const row = await admin().from('ai_usage').select('work_id, chapter_id').eq('id', inserted.data!.id).single();
+    expect(row.data!).toEqual({ work_id: null, chapter_id: null });
     const duplicate = await admin().from('ai_usage').insert({ owner_id: ownerId, provider: 'openai', model: 'gpt-4o-mini', key_source: 'byok', status: 'completed', idempotency_key: id });
     expect(duplicate.error).not.toBeNull();
   });
@@ -66,8 +66,8 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('AI usage database contract', () =
     const row = await admin().from('byok_keys').select('id').eq('owner_id', ownerId).eq('provider', provider).single();
     expect(row.error).toBeNull();
     expect((await admin().rpc('mark_byok_failed', { p_owner: ownerId, p_provider: provider, p_expected_key_id: crypto.randomUUID() })).data).toBe(false);
-    expect((await admin().from('byok_keys').select('status').eq('id', row.data.id).single()).data?.status).toBe('connected');
-    expect((await admin().rpc('mark_byok_failed', { p_owner: ownerId, p_provider: provider, p_expected_key_id: row.data.id })).data).toBe(true);
-    expect((await admin().from('byok_keys').select('status').eq('id', row.data.id).single()).data?.status).toBe('failed');
+    expect((await admin().from('byok_keys').select('status').eq('id', row.data!.id).single()).data?.status).toBe('connected');
+    expect((await admin().rpc('mark_byok_failed', { p_owner: ownerId, p_provider: provider, p_expected_key_id: row.data!.id })).data).toBe(true);
+    expect((await admin().from('byok_keys').select('status').eq('id', row.data!.id).single()).data?.status).toBe('failed');
   });
 });
