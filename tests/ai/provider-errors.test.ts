@@ -72,6 +72,9 @@ describe('toSanitizedProviderError', () => {
     ['anthropic', { status: 400, message: 'spend limit reached' }, 'byok', 'config', 'INVALID_ARGUMENT'],
     ['gemini', { status: 401 }, 'byok', 'invalid_key', 'UNAUTHENTICATED'],
     ['gemini', { status: 403 }, 'byok', 'invalid_key', 'PERMISSION_DENIED'],
+    ['gemini', { status: 400, message: '{"error":{"details":[{"reason":"API_KEY_INVALID"}]}}' }, 'byok', 'invalid_key', 'INVALID_ARGUMENT'],
+    ['gemini', { status: 400, message: 'bad request' }, 'byok', 'config', 'INVALID_ARGUMENT'],
+    ['gemini', { status: 400, message: 'API_KEY_INVALID' }, 'service', 'config', 'INVALID_ARGUMENT'],
     ['gemini', { status: 402, code: 'PAYMENT_REQUIRED' }, 'byok', 'credit_exhausted', 'PAYMENT_REQUIRED'],
     ['gemini', { status: 429, code: 'RESOURCE_EXHAUSTED' }, 'byok', 'rate_limited', 'RESOURCE_EXHAUSTED'],
   ] as const)('%s structured error maps to %s', (provider, err, keySource, kind, providerErrorCode) => {

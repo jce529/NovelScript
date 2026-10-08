@@ -45,6 +45,13 @@ function readProviderCode(provider: ProviderId, err: unknown): ProviderErrorCode
   return code === 'PAYMENT_REQUIRED' ? 'PAYMENT_REQUIRED' : code === 'RESOURCE_EXHAUSTED' ? 'RESOURCE_EXHAUSTED' : null;
 }
 
+function isGeminiInvalidKey(err: unknown): boolean {
+  // Gemini는 잘못된 키를 400 INVALID_ARGUMENT + reason API_KEY_INVALID로 돌려준다(2026-10-08 live 확인).
+  // 일반 400(잘못된 요청)과 구분하려고 구조화 사유가 있을 때만 키 무효로 본다. 메시지는 이 판정에만 쓰고 반환·로그하지 않는다.
+  const message = readString(property(err, 'message'));
+  return message !== null && message.includes('API_KEY_INVALID');
+}
+
 export function toSanitizedProviderError(
   provider: ProviderId,
   err: unknown,
@@ -60,7 +67,8 @@ export function toSanitizedProviderError(
       ? 'credit_exhausted' : 'rate_limited';
   } else if (provider === 'anthropic' && status === 402) kind = 'credit_exhausted';
   else if (provider === 'gemini' && status === 402 && structuredCode === 'PAYMENT_REQUIRED') kind = 'credit_exhausted';
-  else if (context.keySource === 'byok' && (status === 401 || (provider !== 'openai' && status === 403))) kind = 'invalid_key';
+  else if (context.keySource === 'byok' && (status === 401 || (provider !== 'openai' && status === 403)
+    || (provider === 'gemini' && status === 400 && isGeminiInvalidKey(err)))) kind = 'invalid_key';
   else kind = 'config';
 
   return { provider, status, kind, providerErrorCode: structuredCode ?? (status !== null ? STATUS_TO_CODE[status] ?? null : null) };
