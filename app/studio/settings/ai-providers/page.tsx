@@ -5,6 +5,7 @@ import { listByokKeys } from '@/lib/ai/providers/byok';
 import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
 import { buildModelChoices, encodeSelection, resolveDeleteReplacement } from '@/lib/ai/providers/selection';
 import { getDefaultProviderModel } from '@/lib/ai/providers/settings';
+import { loadMonthlyByokUsage } from '@/lib/ai/usage';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { createClient } from '@/lib/supabase/server';
 import { saveDefaultAction } from './actions';
@@ -24,9 +25,10 @@ export default async function AiProvidersSettingsPage({
   if (!profile || !isAccountActive(profile)) redirect('/login');
   if (profile.role !== 'writer') redirect('/studio');
 
-  const [connectedModels, keys] = await Promise.all([
+  const [connectedModels, keys, monthlyUsage] = await Promise.all([
     loadConnectedByokModels(supabase, user.id),
     listByokKeys(supabase, user.id),
+    loadMonthlyByokUsage(supabase, user.id),
   ]);
   const current = await getDefaultProviderModel(supabase, user.id, connectedModels);
   const choices = buildModelChoices(connectedModels);
@@ -44,6 +46,16 @@ export default async function AiProvidersSettingsPage({
         registeredAtLabel: new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric' }).format(new Date(key.createdAt)),
         modelCount: connectedModels[providerId]?.length ?? 0,
       } : null,
+      usage: key ? monthlyUsage.ok
+        ? (() => {
+            const total = monthlyUsage.providers.find((item) => item.provider === providerId);
+            return total ? {
+              status: 'ready' as const,
+              total: { calls: total.calls, inputTokens: total.inputTokens, outputTokens: total.outputTokens },
+              models: total.models.map(({ model, calls, inputTokens, outputTokens }) => ({ model, calls, inputTokens, outputTokens })),
+            } : { status: 'empty' as const };
+          })()
+        : { status: 'error' as const } : undefined,
       deleteImpact: {
         modelCount: connectedModels[providerId]?.length ?? 0,
         defaultReplacementLabel: replacement.replaced ? `${replacementInfo?.displayName ?? replacementModel.model} [서비스 키]` : null,
