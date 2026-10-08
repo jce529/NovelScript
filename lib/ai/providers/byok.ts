@@ -1,11 +1,14 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { PROVIDER_MODELS } from './catalog';
+import { defaultModelFor, isKnownModel, PROVIDER_MODELS } from './catalog';
 import { BYOK_COPY, PROVIDER_LABEL, byokFailureMessage } from './byok-copy';
 import { checkKeyFormat, validateByokKey } from './byok-validate';
 import { intersectWithCatalog } from './selection';
 import type { ProviderId } from './types';
 import { getDefaultProviderModel } from './settings';
+import type { Selection } from './selection';
+import { createPlatformProvider, createProviderWithApiKey } from './registry';
+import type { ProviderClient } from './types';
 
 type RpcClient = { rpc(name: string, args?: Record<string, unknown>): Promise<{ data: unknown; error: { code?: string } | null }> };
 export interface ByokKeyMeta { id: string; provider: ProviderId; maskedHint: string; status: 'connected' | 'failed'; modelIds: string[]; createdAt: string; verifiedAt: string | null }
@@ -13,6 +16,70 @@ export type ByokActionResult = { ok: true; message: string; modelCount?: number 
 const internal = (): ByokActionResult => ({ ok: false, reason: 'internal', message: BYOK_COPY.internalError });
 const ownerArgs = (ownerId: string, providerId?: ProviderId) => ({ p_owner: ownerId, ...(providerId ? { p_provider: providerId } : {}) });
 function validProvider(value: unknown): value is ProviderId { return value === 'openai' || value === 'anthropic' || value === 'gemini'; }
+
+export type GenerationRoute =
+  | { kind: 'service'; selection: Selection; client: ProviderClient }
+  | { kind: 'byok'; selection: Selection; keyId: string; client: ProviderClient }
+  | { kind: 'replacement_required'; replacement: Selection };
+
+type GenerationRouteDeps = {
+  supabase: Pick<SupabaseClient, 'from'>;
+  admin: RpcClient;
+  ownerId: string;
+  selection: Selection;
+  env?: Record<string, string | undefined>;
+};
+
+type GenerationKeyRow = { id: string; provider: unknown; status: unknown; model_ids: unknown };
+
+async function findGenerationKey(supabase: Pick<SupabaseClient, 'from'>, ownerId: string, providerId: ProviderId): Promise<GenerationKeyRow | null> {
+  try {
+    const { data, error } = await supabase.from('byok_keys').select('id, provider, status, model_ids').eq('owner_id', ownerId).eq('provider', providerId).maybeSingle();
+    if (error || !data || typeof data.id !== 'string' || !validProvider(data.provider) || typeof data.status !== 'string' || !Array.isArray(data.model_ids)) return null;
+    return data as GenerationKeyRow;
+  } catch { return null; }
+}
+
+function replacementFor(selection: Selection): Selection {
+  return isKnownModel(selection.providerId, selection.model)
+    ? { ...selection, keySource: 'service' }
+    : { providerId: 'gemini', model: defaultModelFor('gemini'), keySource: 'service' };
+}
+
+/** Re-derive key ownership, status, and model access for each generation request. */
+export async function resolveGenerationRoute(deps: GenerationRouteDeps): Promise<GenerationRoute> {
+  const { ownerId, selection } = deps;
+  if (selection.keySource === 'service') {
+    return { kind: 'service', selection, client: createPlatformProvider(selection.providerId, deps.env ?? process.env) };
+  }
+
+  const key = await findGenerationKey(deps.supabase, ownerId, selection.providerId);
+  if (!key || key.status !== 'connected' || key.provider !== selection.providerId || !isKnownModel(selection.providerId, selection.model) || !Array.isArray(key.model_ids) || !key.model_ids.includes(selection.model)) {
+    return { kind: 'replacement_required', replacement: replacementFor(selection) };
+  }
+
+  const secret = await getByokSecret(deps.admin, ownerId, selection.providerId);
+  if (!secret) return { kind: 'replacement_required', replacement: replacementFor(selection) };
+
+  // The secret RPC is provider-scoped. Recheck the key id after decryption so a
+  // delete/re-register race never sends the newly registered key for stale intent.
+  const current = await findGenerationKey(deps.supabase, ownerId, selection.providerId);
+  if (!current || current.id !== key.id || current.status !== 'connected' || !Array.isArray(current.model_ids) || !current.model_ids.includes(selection.model)) {
+    return { kind: 'replacement_required', replacement: replacementFor(selection) };
+  }
+
+  return { kind: 'byok', selection, keyId: key.id, client: createProviderWithApiKey(selection.providerId, secret, { keySource: 'byok' }) };
+}
+
+/** Conditional transition; a false result means the request observed a stale key id. */
+export async function markByokFailed(admin: RpcClient, input: { ownerId: string; providerId: ProviderId; expectedKeyId: string }): Promise<boolean> {
+  try {
+    const { data, error } = await admin.rpc('mark_byok_failed', {
+      p_owner: input.ownerId, p_provider: input.providerId, p_expected_key_id: input.expectedKeyId,
+    });
+    return !error && data === true;
+  } catch { return false; }
+}
 
 export async function listByokKeys(supabase: SupabaseClient, ownerId: string): Promise<ByokKeyMeta[]> {
   try {

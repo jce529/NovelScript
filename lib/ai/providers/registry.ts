@@ -12,7 +12,20 @@ const ENV_VAR_BY_PROVIDER: Record<ProviderId, string> = {
   anthropic: 'ANTHROPIC_API_KEY',
 };
 
-/** Platform service-key provider. Per-user key resolution belongs to Phase 10/11. */
+export type ProviderKeySource = 'service' | 'byok';
+
+/** Construct one of the supported provider adapters with an already-resolved key. */
+export function createProviderWithApiKey(
+  providerId: ProviderId,
+  apiKey: string,
+  _options: { keySource: ProviderKeySource },
+): ProviderClient {
+  if (providerId === 'openai') return createOpenAiProvider({ apiKey });
+  if (providerId === 'anthropic') return createAnthropicProvider({ apiKey });
+  return createGeminiProvider({ apiKey });
+}
+
+/** Platform service-key provider. Fixture and environment resolution stay platform-only. */
 export function createPlatformProvider(
   providerId: ProviderId,
   env: Record<string, string | undefined> = process.env,
@@ -26,7 +39,5 @@ export function createPlatformProvider(
   if (!apiKey) {
     throw new ProviderCallError({ provider: providerId, status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' });
   }
-  if (providerId === 'openai') return createOpenAiProvider({ apiKey });
-  if (providerId === 'anthropic') return createAnthropicProvider({ apiKey });
-  return createGeminiProvider({ apiKey });
+  return createProviderWithApiKey(providerId, apiKey, { keySource: 'service' });
 }
