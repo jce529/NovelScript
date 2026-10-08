@@ -23,13 +23,12 @@ import {
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
 import { buildModelChoices, decodeSelection, encodeSelection, KEY_SOURCE_LABEL, type ByokModelMap, type KeySource } from '@/lib/ai/providers/selection';
-import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 import { computeDebitAmount } from '@/lib/ai/cost';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
 import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
 import {
-  createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice,
+  createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice, createReplacementAttempt,
   type ChatNotice, type SendAttempt,
 } from '@/lib/ai/chat-request';
 import type { ChatResult } from '@/lib/ai/chat-result';
@@ -113,6 +112,8 @@ interface SendPayload {
   mentionedNodeIds: string[];
   precedingText: string;
   attachments: ChatAttachment[];
+  replacementConsent?: boolean;
+  replacementSelection?: { providerId: ProviderId; model: string; keySource: 'service' };
 }
 
 export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, defaultFallback, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
@@ -142,6 +143,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const [notice, setNotice] = useState<{ id: string; notice: ChatNotice } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const retryButtonRef = useRef<HTMLButtonElement>(null);
+  const settingsLinkRef = useRef<HTMLAnchorElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
   const mentionedNodeIds = mentionedNodes.map((n) => n.id);
   const pricingTable = providerId === 'openai' ? OPENAI_PRICING_USD_PER_MILLION
@@ -155,7 +158,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
 
   useEffect(() => {
     if (!notice) return;
-    if (notice.notice.variant === 'error' && notice.notice.retryable) retryButtonRef.current?.focus();
+    if (notice.notice.byokAction?.kind === 'invalid_key') settingsLinkRef.current?.focus();
+    else if (notice.notice.byokAction?.kind === 'replacement') cancelButtonRef.current?.focus();
+    else if (notice.notice.variant === 'error' && notice.notice.retryable) retryButtonRef.current?.focus();
     else inputRef.current?.focus();
   }, [notice]);
 
@@ -203,6 +208,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         precedingText: p.precedingText,
         chatHistory: base.map((m) => ({ role: m.role, content: chatHistoryTurnContent(m) })),
         idempotencyKey: attempt.idempotencyKey,
+        replacementConsent: p.replacementConsent,
+        replacementSelection: p.replacementSelection,
       });
     } catch {
       result = null;
@@ -213,17 +220,28 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
 
     if (result === null) {
       failedAttemptRef.current = attempt;
-      showNotice(thrownChatNotice());
+      if (p.keySource === 'byok') {
+        const outcome = resolveChatOutcome({ ok: false, status: 'failed', failureKind: 'unavailable' }, p.providerId);
+        if (outcome.kind === 'notice') showNotice(outcome.notice);
+      } else {
+        showNotice(thrownChatNotice());
+      }
       return;
     }
 
-    const outcome = resolveChatOutcome(result);
+    const outcome = resolveChatOutcome(result, p.keySource === 'byok' ? p.providerId : undefined);
     if (outcome.kind === 'success') {
       failedAttemptRef.current = null;
+      if (p.replacementSelection) {
+        setProviderId(p.replacementSelection.providerId);
+        setModel(p.replacementSelection.model);
+        setKeySource('service');
+      }
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
-        providerId: p.providerId, model: p.model,
+        providerId: p.replacementSelection?.providerId ?? p.providerId,
+        model: p.replacementSelection?.model ?? p.model,
       }]);
       if (result.wasCapped) {
         toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
@@ -235,15 +253,15 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     const n = outcome.notice;
     if (n.removeUserTurn) setMessages([...p.history]);
     if (n.restoreInput) setChatInput(p.userMessage);
-    failedAttemptRef.current = n.retryable ? attempt : null;
+    failedAttemptRef.current = n.retryable || n.byokAction?.kind === 'replacement' ? attempt : null;
+    if (n.byokAction?.kind === 'invalid_key') router.refresh();
     if (n.refreshBalance) router.refresh();
     showNotice(n);
   }
 
   function handleSend() {
-    if (keySource === 'byok' || consentPending) return;
     const trimmed = chatInput.trim();
-    if (!trimmed || isGenerating || lockRef.current.locked) return;
+    if (!trimmed || isGenerating || lockRef.current.locked || consentPending) return;
     const failed = failedAttemptRef.current;
     // A new message after a failure drops the failed user turn from history.
     const history = failed ? messages.filter((m) => m.id !== failed.payload.userTurnId) : messages;
@@ -254,9 +272,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
 
   /** 다시 시도: same key, same snapshot (UI-SPEC §1 row 2). */
   function handleRetry() {
-    if (keySource === 'byok' || consentPending) return;
     const attempt = failedAttemptRef.current;
-    if (!attempt || isGenerating || lockRef.current.locked) return;
+    if (!attempt || isGenerating || lockRef.current.locked || consentPending) return;
     void runAttempt(attempt);
   }
 
@@ -265,11 +282,26 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     inputRef.current?.focus();
   }
 
+  function handleUseServiceKey() {
+    const action = notice?.notice.byokAction;
+    const attempt = failedAttemptRef.current;
+    if (!attempt || !action || action.kind !== 'replacement' || isGenerating || lockRef.current.locked) return;
+    const next = createReplacementAttempt(attempt, action.selection);
+    setProviderId(action.selection.providerId);
+    setModel(action.selection.model);
+    setKeySource('service');
+    void runAttempt(next);
+  }
+
+  function handleCancelReplacement() {
+    setNotice(null);
+    inputRef.current?.focus();
+  }
+
   /** Drops the last AI turn (and the user message that prompted it, if any)
    * and resends the same request with a NEW key — a "redo" of the last exchange. */
   function handleRegenerate() {
-    if (keySource === 'byok' || consentPending) return;
-    if (isGenerating || lockRef.current.locked) return;
+    if (isGenerating || lockRef.current.locked || consentPending) return;
     const withoutLastAssistant = messages.slice(0, -1);
     const tail = withoutLastAssistant[withoutLastAssistant.length - 1];
     if (tail?.role === 'user') {
@@ -336,7 +368,11 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
               {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[accountDefault.providerId]} {'\u00B7'} {PROVIDER_MODELS[accountDefault.providerId].find((entry) => entry.id === accountDefault.model)?.displayName ?? accountDefault.model} <Badge variant={accountDefault.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[accountDefault.keySource]}</Badge>
               {' · '}<Link className="underline" href="/studio/settings/ai-providers">설정에서 변경</Link>
             </div>
-            <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
+            {keySource === 'byok' ? (
+              <p role="status" aria-live="polite" className="text-xs text-muted-foreground">내 키로 호출해요 · 지갑 토큰은 차감되지 않아요</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
+            )}
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label className="text-xs text-muted-foreground">장르</label>
@@ -516,12 +552,15 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
             onDismiss={handleDismiss}
             onRetry={notice.notice.retryable ? handleRetry : undefined}
             retryButtonRef={retryButtonRef}
+            settingsLinkRef={settingsLinkRef}
+            cancelButtonRef={cancelButtonRef}
+            onUseServiceKey={handleUseServiceKey}
+            onCancelReplacement={handleCancelReplacement}
           />
         )}
       </div>
 
       <div className="flex items-center gap-2">
-        {keySource === 'byok' && <p role="status" className="text-xs text-muted-foreground">{BYOK_COPY.sendBoundary}</p>}
         <Input
           ref={inputRef}
           value={chatInput}
@@ -531,7 +570,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           disabled={isGenerating || consentPending}
           className="flex-1"
         />
-        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || keySource === 'byok' || consentPending} onClick={handleSend}>
+        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || consentPending} onClick={handleSend}>
           보내기
         </Button>
       </div>

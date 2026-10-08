@@ -41,6 +41,5 @@ export const BYOK_COPY = {
   deleteSuccess: (provider: string) => `${provider} 키를 삭제했어요.`,
   deleteReplacement: (model: string) => `기본 모델이 ${model} [서비스 키]로 바뀌었어요.`,
   replacementHelp: '키를 바꾸려면 기존 키를 삭제한 뒤 새 키를 등록하세요.',
-  sendBoundary: 'BYOK 모델 호출은 아직 준비 중이에요. 지금 생성하려면 [서비스 키] 모델을 선택하세요.',
   internalError: '처리하지 못했어요. 잠시 뒤 다시 시도하세요.',
 } as const;

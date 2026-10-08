@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   createSendAttempt,
+  createReplacementAttempt,
   createSendLock,
   resolveChatOutcome,
   thrownChatNotice,
@@ -38,6 +39,30 @@ describe('createSendAttempt', () => {
     expect(a.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
     expect(b.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
     expect(a.idempotencyKey).not.toBe(b.idempotencyKey);
+  });
+
+  it('derives an explicit replacement with the same idempotency key and frozen request snapshot', () => {
+    const attempt = createSendAttempt({ providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const, userMessage: 'hello', history: [{ role: 'user', content: 'prior' }] }, () => 'same-key');
+    const replacement = createReplacementAttempt(attempt, { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' });
+    expect(replacement.idempotencyKey).toBe('same-key');
+    expect(replacement.payload).toMatchObject({
+      providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok', userMessage: 'hello',
+      history: [{ role: 'user', content: 'prior' }], replacementConsent: true,
+      replacementSelection: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' },
+    });
+    expect(Object.isFrozen(replacement.payload)).toBe(true);
+  });
+
+  it('derives an explicit replacement with the same idempotency key and frozen request snapshot', () => {
+    const attempt = createSendAttempt({ providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const, userMessage: 'hello', history: [{ role: 'user', content: 'prior' }] }, () => 'same-key');
+    const replacement = createReplacementAttempt(attempt, { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' });
+    expect(replacement.idempotencyKey).toBe('same-key');
+    expect(replacement.payload).toMatchObject({
+      providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok', userMessage: 'hello',
+      history: [{ role: 'user', content: 'prior' }], replacementConsent: true,
+      replacementSelection: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' },
+    });
+    expect(Object.isFrozen(replacement.payload)).toBe(true);
   });
 });
 
@@ -141,6 +166,61 @@ describe('resolveChatOutcome', () => {
     const b = notice({ ok: false, status: 'failed', failureKind: 'unknown', error: '서버 문구' });
     expect(b.title).toBe('서버 문구');
     expect(b).toMatchObject({ retryable: true, removeUserTurn: false });
+  });
+
+  it('maps safe BYOK failure kinds to provider specific copy and actions', () => {
+    const invalid = resolveChatOutcome({ ok: false, status: 'failed', failureKind: 'invalid_key' }, 'openai');
+    expect(invalid).toMatchObject({ kind: 'notice', notice: {
+      title: 'OpenAI 키를 사용할 수 없어요', retryable: false,
+      byokAction: { kind: 'invalid_key', settingsHref: '/studio/settings/ai-providers' },
+    } });
+    const retryCopies = [
+      ['rate_limited', 'Anthropic 요청 한도에 도달했어요', '잠시 뒤 다시 시도해 주세요. 키 상태는 그대로예요.'],
+      ['credit_exhausted', 'Anthropic 크레딧이 부족해요', 'Anthropic에서 크레딧을 충전한 뒤 다시 시도해 주세요. 키 상태는 그대로예요.'],
+      ['unavailable', 'Anthropic에 연결할 수 없어요', '잠시 뒤 다시 시도해 주세요. 키 상태는 그대로예요.'],
+    ] as const;
+    for (const [failureKind, title, body] of retryCopies) {
+      const outcome = resolveChatOutcome({ ok: false, status: 'failed', failureKind }, 'anthropic');
+      expect(outcome).toMatchObject({ kind: 'notice', notice: { title, body, retryable: true, byokAction: { kind: 'retry', providerId: 'anthropic' } } });
+    }
+  });
+
+  it('maps replacement_required to a consent action without exposing raw fields', () => {
+    const outcome = resolveChatOutcome({
+      ok: false, status: 'failed', kind: 'replacement_required', failureKind: 'unavailable',
+      original: { providerId: 'openai', model: 'gpt-5' },
+      replacement: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' },
+      error: 'raw sentinel',
+    });
+    expect(outcome).toMatchObject({ kind: 'notice', notice: {
+      byokAction: { kind: 'replacement', selection: { providerId: 'gemini', keySource: 'service' } },
+    } });
+    expect(JSON.stringify(outcome)).not.toContain('raw sentinel');
+  });
+
+  it('maps safe BYOK failure kinds to provider specific copy and actions', () => {
+    const invalid = resolveChatOutcome({ ok: false, status: 'failed', failureKind: 'invalid_key' }, 'openai');
+    expect(invalid).toMatchObject({ kind: 'notice', notice: {
+      title: 'OpenAI 키를 사용할 수 없어요', retryable: false,
+      byokAction: { kind: 'invalid_key', settingsHref: '/studio/settings/ai-providers' },
+    } });
+    for (const failureKind of ['rate_limited', 'credit_exhausted', 'unavailable'] as const) {
+      const outcome = resolveChatOutcome({ ok: false, status: 'failed', failureKind }, 'anthropic');
+      expect(outcome).toMatchObject({ kind: 'notice', notice: { retryable: true, byokAction: { kind: 'retry', providerId: 'anthropic' } } });
+    }
+  });
+
+  it('maps replacement_required to a consent action without exposing raw fields', () => {
+    const outcome = resolveChatOutcome({
+      ok: false, status: 'failed', kind: 'replacement_required', failureKind: 'unavailable',
+      original: { providerId: 'openai', model: 'gpt-5' },
+      replacement: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' },
+      error: 'raw sentinel',
+    });
+    expect(outcome).toMatchObject({ kind: 'notice', notice: {
+      byokAction: { kind: 'replacement', selection: { providerId: 'gemini', keySource: 'service' } },
+    } });
+    expect(JSON.stringify(outcome)).not.toContain('raw sentinel');
   });
 
   it('thrownChatNotice', () => {

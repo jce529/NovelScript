@@ -80,10 +80,13 @@ describe('AI panel model picker', () => {
     expect(html).not.toContain(':byok"');
   });
 
-  it('shows the Phase 10 send boundary hint only while a BYOK model is selected', () => {
+  it('shows the no-wallet BYOK hint and hides example wallet cost only while BYOK is selected', () => {
     const byokHtml = render({ defaultProviderId: 'openai', defaultModel: 'gpt-4o-mini', defaultKeySource: 'byok', ...withKey });
-    expect(byokHtml).toContain('BYOK 모델 호출은 아직 준비 중이에요');
-    expect(render({ ...serviceDefault, ...withKey })).not.toContain('BYOK 모델 호출은 아직 준비 중이에요');
+    expect(byokHtml).toContain('내 키로 호출해요 · 지갑 토큰은 차감되지 않아요');
+    expect(byokHtml).not.toContain('입력 1,000 + 출력 1,000 토큰 기준');
+    const serviceHtml = render({ ...serviceDefault, ...withKey });
+    expect(serviceHtml).not.toContain('내 키로 호출해요 · 지갑 토큰은 차감되지 않아요');
+    expect(serviceHtml).toContain('입력 1,000 + 출력 1,000 토큰 기준');
   });
 
   describe('default model fallback notice (BUG-02)', () => {

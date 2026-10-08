@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
-import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 
 /*
  * 08-05 Server Action boundary for chatAction: session-derived owner, UUID
@@ -79,10 +78,6 @@ beforeEach(() => {
 });
 
 describe('chatAction boundary', () => {
-  it('uses the shared BYOK pending copy', async () => {
-    expect(CHAT_COPY.byokPending).toBe(BYOK_COPY.sendBoundary);
-  });
-
   it('returns replacement_required for unavailable BYOK before chat', async () => {
     h.resolveRoute.mockResolvedValueOnce({ kind: 'replacement_required', replacement: { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' } });
     const result = await chatAction(validInput({ keySource: 'byok' }));

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type Ref } from 'react';
+import Link from 'next/link';
 import { AlertCircle, ChevronDown, Info, RotateCw, ShieldAlert, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ChatNotice } from '@/lib/ai/chat-request';
@@ -13,6 +14,10 @@ export interface AiPanelNoticeProps {
   onDismiss: () => void;
   onRetry?: () => void;
   retryButtonRef?: Ref<HTMLButtonElement>;
+  settingsLinkRef?: Ref<HTMLAnchorElement>;
+  cancelButtonRef?: Ref<HTMLButtonElement>;
+  onUseServiceKey?: () => void;
+  onCancelReplacement?: () => void;
   /** test/SSR hook only; runtime starts collapsed (UI-SPEC §3) */
   defaultExpanded?: boolean;
 }
@@ -20,13 +25,16 @@ export interface AiPanelNoticeProps {
 /** Refusal / already-processed / error notice above the AI panel input (UI-SPEC Layout & Placement).
  * Renders only notice fields — never provider name, HTTP status or idempotency key. */
 export function AiPanelNotice({
-  id, notice, disabled, onDismiss, onRetry, retryButtonRef, defaultExpanded,
+  id, notice, disabled, onDismiss, onRetry, retryButtonRef, settingsLinkRef, cancelButtonRef,
+  onUseServiceKey, onCancelReplacement, defaultExpanded,
 }: AiPanelNoticeProps) {
   const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const isError = notice.variant === 'error';
   const isRefusal = notice.variant === 'refusal';
   // UI-SPEC §2: refusal/processed keys are already recorded in the ledger — never retry them.
   const showRetry = isError && notice.retryable && Boolean(onRetry);
+  const invalidKeyAction = notice.byokAction?.kind === 'invalid_key' ? notice.byokAction : null;
+  const replacement = notice.byokAction?.kind === 'replacement' ? notice.byokAction : null;
   const Icon = isRefusal ? ShieldAlert : notice.variant === 'processed' ? Info : AlertCircle;
   const reasonId = `${id}-reason`;
   const reasonParts = notice.reasonLine?.split(' · ') ?? [];
@@ -61,13 +69,29 @@ export function AiPanelNotice({
         </Button>
       </div>
 
-      {(showRetry || isRefusal) && (
-        <div className="flex gap-2 pt-2">
+      {(showRetry || isRefusal || invalidKeyAction || replacement) && (
+        <div className="flex flex-wrap gap-2 pt-2">
           {showRetry && (
             <Button variant="outline" size="sm" ref={retryButtonRef} disabled={disabled} onClick={onRetry}>
               <RotateCw aria-hidden />
               다시 시도
             </Button>
+          )}
+          {invalidKeyAction && (
+            <Button variant="outline" size="sm" render={<Link href={invalidKeyAction.settingsHref} ref={settingsLinkRef} />}>
+              설정에서 키 확인
+            </Button>
+          )}
+          {replacement && (
+            <>
+              <Button variant="default" size="sm" disabled={disabled} onClick={onUseServiceKey}>
+                서비스 키로 보내기 (지갑 토큰 차감)
+              </Button>
+              <Button variant="outline" size="sm" ref={cancelButtonRef} disabled={disabled} onClick={onCancelReplacement}>
+                취소
+              </Button>
+              <Link className="text-sm underline self-center" href="/studio/settings/ai-providers">설정에서 키 확인</Link>
+            </>
           )}
           {isRefusal && (
             <Button

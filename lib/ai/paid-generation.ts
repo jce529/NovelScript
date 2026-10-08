@@ -203,7 +203,7 @@ async function settleInner(
       try { await markByokFailed(ctx.admin as unknown as Parameters<typeof markByokFailed>[0], { ownerId: id.ownerId, providerId: client.provider, expectedKeyId: ctx.route.trusted.keyId }); }
       catch { console.error('[ai] BYOK status update failed', { stage: 'status_update', provider: client.provider, idempotencyKey: id.idempotencyKey }); }
     }
-    const failureKind = info.kind === 'invalid_key' || info.kind === 'credit_exhausted' ? 'config' : info.kind;
+    const failureKind = info.kind;
     return { kind: 'terminal', chatResult: failed(failureKind, CHAT_COPY[failureKind]) };
   }
 

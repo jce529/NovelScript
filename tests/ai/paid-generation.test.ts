@@ -125,9 +125,10 @@ describe('paid generation lifecycle', () => {
     const pre = await preflightPaidGeneration(session(), { ownerId: OWNER, idempotencyKey: requestKey, providerId: 'openai', model: 'gpt-4o-mini' }, route);
     if (!pre.ok || pre.ctx.route.keySource !== 'byok') throw new Error('BYOK preflight failed');
     const client = { ...route.client, provider: 'openai' as const };
-    await settlePaidGeneration(client, pre.ctx, { ownerId: OWNER, idempotencyKey: requestKey, providerId: 'openai', model: 'gpt-4o-mini', ledgerReason: 'test' }, async () => {
+    const settled = await settlePaidGeneration(client, pre.ctx, { ownerId: OWNER, idempotencyKey: requestKey, providerId: 'openai', model: 'gpt-4o-mini', ledgerReason: 'test' }, async () => {
       throw new ProviderCallError({ provider: 'openai', status, kind, providerErrorCode: status === 401 ? 'UNAUTHENTICATED' : status === 503 ? 'UNAVAILABLE' : 'RESOURCE_EXHAUSTED' });
     });
+    expect(settled).toMatchObject({ kind: 'terminal', chatResult: { ok: false, failureKind: kind } });
     const marks = admin.rpc.mock.calls.filter(([name]) => name === 'mark_byok_failed');
     if (label === 'invalid_key') expect(marks).toEqual([['mark_byok_failed', { p_owner: OWNER, p_provider: 'openai', p_expected_key_id: 'key-current' }]]);
     else expect(marks).toHaveLength(0);

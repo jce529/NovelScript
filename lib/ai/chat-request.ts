@@ -1,6 +1,9 @@
 /** Client-safe chat send lifecycle (COST-01) + ChatResult -> notice mapping (UI-SPEC §1-2). */
 import { CHAT_COPY, type ChatFailureKind, type ChatResult } from '@/lib/ai/chat-result';
 import { REFUSAL_REASON_CODES, type RefusalReasonCode } from '@/lib/ai/providers/types';
+import type { ProviderId } from '@/lib/ai/providers/types';
+import type { KeySource } from '@/lib/ai/providers/selection';
+import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
 
 export interface SendAttempt<P> {
   readonly idempotencyKey: string;
@@ -71,11 +74,26 @@ export interface ChatNotice {
   removeUserTurn: boolean;
   restoreInput: boolean;
   refreshBalance: boolean;
+  /** Explicit next action for safe BYOK outcomes; absent for legacy service notices. */
+  byokAction?:
+    | { kind: 'invalid_key'; settingsHref: '/studio/settings/ai-providers' }
+    | { kind: 'retry'; providerId: ProviderId }
+    | { kind: 'replacement'; selection: { providerId: ProviderId; model: string; keySource: 'service' }; original: { providerId: ProviderId; model: string } };
 }
 
 export type ChatOutcome =
   | { kind: 'success'; refreshBalance: boolean }
   | { kind: 'notice'; notice: ChatNotice };
+
+/** Derive a new frozen attempt for explicit service-key consent, preserving identity and content. */
+export function createReplacementAttempt<P extends { providerId: ProviderId; model: string; keySource: KeySource }>(
+  attempt: SendAttempt<P>, selection: { providerId: ProviderId; model: string; keySource: 'service' },
+): SendAttempt<P & { replacementConsent: true; replacementSelection: typeof selection }> {
+  const payload = structuredClone(attempt.payload) as P & { replacementConsent: true; replacementSelection: typeof selection };
+  Object.assign(payload, { replacementConsent: true, replacementSelection: { ...selection } });
+  deepFreeze(payload);
+  return Object.freeze({ idempotencyKey: attempt.idempotencyKey, payload });
+}
 
 export function formatTokens(n: number): string {
   return n.toLocaleString('ko-KR');
@@ -93,6 +111,7 @@ function normalizeReasonCode(raw: string): RefusalReasonCode {
 
 const RETRYABLE_KINDS: ReadonlySet<ChatFailureKind> = new Set<ChatFailureKind>([
   'rate_limited',
+  'credit_exhausted',
   'unavailable',
   'config',
   'settlement',
@@ -109,7 +128,9 @@ const COPY_TITLE_KINDS: ReadonlySet<ChatFailureKind> = new Set<ChatFailureKind>(
   'generation_in_progress',
 ]);
 
-export function resolveChatOutcome(result: ChatResult): ChatOutcome {
+const BYOK_PROVIDER_LABEL: Record<ProviderId, string> = { openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini' };
+
+export function resolveChatOutcome(result: ChatResult, providerId?: ProviderId): ChatOutcome {
   if (result.ok) {
     return { kind: 'success', refreshBalance: result.remainingBalance !== undefined };
   }
@@ -150,7 +171,38 @@ export function resolveChatOutcome(result: ChatResult): ChatOutcome {
     };
   }
 
+  if (result.kind === 'replacement_required' && result.replacement && result.original) {
+    const label = BYOK_PROVIDER_LABEL[result.original.providerId];
+    const modelName = PROVIDER_MODELS[result.original.providerId].find((model) => model.id === result.original!.model)?.displayName ?? result.original.model;
+    const replacementName = PROVIDER_MODELS[result.replacement.providerId].find((model) => model.id === result.replacement!.model)?.displayName ?? result.replacement.model;
+    const sameModel = result.original.providerId === result.replacement.providerId && result.original.model === result.replacement.model;
+    return { kind: 'notice', notice: {
+      variant: 'error', title: `선택한 ${label} 키를 사용할 수 없어요`,
+      body: sameModel
+        ? `${modelName} [서비스 키]로 대신 보낼 수 있어요. 이 경우 지갑 토큰이 차감돼요.`
+        : `${modelName}은 서비스 키로 제공되지 않아요. ${replacementName} [서비스 키]로 대신 보낼 수 있고, 이 경우 지갑 토큰이 차감돼요.`,
+      meta: null, reasonLine: null, retryable: false, removeUserTurn: true, restoreInput: true,
+      refreshBalance: false,
+      byokAction: { kind: 'replacement', selection: result.replacement, original: result.original },
+    } };
+  }
+
   const kind: ChatFailureKind = result.failureKind ?? 'unknown';
+  if (providerId && (kind === 'invalid_key' || kind === 'rate_limited' || kind === 'credit_exhausted' || kind === 'unavailable')) {
+    const label = BYOK_PROVIDER_LABEL[providerId];
+    const copy = {
+      invalid_key: { title: `${label} 키를 사용할 수 없어요`, body: '키가 유효하지 않거나 폐기됐어요. 설정에서 키를 확인하고 다시 등록해 주세요. 이 키는 검증 실패로 표시했어요.' },
+      rate_limited: { title: `${label} 요청 한도에 도달했어요`, body: '잠시 뒤 다시 시도해 주세요. 키 상태는 그대로예요.' },
+      credit_exhausted: { title: `${label} 크레딧이 부족해요`, body: `${label}에서 크레딧을 충전한 뒤 다시 시도해 주세요. 키 상태는 그대로예요.` },
+      unavailable: { title: `${label}에 연결할 수 없어요`, body: '잠시 뒤 다시 시도해 주세요. 키 상태는 그대로예요.' },
+    }[kind];
+    const invalid = kind === 'invalid_key';
+    return { kind: 'notice', notice: {
+      variant: 'error', title: copy.title, body: copy.body, meta: null, reasonLine: null,
+      retryable: !invalid, removeUserTurn: invalid, restoreInput: invalid, refreshBalance: false,
+      byokAction: invalid ? { kind: 'invalid_key', settingsHref: '/studio/settings/ai-providers' } : { kind: 'retry', providerId },
+    } };
+  }
   const retryable = RETRYABLE_KINDS.has(kind);
   const title = COPY_TITLE_KINDS.has(kind)
     ? CHAT_COPY[kind as keyof typeof CHAT_COPY]

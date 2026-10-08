@@ -3,12 +3,13 @@ import type { DocumentProposal } from '@/lib/ai/prompt';
 import type { WriteDenialCode } from '@/lib/auth/write-access';
 import type { RefusalReasonCode, UsageReport } from '@/lib/ai/providers/types';
 import { PER_REQUEST_MAX_OUTPUT_TOKENS } from '@/lib/ai/cost';
-import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 
 export type ChatStatus = 'completed' | 'refused' | 'already_processed' | 'failed';
 
 export type ChatFailureKind =
   | 'rate_limited'
+  | 'invalid_key'
+  | 'credit_exhausted'
   | 'unavailable'
   | 'config'
   | 'settlement'
@@ -76,13 +77,20 @@ export interface ChatResult {
   remainingBalance?: number;
   code?: WriteDenialCode;
   refusal?: ChatRefusalInfo;
+  /** Safe proposal returned when a selected BYOK route is unavailable. */
+  kind?: 'replacement_required';
+  replacement?: { providerId: import('@/lib/ai/providers/types').ProviderId; model: string; keySource: 'service' };
+  original?: { providerId: import('@/lib/ai/providers/types').ProviderId; model: string };
 }
 
 export const CHAT_COPY = {
-  byokPending: BYOK_COPY.sendBoundary,
+  /** @deprecated Legacy server actions still import this; replacement notices use the safe discriminant. */
+  byokPending: '',
   rate_limited: '지금 요청이 몰려 있어요. 1분 뒤 다시 시도해주세요.',
   unavailable: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해주세요.',
   config: 'AI 기능에 문제가 생겼어요. 계속되면 문의해주세요.',
+  invalid_key: '사용 중인 API 키를 쓸 수 없어요. 설정에서 키를 확인해 주세요.',
+  credit_exhausted: '연결된 API 키의 크레딧이 부족해요. 제공자에서 충전한 뒤 다시 시도해 주세요.',
   settlement: '토큰 차감에 실패해 응답을 표시하지 못했어요. 잠시 후 다시 시도해주세요.',
   insufficient_balance: '보유 토큰을 모두 사용해서 대화할 수 없어요.',
   generation_in_progress: '이미 생성 중이에요. 현재 생성이 끝난 뒤 다시 시도해주세요.',

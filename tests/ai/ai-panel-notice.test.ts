@@ -8,8 +8,8 @@ import type { ChatResult } from '@/lib/ai/chat-result';
 const RETRY_BUTTON = /다시 시도<\/button>/;
 const noop = () => {};
 
-function toNotice(result: ChatResult): ChatNotice {
-  const o = resolveChatOutcome(result);
+function toNotice(result: ChatResult, provider?: 'openai' | 'anthropic' | 'gemini'): ChatNotice {
+  const o = resolveChatOutcome(result, provider);
   if (o.kind !== 'notice') throw new Error('expected notice');
   return o.notice;
 }
@@ -18,6 +18,8 @@ const refusal = toNotice({ ok: false, status: 'refused', remainingBalance: 1234,
 const processed = toNotice({ ok: false, status: 'already_processed', remainingBalance: 500 });
 const rateLimited = toNotice({ ok: false, status: 'failed', failureKind: 'rate_limited' });
 const insufficient = toNotice({ ok: false, status: 'failed', failureKind: 'insufficient_balance' });
+const invalidKey = toNotice({ ok: false, status: 'failed', failureKind: 'invalid_key' }, 'openai');
+const replacement = toNotice({ ok: false, status: 'failed', kind: 'replacement_required', failureKind: 'unavailable', original: { providerId: 'openai', model: 'gpt-5' }, replacement: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' } });
 
 const outputs: string[] = [];
 function render(props: Partial<AiPanelNoticeProps> & { notice: ChatNotice }): string {
@@ -84,10 +86,28 @@ describe('AiPanelNotice', () => {
     expect(button).toContain('disabled');
   });
 
-  it('never leaks provider or status', () => {
+  it('invalid key shows settings link only, with provider-safe copy', () => {
+    const html = render({ notice: invalidKey, settingsLinkRef: null });
+    expect(html).toContain('OpenAI 키를 사용할 수 없어요');
+    expect(html).toContain('href="/studio/settings/ai-providers"');
+    expect(html).toContain('설정에서 키 확인');
+    expect(html).not.toMatch(RETRY_BUTTON);
+  });
+
+  it('replacement requires explicit consent and exposes cancel and settings actions', () => {
+    const html = render({ notice: replacement, onUseServiceKey: noop, onCancelReplacement: noop, cancelButtonRef: null });
+    expect(html).toContain('gpt-5은 서비스 키로 제공되지 않아요');
+    expect(html).toContain('이 경우 지갑 토큰이 차감돼요.');
+    expect(html).toContain('flex flex-wrap gap-2 pt-2');
+    expect(html.indexOf('서비스 키로 보내기 (지갑 토큰 차감)')).toBeLessThan(html.indexOf('취소'));
+    expect(html).toContain('href="/studio/settings/ai-providers"');
+  });
+
+  it('never leaks raw status or provider response fields', () => {
     for (const html of outputs) {
-      expect(html.toLowerCase()).not.toContain('gemini');
       expect(html).not.toContain('429');
+      expect(html).not.toContain('raw sentinel');
+      expect(html).not.toContain('idempotencyKey');
     }
   });
 });
