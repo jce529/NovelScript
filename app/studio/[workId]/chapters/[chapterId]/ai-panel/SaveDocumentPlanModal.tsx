@@ -6,17 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
+import { resolveChatOutcome, type ChatNotice } from '@/lib/ai/chat-request';
+import { buildRegeneratePayload } from '@/lib/ai/regenerate-contract';
 import type { DocumentProposal, PresetLevel, StylePresetId } from '@/lib/ai/prompt';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { FOLDER_COPY } from '@/lib/kb/folder-copy';
 import type { FolderCandidate } from '@/lib/kb/actions';
+import { AiPanelNotice } from './AiPanelNotice';
 import {
   loadSavePlanAction, regenerateDocumentWithTemplateAction, saveDocumentProposalAction,
   type SaveRecommendation,
 } from '../actions';
 
 type TemplateChoice = { id: string | null; name: string; scope: 'work' | 'account_template' | 'canonical'; isDefault: boolean };
-type GenerationSettings = { providerId: ProviderId; model: string; presetLevel: PresetLevel; styleId: StylePresetId; genre: string };
+type GenerationSettings = { providerId: ProviderId; model: string; keySource: 'service' | 'byok'; presetLevel: PresetLevel; styleId: StylePresetId; genre: string };
 
 export interface SaveDocumentPlanModalProps {
   workId: string;
@@ -49,6 +52,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
   const [regenerating, setRegenerating] = useState(false);
   const [regenConfirmOpen, setRegenConfirmOpen] = useState(false);
   const [regenerated, setRegenerated] = useState<{ content: string; name: string; templateId: string | null } | null>(null);
+  const [replacement, setReplacement] = useState<{ selection: { providerId: ProviderId; model: string; keySource: 'service' }; notice: ChatNotice } | null>(null);
   const regenKeyRef = useRef<{ templateId: string | null; key: string } | null>(null);
   const requestKey = JSON.stringify([workId, proposal]);
   const loadState = loadedRequest?.key === requestKey ? loadedRequest.state : 'loading';
@@ -154,17 +158,33 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
     setBanner(null);
     try {
       const result = await regenerateDocumentWithTemplateAction({
-        workId, proposal, templateId: selectedTemplateId,
+        ...buildRegeneratePayload({ workId, proposal, templateId: selectedTemplateId,
         targetFolderId: selectedFolderId, folderVersion: selectedFolderVersion,
         ...generation, idempotencyKey: key,
+        ...(replacement ? { replacementConsent: true as const, replacementSelection: replacement.selection } : {}),
+        }),
       });
       setRegenConfirmOpen(false);
       if (!result.ok) {
         if (result.status === 'already_processed') regenKeyRef.current = null;
-        setBanner(result.status === 'already_processed' ? CHAT_COPY.processedBody : result.error ?? REGENERATION_FAILED);
-        setSelectedTemplateId(recommended.templateId);
+        if ('kind' in result && result.kind === 'replacement_required') {
+          const selection = { ...result.replacement, keySource: 'service' as const };
+          const outcome = resolveChatOutcome({ ...result, replacement: selection }, generation.providerId);
+          if (outcome.kind === 'notice') setReplacement({ selection, notice: outcome.notice });
+          setBanner(null);
+          return;
+        }
+        const outcome = resolveChatOutcome({
+          ok: false, status: result.status ?? 'failed', failureKind: result.failureKind, error: result.error,
+        }, generation.keySource === 'byok' ? generation.providerId : undefined);
+        setBanner(result.status === 'already_processed' ? CHAT_COPY.processedBody
+          : outcome.kind === 'notice' && result.failureKind && ['invalid_key', 'rate_limited', 'credit_exhausted', 'unavailable'].includes(result.failureKind)
+            ? [outcome.notice.title, outcome.notice.body].filter(Boolean).join(' ')
+            : result.error ?? REGENERATION_FAILED);
+        setReplacement(null);
         return;
       }
+      setReplacement(null);
       const value = { content: result.content, name: result.name, templateId: selectedTemplateId };
       setRegenerated(value);
       await doSave(value);
@@ -179,6 +199,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
 
   function handleRegenCancel() {
     setRegenConfirmOpen(false);
+    setReplacement(null);
     if (recommended) setSelectedTemplateId(recommended.templateId);
   }
 
@@ -197,6 +218,14 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
             <div className="flex flex-col gap-4">
               {regenerating && <p className="text-sm text-muted-foreground">템플릿에 맞춰 문서를 다시 생성하는 중...</p>}
               {banner && <div role="alert" className="flex gap-2 rounded-md border border-destructive/30 bg-muted p-3 text-sm"><AlertCircle className="size-4 shrink-0" />{banner}</div>}
+              {replacement && <AiPanelNotice
+                id="document-regeneration-replacement"
+                notice={replacement.notice}
+                disabled={busy}
+                onDismiss={() => setReplacement(null)}
+                onUseServiceKey={() => void handleRegenConfirm()}
+                onCancelReplacement={() => setReplacement(null)}
+              />}
               <div>
                 <p className="text-sm font-semibold">추천 폴더: {recommended.folderPath}</p>
                 <p className="text-xs text-muted-foreground">추천 템플릿: {recommended.templateName}</p>

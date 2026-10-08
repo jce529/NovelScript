@@ -25,6 +25,7 @@ import { createJevClient } from '@/lib/ai/decision/jev';
 import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decision/fixture';
 import { DecisionCallError } from '@/lib/ai/decision/errors';
 import { regenerateDocumentWithTemplate, type RegenerateResult } from '@/lib/ai/document-regenerate';
+import { regenerateSchema } from '@/lib/ai/regenerate-contract';
 import { planCategoryOnly, planFolderAndTemplate } from '@/lib/ai/decision/plan';
 import { recordDocumentSaveDecision, runShadowPlan } from '@/lib/ai/decision/shadow';
 import { MAX_ATTACHMENTS, MAX_ATTACHMENT_CHARS, MAX_IMPORT_FILES, MAX_IMPORT_CHARS, documentNameFromFile } from '@/lib/ai/attachments';
@@ -348,17 +349,6 @@ export async function saveDocumentProposalAction(raw: unknown): Promise<
   revalidatePath(`/studio/${workId}/chapters`);
   return { ok: true, nodeId: created.nodeId };
 }
-
-const regenerateSchema = z.object({
-  workId: z.string().uuid(), proposal: proposalSchema, templateId: z.string().uuid().nullable(),
-  targetFolderId: z.string().uuid(), folderVersion: z.string().max(4000).optional(),
-  providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), keySource: z.enum(['service', 'byok']), idempotencyKey: z.string().uuid(),
-  replacementConsent: z.boolean().optional().default(false),
-  replacementSelection: z.object({ providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), keySource: z.literal('service') }).optional(),
-  presetLevel: z.enum(['beginner', 'intermediate', 'freeform']),
-  styleId: z.enum(['concise-hemingway', 'maximalist-dostoevsky', 'lyrical-kimhoon', 'colloquial-kimyounha']),
-  genre: z.string().max(100),
-});
 
 export async function regenerateDocumentWithTemplateAction(raw: unknown): Promise<RegenerateResult> {
   const supabase = await createClient();
