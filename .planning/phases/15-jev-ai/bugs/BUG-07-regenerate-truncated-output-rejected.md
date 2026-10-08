@@ -1,7 +1,7 @@
 ---
 id: BUG-07
 title: 문서 재생성이 응답 잘림을 "structure" 거부로 처리해 일반 실패 문구만 보임
-status: open (수정 방향 정책 결정 대기 — 아래 "수정 방향" 옵션 참고)
+status: open (옵션 3 확정 2026-10-08 — 관측 로그만 먼저 추가, 본 수정은 BUG-04 단계 B와 함께)
 severity: medium (재생성 성공을 한 번도 못 봄 — 과금은 안 되지만 기능이 사실상 막힘)
 found: 2026-10-08
 found_during: UAT 브랜치(uat/pending-verification) Phase 15-09 Task 2 브라우저 UAT — 템플릿 변경 재생성
@@ -39,7 +39,7 @@ related:
 - 잘린 이유는 출력 토큰 상한으로 추정한다: 서비스 키 호출 상한은 `min(잔액 환산, PER_REQUEST_MAX_OUTPUT_TOKENS=2048)`(`lib/ai/cost.ts`)이고 Gemini의 `maxOutputTokens`는 사고 토큰 + 본문 합계라서 사고가 길면 본문이 짧아진다. 응답이 1,100자뿐인 점이 이 설명과 맞지만, 이번에는 `finishReason`/사고 토큰 수를 로그에 넣지 않아 `MAX_TOKENS`임을 **직접 확인하지는 못했다.**
 
 ## 수정 방향
-**정책 결정 대기.** Phase 8 BUG-04의 확정 사항(단계 A: 원인별 안내 문구 + 상한 소폭 상향, 단계 B: T/B 분리는 Phase 11 이후·관측 먼저)과 겹치므로 아래 옵션 중 사용자 확정이 필요하다.
+**확정(2026-10-08, 사용자): 옵션 3 — 재생성 동작·상한·문구는 바꾸지 않고 관측 로그만 먼저 추가한다. 본 수정은 BUG-04 단계 B(T/B 분리, Phase 11 이후) 때 함께 한다.** 선택 근거 후보는 아래에 남긴다. Phase 8 BUG-04의 확정 사항(단계 A: 원인별 안내 문구 + 상한 소폭 상향, 단계 B: T/B 분리는 Phase 11 이후·관측 먼저)과 겹치므로 아래 옵션 중 사용자 확정이 필요하다.
 
 - **옵션 1 — 잘림 감지·안내만 (BUG-04 단계 A와 정합).** 재생성 콜백에서 `generated.finishReason === 'max_tokens'`이면 `structure`가 아닌 별도 사유(예: `truncated`)로 거부하고, 모달 배너에 "문서가 길어 중간에 잘렸어요. 다시 시도해주세요" 같은 원인별 문구를 보인다. 과금 없음 유지. 성공률은 그대로.
 - **옵션 2 — 옵션 1 + 재생성 호출 상한 상향.** 재생성은 문서 전체를 다시 쓰는 호출이라 일반 채팅보다 출력이 길다. 재생성 경로에만 더 큰 `maxOutputTokens`를 쓴다(잔액이 허용하는 범위, BYOK는 이미 8192). 차감액이 늘 수 있다.
@@ -56,3 +56,9 @@ related:
 ## 부수 관찰 (이 버그 범위 밖)
 - 첫 생성은 구조 검증 없이 저장되어 "오지후" 문서 본문에 템플릿 제목이 없었다(불릿만). 재생성만 제목을 엄격히 검증하는 불일치 가능성 — 별도 확인 필요.
 - race 상황(모달을 연 채 선택 폴더 삭제) 후 저장 시 서버는 거절하고 폴더 선택을 최상위로 되돌렸지만 "저장 위치가 변경되었어요" 배너는 3초 뒤 화면에서 확인되지 않았다 — 별도 버그 후보.
+
+## 적용 내용 (bug-execute, 2026-10-08, 옵션 3)
+- `lib/ai/document-regenerate.ts`: 재생성 호출 직후 `[ai] regenerate observed` 로그를 추가했다(provider, finishReason, maxOutputTokens, outputTokens, thoughtsTokens, textLength, idempotencyKey). 본문은 남기지 않는다. 동작·상한·문구는 변경 없음.
+- 검증: `tsc`(이 변경과 무관한 untracked `tests/payments/*` 제외) 오류 없음, `tests/ai/regenerate-document.test.ts` 33건 통과.
+- **라이브 관측으로 원인 확정:** 템플릿 변경 재생성 1회에서 `finishReason: 'max_tokens'`, `maxOutputTokens: 2048`, `thoughtsTokens: 1964`, `outputTokens: 80`, `textLength: 128`. 사고 토큰이 상한의 약 96%를 쓰고 본문은 80토큰만 나온 채 잘렸다. 이전에 로그로 확인한 약 1,100자 잘림도 같은 계열로 본다. 즉 원인은 Phase 8 BUG-04(사고 토큰이 출력 상한 잠식)이며, 재생성 경로 고유의 구조 검증 문제가 아니다.
+- **남은 일:** 본 수정(상한/사고 몫 분리)은 BUG-04 단계 B와 함께 한다. 이 문서는 그때까지 `open` 유지. 단계 B 계획에 "재생성 호출은 본문 보장 몫 B가 문서 전체 길이를 담아야 한다"는 요구를 전달할 것.

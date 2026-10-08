@@ -155,6 +155,12 @@ export async function regenerateDocumentWithTemplate(
         model: preflight.ctx.model, systemInstruction, contents,
         maxOutputTokens: preflight.ctx.maxOutputTokens, temperature: 0.7,
       });
+      // BUG-07 관측: 잘림(max_tokens)·사고 토큰 비중을 확인하기 위한 로그. 본문은 남기지 않는다.
+      console.info('[ai] regenerate observed', {
+        provider: client.provider, finishReason: generated.finishReason, maxOutputTokens: preflight.ctx.maxOutputTokens,
+        outputTokens: generated.usage.outputTokens, thoughtsTokens: generated.usage.thoughtsTokens,
+        textLength: generated.text.length, idempotencyKey: input.idempotencyKey,
+      });
       if (generated.refusal) return generated; // 안전 거부는 기존대로 사용량만큼 과금된다(D-05..D-08)
       const rejection = await validateRegeneratedDocument(supabase, {
         text: generated.text, ownerId: input.ownerId, workId: input.workId, proposal: input.proposal,
