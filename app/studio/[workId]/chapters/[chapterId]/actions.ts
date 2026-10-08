@@ -11,8 +11,7 @@ import { listCategoryFolderCandidates, getWorkKbNodes, listTemplateOptions, vali
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import type { FlatKbNode } from '@/lib/kb/tree';
 import { chat, type ChatInput } from '@/lib/ai/chat';
-import { createPlatformProvider } from '@/lib/ai/providers/registry';
-import { ProviderCallError, logProviderFailure } from '@/lib/ai/providers/errors';
+import { resolveGenerationRoute, type GenerationRoute } from '@/lib/ai/providers/byok';
 import { readProviderFixture } from '@/lib/ai/providers/fixture';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { isKnownModel } from '@/lib/ai/providers/catalog';
@@ -114,6 +113,8 @@ export interface ChatActionInput {
   providerId: ProviderId;
   model: string;
   keySource?: 'service' | 'byok';
+  replacementConsent?: boolean;
+  replacementSelection?: { providerId: ProviderId; model: string; keySource: 'service' };
   mentionedNodeIds: string[];
   presetLevel: PresetLevel;
   styleId: StylePresetId;
@@ -133,6 +134,8 @@ const chatActionSchema = z.object({
   providerId: z.enum(['gemini', 'openai', 'anthropic']),
   model: z.string(),
   keySource: z.enum(['service', 'byok']).optional().default('service'),
+  replacementConsent: z.boolean().optional().default(false),
+  replacementSelection: z.object({ providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), keySource: z.literal('service') }).optional(),
   chapterId: z.string().min(1).max(100).optional(),
   nodeId: z.string().min(1).max(100).optional(),
   attachments: z.array(z.object({ name: z.string().max(200), content: z.string().max(MAX_ATTACHMENT_CHARS) })).max(MAX_ATTACHMENTS).optional(),
@@ -171,24 +174,39 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
 
   const parsed = chatActionSchema.safeParse(input);
   if (!parsed.success) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
-  if (parsed.data.keySource === 'byok') return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.byokPending };
+  const work = await supabase.from('works').select('id').eq('id', input.workId).eq('owner_id', user.id).maybeSingle();
+  if (work.error || !work.data) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  if (parsed.data.chapterId) {
+    const chapter = await supabase.from('chapters').select('id').eq('id', parsed.data.chapterId).eq('work_id', input.workId).maybeSingle();
+    if (chapter.error || !chapter.data) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  } else if (parsed.data.nodeId) {
+    const node = await supabase.from('kb_nodes').select('id').eq('id', parsed.data.nodeId).eq('owner_id', user.id).eq('work_id', input.workId).is('deleted_at', null).maybeSingle();
+    if (node.error || !node.data) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  }
 
-  let client;
+  let route: GenerationRoute;
   try {
-    client = createPlatformProvider(parsed.data.providerId);
+    route = await resolveGenerationRoute({
+      supabase, admin: createAdminClient() as never, ownerId: user.id,
+      selection: { providerId: parsed.data.providerId, model: parsed.data.model, keySource: parsed.data.keySource },
+    });
+    if (route.kind === 'replacement_required' && parsed.data.replacementConsent && parsed.data.replacementSelection &&
+      JSON.stringify(route.replacement) === JSON.stringify(parsed.data.replacementSelection)) {
+      route = await resolveGenerationRoute({ supabase, admin: createAdminClient() as never, ownerId: user.id, selection: parsed.data.replacementSelection });
+    }
   } catch (err) {
     // Never log or return the raw error: it may carry the API key (D-11).
-    const info = err instanceof ProviderCallError
-      ? err.info
-      : { provider: parsed.data.providerId, status: null, kind: 'config' as const, providerErrorCode: null };
-    logProviderFailure(info, parsed.data.idempotencyKey);
+    console.error('[ai] generation route unavailable', { provider: parsed.data.providerId, idempotencyKey: parsed.data.idempotencyKey });
     return { ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config };
   }
+
+  if (route.kind === 'replacement_required') return { kind: 'replacement_required', ok: false, status: 'failed', failureKind: 'unavailable', replacement: route.replacement,
+    original: { providerId: parsed.data.providerId, model: parsed.data.model }, error: CHAT_COPY.byokPending } as unknown as ChatResult;
 
   const resolvedPlanning = await resolveChatPlanning();
 
   // Explicit field list (never spread input) so a forged ownerId cannot ride along.
-  const result = await chat(supabase, client, {
+  const result = await chat(supabase, route.client, {
     workId: input.workId,
     chapterId: parsed.data.chapterId,
     nodeId: parsed.data.nodeId,
@@ -205,6 +223,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     idempotencyKey: parsed.data.idempotencyKey,
     ownerId: user.id,
     planning: resolvedPlanning.planning,
+    route,
   });
 
   if (resolvedPlanning.mode === 'shadow') {
@@ -333,7 +352,9 @@ export async function saveDocumentProposalAction(raw: unknown): Promise<
 const regenerateSchema = z.object({
   workId: z.string().uuid(), proposal: proposalSchema, templateId: z.string().uuid().nullable(),
   targetFolderId: z.string().uuid(), folderVersion: z.string().max(4000).optional(),
-  providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), idempotencyKey: z.string().uuid(),
+  providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), keySource: z.enum(['service', 'byok']), idempotencyKey: z.string().uuid(),
+  replacementConsent: z.boolean().optional().default(false),
+  replacementSelection: z.object({ providerId: z.enum(['gemini', 'openai', 'anthropic']), model: z.string(), keySource: z.literal('service') }).optional(),
   presetLevel: z.enum(['beginner', 'intermediate', 'freeform']),
   styleId: z.enum(['concise-hemingway', 'maximalist-dostoevsky', 'lyrical-kimhoon', 'colloquial-kimyounha']),
   genre: z.string().max(100),
@@ -347,19 +368,23 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
   if (!parsed.success || !isKnownModel(parsed.data.providerId, parsed.data.model)) {
     return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
   }
-
-  // 재생성은 문서를 제안한 채팅 생성과 같은 provider·모델을 쓴다.
-  let client;
+  const work = await supabase.from('works').select('id').eq('id', parsed.data.workId).eq('owner_id', user.id).maybeSingle();
+  if (work.error || !work.data) return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  let route: GenerationRoute;
   try {
-    client = createPlatformProvider(parsed.data.providerId);
+    route = await resolveGenerationRoute({ supabase, admin: createAdminClient() as never, ownerId: user.id,
+      selection: { providerId: parsed.data.providerId, model: parsed.data.model, keySource: parsed.data.keySource } });
+    if (route.kind === 'replacement_required' && parsed.data.replacementConsent && parsed.data.replacementSelection &&
+      JSON.stringify(route.replacement) === JSON.stringify(parsed.data.replacementSelection)) {
+      route = await resolveGenerationRoute({ supabase, admin: createAdminClient() as never, ownerId: user.id, selection: parsed.data.replacementSelection });
+    }
   } catch (err) {
-    const info = err instanceof ProviderCallError
-      ? err.info
-      : { provider: parsed.data.providerId, status: null, kind: 'config' as const, providerErrorCode: null };
-    logProviderFailure(info, parsed.data.idempotencyKey);
+    console.error('[ai] regeneration route unavailable', { provider: parsed.data.providerId, idempotencyKey: parsed.data.idempotencyKey });
     return { ok: false, failureKind: 'config', error: CHAT_COPY.config };
   }
-  return regenerateDocumentWithTemplate(supabase, client, { ...parsed.data, ownerId: user.id });
+  if (route.kind === 'replacement_required') return { kind: 'replacement_required', ok: false, status: 'failed', failureKind: 'unavailable',
+    replacement: route.replacement, original: { providerId: parsed.data.providerId, model: parsed.data.model }, error: CHAT_COPY.byokPending };
+  return regenerateDocumentWithTemplate(supabase, route.client, { ...parsed.data, ownerId: user.id, route });
 }
 
 /** 설정 문서 편집기의 AI 패널이 필요로 하는 값: 기본 모델·BYOK 모델·작품 장르. */

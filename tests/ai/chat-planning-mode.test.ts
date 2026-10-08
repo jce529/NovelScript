@@ -27,6 +27,10 @@ vi.mock('@/lib/supabase/server', () => ({
           ? { data: { user: { id: h.sessionUserId } }, error: null }
           : { data: { user: null }, error: { message: 'no session' } },
     },
+    from: (table: string) => {
+      const query = { select: () => query, eq: () => query, is: () => query, maybeSingle: async () => ({ data: { id: table === 'chapters' ? 'c1' : 'w1' }, error: null }) };
+      return query;
+    },
   }),
 }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({}) }));

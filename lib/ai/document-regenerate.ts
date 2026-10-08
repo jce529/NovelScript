@@ -11,11 +11,15 @@ import { parseChatResponse } from '@/lib/ai/chat-parse';
 import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 import { KB_CATEGORIES } from '@/lib/kb/categories';
 import type { ModelTier, ProviderClient, ProviderId } from '@/lib/ai/providers/types';
+import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
+import type { GenerationRoute } from '@/lib/ai/providers/byok';
+import type { Selection } from '@/lib/ai/providers/selection';
 
 export const REGENERATION_FAILED = '문서를 다시 생성하지 못했어요. 다시 시도해주세요.';
 
 export type RegenerateResult =
-  | { ok: true; content: string; name: string; remainingBalance: number }
+  | { ok: true; content: string; name: string; remainingBalance?: number }
+  | { kind: 'replacement_required'; ok: false; error: string; status: 'failed'; failureKind: 'unavailable'; replacement: Selection; original: Pick<Selection, 'providerId' | 'model'> }
   | { ok: false; error: string; status?: ChatResult['status']; failureKind?: ChatResult['failureKind'] };
 
 const UUID = z.string().uuid();
@@ -95,16 +99,18 @@ export async function regenerateDocumentWithTemplate(
     ownerId: string; workId: string; proposal: DocumentProposal; templateId: string | null;
     targetFolderId: string; folderVersion?: string; idempotencyKey: string;
     presetLevel: PresetLevel; styleId: StylePresetId; genre: string;
-  } & ({ providerId: ProviderId; model: string; modelTier?: never } | { modelTier: ModelTier; providerId?: never; model?: never }),
+    route?: GenerationRoute;
+  } & ({ providerId: ProviderId; model: string; keySource?: 'service' | 'byok'; modelTier?: never } | { modelTier: ModelTier; providerId?: never; model?: never; keySource?: 'service' }),
 ): Promise<RegenerateResult> {
-  const modelIdentity = input.providerId !== undefined
-    ? { providerId: input.providerId, model: input.model }
-    : { modelTier: input.modelTier };
+  const providerId = input.providerId ?? 'gemini';
+  const model = input.model ?? MODEL_TIER_TO_ID[input.modelTier!];
+  const keySource = input.keySource ?? 'service';
+  const modelIdentity = { providerId, model };
   if (
     !UUID.safeParse(input.idempotencyKey).success || !UUID.safeParse(input.workId).success ||
     !UUID.safeParse(input.targetFolderId).success ||
     (input.templateId !== null && !UUID.safeParse(input.templateId).success) ||
-    (input.providerId === undefined && !['lite', 'pro'].includes(input.modelTier as string)) ||
+    (input.modelTier !== undefined && !['lite', 'pro'].includes(input.modelTier)) ||
     !input.proposal.name.trim() || input.proposal.name.length > 100 || input.proposal.content.length > 20000 ||
     input.genre.length > 100
   ) return { ok: false, error: CHAT_COPY.invalid_input, failureKind: 'invalid_input' };
@@ -120,8 +126,15 @@ export async function regenerateDocumentWithTemplate(
   if (!targetFolder.ok) return { ok: false, error: targetFolder.error };
 
   const identity = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, ...modelIdentity } as PaidGenerationIdentity;
-  const preflight = await preflightPaidGeneration(supabase, identity);
+  const preflight = input.route
+    ? await preflightPaidGeneration(supabase, { ...identity, workId: input.workId, chapterId: null }, input.route)
+    : await preflightPaidGeneration(supabase, { ...identity, workId: input.workId, chapterId: null });
   if (!preflight.ok) {
+    if (preflight.replacement) return {
+      kind: 'replacement_required', ok: false, status: 'failed', failureKind: 'unavailable',
+      replacement: preflight.replacement, original: { providerId, model },
+      error: preflight.chatResult.error ?? CHAT_COPY.byokPending,
+    };
     return {
       ok: false,
       error: preflight.chatResult.error ?? CHAT_COPY.unknown,
@@ -129,6 +142,7 @@ export async function regenerateDocumentWithTemplate(
       failureKind: preflight.chatResult.failureKind,
     };
   }
+  const activeClient = input.route && input.route.kind !== 'replacement_required' ? input.route.client : client;
 
   // BUG-06: settle releases the wallet lease; this also covers exits before settle.
   try {
@@ -148,11 +162,12 @@ export async function regenerateDocumentWithTemplate(
     const contents = `문서 이름은 반드시 "${input.proposal.name}" 그대로 유지하고 본문 제목에도 같은 이름을 쓸 것.\n질문이나 확인 요청 없이 [DOCUMENT] 블록만 출력할 것([REPLY]로 되묻지 말 것). 기존 결과에 없는 칸은 "미정"으로 채울 것.\n기존 생성 결과(사실 원천 — 새 템플릿 구조로 다시 정리하고, 여기에 없는 사실을 새로 확정하지 말 것):\n${input.proposal.content}${linkPolicy}`;
     // BUG-06: 검증은 차감 전에(콜백 안에서) 한다. 거부되면 과금하지 않고 같은 키로 재시도할 수 있다.
     let validatedContent: string | null = null;
-    const settled = await settlePaidGeneration(client, preflight.ctx, {
-      ...identity, ledgerReason: `document_regenerate:${input.workId}`,
+    const generationModel = 'walletBalance' in preflight.ctx ? preflight.ctx.model : preflight.ctx.route.trusted.selection.model;
+    const settled = await settlePaidGeneration(activeClient, preflight.ctx, {
+      ...identity, workId: input.workId, chapterId: null, ledgerReason: `document_regenerate:${input.workId}`,
     }, async () => {
-      const generated = await client.generateContent({
-        model: preflight.ctx.model, systemInstruction, contents,
+      const generated = await activeClient.generateContent({
+        model: generationModel, systemInstruction, contents,
         maxOutputTokens: preflight.ctx.maxOutputTokens, temperature: 0.7,
       });
       if (generated.refusal) return generated; // 안전 거부는 기존대로 사용량만큼 과금된다(D-05..D-08)
@@ -177,9 +192,9 @@ export async function regenerateDocumentWithTemplate(
       ok: true,
       content: validatedContent,
       name: input.proposal.name,
-      remainingBalance: settled.remainingBalance,
+      ...('remainingBalance' in settled ? { remainingBalance: settled.remainingBalance } : {}),
     };
   } finally {
-    await preflight.ctx.release?.();
+    if ('release' in preflight.ctx) await preflight.ctx.release?.();
   }
 }

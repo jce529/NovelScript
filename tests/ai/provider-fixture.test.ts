@@ -15,6 +15,10 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: { id: 'session-user' } }, error: null }) },
+    from: () => {
+      const query = { select: () => query, eq: () => query, is: () => query, maybeSingle: async () => ({ data: { id: 'w1' }, error: null }) };
+      return query;
+    },
   }),
 }));
 vi.mock('@/lib/ai/chat', () => ({ chat: h.chat }));

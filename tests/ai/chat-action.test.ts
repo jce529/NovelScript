@@ -11,7 +11,8 @@ const h = vi.hoisted(() => ({
   sessionUserId: 'session-user' as string | null,
   chatResult: { ok: true, status: 'completed', reply: 'r', remainingBalance: 9 },
   chat: vi.fn(),
-  createPlatformProvider: vi.fn(),
+  resolveRoute: vi.fn(),
+  client: { provider: 'gemini', generateContent: vi.fn() },
 }));
 
 vi.mock('server-only', () => ({}));
@@ -24,10 +25,17 @@ vi.mock('@/lib/supabase/server', () => ({
           ? { data: { user: { id: h.sessionUserId } }, error: null }
           : { data: { user: null }, error: { message: 'no session' } },
     },
+    from: () => {
+      const query: Record<string, unknown> = {
+        select: () => query, eq: () => query, is: () => query,
+        maybeSingle: async () => ({ data: { id: 'owned-resource' }, error: null }),
+      };
+      return query;
+    },
   }),
 }));
 vi.mock('@/lib/ai/chat', () => ({ chat: h.chat }));
-vi.mock('@/lib/ai/providers/registry', () => ({ createPlatformProvider: h.createPlatformProvider }));
+vi.mock('@/lib/ai/providers/byok', () => ({ resolveGenerationRoute: h.resolveRoute }));
 vi.mock('@/lib/access/actions', () => ({ readChapterContent: vi.fn() }));
 vi.mock('@/lib/chapters/actions', () => ({ saveChapterContent: vi.fn(), publishChapter: vi.fn(), unpublishChapter: vi.fn() }));
 vi.mock('@/lib/ai/mentions', () => ({ searchMentionNodes: vi.fn(), quickAddMentionNode: vi.fn() }));
@@ -64,8 +72,8 @@ beforeEach(() => {
   h.sessionUserId = SESSION_USER;
   h.chat.mockReset();
   h.chat.mockImplementation(async () => h.chatResult);
-  h.createPlatformProvider.mockReset();
-  h.createPlatformProvider.mockImplementation(() => ({ provider: 'gemini' }));
+  h.resolveRoute.mockReset();
+  h.resolveRoute.mockImplementation(async ({ selection }: { selection: { providerId: string; model: string; keySource: string } }) => ({ kind: selection.keySource, selection, client: h.client, keyId: 'server-key' }));
   errorSpy?.mockRestore();
   errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -75,31 +83,44 @@ describe('chatAction boundary', () => {
     expect(CHAT_COPY.byokPending).toBe(BYOK_COPY.sendBoundary);
   });
 
-  it('blocks BYOK before provider creation', async () => {
+  it('returns replacement_required for unavailable BYOK before chat', async () => {
+    h.resolveRoute.mockResolvedValueOnce({ kind: 'replacement_required', replacement: { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' } });
     const result = await chatAction(validInput({ keySource: 'byok' }));
-    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.byokPending });
-    expect(h.createPlatformProvider).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ kind: 'replacement_required', replacement: { keySource: 'service' } });
     expect(h.chat).not.toHaveBeenCalled();
   });
 
   it('rejects an unknown key source', async () => {
     const result = await chatAction(validInput({ keySource: 'x' }));
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
-    expect(h.createPlatformProvider).not.toHaveBeenCalled();
     expect(h.chat).not.toHaveBeenCalled();
   });
 
   it('sends an explicit service selection without forwarding keySource', async () => {
     await chatAction(validInput({ keySource: 'service', ownerId: 'forged' }));
-    expect(h.createPlatformProvider).toHaveBeenCalledTimes(1);
     expect(h.chat).toHaveBeenCalledTimes(1);
     expect(h.chat.mock.calls[0][2]).not.toHaveProperty('keySource');
     expect(h.chat.mock.calls[0][2].ownerId).toBe(SESSION_USER);
+    expect(h.chat.mock.calls[0][2].route).toMatchObject({ kind: 'service', selection: { keySource: 'service' } });
+  });
+
+  it('re-resolves only the exact proposed service selection after explicit consent and preserves request identity', async () => {
+    const replacement = { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' as const };
+    h.resolveRoute.mockResolvedValueOnce({ kind: 'replacement_required', replacement });
+    await chatAction(validInput({
+      keySource: 'byok', replacementConsent: true, replacementSelection: replacement,
+      chatHistory: [{ role: 'user', content: 'same snapshot' }],
+    }));
+    expect(h.resolveRoute).toHaveBeenNthCalledWith(2, expect.objectContaining({ selection: replacement, ownerId: SESSION_USER }));
+    expect(h.chat).toHaveBeenCalledTimes(1);
+    expect(h.chat.mock.calls[0][2]).toMatchObject({
+      idempotencyKey: KEY, chatHistory: [{ role: 'user', content: 'same snapshot' }],
+      route: { kind: 'service', selection: replacement },
+    });
   });
 
   it('treats missing keySource as service', async () => {
     await chatAction(validInput());
-    expect(h.createPlatformProvider).toHaveBeenCalledTimes(1);
     expect(h.chat).toHaveBeenCalledTimes(1);
   });
 
@@ -107,7 +128,6 @@ describe('chatAction boundary', () => {
     h.sessionUserId = null;
     const result = await chatAction(validInput());
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'unauthenticated', error: '로그인이 필요해요.' });
-    expect(h.createPlatformProvider).not.toHaveBeenCalled();
     expect(h.chat).not.toHaveBeenCalled();
   });
 
@@ -121,7 +141,6 @@ describe('chatAction boundary', () => {
   ])('rejects invalid input (%s)', async (_label, overrides) => {
     const result = await chatAction(validInput(overrides));
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
-    expect(h.createPlatformProvider).not.toHaveBeenCalled();
     expect(h.chat).not.toHaveBeenCalled();
   });
 
@@ -139,36 +158,26 @@ describe('chatAction boundary', () => {
     ['anthropic', 'claude-sonnet-5'],
   ] as const)('passes %s model to the provider and chat', async (providerId, model) => {
     await chatAction(validInput({ providerId, model }));
-    expect(h.createPlatformProvider).toHaveBeenCalledWith(providerId);
     expect(h.chat.mock.calls[0][2]).toEqual(expect.objectContaining({ providerId, model }));
   });
 
   it('reports the selected provider for an unexpected config error', async () => {
-    h.createPlatformProvider.mockImplementation(() => { throw new Error('secret'); });
+    h.resolveRoute.mockRejectedValueOnce(new Error('secret'));
     await chatAction(validInput({ providerId: 'anthropic', model: 'claude-sonnet-5' }));
-    expect(errorSpy).toHaveBeenCalledWith('[ai] provider call failed', expect.objectContaining({ provider: 'anthropic' }));
+    expect(errorSpy).toHaveBeenCalledWith('[ai] generation route unavailable', expect.objectContaining({ provider: 'anthropic' }));
   });
 
   it('maps a ProviderCallError config failure to config copy with sanitized log', async () => {
-    h.createPlatformProvider.mockImplementation(() => {
-      throw new ProviderCallError({ provider: 'gemini', status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' });
-    });
+    h.resolveRoute.mockRejectedValueOnce(new ProviderCallError({ provider: 'gemini', status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' }));
     const result = await chatAction(validInput());
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config });
     expect(errorSpy).toHaveBeenCalledTimes(1);
-    expect(errorSpy).toHaveBeenCalledWith('[ai] provider call failed', {
-      provider: 'gemini',
-      status: null,
-      kind: 'config',
-      idempotencyKey: KEY,
-    });
+    expect(errorSpy).toHaveBeenCalledWith('[ai] generation route unavailable', { provider: 'gemini', idempotencyKey: KEY });
     expect(h.chat).not.toHaveBeenCalled();
   });
 
   it('never leaks a plain Error message into logs or result', async () => {
-    h.createPlatformProvider.mockImplementation(() => {
-      throw new Error('GEMINI_API_KEY sk-SENTINEL');
-    });
+    h.resolveRoute.mockRejectedValueOnce(new Error('GEMINI_API_KEY sk-SENTINEL'));
     const result = await chatAction(validInput());
     expect(result.failureKind).toBe('config');
     expect(JSON.stringify(errorSpy.mock.calls)).not.toContain('sk-SENTINEL');

@@ -11,6 +11,7 @@ import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
 import type { DecisionClient } from '@/lib/ai/decision/types';
 import { parseChatResponse } from '@/lib/ai/chat-parse';
 import type { ChatAttachment } from '@/lib/ai/attachments';
+import type { GenerationRoute } from '@/lib/ai/providers/byok';
 
 export { AI_GENERATION_REFERENCE_TYPE } from './paid-generation';
 export { parseChatResponse, type ParsedChatResponse } from '@/lib/ai/chat-parse';
@@ -45,6 +46,7 @@ export interface ChatInput {
   idempotencyKey: string;
   /** Plan 15-04: supplied by chatAction only when planning is active. */
   planning?: { mode: 'active'; decisionClient: DecisionClient };
+  route?: GenerationRoute;
 }
 
 /**
@@ -84,21 +86,35 @@ export interface ChatInput {
  */
 export async function chat(supabase: SupabaseClient, client: ProviderClient, input: ChatInput): Promise<ChatResult> {
   const id = { ownerId: input.ownerId, idempotencyKey: input.idempotencyKey, providerId: input.providerId, model: input.model };
-  const pre = await preflightPaidGeneration(supabase, id);
-  if (!pre.ok) return pre.chatResult;
+  const route = input.route;
+  const identity = {
+    ...id, workId: input.workId, chapterId: input.chapterId ?? null,
+  };
+  const pre = route
+    ? await preflightPaidGeneration(supabase, identity, route)
+    : await preflightPaidGeneration(supabase, identity);
+  if (!pre.ok) {
+    if (route?.kind === 'replacement_required' && pre.replacement) return ({
+      kind: 'replacement_required', ok: false, status: 'failed', failureKind: 'unavailable',
+      replacement: pre.replacement, original: { providerId: input.providerId, model: input.model }, error: pre.chatResult.error,
+    } as unknown) as ChatResult;
+    return pre.chatResult;
+  }
+  const activeClient = route && route.kind !== 'replacement_required' ? route.client : client;
 
   // BUG-06: settle releases the wallet lease; this also covers early exits before settle.
   try {
     const mentioned = await getMentionedNodesContent(supabase, { ownerId: input.ownerId, workId: input.workId, nodeIds: input.mentionedNodeIds });
     const mentionedDocs = [...mentioned, ...(input.attachments ?? []).map((file) => ({ category: '첨부 파일', name: file.name, content: file.content }))] as typeof mentioned;
     if (input.planning?.mode === 'active') {
-      const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: client, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
+      const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: activeClient, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
       if (strategy.kind === 'result') return strategy.chatResult;
     }
     const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
     const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
-    const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: chatLedgerReason(input) },
-      () => client.generateContent({ model: pre.ctx.model, systemInstruction, contents, maxOutputTokens: pre.ctx.maxOutputTokens, temperature: 0.9 }));
+    const generationModel = 'walletBalance' in pre.ctx ? pre.ctx.model : pre.ctx.route.trusted.selection.model;
+    const settled = await settlePaidGeneration(activeClient, pre.ctx, { ...id, workId: input.workId, chapterId: input.chapterId ?? null, ledgerReason: chatLedgerReason(input) },
+      () => activeClient.generateContent({ model: generationModel, systemInstruction, contents, maxOutputTokens: pre.ctx.maxOutputTokens, temperature: 0.9 }));
     if (settled.kind === 'terminal') return settled.chatResult;
 
     const { reply, draft, proposal } = parseChatResponse(settled.result.text);
@@ -109,9 +125,9 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
       draft,
       proposal,
       wasCapped: settled.result.finishReason === 'max_tokens',
-      remainingBalance: settled.remainingBalance,
+      ...('remainingBalance' in settled ? { remainingBalance: settled.remainingBalance } : {}),
     };
   } finally {
-    await pre.ctx.release?.();
+    if ('release' in pre.ctx) await pre.ctx.release?.();
   }
 }
