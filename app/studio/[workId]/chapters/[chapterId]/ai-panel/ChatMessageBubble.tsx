@@ -2,6 +2,7 @@
 
 import { AlertCircle } from 'lucide-react';
 import type { DocumentProposal } from '@/lib/ai/prompt';
+import { CAPPED_COPY, type CappedReason } from '@/lib/ai/chat-result';
 
 export interface ChatMessageBubbleProps {
   text: string;
@@ -12,6 +13,8 @@ export interface ChatMessageBubbleProps {
   /** Set once the proposal has been saved — disables the save button. */
   savedNodeId?: string;
   wasCapped: boolean;
+  /** Why it was capped; omitted → balance copy (BUG-04 단계 A-1). */
+  cappedReason?: CappedReason;
   /** Only the latest assistant message is interactive (다시 생성하기/거부하고
    * 지우기) — older turns are read-only history, but 삽입하기/저장하기 stay
    * available on every turn that carries a draft/proposal. */
@@ -29,7 +32,7 @@ export interface ChatMessageBubbleProps {
  * turn may carry a plain reply, a 본문 draft, a 문서 proposal, or nothing
  * actionable at all — the AI decides per RESPONSE_PROTOCOL_INSTRUCTIONS. */
 export function ChatMessageBubble({
-  text, draft, proposal, savedNodeId, wasCapped, interactive, isBusy,
+  text, draft, proposal, savedNodeId, wasCapped, cappedReason, interactive, isBusy,
   onInsertDraft, onSaveProposal, onRegenerate, onReject,
 }: ChatMessageBubbleProps) {
   return (
@@ -40,8 +43,8 @@ export function ChatMessageBubble({
         <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-muted-foreground">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
           <div>
-            <p className="text-sm font-medium">토큰이 모두 소진됐어요</p>
-            <p className="text-xs">남은 토큰 범위까지만 응답했어요.</p>
+            <p className="text-sm font-medium">{CAPPED_COPY[cappedReason ?? 'balance'].title}</p>
+            <p className="text-xs">{CAPPED_COPY[cappedReason ?? 'balance'].body}</p>
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ import type { DecisionClient } from '@/lib/ai/decision/types';
 import { formatFolderPath, FOLDER_COPY } from '@/lib/kb/actions';
 import { composeSystemInstruction, assembleUserContent } from '@/lib/ai/prompt';
 import { validateDocumentAgainstPlan, DOCUMENT_CONTRACT_COPY } from '@/lib/ai/document-contract';
-import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
+import { CHAT_COPY, classifyCappedReason, type ChatResult } from '@/lib/ai/chat-result';
 import { settlePaidGeneration, type PaidGenerationContext } from '@/lib/ai/paid-generation';
 import type { ProviderClient } from '@/lib/ai/providers/types';
 import type { ChatInput } from '@/lib/ai/chat';
@@ -76,14 +76,16 @@ export async function runDocumentPlanningStrategy(args: {
     providerClient.generateContent({ model: ctx.model, systemInstruction, contents, maxOutputTokens: ctx.maxOutputTokens, temperature: 0.9 }));
   if (settled.kind === 'terminal') return { kind: 'result', chatResult: settled.chatResult };
 
+  const wasCapped = settled.result.finishReason === 'max_tokens';
+  const cappedReason = wasCapped ? classifyCappedReason({ maxOutputTokens: ctx.maxOutputTokens, usage: settled.result.usage }) : undefined;
   const parsed = parseChatResponse(settled.result.text);
   const check = validateDocumentAgainstPlan(parsed.proposal, { category: plan.category as import('@/lib/kb/categories').KbCategory, templateContent: plan.templateContent });
   if (!check.ok) {
-    return { kind: 'result', chatResult: { ok: true, status: 'completed', reply: `${parsed.reply}\n\n${DOCUMENT_CONTRACT_COPY}`.trim(), draft: parsed.draft, proposal: null, wasCapped: settled.result.finishReason === 'max_tokens', remainingBalance: settled.remainingBalance } };
+    return { kind: 'result', chatResult: { ok: true, status: 'completed', reply: `${parsed.reply}\n\n${DOCUMENT_CONTRACT_COPY}`.trim(), draft: parsed.draft, proposal: null, wasCapped, ...(cappedReason && { cappedReason }), remainingBalance: settled.remainingBalance } };
   }
   return { kind: 'result', chatResult: {
     ok: true, status: 'completed', reply: parsed.reply, draft: parsed.draft,
     proposal: { ...parsed.proposal!, recommendedFolderId: plan.folderId, recommendedFolderPath: plan.folderPath, recommendedFolderVersion: plan.folderVersion, recommendedTemplateId: plan.templateId, recommendedTemplateName: plan.templateName },
-    wasCapped: settled.result.finishReason === 'max_tokens', remainingBalance: settled.remainingBalance,
+    wasCapped, ...(cappedReason && { cappedReason }), remainingBalance: settled.remainingBalance,
   } };
 }

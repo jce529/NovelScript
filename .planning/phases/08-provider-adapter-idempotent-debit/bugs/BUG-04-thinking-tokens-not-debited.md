@@ -106,6 +106,10 @@ related_fixed: .planning/fixed/08-04 사고 토큰 차감 누락 수정.md
 - 브라우저 미리보기에서 fixture 응답으로 말풍선 문구를 확인한다(실키 없음).
 - Phase 17 성공 기준 1("잔액이 충분하면 '토큰 소진' 문구가 나오지 않는다")을 충족한다.
 
+### 적용 상태 (2026-10-08, Phase 11과 겹치는 파일은 보류)
+- **적용 (A-1 부분):** `chat-result.ts`(`CappedReason`·`classifyCappedReason`·`CAPPED_COPY`·`cappedReason` 필드), `document-plan.ts`(두 반환 경로), `ChatMessageBubble.tsx`(선택 prop `cappedReason`, 없으면 balance 문구), `tests/ai/document-plan-generation.test.ts`.
+- **보류 (Phase 11 이후, 겹치는 파일):** `chat.ts:111`에서 `cappedReason` 계산해 반환, `AiPanel.tsx`에서 말풍선 prop·토스트(`CAPPED_COPY[...].toast`)에 연결, `tests/ai/chat.test.ts` 케이스. **이것이 끝나기 전에는 일반 대화 경로의 안내가 여전히 잔액 소진 문구다**(문서 기획 경로만 원인별로 나온다).
+
 ### 후속 (Phase 11 이후, 단계 A-2)
 `PER_REQUEST_MAX_OUTPUT_TOKENS` 소폭 상향, 관측 로그(`wasCapped`·`cappedReason`·사고 비율), `thinking` 판정 기준 조정. 그 뒤 단계 B(`T/B`).
 

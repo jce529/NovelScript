@@ -1,7 +1,8 @@
 /** Chat result contract + Korean copy shared by the server action and AiPanel (client-safe). */
 import type { DocumentProposal } from '@/lib/ai/prompt';
 import type { WriteDenialCode } from '@/lib/auth/write-access';
-import type { RefusalReasonCode } from '@/lib/ai/providers/types';
+import type { RefusalReasonCode, UsageReport } from '@/lib/ai/providers/types';
+import { PER_REQUEST_MAX_OUTPUT_TOKENS } from '@/lib/ai/cost';
 import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 
 export type ChatStatus = 'completed' | 'refused' | 'already_processed' | 'failed';
@@ -26,6 +27,41 @@ export interface ChatRefusalInfo {
   debitAmount: number;
 }
 
+/** Why a completed reply stopped at the output limit (BUG-04 단계 A-1). */
+export type CappedReason = 'balance' | 'thinking' | 'request_limit';
+
+/**
+ * `ctx.maxOutputTokens` is min(balance budget, PER_REQUEST_MAX_OUTPUT_TOKENS): below the
+ * per-request limit means the balance set it. `thinking` is a heuristic for copy only
+ * (reasoning at least as long as the visible reply); it never affects debit or limits.
+ */
+export function classifyCappedReason(
+  call: { maxOutputTokens: number; usage: Pick<UsageReport, 'outputTokens' | 'thoughtsTokens'> },
+): CappedReason {
+  if (call.maxOutputTokens < PER_REQUEST_MAX_OUTPUT_TOKENS) return 'balance';
+  const { thoughtsTokens, outputTokens } = call.usage;
+  if (thoughtsTokens != null && thoughtsTokens >= outputTokens) return 'thinking';
+  return 'request_limit';
+}
+
+export const CAPPED_COPY: Record<CappedReason, { title: string; body: string; toast: string }> = {
+  balance: {
+    title: '토큰이 모두 소진됐어요',
+    body: '남은 토큰 범위까지만 응답했어요.',
+    toast: '보유 토큰을 모두 사용해서 여기까지만 응답했어요.',
+  },
+  thinking: {
+    title: '답변을 준비하다 길이 제한에 닿았어요',
+    body: '토큰은 충분해요. 같은 요청을 다시 보내거나, 요청을 나눠서 보내보세요.',
+    toast: '답변을 준비하다 길이 제한에 닿아 여기까지만 응답했어요. 토큰은 충분해요.',
+  },
+  request_limit: {
+    title: '한 번에 낼 수 있는 길이에 닿았어요',
+    body: '토큰은 충분해요. "이어서 써줘"라고 보내면 이어서 쓸 수 있어요.',
+    toast: '한 번에 낼 수 있는 길이에 닿아 여기까지만 응답했어요. 토큰은 충분해요.',
+  },
+};
+
 export interface ChatResult {
   ok: boolean;
   status?: ChatStatus;
@@ -35,6 +71,8 @@ export interface ChatResult {
   draft?: string | null;
   proposal?: DocumentProposal | null;
   wasCapped?: boolean;
+  /** Set only when wasCapped came from a provider max_tokens stop; absent → balance copy. */
+  cappedReason?: CappedReason;
   remainingBalance?: number;
   code?: WriteDenialCode;
   refusal?: ChatRefusalInfo;

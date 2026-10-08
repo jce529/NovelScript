@@ -74,6 +74,21 @@ describe('active document planning strategy', () => {
     expect(response).toMatchObject({ proposal: { recommendedFolderId: 'folder-1', recommendedFolderPath: '인물/주요 등장인물', recommendedFolderVersion: 'v7', recommendedTemplateId: 'template-1', recommendedTemplateName: '인물 템플릿' }, wasCapped: true });
   });
 
+  it('labels a cap by cause: balance-limited vs per-request limit vs thinking (BUG-04 A-1)', async () => {
+    const capped = (thoughtsTokens: number | null) => ({ text: resultText, finishReason: 'max_tokens', refusal: null, usage: { inputTokens: 2, outputTokens: 3, thoughtsTokens, reported: { input: true, output: true } } });
+    h.generate.mockResolvedValue(capped(null));
+    await expect(chat({} as never, provider, input())).resolves.toMatchObject({ wasCapped: true, cappedReason: 'balance' });
+
+    h.preflight.mockResolvedValue({ ok: true, ctx: { admin: {}, walletBalance: 900, model: 'm', maxOutputTokens: 2048 } });
+    await expect(chat({} as never, provider, input())).resolves.toMatchObject({ wasCapped: true, cappedReason: 'request_limit' });
+    h.generate.mockResolvedValue(capped(500));
+    await expect(chat({} as never, provider, input())).resolves.toMatchObject({ wasCapped: true, cappedReason: 'thinking' });
+  });
+
+  it('omits cappedReason when the reply was not capped', async () => {
+    expect(await chat({} as never, provider, input())).not.toHaveProperty('cappedReason');
+  });
+
   it('passes refusal through the paid settlement result', async () => {
     h.settle.mockResolvedValue({ kind: 'terminal', chatResult: { ok: false, status: 'refused' } });
     await expect(chat({} as never, provider, input())).resolves.toMatchObject({ status: 'refused' });
