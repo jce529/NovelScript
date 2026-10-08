@@ -75,6 +75,7 @@ describe('document template regeneration', () => {
   });
 
   it('bills the provider and model that produced the proposal when they are given instead of a tier', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { modelTier: _tier, ...base } = input;
     const result = await regenerateDocumentWithTemplate(db, provider, { ...base, providerId: 'anthropic', model: 'claude-sonnet-5' });
     expect(result).toMatchObject({ ok: true });

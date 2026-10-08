@@ -18,11 +18,11 @@ export type ProviderKeySource = 'service' | 'byok';
 export function createProviderWithApiKey(
   providerId: ProviderId,
   apiKey: string,
-  _options: { keySource: ProviderKeySource },
+  options: { keySource: ProviderKeySource },
 ): ProviderClient {
-  if (providerId === 'openai') return createOpenAiProvider({ apiKey });
-  if (providerId === 'anthropic') return createAnthropicProvider({ apiKey });
-  return createGeminiProvider({ apiKey });
+  if (providerId === 'openai') return createOpenAiProvider({ apiKey, errorContext: options });
+  if (providerId === 'anthropic') return createAnthropicProvider({ apiKey, errorContext: options });
+  return createGeminiProvider({ apiKey, errorContext: options });
 }
 
 /** Platform service-key provider. Fixture and environment resolution stay platform-only. */

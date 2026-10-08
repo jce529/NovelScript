@@ -104,7 +104,6 @@ export async function regenerateDocumentWithTemplate(
 ): Promise<RegenerateResult> {
   const providerId = input.providerId ?? 'gemini';
   const model = input.model ?? MODEL_TIER_TO_ID[input.modelTier!];
-  const keySource = input.keySource ?? 'service';
   const modelIdentity = { providerId, model };
   if (
     !UUID.safeParse(input.idempotencyKey).success || !UUID.safeParse(input.workId).success ||

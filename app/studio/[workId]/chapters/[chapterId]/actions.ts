@@ -194,7 +194,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
       JSON.stringify(route.replacement) === JSON.stringify(parsed.data.replacementSelection)) {
       route = await resolveGenerationRoute({ supabase, admin: createAdminClient() as never, ownerId: user.id, selection: parsed.data.replacementSelection });
     }
-  } catch (err) {
+  } catch {
     // Never log or return the raw error: it may carry the API key (D-11).
     console.error('[ai] generation route unavailable', { provider: parsed.data.providerId, idempotencyKey: parsed.data.idempotencyKey });
     return { ok: false, status: 'failed', failureKind: 'config', error: CHAT_COPY.config };
@@ -378,7 +378,7 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
       JSON.stringify(route.replacement) === JSON.stringify(parsed.data.replacementSelection)) {
       route = await resolveGenerationRoute({ supabase, admin: createAdminClient() as never, ownerId: user.id, selection: parsed.data.replacementSelection });
     }
-  } catch (err) {
+  } catch {
     console.error('[ai] regeneration route unavailable', { provider: parsed.data.providerId, idempotencyKey: parsed.data.idempotencyKey });
     return { ok: false, failureKind: 'config', error: CHAT_COPY.config };
   }

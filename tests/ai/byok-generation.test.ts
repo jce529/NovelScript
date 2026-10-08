@@ -10,7 +10,7 @@ vi.mock('@/lib/ai/providers/gemini', () => ({ createGeminiProvider: mocks.gemini
 vi.mock('@/lib/ai/providers/openai', () => ({ createOpenAiProvider: mocks.openai }));
 vi.mock('@/lib/ai/providers/anthropic', () => ({ createAnthropicProvider: mocks.anthropic }));
 vi.mock('@/lib/ai/providers/fixture', () => ({ createFixtureProvider: mocks.fixture, readProviderFixture: () => null }));
-import { createPlatformProvider, createProviderWithApiKey } from '@/lib/ai/providers/registry';
+import { createProviderWithApiKey } from '@/lib/ai/providers/registry';
 import { markByokFailed, resolveGenerationRoute } from '@/lib/ai/providers/byok';
 import type { Selection } from '@/lib/ai/providers/selection';
 
@@ -44,15 +44,15 @@ describe('trusted BYOK generation routes', () => {
     expect(createProviderWithApiKey('openai', secret, { keySource: 'byok' })).toBe(client);
     expect(createProviderWithApiKey('anthropic', secret, { keySource: 'byok' })).toBe(client);
     expect(createProviderWithApiKey('gemini', secret, { keySource: 'byok' })).toBe(client);
-    expect(mocks.openai).toHaveBeenCalledWith({ apiKey: secret });
-    expect(mocks.anthropic).toHaveBeenCalledWith({ apiKey: secret });
-    expect(mocks.gemini).toHaveBeenCalledWith({ apiKey: secret });
+    expect(mocks.openai).toHaveBeenCalledWith({ apiKey: secret, errorContext: { keySource: 'byok' } });
+    expect(mocks.anthropic).toHaveBeenCalledWith({ apiKey: secret, errorContext: { keySource: 'byok' } });
+    expect(mocks.gemini).toHaveBeenCalledWith({ apiKey: secret, errorContext: { keySource: 'byok' } });
   });
 
   it('routes service selections only through the platform factory', async () => {
     const result = await resolveGenerationRoute({ ...deps(), ownerId, selection: { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' }, env: { ...process.env, OPENAI_API_KEY: secret } } as never);
     expect(result).toMatchObject({ kind: 'service', client });
-    expect(mocks.openai).toHaveBeenCalledWith({ apiKey: secret });
+    expect(mocks.openai).toHaveBeenCalledWith({ apiKey: secret, errorContext: { keySource: 'service' } });
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
@@ -60,7 +60,7 @@ describe('trusted BYOK generation routes', () => {
     const result = await resolveGenerationRoute({ ...deps(), ownerId, selection: { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' } } as never);
     expect(result).toMatchObject({ kind: 'byok', keyId: 'key-old', client });
     expect(mocks.rpc).toHaveBeenCalledWith('get_byok_secret', expect.objectContaining({ p_owner: ownerId, p_provider: 'openai' }));
-    expect(mocks.openai).toHaveBeenCalledWith({ apiKey: secret });
+    expect(mocks.openai).toHaveBeenCalledWith({ apiKey: secret, errorContext: { keySource: 'byok' } });
     expect(JSON.stringify(result)).not.toContain(secret);
   });
 
