@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { checkWriteAccess } from '@/lib/auth/write-access';
 import {
   acknowledgeWarning, getAccountNotices, getReviewTargetState, requestReview,
-  NOTICE_ACK_ERROR, REVIEW_ERRORS, SUSPENSION_DENIAL_COPY,
+  NOTICE_ACK_ERROR, REVIEW_ERRORS,
   type AccountNoticesResult, type AcknowledgeResult, type ReviewRequestResult, type ReviewTargetResult,
 } from './user-actions';
 
@@ -49,8 +49,7 @@ export async function getReviewPanelStateAction(workId: string, chapterId: strin
     getReviewTargetState(supabase, { userId, workId, chapterId }),
     checkWriteAccess(supabase, userId),
   ]);
-  const writeDenied = access.ok ? null
-    : access.code === 'write_suspended' ? SUSPENSION_DENIAL_COPY : access.error;
+  const writeDenied = access.ok ? null : access.error;
   return { target, writeDenied };
 }
 

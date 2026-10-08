@@ -81,7 +81,7 @@ Warning: authenticated shared notice shows `운영 알림`, safe reason and `확
 | Blind confirmation | `이 콘텐츠의 본문을 차단합니다. 기존 구매 내역은 유지됩니다.` |
 | Suspension confirmation | `이 사용자의 쓰기 활동을 제한합니다. 기존 구매 콘텐츠 열람은 유지됩니다.` |
 | Conflict | `다른 관리자가 이 항목을 변경했습니다. 새로고침 후 확인해 주세요.` |
-| Write denial | `계정 정지로 이 작업을 수행할 수 없습니다.` |
+| Write denial | `계정 이용이 제한되어 이 작업을 할 수 없어요. 기존 작품과 구매한 회차는 계속 볼 수 있어요.` (BUG-08로 통일, `WRITE_SUSPENDED_MESSAGE`) |
 | Blinded viewer | `검토 중인 콘텐츠입니다` + safe public reason |
 
 Empty states need no instructional filler. Page text describes actual data/state, not design, keyboard shortcuts, or feature marketing.
