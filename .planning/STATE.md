@@ -131,7 +131,7 @@ Recent decisions affecting current work:
 - **[v1.1 정리]** 워크트리의 `mcpres/`(수동 다운로드한 tarball + 추출 디렉터리)는 커밋 대상이 아니다 — 채택 시 npm registry에서 정식 설치하고 `mcpres/`는 삭제한다.
 - ~~**[v1.1 Phase 15 계획 전]** BUG-01 문서의 해결 설계를 입력으로 `/gsd:discuss-phase 15`와 `/gsd:research-phase 15`를 수행한다. Jev 데이터 처리 정책과 평가 기준이 확정되기 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다.~~ — DONE: Phase 15 코드 완료.
 - **[Phase 15 활성화 절차 — 코드 수정 없음]** ① 실제 키로 `npm run eval:jev` → holdout 증거 기록(먼저 migrations 0010/0011을 실제 Supabase 프로젝트에 적용) ② golden-set hash·JEV_ACTIVATION_THRESHOLDS를 검토하고 ai_doc_activation_approvals에 policy_review 행 insert(service role SQL) ③ `AI_DOC_PLANNING_MODE=shadow`로 배포해 그림자 표본 축적 ④ 조건 충족 확인 후 `AI_DOC_PLANNING_MODE=active`. 조건이 하나라도 빠지면 resolver가 자동으로 shadow/off로 강등한다.
-- **[Phase 15 브라우저 UAT 대기]** Plan 15-09 Task 2의 저장 확인 모달·템플릿 재생성·QuickAdd 폴더 선택기 수동 검증과 승인 기록이 남아 있다.
+- **[Phase 15 브라우저 UAT 승인 대기]** Plan 15-09 Task 2 시나리오 A1~A6·B7·B8을 2026-10-09에 브라우저로 수행했다(결과는 `15-VERIFICATION.md`, 이 과정에서 BUG-08을 찾아 수정 `fixed/15-07`). 승인(`approved`) 기록과, 미확인으로 남은 항목(QuickAdd 카테고리 빠른 전환, 재생성 일반 실패 배너·요청 몰림 문구, 서비스 키 재생성 시 토큰 차감)만 남아 있다.
 
 - **[Phase 7, 열림]** 경고 확인 유지·정지 사용자 화면 브라우저 검수 2건 — `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md` (F-2 문구·F-3 잔여물·병렬 DB·lint는 `fixed/07-04~07-07`로 해결됨).
 - Supply GEMINI_API_KEY and re-verify live generation flow (cost estimate, generate, accept/regenerate, low-balance banner) before treating Phase 4's EDIT-04/EDIT-05 as fully verified end-to-end. (Phase 4 is marked Complete on the roadmap; this is the one outstanding human UAT item — see 04-VERIFICATION.md `human_verification`.)
