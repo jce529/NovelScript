@@ -78,7 +78,7 @@ export function AiPanelNotice({
             </Button>
           )}
           {invalidKeyAction && (
-            <Button variant="outline" size="sm" render={<Link href={invalidKeyAction.settingsHref} ref={settingsLinkRef} />}>
+            <Button variant="outline" size="sm" nativeButton={false} render={<Link href={invalidKeyAction.settingsHref} ref={settingsLinkRef} />}>
               설정에서 키 확인
             </Button>
           )}
