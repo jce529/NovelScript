@@ -36,3 +36,18 @@ files:
 - 위 재현 절차에서 배너가 남는다(브라우저).
 - 사용자가 직접 폴더/템플릿을 바꿀 때는 이전 배너가 지워진다.
 - `tests/`에 SaveDocumentPlanModal 상태 전이 테스트(또는 순수 함수로 분리한 reducer 테스트) 추가, tsc·eslint.
+
+## 원인 확정 (2026-10-09, 리서치 gpt-6-luna + 브라우저 로그 추적)
+- 리서치(Codex `gpt-6-luna`, medium, read-only): Base UI `Select`는 제어 값/항목 목록 변경만으로 `onValueChange`를 부르지 않는다고 소스(`SelectRoot.js:256-262, 310-315, 405-436`)로 정리했고, 호출 주체는 실행 중 추적으로 확인하라고 제안했다.
+- 임시 로그(`setBanner` 호출 스택, 두 `Select`의 `onValueChange` 값/`reason`)로 race를 재현한 결과:
+  1. 사용자가 폴더 선택 → `onValueChange` `reason: "item-press"` (정상)
+  2. 저장 → `doSave` 시작부 `setBanner(null)` → `folder_changed` 분기 → `setBanner("저장 위치가 변경되었어요…")` → 목록 재조회(`refreshed ok`)
+  3. **목록/선택값 갱신 직후 폴더 `Select`의 `onValueChange`가 다시 호출됨: `reason: "none"`, `value`가 방금 설정한 `selectedFolderId`와 동일**, 호출 경로는 `SelectRoot.setValue` → 우리 콜백의 `setBanner(null)`. 이것이 배너를 지운다.
+- 즉 Base UI가 프로그램으로 값이 바뀐 뒤 같은 값으로 한 번 더 콜백을 호출하고, 우리 핸들러가 값이 바뀌었는지 확인하지 않고 무조건 배너를 지웠다.
+
+## 적용한 수정 (2026-10-09, `/bug-execute`)
+- `lib/kb/select-change.ts`(신규) `isSelectionChange(next, current)`: 값이 달라졌을 때만 선택 변경으로 본다.
+- `SaveDocumentPlanModal.tsx`: 폴더·템플릿 `Select`의 `onValueChange` 첫머리에서 같은 값이면 즉시 반환(배너·`regenerated` 상태를 건드리지 않음). 사용자의 실제 선택은 값이 달라서 그대로 처리된다. 템플릿 `Select`는 같은 증상이 관찰되지는 않았지만 같은 패턴이라 함께 방어했다.
+- `eventDetails.reason`으로 구분하는 안은 쓰지 않았다(닫힌 상태 타이핑 탐색도 `none`이고 값이 바뀌므로 `reason`만으로는 구분이 안 됨).
+- 테스트: `tests/kb/select-change.test.ts`. 모달 자체의 `Select`·`useEffect` 상호작용은 기존 SSR 목 테스트로 재현할 수 없어 브라우저로 검증했다.
+- 검증: `tsc --noEmit`·eslint 클린, `select-change`·`save-document-plan-modal` 테스트 7건 통과. 브라우저(같은 race 재현): 배너 "저장 위치가 변경되었어요. 다시 선택해주세요."가 폴더가 `인물 (최상위)`로 재설정된 뒤에도 유지됨, 사용자가 폴더를 직접 `조연`으로 바꾸면 배너가 지워짐.

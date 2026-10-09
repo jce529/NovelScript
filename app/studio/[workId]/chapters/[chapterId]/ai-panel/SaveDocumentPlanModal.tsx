@@ -11,6 +11,7 @@ import { buildRegeneratePayload } from '@/lib/ai/regenerate-contract';
 import type { DocumentProposal, PresetLevel, StylePresetId } from '@/lib/ai/prompt';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { FOLDER_COPY } from '@/lib/kb/folder-copy';
+import { isSelectionChange } from '@/lib/kb/select-change';
 import type { FolderCandidate } from '@/lib/kb/actions';
 import { AiPanelNotice } from './AiPanelNotice';
 import {
@@ -233,6 +234,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
               <div className="flex flex-col gap-1">
                 <label className="text-sm">저장 폴더 변경</label>
                 <Select value={selectedFolderId} onValueChange={(value) => {
+                  if (!isSelectionChange(value, selectedFolderId)) return;
                   const folder = folders.find((item) => item.id === value);
                   if (!folder) return;
                   setSelectedFolderId(folder.id);
@@ -252,6 +254,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
                 <label className="text-sm">템플릿 변경</label>
                 <Select value={selectedTemplateId ?? CANONICAL_TEMPLATE_VALUE} onValueChange={(value) => {
                   const templateId = value === CANONICAL_TEMPLATE_VALUE ? null : value;
+                  if (!isSelectionChange(templateId, selectedTemplateId)) return;
                   setSelectedTemplateId(templateId);
                   setBanner(null);
                   if (regenerated?.templateId !== templateId) setRegenerated(null);
