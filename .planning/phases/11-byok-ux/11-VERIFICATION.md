@@ -85,7 +85,27 @@ human_verification:
 - BYOK 경로는 service와 달리 같은 idempotencyKey 이중 전송을 사전 차단하지 않는다(lease/ledger 선조회 없음). usage unique 제약이 기록 중복만 막는다. BYOK는 플랫폼 과금이 없어 허용 가능하나 사용자 키로 중복 호출이 갈 수 있음.
 - 11-VALIDATION.md는 UAT 완료 전이므로 `approved`가 될 수 없음(11-08 Task 2 대기).
 
+## 브라우저 UAT 결과 (2026-10-09, 로컬 dev 서버 + 원격 Supabase)
+
+| # | 결과 | 확인한 내용 |
+| --- | --- | --- |
+| UAT-1 | **PASS** | 서비스 모델은 "입력 1,000 + 출력 1,000 토큰 기준 약 2 지갑 토큰" 게이지. BYOK 선택 시 '내 키로 호출해요 · 지갑 토큰은 차감되지 않아요'가 `role=status`/`aria-live=polite`로 표시되고 게이지는 사라짐. 서비스 모델 복귀 시 게이지 복귀 |
+| UAT-2 | **PASS** | 잔액 0 계정(Anthropic BYOK)과 잔액을 0으로 맞춘 계정(Gemini BYOK) 모두 성공. 원격 DB: ledger 증가 0행, 잔액 불변, `ai_usage` 1행(`key_source=byok`, `status=completed`, `thoughts_tokens` 포함: Gemini 487·322, Anthropic 0) |
+| UAT-3 | **PARTIAL** | `invalid_key`만 확인: 가짜 OpenAI 키(실제 OpenAI 401)로 "OpenAI 키를 사용할 수 없어요" 카드, "설정에서 키 확인"에 포커스, 키는 `failed`로 전환, ledger 0행·서비스 폴백 없음. `rate_limited`/`credit_exhausted`/`unavailable`은 벤더 오류를 유도할 수 없어 **미확인**(자동 테스트 분류 로직으로만 검증) |
+| UAT-4 | **PASS (채팅 경로)** | 키 삭제 후 BYOK 모델로 전송 → 대체 카드, 취소 버튼에 초기 포커스. 동의 전 서비스 호출 0회(서버 요청 1회는 `replacement_required` 응답, 잔액·ledger·`ai_usage` 불변). 취소 시 추가 호출 0회·입력 복원. "서비스 키로 보내기" 클릭 후에만 서비스 호출·차감(-1), ledger `reference_id`와 `ai_usage.idempotency_key` 일치. **문서 재생성 모달 경로는 미확인**, 동의 클릭 시 키가 첫 시도와 같은지는 화면에서 직접 비교하지 못함(코드·자동 테스트로만 확인) |
+| UAT-5 | **PARTIAL** | connected(이번 달 호출수·입력·출력, 금액 없음, 모델별 토글이 Enter 키로 동작, `aria-expanded` false→true, `aria-controls` 연결), failed("검증 실패" 배지), empty("이번 달에는 아직 사용 기록이 없어요") 확인. **error 상태와 호출수 내림차순 정렬은 미확인**(모델이 하나뿐, 조회 실패 재현 불가) |
+| UAT-6 | **PASS** | 375×812에서 설정 페이지·AI 패널 모두 `scrollWidth == viewport`, 넘치는 요소 0개. 단 실패/동의 카드의 action 줄바꿈은 모바일 폭에서 직접 보지 않음 |
+
+UAT 중 발견·처리한 것
+- invalid_key 설정 링크의 Base UI `nativeButton` 콘솔 경고 → 수정 완료(`.planning/fixed/11-01 invalid_key 설정 링크 nativeButton 경고 수정.md`, 커밋 d5319c8).
+- 계정 탈퇴 후 재로그인 루프 → Phase 01 버그로 수정 완료(`.planning/fixed/01-01 탈퇴 후 재로그인 루프와 탈퇴 확인 모달 수정.md`). 이 UAT를 이어가려고 새 계정으로 작가 전환 후 BYOK를 다시 등록했다.
+- UAT 중 계정 잔액을 0으로 맞추려 `apply_wallet_delta`(-10858)와 복원(+10858)을 사용해 `uat_adjust` 원장 행 2개(합 0)가 남았다. 테스트용 가짜 OpenAI 키는 삭제했다.
+
+남은 미확인: UAT-3의 3종(`rate_limited`·`credit_exhausted`·`unavailable`), UAT-4 문서 재생성 모달 경로, UAT-5 error 상태·정렬, UAT-6 모바일 action 줄바꿈. 모두 해당 오류/상태를 만들 수단이 있을 때 확인한다.
+
 ## Human Verification Required
+
+(아래는 원래 11-08 Task 2의 6개 시나리오 목록이다. 위 결과 표가 2026-10-09 기준 최신이며, 진행되지 않은 부분만 남아 있다.)
 
 11-08 Task 2의 브라우저 UAT 6개 시나리오는 사용자가 수행한다(자동화 불가). 위 frontmatter `human_verification`에 시나리오·기대 결과·사전 조건을 정리했다. 요약:
 
