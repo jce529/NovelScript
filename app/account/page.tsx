@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isAccountActive } from '@/lib/auth/account';
-import { deleteAccountAction } from './actions';
+import { DeleteAccountButton } from './DeleteAccountButton';
 import { SiteHeader } from '@/components/layout/site-header';
 import { listByokKeys } from '@/lib/ai/providers/byok';
 import { BYOK_COPY, PROVIDER_LABEL } from '@/lib/ai/providers/byok-copy';
@@ -66,9 +66,7 @@ export default async function AccountPage() {
           </ul>
         </section>
       )}
-      <form action={deleteAccountAction}>
-        <button type="submit" className="text-red-600 underline">계정 탈퇴하기</button>
-      </form>
+      <DeleteAccountButton isWriter={profile.role === 'writer'} />
       </main>
     </>
   );

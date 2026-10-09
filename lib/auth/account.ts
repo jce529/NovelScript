@@ -1,23 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-/** D-08: soft delete only. Ledger/wallet rows are append-only and are never touched
- * here — see docs/4 §4.4 and 01-RESEARCH.md Pattern 5. */
+/** D-08 + BUG-01: 지갑·원장·작품은 건드리지 않는다(append-only). 대신 개인정보(필명·소개),
+ * BYOK 키, 소셜 연결을 DB 함수 한 번으로 정리하고(`purge_account_data`, 멱등),
+ * auth 사용자를 soft delete해 이메일을 익명화한다. 그러면 같은 소셜 계정으로 다시
+ * 로그인할 때 새 계정으로 가입된다. 어느 단계든 실패하면 던지므로 같은 요청을 다시
+ * 실행해 이어서 끝낼 수 있다(탈퇴 요청은 세션이 살아 있는 동안 반복 가능). */
 export async function softDeleteAccount(admin: SupabaseClient, userId: string) {
-  const { error } = await admin
-    .from('profiles')
-    .update({ pen_name_bio: null, deleted_at: new Date().toISOString() })
-    .eq('id', userId)
-    .is('deleted_at', null);
+  const { error: purgeError } = await admin.rpc('purge_account_data', { p_owner: userId });
+  if (purgeError) throw purgeError;
 
-  if (error) throw error;
-
-  // Best-effort global session revocation. Checked the installed SDK
-  // (@supabase/auth-js GoTrueAdminApi.d.ts): `signOut(jwt, scope?)` takes a session
-  // JWT, not a user id — there is no user-id-scoped global sign-out in this version.
-  // Explicitly revoking an already-issued JWT is therefore not available here for v1.
-  // The isAccountActive() gate below is the authoritative access-blocking mechanism:
-  // any code path that loads a profile (e.g. app/account/page.tsx) must check it and
-  // treat a soft-deleted profile as logged out regardless of JWT validity.
+  const { error: authError } = await admin.auth.admin.deleteUser(userId, true);
+  // 이미 soft delete된 사용자를 다시 처리하는 재시도는 오류로 보지 않는다.
+  if (authError && authError.status !== 404 && !/not.?found/i.test(authError.message)) throw authError;
 }
 
 export interface ProfileActiveCheck {
