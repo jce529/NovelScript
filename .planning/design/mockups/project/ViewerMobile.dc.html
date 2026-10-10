@@ -30,6 +30,8 @@ button{cursor:pointer}
 .trow{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border-bottom:1px solid;font-size:14px}
 .scrim{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,0.35)}
 .cm{padding:14px 18px;border-bottom:1px solid;display:flex;flex-direction:column;gap:6px}
+.act{border:0;background:transparent;font-size:12px;font-weight:600;padding:8px 6px 8px 0;opacity:0.65;color:inherit}
+.rp{margin-left:14px;padding:8px 0 4px 12px;border-left:2px solid;display:flex;flex-direction:column;gap:2px}
 .nick{font-size:13px;font-weight:700}
 .wr{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#4f46e5;color:#fff}
 .dlg{position:absolute;z-index:9;left:50%;top:50%;transform:translate(-50%,-50%);width:330px;box-sizing:border-box;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 44px rgba(0,0,0,0.35)}
@@ -115,13 +117,32 @@ button{cursor:pointer}
           <div class="cm" style="border-color:{{line}};background:{{m.bg}}">
             <div style="display:flex;align-items:center;gap:8px"><span class="nick">{{m.nick}}</span><sc-if value="{{m.writer}}" hint-placeholder-val="{{false}}"><span class="wr">작가</span></sc-if><span style="font-size:12px;opacity:0.55">{{m.when}}</span></div>
             <span style="font-size:14px;line-height:1.6">{{m.text}}</span>
+            <div style="display:flex;gap:10px"><button class="act" type="button" onClick="{{m.reply}}">답글</button><sc-if value="{{m.canReport}}" hint-placeholder-val="{{true}}"><button class="act" type="button" onClick="{{m.report}}">신고</button></sc-if></div>
+            <sc-for list="{{m.replies}}" as="p" hint-placeholder-count="1">
+              <div class="rp" style="border-color:{{line}}">
+                <div style="display:flex;align-items:center;gap:8px"><span class="nick">{{p.nick}}</span><sc-if value="{{p.writer}}" hint-placeholder-val="{{false}}"><span class="wr">작가</span></sc-if><span style="font-size:12px;opacity:0.55">{{p.when}}</span></div>
+                <span style="font-size:14px;line-height:1.6">{{p.text}}</span>
+                <div><sc-if value="{{p.canReport}}" hint-placeholder-val="{{true}}"><button class="act" type="button" onClick="{{p.report}}">신고</button></sc-if></div>
+              </div>
+            </sc-for>
           </div>
         </sc-for>
       </div>
       <div style="padding:10px 14px 14px;border-top:1px solid {{line}};display:flex;flex-direction:column;gap:6px">
+        <sc-if value="{{replyTo}}" hint-placeholder-val="{{false}}"><div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600"><span>↳ {{replyTo}}님에게 답글</span><button class="act" type="button" onClick="{{cancelReply}}" style="padding:4px 0">취소</button></div></sc-if>
         <span style="font-size:11px;opacity:0.65">내 닉네임 “책벌레서연”으로 공개돼요. 익명 댓글은 쓸 수 없어요.</span>
         <div style="display:flex;gap:8px"><input type="text" placeholder="댓글을 입력하세요" aria-label="댓글 입력" value="{{draft}}" onChange="{{onDraft}}" style="flex:1;height:44px;box-sizing:border-box;border-radius:10px;border:1px solid {{line}};background:transparent;color:{{fgc}};padding:0 12px;font-size:14px"><button type="button" onClick="{{postCmt}}" style="width:64px;height:44px;border-radius:10px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700">등록</button></div>
       </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showReport}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeReport}}" style="z-index:8"></div>
+    <div class="dlg" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:18px;font-weight:700">댓글 신고</span><span style="font-size:12px;opacity:0.7">작성자의 역할(독자·작가)과 관계없이 신고할 수 있어요.</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{reasons}}" as="o"><button class="opt" type="button" onClick="{{o.pick}}" style="{{o.st}};height:46px;font-size:14px">{{o.label}}</button></sc-for></div>
+      <div style="font-size:11px;line-height:1.5;opacity:0.65">신고가 접수되면 관리자가 검토해 댓글 숨김, 댓글 정지, 계정 정지 등을 결정해요.</div>
+      <div style="display:flex;gap:8px"><button type="button" onClick="{{closeReport}}" style="flex:1;height:44px;border-radius:10px;border:1px solid {{line}};background:transparent;color:{{fgc}};font-size:14px;font-weight:600">취소</button><button type="button" onClick="{{submitReport}}" style="flex:1;height:44px;border-radius:10px;border:0;background:#dc2626;color:#fff;font-size:14px;font-weight:700">신고하기</button></div>
     </div>
   </sc-if>
 
@@ -205,12 +226,20 @@ class Component extends DCLogic {
       const tag = cur ? '읽는 중' : n < ch ? '읽음' : owned[n] ? owned[n] : n <= FREE_UNTIL ? '무료' : '유료';
       rows.push({ n: n, title: ttl(n), tag: tag, bg: cur ? (dark ? '#3f3f46' : '#eef2ff') : 'transparent', fw: cur ? 700 : 500 });
     }
+    const repl = st.repl || {};
+    const reasonOpts = [['abuse', '욕설·비하·혐오'], ['spoiler', '스포일러'], ['spam', '광고·도배'], ['etc', '기타']];
+    const reason = st.reason || 'abuse';
+    const mkReport = (id) => () => this.setState({ rep: id, reason: 'abuse' });
     const baseCmts = [
-      { nick: '문턱지기(작가)', writer: true, when: '2시간 전', text: '이번 화부터 서고의 규칙이 하나씩 바뀝니다. 천천히 읽어 주세요.', bg: dark ? '#312e81' : '#eef2ff' },
-      { nick: '밤새는독자', writer: false, when: '1시간 전', text: '마지막 장면에서 소름 돋았어요. 다음 화가 너무 궁금합니다.', bg: 'transparent' },
-      { nick: '하린', writer: false, when: '40분 전', text: '열람증 번호가 닳는 묘사가 좋았어요.', bg: 'transparent' }
+      { id: 'c1', nick: '문턱지기', writer: true, when: '2시간 전', text: '이번 화부터 서고의 규칙이 하나씩 바뀝니다. 천천히 읽어 주세요.', bg: dark ? '#312e81' : '#eef2ff', mine: false, replies: [{ id: 'r1', nick: '밤새는독자', writer: false, when: '1시간 전', text: '작가님 다음 화 기대할게요!', mine: false }] },
+      { id: 'c2', nick: '밤새는독자', writer: false, when: '1시간 전', text: '마지막 장면에서 소름 돋았어요. 다음 화가 너무 궁금합니다.', bg: 'transparent', mine: false, replies: [{ id: 'r2', nick: '문턱지기', writer: true, when: '50분 전', text: '감사합니다. 다음 화도 재미있게 봐 주세요.', mine: false }] },
+      { id: 'c3', nick: '하린', writer: false, when: '40분 전', text: '열람증 번호가 닳는 묘사가 좋았어요.', bg: 'transparent', mine: false, replies: [] }
     ];
-    const all = cmts.concat(baseCmts);
+    const all = cmts.concat(baseCmts).map((m) => ({
+      id: m.id, nick: m.nick, writer: m.writer, when: m.when, text: m.text, bg: m.bg, canReport: !m.mine,
+      reply: () => this.setState({ replyTo: m.nick, replyId: m.id }), report: mkReport(m.id),
+      replies: (m.replies || []).concat(repl[m.id] || []).map((p) => ({ nick: p.nick, writer: p.writer, when: p.when, text: p.text, canReport: !p.mine, report: mkReport(p.id) }))
+    }));
     return {
       bgc: bgc, fgc: fgc, line: line, panelBg: panelBg, barBg: barBg,
       bars: bars, showSet: bars && panel === 'set', showToc: panel === 'toc', showCmt: panel === 'cmt', showPay: st.pay === true,
@@ -234,7 +263,15 @@ class Component extends DCLogic {
       cmtCount: 128 + cmts.length, comments: all,
       onDraft: (e) => this.setState({ draft: e.target.value }),
       draft: st.draft || '',
-      postCmt: () => { const t = (st.draft || '').trim(); if (!t) return; this.setState({ cmts: [{ nick: '책벌레서연', writer: false, when: '방금', text: t, bg: 'transparent' }].concat(cmts), draft: '' }); },
+      postCmt: () => {
+        const t = (st.draft || '').trim(); if (!t) return;
+        if (st.replyId) { const nr = Object.assign({}, repl); nr[st.replyId] = (nr[st.replyId] || []).concat([{ id: 'u' + t.length + Date.now(), nick: '책벌레서연', writer: false, when: '방금', text: t, mine: true }]); this.setState({ repl: nr, draft: '', replyTo: '', replyId: '' }); return; }
+        this.setState({ cmts: [{ id: 'u' + Date.now(), nick: '책벌레서연', writer: false, when: '방금', text: t, bg: 'transparent', mine: true, replies: [] }].concat(cmts), draft: '' });
+      },
+      replyTo: st.replyTo || '', cancelReply: () => this.setState({ replyTo: '', replyId: '' }),
+      showReport: !!st.rep, closeReport: () => this.setState({ rep: '' }),
+      reasons: reasonOpts.map((o) => ({ label: o[1], st: reason === o[0] ? 'background:#18181b;color:#fff;border-color:#18181b' : 'background:transparent;color:' + fgc + ';border-color:' + line, pick: () => this.setState({ reason: o[0] }) })),
+      submitReport: () => { this.setState({ rep: '', toast: '신고가 접수됐어요. 관리자가 검토할게요.' }); setTimeout(() => this.setState({ toast: '' }), 2600); },
       fsDown: () => this.setState({ fs: Math.max(14, fs - 1) }),
       fsUp: () => this.setState({ fs: Math.min(24, fs + 1) }),
       fonts: seg('font', font, [['sans', '고딕'], ['serif', '명조'], ['round', '둥근']]),

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>관리자 댓글 신고</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:52px;padding:0 24px;box-sizing:border-box;display:flex;align-items:center;gap:16px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tabs{display:flex;gap:2px;padding:0 24px;background:#fff;border-bottom:1px solid #e4e4e7}
+.tb{font-size:14px;font-weight:600;color:#71717a;padding:12px 16px;border:0;background:transparent;border-bottom:2px solid transparent}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px}
+.qi{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:0;border-bottom:1px solid #f1f1f3;background:#fff;text-align:left;width:100%;box-sizing:border-box}
+.qi.on{background:#eef2ff}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.red{background:#fee2e2;color:#991b1b}
+.badge.ind{background:#e0e7ff;color:#3730a3}
+.badge.ok{background:#dcfce7;color:#166534}
+.lbl{font-size:12px;font-weight:700;color:#52525b;margin-bottom:6px}
+.opt{height:42px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;padding:0 12px}
+.opt.on{background:#18181b;color:#fff;border-color:#18181b}
+.opt.danger.on{background:#dc2626;border-color:#dc2626}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+</style>
+</helmet>
+<div style="width:1280px;min-height:820px;box-sizing:border-box">
+  <header class="hd"><a class="logo" href="Home.dc.html">NovelScript</a><span style="font-size:13px;color:#52525b">관리자</span><span style="flex-grow:1"></span><span class="av">관</span></header>
+  <nav class="tabs"><button class="tb" type="button">작품·회차 신고</button><button class="tb on" type="button">댓글 신고</button><button class="tb" type="button">작가 재검토</button></nav>
+
+  <div style="display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;padding:20px 24px 40px;align-items:start">
+
+    <div class="card" style="overflow:hidden">
+      <div style="padding:12px 14px;border-bottom:1px solid #e4e4e7;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">열린 신고 {{openCount}}건</span><span class="sub">최신순 ▾</span></div>
+      <sc-for list="{{queue}}" as="q" hint-placeholder-count="4">
+        <button class="{{q.cls}}" type="button" onClick="{{q.pick}}">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge red">{{q.reason}}</span><span class="badge">{{q.role}}</span><span class="badge">{{q.count}}건 신고</span><span class="badge {{q.stCls}}">{{q.status}}</span></div>
+          <span style="font-size:13px;line-height:1.5;color:#18181b">{{q.text}}</span>
+          <span class="sub">{{q.nick}} · {{q.where}}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:18px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#71717a">댓글 신고 상세</span><span style="font-size:18px;font-weight:700">{{sel.where}}</span></div>
+        <span class="badge {{sel.stCls}}" style="font-size:12px">{{sel.status}}</span>
+      </div>
+
+      <div style="background:#f7f7f9;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px;align-items:center"><span style="font-size:14px;font-weight:700">{{sel.nick}}</span><span class="badge ind">{{sel.role}}</span><span class="sub">{{sel.when}}</span></div>
+        <span style="font-size:15px;line-height:1.65">{{sel.text}}</span>
+        <span class="sub">답글인 경우 원 댓글: “{{sel.parent}}”</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+        <div><div class="lbl">신고 내역 ({{sel.count}}건)</div>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:13px;color:#27272a"><span>{{sel.reason}} · {{sel.nreason}}건</span><span>신고자는 닉네임 비공개로 관리자에게만 표시</span></div>
+        </div>
+        <div><div class="lbl">작성자 이력</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">경고 {{sel.warn}}회</span><span class="badge">댓글 정지 {{sel.mute}}회</span><span class="badge">계정 정지 {{sel.ban}}회</span></div>
+        </div>
+      </div>
+
+      <div><div class="lbl">조치</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{actions}}" as="o"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+      </div>
+
+      <sc-if value="{{needTerm}}" hint-placeholder-val="{{true}}">
+        <div><div class="lbl">{{termLabel}} 기간</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{terms}}" as="o"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div>
+        </div>
+      </sc-if>
+
+      <div><div class="lbl">처리 메모 (작성자에게 전달되는 사유)</div>
+        <div style="border:1px solid #d4d4d8;border-radius:10px;padding:10px 12px;min-height:56px;font-size:13px;color:#52525b;line-height:1.55">{{note}}</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <span class="sub">조치는 대상 계정에 알림으로 전달돼요. 작가 계정도 같은 기준으로 처리해요.</span>
+        <div style="display:flex;gap:8px"><button class="opt" type="button" onClick="{{dismiss}}">신고 기각</button><button type="button" onClick="{{apply}}" style="height:42px;border-radius:9px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;padding:0 20px">조치 확정</button></div>
+      </div>
+      <sc-if value="{{msg}}" hint-placeholder-val="{{false}}"><div style="font-size:13px;font-weight:600;color:#166534;background:#dcfce7;border-radius:10px;padding:10px 12px">{{msg}}</div></sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const items = [
+      { id: 1, reason: '욕설·비하', role: '독자', count: 5, nick: '밤새는독자', where: '달빛 서고 12화 댓글', text: '(욕설이 포함된 댓글 샘플)', when: '3시간 전', parent: '—', nreason: 5, warn: 1, mute: 0, ban: 0 },
+      { id: 2, reason: '스포일러', role: '독자', count: 2, nick: '하린', where: '달빛 서고 11화 댓글', text: '(결말을 직접 알려 주는 댓글 샘플)', when: '5시간 전', parent: '마지막 장면에서 소름 돋았어요', nreason: 2, warn: 0, mute: 0, ban: 0 },
+      { id: 3, reason: '광고·도배', role: '독자', count: 9, nick: '도윤', where: '열세 번째 계절 3화 댓글', text: '(외부 링크가 반복되는 댓글 샘플)', when: '어제', parent: '—', nreason: 9, warn: 2, mute: 1, ban: 0 },
+      { id: 4, reason: '욕설·비하', role: '작가', count: 3, nick: '문턱지기', where: '달빛 서고 12화 답글', text: '(작가가 독자에게 남긴 부적절한 답글 샘플)', when: '어제', parent: '이번 화가 너무 짧아요', nreason: 3, warn: 0, mute: 0, ban: 0 }
+    ];
+    const done = st.done || {};
+    const selId = st.sel || 1;
+    const sel = items.find((x) => x.id === selId);
+    const act = st.act || 'mute';
+    const term = st.term || '7일';
+    const stateOf = (id) => (done[id] ? (done[id] === 'dismiss' ? '기각' : '처리됨') : '검토 대기');
+    const queue = items.map((q) => ({
+      reason: q.reason, role: q.role, count: q.count, nick: q.nick, where: q.where, text: q.text,
+      status: stateOf(q.id), stCls: done[q.id] ? 'ok' : '',
+      cls: q.id === selId ? 'qi on' : 'qi', pick: () => this.setState({ sel: q.id, msg: '' })
+    }));
+    const acts = [['hide', '댓글 숨김'], ['warn', '경고'], ['mute', '댓글 정지'], ['ban', '계정 정지']];
+    const termsMap = { mute: ['1일', '7일', '30일', '영구'], ban: ['7일', '30일', '영구'] };
+    const needTerm = act === 'mute' || act === 'ban';
+    const terms = (termsMap[act] || []).map((t) => ({ label: t, cls: t === term ? 'opt on' : 'opt', pick: () => this.setState({ term: t }) }));
+    const notes = { hide: '이 댓글은 운영 정책 위반으로 숨김 처리됐어요.', warn: '운영 정책 위반으로 경고드려요. 반복되면 이용이 제한돼요.', mute: '운영 정책 위반으로 ' + term + ' 동안 댓글을 쓸 수 없어요.', ban: '운영 정책 위반으로 계정이 ' + term + ' 동안 정지돼요.' };
+    return {
+      queue: queue, openCount: items.filter((x) => !done[x.id]).length,
+      sel: Object.assign({}, sel, { status: stateOf(selId), stCls: done[selId] ? 'ok' : '' }),
+      actions: acts.map((a) => ({ label: a[1], cls: (a[0] === act ? 'opt on' : 'opt') + (a[0] === 'ban' ? ' danger' : ''), pick: () => this.setState({ act: a[0], term: a[0] === 'ban' ? '7일' : term }) })),
+      needTerm: needTerm, termLabel: act === 'ban' ? '계정 정지' : '댓글 정지', terms: terms,
+      note: notes[act], msg: st.msg || '',
+      apply: () => { const d = Object.assign({}, done); d[selId] = act; this.setState({ done: d, msg: '조치가 확정돼 대상 계정에 알림이 전달됐어요. (' + acts.find((a) => a[0] === act)[1] + (needTerm ? ' · ' + term : '') + ')' }); },
+      dismiss: () => { const d = Object.assign({}, done); d[selId] = 'dismiss'; this.setState({ done: d, msg: '신고를 기각했어요.' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

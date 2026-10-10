@@ -72,6 +72,11 @@ button,input{font-family:inherit}
 .pg.on{background:#18181b;color:#fff;border-color:#18181b}
 .pg.off{color:#d4d4d8;background:#fafafa}
 .jin{width:96px;height:40px;box-sizing:border-box;border:1px solid #d4d4d8;border-radius:8px;padding:0 10px;font-size:14px;text-align:center}
+.scrim2{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.4)}
+.dlg2{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100vw - 32px));box-sizing:border-box;background:#fff;color:#18181b;border-radius:18px;padding:22px 20px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.opt2{display:flex;align-items:center;justify-content:space-between;gap:10px;height:54px;border-radius:12px;border:1px solid #d4d4d8;padding:0 16px;font-size:15px;font-weight:700;background:#fff;color:#18181b;width:100%;box-sizing:border-box}
+.opt2.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.toast2{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:80px;max-width:360px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;line-height:1.45;background:rgba(24,24,27,0.92);color:#fff;display:flex;gap:12px;align-items:center}
 </style>
 </helmet>
 <div style="--accent: {{accent}}; min-height:1500px">
@@ -145,11 +150,16 @@ button,input{font-family:inherit}
           </div>
           <div class="rows">
             <sc-for list="{{chapters}}" as="c" hint-placeholder-count="10">
-              <a class="row" href="#top">
+              <sc-if value="{{c.go}}" hint-placeholder-val="{{true}}"><a class="row" href="ViewerDesktop.dc.html">
                 <span class="rn">{{c.n}}</span>
                 <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex-grow:1"><span class="rt" style="color:{{c.tc}}">{{c.title}}</span><span class="rs">{{c.date}}</span></div>
                 <span class="{{c.cls}}">{{c.label}}</span>
-              </a>
+              </a></sc-if>
+              <sc-if value="{{c.ask}}" hint-placeholder-val="{{false}}"><button class="row" type="button" onClick="{{c.pick}}" style="width:100%;background:transparent;border:0;border-bottom:1px solid #f1f1f3;text-align:left;font-family:inherit;cursor:pointer">
+                <span class="rn">{{c.n}}</span>
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex-grow:1"><span class="rt" style="color:{{c.tc}}">{{c.title}}</span><span class="rs">{{c.date}}</span></div>
+                <span class="{{c.cls}}">{{c.label}}</span>
+              </button></sc-if>
             </sc-for>
           </div>
           <div class="pbar">
@@ -217,6 +227,27 @@ button,input{font-family:inherit}
 
   </div>
 </div>
+
+  <sc-if value="{{showPay}}" hint-placeholder-val="{{false}}">
+    <div class="scrim2" onClick="{{closeAll}}"></div>
+    <div class="dlg2">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#71717a">유료 회차</span><span style="font-size:18px;font-weight:700">{{payTitle}}</span><span style="font-size:13px;color:#52525b">보유 토큰 {{balance}}</span></div>
+      <button class="opt2" type="button" onClick="{{buyOwn}}"><span>소장</span><span style="font-size:13px;font-weight:600;color:#52525b">10토큰 · 영구</span></button>
+      <button class="opt2 p" type="button" onClick="{{buyRent}}"><span>대여</span><span style="font-size:13px;font-weight:600;opacity:0.9">3토큰 · 7일</span></button>
+      <button type="button" onClick="{{closeAll}}" style="height:40px;border:0;background:transparent;color:#52525b;font-size:14px;font-weight:600">닫기</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{showCharge}}" hint-placeholder-val="{{false}}">
+    <div class="scrim2" style="z-index:52"></div>
+    <div class="dlg2" style="z-index:53">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#b45309">토큰이 부족해요</span><span style="font-size:18px;font-weight:700">토큰 충전</span><span style="font-size:13px;color:#52525b">보유 {{balance}} 토큰 · {{need}} 토큰이 필요해요</span></div>
+      <button class="opt2" type="button" onClick="{{charge100}}"><span>100 토큰</span><span style="font-size:13px;font-weight:600;color:#52525b">1,000원</span></button>
+      <button class="opt2 p" type="button" onClick="{{charge550}}"><span>550 토큰</span><span style="font-size:13px;font-weight:600;opacity:0.9">5,000원</span></button>
+      <span style="font-size:11px;color:#71717a;line-height:1.5">결제 수단 선택·결제 승인은 결제 연동 후 실제 화면으로 이어져요. 목업에서는 누르면 바로 충전돼요.</span>
+      <button type="button" onClick="{{closeCharge}}" style="height:40px;border:0;background:transparent;color:#52525b;font-size:14px;font-weight:600">취소</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast2"><span>{{toast}}</span><a href="ViewerDesktop.dc.html" style="color:#c7d2fe;font-weight:700;white-space:nowrap">읽으러 가기</a></div></sc-if>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"tab":{"editor":"enum","default":"회차","options":["소개","회차","세계관","리뷰"]},"$preview":{"width":1280,"height":1500}}'>
 class Component extends DCLogic {
@@ -235,12 +266,26 @@ class Component extends DCLogic {
     const pool = ['문턱의 책', '거꾸로 흐르는 장', '새벽의 문', '잿빛 항구', '사서의 약속', '닫힌 서가', '두 번째 독자', '불 꺼진 열람실'];
     const pad = (x) => (x < 10 ? '0' + x : '' + x);
     const ch = [];
+    const st = this.state || {};
+    const owned = st.owned || {};
+    const bal = st.bal === undefined ? 5 : st.bal;
+    const payN = st.pay || 0;
+    const settle = (kind) => {
+      const price = kind === '소장' ? 10 : 3;
+      if (bal < price) { this.setState({ charge: price, pendKind: kind }); return; }
+      const o = Object.assign({}, owned); o[payN] = kind;
+      this.setState({ owned: o, bal: bal - price, pay: 0, charge: 0, toast: payN + '화 ' + kind + ' 완료 (−' + price + ' 토큰)' });
+      setTimeout(() => this.setState({ toast: '' }), 3500);
+    };
+    const topup = (add) => this.setState({ bal: bal + add, charge: 0 });
     for (let n = (page - 1) * 10 + 1; n <= Math.min(page * 10, 173); n++) {
       let kind = 'free', label = '무료';
+      const ow = owned[n] || (n > 12 && n % 5 === 0 ? '소장' : n === 14 ? '대여' : '');
       if (n < 10) { kind = 'read'; label = '읽음'; }
       else if (n === 10) { kind = 'now'; label = '읽는 중'; }
-      else if (n > 12) { kind = n % 5 === 0 ? 'own' : 'paid'; label = n % 5 === 0 ? '소장함' : '10 토큰'; }
-      ch.push({ n: n, title: n + '화 ' + pool[n % 8], date: pad(Math.floor((n - 1) / 30) + 9) + '.' + pad(((n - 1) % 30) + 1), label: label, cls: 'st ' + kind, tc: kind === 'read' ? '#a1a1aa' : '#18181b' });
+      else if (n > 12) { if (ow) { kind = 'own'; label = ow + '중'; } else { kind = 'paid'; label = '유료'; } }
+      const go = kind !== 'paid';
+      ch.push({ n: n, title: n + '화 ' + pool[n % 8], date: pad(Math.floor((n - 1) / 30) + 9) + '.' + pad(((n - 1) % 30) + 1), label: label, cls: 'st ' + kind, tc: kind === 'read' ? '#a1a1aa' : '#18181b', go: go, ask: !go, pick: () => this.setState({ pay: n }) });
     }
     const lore = [
       { kind: '인물', when: '1화 등장', name: '소연', bg: bg(262), open: true, partial: false, unlock: '', text: '서고의 새 사서. 사람의 기억을 책 냄새로 구분한다.' },
@@ -252,6 +297,9 @@ class Component extends DCLogic {
       { quote: '느리게 시작하지만 15화부터는 멈출 수 없다', who: '독자 하린', when: '1주 전' }
     ];
     return {
+      showPay: payN > 0, payTitle: payN + '화 ' + pool[payN % 8], balance: bal, showCharge: !!st.charge, need: st.charge || 0,
+      toast: st.toast || '', closeAll: () => this.setState({ pay: 0, charge: 0 }), closeCharge: () => this.setState({ charge: 0 }),
+      buyOwn: () => settle('소장'), buyRent: () => settle('대여'), charge100: () => topup(100), charge550: () => topup(550),
       accent: this.props.accent ?? '#4f46e5', bg: bg(262),
       pages: pages, prevCls: group > 1 ? 'pg' : 'pg off', nextCls: gEnd < total ? 'pg' : 'pg off',
       prevGroup: () => { if (group > 1) this.setState({ page: gStart - 5 }); },

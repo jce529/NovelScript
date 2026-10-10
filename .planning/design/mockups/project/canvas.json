@@ -104,6 +104,15 @@
       "h": 800,
       "title": "12. 뷰어 (데스크톱, 클릭하면 상하단 바)",
       "is_interactive": true
+    },
+    "AdminComments.dc.html": {
+      "x": 0,
+      "y": 8000,
+      "w": 1280,
+      "h": 820,
+      "title": "13. 관리자 댓글 신고 처리",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -118,7 +127,8 @@
     "WorkMobile.dc.html",
     "WorkDesktop.dc.html",
     "ViewerMobile.dc.html",
-    "ViewerDesktop.dc.html"
+    "ViewerDesktop.dc.html",
+    "AdminComments.dc.html"
   ],
   "notes": {
     "t1": {
@@ -152,6 +162,13 @@
       "x": 0,
       "y": 6650,
       "text": "독자 뷰어",
+      "kind": "title1",
+      "maxW": 1790
+    },
+    "t5": {
+      "x": 0,
+      "y": 7750,
+      "text": "관리자",
       "kind": "title1",
       "maxW": 1790
     }
