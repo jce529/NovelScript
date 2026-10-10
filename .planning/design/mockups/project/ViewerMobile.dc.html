@@ -31,8 +31,8 @@ button{font-family:inherit;cursor:pointer}
 </helmet>
 <div style="position:relative;width:390px;height:844px;overflow:hidden;background:{{bgc}};color:{{fgc}}">
 
-  <div onClick="{{toggleBars}}" style="position:absolute;inset:0;overflow-y:auto;padding:{{padTop}}px {{pad}}px 120px;box-sizing:border-box;font-family:{{fam}};font-size:{{fs}}px;line-height:1.85">
-    <div style="max-width:{{mw}}px;margin:0 auto">
+  <div onClick="{{toggleBars}}" style="position:absolute;inset:0;overflow-y:auto;padding:{{padTop}}px {{pad}}px 120px;box-sizing:border-box;font-family:{{fam}};font-size:{{fs}}px;line-height:{{lh}}">
+    <div style="margin:0 auto">
       <div style="font-size:12px;opacity:0.5;margin-bottom:6px;font-family:system-ui,sans-serif">달빛 서고</div>
       <h1 style="margin:0 0 22px;font-size:1.2em;font-weight:700;line-height:1.4">10화 새벽의 문</h1>
       <p style="margin:0 0 1em">새벽의 문은 생각보다 낮았다. 하늘은 아직 회색이었고, 항구 쪽에서 밀려온 안개가 돌계단을 천천히 삼키고 있었다.</p>
@@ -65,7 +65,7 @@ button{font-family:inherit;cursor:pointer}
       <div><div class="lbl">뷰어 모드</div><div class="seg"><sc-for list="{{themes}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
       <div><div class="lbl">글자 크기</div><div class="stp"><button class="stb" type="button" onClick="{{fsDown}}" style="color:{{fgc}};border-color:{{line}}">−</button><span class="stv">{{fs}}px</span><button class="stb" type="button" onClick="{{fsUp}}" style="color:{{fgc}};border-color:{{line}}">+</button></div></div>
       <div><div class="lbl">여백 크기</div><div class="seg"><sc-for list="{{margins}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
-      <div><div class="lbl">줄 너비</div><div class="seg"><sc-for list="{{widths}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">줄 간격</div><div class="seg"><sc-for list="{{widths}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
     </div>
   </sc-if>
 
@@ -106,10 +106,10 @@ class Component extends DCLogic {
     const font = st.font || 'sans';
     const fs = st.fs || 17;
     const margin = st.margin || 'm';
-    const width = st.width || 'm';
+    const lh = st.lh || 'm';
     const fam = font === 'serif' ? 'Georgia,"Nanum Myeongjo","Noto Serif KR",serif' : font === 'round' ? 'ui-rounded,"Nanum Gothic","Apple SD Gothic Neo",sans-serif' : 'system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
     const padMap = { s: 12, m: 22, l: 36 };
-    const widthMap = { s: 300, m: 360, l: 520 };
+    const lhMap = { s: 1.5, m: 1.85, l: 2.25 };
     const on = dark ? 'background:#e4e4e7;color:#18181b;border-color:#e4e4e7' : 'background:#18181b;color:#fff;border-color:#18181b';
     const offs = 'background:transparent;color:' + fgc + ';border-color:' + line;
     const seg = (key, cur, opts) => opts.map((o) => ({ label: o[1], st: cur === o[0] ? on : offs, pick: () => this.setState({ [key]: o[0] }) }));
@@ -122,7 +122,7 @@ class Component extends DCLogic {
     return {
       bgc: bgc, fgc: fgc, line: line, panelBg: panelBg, barBg: barBg,
       bars: bars, showSet: bars && panel === 'set', showToc: panel === 'toc',
-      fam: fam, fs: fs, pad: padMap[margin], padTop: bars ? 64 : 40, mw: widthMap[width] + (fs - 17) * 8,
+      fam: fam, fs: fs, pad: padMap[margin], padTop: bars ? 64 : 40, lh: lhMap[lh],
       toggleBars: () => this.setState({ bars: !bars, panel: 'none' }),
       openToc: () => this.setState({ panel: 'toc' }),
       openSet: () => this.setState({ panel: panel === 'set' ? 'none' : 'set' }),
@@ -132,7 +132,7 @@ class Component extends DCLogic {
       fonts: seg('font', font, [['sans', '고딕'], ['serif', '명조'], ['round', '둥근']]),
       themes: seg('theme', theme, [['light', '라이트'], ['dark', '다크'], ['system', '시스템']]),
       margins: seg('margin', margin, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
-      widths: seg('width', width, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
+      widths: seg('lh', lh, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
       chapters: rows
     };
   }
