@@ -11,11 +11,13 @@
 <style>
 body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
 a{color:inherit;text-decoration:none}
-button{font-family:inherit;cursor:pointer}
+button,input{font-family:inherit}
+button{cursor:pointer}
 .bar{position:absolute;left:0;right:0;z-index:5;display:flex;align-items:center;box-sizing:border-box;padding:0 8px}
 .ib{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0}
-.nb{flex:1;height:44px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid;background:transparent;padding:0 12px}
+.nb{flex:1;height:44px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid;background:transparent;padding:0 10px;white-space:nowrap}
 .nb.off{opacity:0.35}
+.bg{height:36px;border-radius:999px;border:1px solid;display:flex;align-items:center;gap:5px;padding:0 12px;font-size:13px;font-weight:700;background:transparent;margin-right:2px}
 .pop{position:absolute;z-index:7;right:10px;top:62px;width:330px;box-sizing:border-box;border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 36px rgba(0,0,0,0.28)}
 .pop:before{content:"";position:absolute;top:-7px;right:24px;width:14px;height:14px;transform:rotate(45deg);background:inherit}
 .lbl{font-size:12px;font-weight:700;opacity:0.65;margin-bottom:6px}
@@ -27,14 +29,20 @@ button{font-family:inherit;cursor:pointer}
 .toc{position:absolute;z-index:7;left:0;right:0;bottom:0;top:96px;border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,0.25)}
 .trow{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border-bottom:1px solid;font-size:14px}
 .scrim{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,0.35)}
+.cm{padding:14px 18px;border-bottom:1px solid;display:flex;flex-direction:column;gap:6px}
+.nick{font-size:13px;font-weight:700}
+.wr{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#4f46e5;color:#fff}
+.dlg{position:absolute;z-index:9;left:50%;top:50%;transform:translate(-50%,-50%);width:330px;box-sizing:border-box;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 44px rgba(0,0,0,0.35)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;height:54px;border-radius:12px;border:1px solid;padding:0 16px;font-size:15px;font-weight:700;background:transparent;width:100%;box-sizing:border-box}
+.toast{position:absolute;z-index:8;left:50%;transform:translateX(-50%);bottom:84px;max-width:340px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;line-height:1.45;text-align:center;background:rgba(24,24,27,0.92);color:#fff}
 </style>
 </helmet>
 <div style="position:relative;width:390px;height:844px;overflow:hidden;background:{{bgc}};color:{{fgc}}">
 
-  <div onClick="{{toggleBars}}" style="position:absolute;inset:0;overflow-y:auto;padding:{{padTop}}px {{pad}}px 120px;box-sizing:border-box;font-family:{{fam}};font-size:{{fs}}px;line-height:{{lh}}">
+  <div onClick="{{toggleBars}}" onWheel="{{onWheel}}" style="position:absolute;inset:0;overflow-y:auto;padding:{{padTop}}px {{pad}}px 120px;box-sizing:border-box;font-family:{{fam}};font-size:{{fs}}px;line-height:{{lh}}">
     <div style="margin:0 auto">
       <div style="font-size:12px;opacity:0.5;margin-bottom:6px;font-family:system-ui,sans-serif">달빛 서고</div>
-      <h1 style="margin:0 0 22px;font-size:1.2em;font-weight:700;line-height:1.4">10화 새벽의 문</h1>
+      <h1 style="margin:0 0 22px;font-size:1.2em;font-weight:700;line-height:1.4">{{title}}</h1>
       <p style="margin:0 0 1em">새벽의 문은 생각보다 낮았다. 하늘은 아직 회색이었고, 항구 쪽에서 밀려온 안개가 돌계단을 천천히 삼키고 있었다.</p>
       <p style="margin:0 0 1em">소연은 열람증을 쥔 손에 힘을 주었다. 뒷면에 새겨진 번호는 어제보다 한 자리 더 닳아 있었다.</p>
       <p style="margin:0 0 1em">“문이 열리면 돌아올 수 없다고 했지.”</p>
@@ -42,6 +50,9 @@ button{font-family:inherit;cursor:pointer}
       <p style="margin:0 0 1em">문턱을 넘는 순간 모든 소리가 멈췄다. 높은 서가들이 천장 너머까지 이어져 있었고, 그 사이로 푸른 빛이 물처럼 흘렀다.</p>
       <p style="margin:0 0 1em">열람실 한가운데, 누군가 펼쳐 둔 책 한 권이 바람도 없이 한 장씩 넘어가고 있었다.</p>
       <p style="margin:0 0 1em;opacity:0.5;font-size:0.8em;font-family:system-ui,sans-serif">(샘플 문장 · 가짜 본문)</p>
+      <div style="display:flex;justify-content:center;padding:28px 0 8px;font-family:system-ui,sans-serif">
+        <button type="button" onClick="{{hintNext}}" style="font-size:13px;font-weight:600;border:1px solid {{line}};background:transparent;color:{{fgc}};border-radius:999px;padding:10px 16px;opacity:0.8">아래로 밀어서 다음 화 ↓</button>
+      </div>
     </div>
   </div>
 
@@ -50,13 +61,17 @@ button{font-family:inherit;cursor:pointer}
       <a class="ib" href="WorkMobile.dc.html" aria-label="작품 상세로" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></a>
       <button class="ib" type="button" aria-label="회차 목록" onClick="{{openToc}}" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
       <span style="flex-grow:1"></span>
+      <button class="bg" type="button" aria-label="정주행" aria-pressed="{{binge}}" onClick="{{toggleBinge}}" style="{{bingeSt}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4l10 8-10 8zM17 5v14"/></svg>정주행 {{bingeLabel}}</button>
       <button class="ib" type="button" aria-label="뷰어 설정" onClick="{{openSet}}" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
     <div class="bar" style="bottom:0;height:64px;gap:10px;padding:0 12px;background:{{barBg}};border-top:1px solid {{line}};color:{{fgc}}">
-      <button class="nb" type="button" style="color:{{fgc}};border-color:{{line}}">‹ 이전 화</button>
-      <button class="nb" type="button" style="color:{{fgc}};border-color:{{line}}">다음 화 ›</button>
+      <button class="{{prevCls}}" type="button" onClick="{{goPrev}}" style="color:{{fgc}};border-color:{{line}}">‹ 이전 화</button>
+      <button class="nb" type="button" onClick="{{openCmt}}" style="color:{{fgc}};border-color:{{line}};flex:0 0 96px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>{{cmtCount}}</button>
+      <button class="nb" type="button" onClick="{{tryNext}}" style="color:{{fgc}};border-color:{{line}}">다음 화 ›</button>
     </div>
   </sc-if>
+
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
 
   <sc-if value="{{showSet}}" hint-placeholder-val="{{false}}">
     <div class="scrim" onClick="{{closePanel}}" style="background:rgba(0,0,0,0.08)"></div>
@@ -64,7 +79,7 @@ button{font-family:inherit;cursor:pointer}
       <div><div class="lbl">글꼴</div><div class="seg"><sc-for list="{{fonts}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
       <div><div class="lbl">뷰어 모드</div><div class="seg"><sc-for list="{{themes}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
       <div><div class="lbl">글자 크기</div><div class="stp"><button class="stb" type="button" onClick="{{fsDown}}" style="color:{{fgc}};border-color:{{line}}">−</button><span class="stv">{{fs}}px</span><button class="stb" type="button" onClick="{{fsUp}}" style="color:{{fgc}};border-color:{{line}}">+</button></div></div>
-      <div><div class="lbl">여백 크기</div><div class="seg"><sc-for list="{{margins}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">여백 크기 (본문 좌우)</div><div class="seg"><sc-for list="{{margins}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
       <div><div class="lbl">줄 간격</div><div class="seg"><sc-for list="{{widths}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
     </div>
   </sc-if>
@@ -88,6 +103,49 @@ button{font-family:inherit;cursor:pointer}
     </div>
   </sc-if>
 
+  <sc-if value="{{showCmt}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePanel}}"></div>
+    <div class="toc" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">
+        <span style="font-size:16px;font-weight:700">{{title}} 댓글 {{cmtCount}}</span>
+        <button class="ib" type="button" aria-label="닫기" onClick="{{closePanel}}" style="color:{{fgc}};width:36px;height:36px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div style="overflow-y:auto;flex-grow:1">
+        <sc-for list="{{comments}}" as="m" hint-placeholder-count="3">
+          <div class="cm" style="border-color:{{line}};background:{{m.bg}}">
+            <div style="display:flex;align-items:center;gap:8px"><span class="nick">{{m.nick}}</span><sc-if value="{{m.writer}}" hint-placeholder-val="{{false}}"><span class="wr">작가</span></sc-if><span style="font-size:12px;opacity:0.55">{{m.when}}</span></div>
+            <span style="font-size:14px;line-height:1.6">{{m.text}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:10px 14px 14px;border-top:1px solid {{line}};display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:11px;opacity:0.65">내 닉네임 “책벌레서연”으로 공개돼요. 익명 댓글은 쓸 수 없어요.</span>
+        <div style="display:flex;gap:8px"><input type="text" placeholder="댓글을 입력하세요" aria-label="댓글 입력" value="{{draft}}" onChange="{{onDraft}}" style="flex:1;height:44px;box-sizing:border-box;border-radius:10px;border:1px solid {{line}};background:transparent;color:{{fgc}};padding:0 12px;font-size:14px"><button type="button" onClick="{{postCmt}}" style="width:64px;height:44px;border-radius:10px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700">등록</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showPay}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePay}}" style="z-index:8"></div>
+    <div class="dlg" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12px;font-weight:700;opacity:0.6">유료 회차</span>
+        <span style="font-size:18px;font-weight:700">{{nextTitle}}</span>
+        <span style="font-size:13px;opacity:0.7">보유 토큰 {{balance}}</span>
+      </div>
+      <sc-if value="{{canPay}}" hint-placeholder-val="{{true}}">
+        <button class="opt" type="button" onClick="{{buyOwn}}" style="color:{{fgc}};border-color:{{line}}"><span>소장</span><span style="font-size:13px;font-weight:600;opacity:0.75">{{ownPrice}}토큰 · 영구</span></button>
+        <button class="opt" type="button" onClick="{{buyRent}}" style="color:#fff;border-color:transparent;background:#4f46e5"><span>대여</span><span style="font-size:13px;font-weight:600;opacity:0.9">{{rentPrice}}토큰 · {{rentDays}}일</span></button>
+      </sc-if>
+      <sc-if value="{{noPay}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:13px;line-height:1.55;background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px">토큰이 부족해요. 충전하면 바로 이어서 볼 수 있어요.</div>
+        <a class="opt" href="Home.dc.html" style="color:#fff;border-color:transparent;background:#4f46e5;justify-content:center">토큰 충전하기</a>
+      </sc-if>
+      <div style="font-size:11px;line-height:1.5;opacity:0.65">정주행 중 자동 결제는 내 계정 설정의 <b>{{defaultMode}}</b>로 처리돼요. 계정 설정에서 바꿀 수 있어요.</div>
+      <button type="button" onClick="{{closePay}}" style="height:40px;border:0;background:transparent;color:{{fgc}};font-size:14px;font-weight:600;opacity:0.7">닫기</button>
+    </div>
+  </sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","default":"light","options":["light","dark","system"]},"$preview":{"width":390,"height":844}}'>
@@ -107,26 +165,76 @@ class Component extends DCLogic {
     const fs = st.fs || 17;
     const margin = st.margin || 'm';
     const lh = st.lh || 'm';
+    const ch = st.ch || 12;
+    const bal = st.bal === undefined ? 10 : st.bal;
+    const binge = st.binge === true;
+    const owned = st.owned || {};
+    const cmts = st.cmts || [];
+    const FREE_UNTIL = 12, OWN = 10, RENT = 3;
+    const pool = ['문턱의 책', '거꾸로 흐르는 장', '새벽의 문', '잿빛 항구', '사서의 약속', '닫힌 서가', '두 번째 독자'];
+    const ttl = (n) => n + '화 ' + pool[n % 7];
     const fam = font === 'serif' ? 'Georgia,"Nanum Myeongjo","Noto Serif KR",serif' : font === 'round' ? 'ui-rounded,"Nanum Gothic","Apple SD Gothic Neo",sans-serif' : 'system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
     const padMap = { s: 12, m: 22, l: 36 };
     const lhMap = { s: 1.5, m: 1.85, l: 2.25 };
     const on = dark ? 'background:#e4e4e7;color:#18181b;border-color:#e4e4e7' : 'background:#18181b;color:#fff;border-color:#18181b';
     const offs = 'background:transparent;color:' + fgc + ';border-color:' + line;
     const seg = (key, cur, opts) => opts.map((o) => ({ label: o[1], st: cur === o[0] ? on : offs, pick: () => this.setState({ [key]: o[0] }) }));
+    const say = (msg) => { this.setState({ toast: msg }); setTimeout(() => this.setState({ toast: '' }), 2600); };
+    const advanceTo = (n, patch, msg) => { this.setState(Object.assign({ ch: n, pay: false, panel: 'none' }, patch)); if (msg) say(msg); };
+    const next = ch + 1;
+    const isFree = (n) => n <= FREE_UNTIL || !!owned[n];
+    const pay = (kind) => {
+      const price = kind === '소장' ? OWN : RENT;
+      if (bal < price) { this.setState({ pay: true }); return; }
+      const o = Object.assign({}, owned); o[next] = kind;
+      advanceTo(next, { bal: bal - price, owned: o }, next + '화 ' + kind + ' 완료 (−' + price + ' 토큰)');
+    };
+    const tryNext = () => {
+      if (isFree(next)) { advanceTo(next, {}, ''); return; }
+      if (binge) {
+        const kind = '대여';
+        if (bal >= RENT) { pay(kind); return; }
+        this.setState({ binge: false, pay: true }); say('토큰이 모두 소진돼 정주행을 껐어요');
+        return;
+      }
+      this.setState({ pay: true });
+    };
     const rows = [];
-    const titles = ['문턱의 책', '거꾸로 흐르는 장', '새벽의 문', '잿빛 항구', '사서의 약속', '닫힌 서가', '두 번째 독자'];
-    for (let n = 1; n <= 14; n++) {
-      const cur = n === 10;
-      rows.push({ n: n, title: n + '화 ' + titles[n % 7], tag: cur ? '읽는 중' : n < 10 ? '읽음' : n <= 12 ? '무료' : '10 토큰', bg: cur ? (dark ? '#3f3f46' : '#eef2ff') : 'transparent', fw: cur ? 700 : 500 });
+    for (let n = 1; n <= 16; n++) {
+      const cur = n === ch;
+      const tag = cur ? '읽는 중' : n < ch ? '읽음' : owned[n] ? owned[n] : n <= FREE_UNTIL ? '무료' : '유료';
+      rows.push({ n: n, title: ttl(n), tag: tag, bg: cur ? (dark ? '#3f3f46' : '#eef2ff') : 'transparent', fw: cur ? 700 : 500 });
     }
+    const baseCmts = [
+      { nick: '문턱지기(작가)', writer: true, when: '2시간 전', text: '이번 화부터 서고의 규칙이 하나씩 바뀝니다. 천천히 읽어 주세요.', bg: dark ? '#312e81' : '#eef2ff' },
+      { nick: '밤새는독자', writer: false, when: '1시간 전', text: '마지막 장면에서 소름 돋았어요. 다음 화가 너무 궁금합니다.', bg: 'transparent' },
+      { nick: '하린', writer: false, when: '40분 전', text: '열람증 번호가 닳는 묘사가 좋았어요.', bg: 'transparent' }
+    ];
+    const all = cmts.concat(baseCmts);
     return {
       bgc: bgc, fgc: fgc, line: line, panelBg: panelBg, barBg: barBg,
-      bars: bars, showSet: bars && panel === 'set', showToc: panel === 'toc',
+      bars: bars, showSet: bars && panel === 'set', showToc: panel === 'toc', showCmt: panel === 'cmt', showPay: st.pay === true,
       fam: fam, fs: fs, pad: padMap[margin], padTop: bars ? 64 : 40, lh: lhMap[lh],
+      title: ttl(ch), nextTitle: ttl(next), balance: bal, ownPrice: OWN, rentPrice: RENT, rentDays: 7,
+      canPay: bal >= RENT, noPay: bal < RENT, defaultMode: '대여',
+      binge: binge, bingeLabel: binge ? 'ON' : 'OFF',
+      bingeSt: binge ? 'background:#4f46e5;color:#fff;border-color:#4f46e5' : 'color:' + fgc + ';border-color:' + line,
+      prevCls: ch > 1 ? 'nb' : 'nb off', goPrev: () => { if (ch > 1) this.setState({ ch: ch - 1 }); },
+      tryNext: tryNext,
+      onWheel: (e) => { const t = e.currentTarget; if (e.deltaY > 0 && t.scrollTop + t.clientHeight >= t.scrollHeight - 4) tryNext(); },
+      hintNext: (e) => { e.stopPropagation(); tryNext(); },
+      buyOwn: () => pay('소장'), buyRent: () => pay('대여'), closePay: () => this.setState({ pay: false }),
+      toggleBinge: () => { const v = !binge; this.setState({ binge: v }); say(v ? '정주행 ON · 토큰이 소진될 때까지 다음 화를 자동으로 대여해요 (내 설정: 대여)' : '정주행 OFF'); },
+      toast: st.toast || '',
       toggleBars: () => this.setState({ bars: !bars, panel: 'none' }),
       openToc: () => this.setState({ panel: 'toc' }),
+      openCmt: () => this.setState({ panel: 'cmt' }),
       openSet: () => this.setState({ panel: panel === 'set' ? 'none' : 'set' }),
       closePanel: () => this.setState({ panel: 'none' }),
+      cmtCount: 128 + cmts.length, comments: all,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      draft: st.draft || '',
+      postCmt: () => { const t = (st.draft || '').trim(); if (!t) return; this.setState({ cmts: [{ nick: '책벌레서연', writer: false, when: '방금', text: t, bg: 'transparent' }].concat(cmts), draft: '' }); },
       fsDown: () => this.setState({ fs: Math.max(14, fs - 1) }),
       fsUp: () => this.setState({ fs: Math.min(24, fs + 1) }),
       fonts: seg('font', font, [['sans', '고딕'], ['serif', '명조'], ['round', '둥근']]),
