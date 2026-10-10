@@ -3,7 +3,7 @@
 작성: 2026-10-10. 최종 청사진(`docs/5-1`~`5-4`)과 2026-10-10 결정(`.planning/PROJECT.md` Key Decisions)을 기준으로, 아직 화면 설계가 필요한 곳을 영역별로 모은 문서다. 설계가 끝난 항목은 상태 열을 갱신하고, UI-SPEC으로 확정되면 해당 phase의 `*-UI-SPEC.md` 경로를 적는다.
 
 - 요구사항 ID·phase는 아직 배정하지 않았다. 신규 항목은 설계 확정 후 REQUIREMENTS에 먼저 정의한다(SSOT `확정된 최종 청사진 결정` 절 참고).
-- 목업 캔버스(비공개 Artifact): https://claude.ai/artifact/UobbbTgkjDTbdDyrQXvyys — 1~10번 보드. 목업은 이 저장소에 파일로 저장돼 있지 않으므로, 확정된 내용은 아래 "확정된 UI 결정"에 글로 남긴다.
+- 목업 캔버스(비공개 Artifact): https://claude.ai/artifact/UobbbTgkjDTbdDyrQXvyys — 1~10번 보드. 소스 사본은 `.planning/design/mockups/project/`에 있다. 이어서 작업하는 절차와 진행 순서는 `UI-DESIGN-RESUME.md`.
 - 디자인 톤: 현재 앱 스타일(shadcn + 인디고 포인트 하나, 흰 카드·중립 회색) 유지·확장.
 
 ## 상태 범례

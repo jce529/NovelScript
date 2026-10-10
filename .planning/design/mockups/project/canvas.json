@@ -1,0 +1,135 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-10T12:00:00Z"
+  },
+  "title": "NovelScript 화면 맵",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1240,
+      "title": "1. 전체 화면 맵"
+    },
+    "Header.dc.html": {
+      "x": 0,
+      "y": 1480,
+      "w": 1280,
+      "h": 1100,
+      "title": "2. 독자 글로벌 헤더 (2단 + 서브 행)"
+    },
+    "StudioShell.dc.html": {
+      "x": 1400,
+      "y": 1480,
+      "w": 1280,
+      "h": 700,
+      "title": "3. 스튜디오 3패널 IDE 셸"
+    },
+    "SettingsHub.dc.html": {
+      "x": 2800,
+      "y": 1480,
+      "w": 1280,
+      "h": 700,
+      "title": "4. 통합 설정 허브 (AI 섹션)"
+    },
+    "Home.dc.html": {
+      "x": 0,
+      "y": 2900,
+      "w": 1280,
+      "h": 1700,
+      "title": "5. 독자 홈 (데스크톱)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "HomeMobile.dc.html": {
+      "x": 1400,
+      "y": 2900,
+      "w": 390,
+      "h": 1500,
+      "title": "6. 독자 홈 (모바일)",
+      "is_interactive": true
+    },
+    "Ranking.dc.html": {
+      "x": 2100,
+      "y": 2900,
+      "w": 1280,
+      "h": 1500,
+      "title": "7. 랭킹 목록 창 (데스크톱)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "RankingMobile.dc.html": {
+      "x": 3480,
+      "y": 2900,
+      "w": 390,
+      "h": 1700,
+      "title": "8. 랭킹 목록 창 (모바일)",
+      "is_interactive": true
+    },
+    "WorkMobile.dc.html": {
+      "x": 0,
+      "y": 5000,
+      "w": 390,
+      "h": 2000,
+      "title": "9. 작품 상세 (모바일, 탭 전환 가능)",
+      "is_interactive": true
+    },
+    "WorkDesktop.dc.html": {
+      "x": 510,
+      "y": 5000,
+      "w": 1280,
+      "h": 1500,
+      "title": "10. 작품 상세 (데스크톱, 탭·페이지 전환 가능)",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Header.dc.html",
+    "StudioShell.dc.html",
+    "SettingsHub.dc.html",
+    "Home.dc.html",
+    "HomeMobile.dc.html",
+    "Ranking.dc.html",
+    "RankingMobile.dc.html",
+    "WorkMobile.dc.html",
+    "WorkDesktop.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": 1255,
+      "text": "공간 공통 틀과 스튜디오",
+      "kind": "title1",
+      "maxW": 4080
+    },
+    "s1": {
+      "x": -640,
+      "y": 0,
+      "text": "초안입니다. 상태 칩은 2026-10-10 기준 코드·로드맵 상태이고, 신규는 청사진 결정으로 아직 요구사항 ID가 없는 화면입니다.",
+      "w": 520
+    },
+    "t2": {
+      "x": 0,
+      "y": 2650,
+      "text": "독자 홈 상세",
+      "kind": "title1",
+      "maxW": 1790
+    },
+    "t3": {
+      "x": 0,
+      "y": 4700,
+      "text": "작품 상세",
+      "kind": "title1",
+      "maxW": 1790
+    }
+  },
+  "designSystems": []
+}

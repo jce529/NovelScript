@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>독자 홈 모바일</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7}
+.hdi{height:52px;padding:0 14px;box-sizing:border-box;display:flex;align-items:center;gap:10px}
+.logo{font-size:16px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:6px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 10px;font-size:13px;font-weight:600;color:#18181b}
+.plus{width:22px;height:22px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ib{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{display:flex;gap:2px;padding:0 6px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #f1f1f3}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 14px;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.sec{padding:20px 16px 0;display:flex;flex-direction:column;gap:12px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:0.08em;color:#71717a;text-transform:uppercase}
+.h2{margin:0;font-size:18px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.5}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px}
+.t{font-size:14px;font-weight:600;color:#18181b;line-height:1.35}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.ind{background:#e0e7ff;color:#3730a3}
+.chip{font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;border:1px solid #d4d4d8;background:#fff;color:#27272a;white-space:nowrap;min-height:20px}
+.chip.on{color:#fff;border-color:transparent}
+.btn{font-size:14px;font-weight:600;padding:12px 16px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;text-align:center}
+.bar{height:4px;border-radius:2px;background:#e4e4e7;overflow:hidden}
+.scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.snap{scroll-snap-type:x mandatory}
+.slide{scroll-snap-align:start}
+</style>
+</helmet>
+<div style="width:390px;min-height:1500px;--accent: {{accent}}">
+
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="HomeMobile.dc.html">NovelScript</a>
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500</span><span class="plus" style="background:{{accent}}">+</span></div>
+      <button class="ib" type="button" aria-label="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt"><a class="p1" href="HomeMobile.dc.html">무료연재</a><a class="p1" href="HomeMobile.dc.html">유료연재</a><a class="p1" href="RankingMobile.dc.html">랭킹</a><a class="p1" href="HomeMobile.dc.html">내서재</a></nav>
+  </header>
+
+  <div class="sec">
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <span class="badge ind" style="align-self:flex-start">NEW</span>
+      <span style="font-size:17px;font-weight:700;color:#18181b">이번 주 정주행 시작하기 좋은 작품</span>
+      <a class="btn" style="color:#fff;border-color:transparent;background:{{accent}}" href="RankingMobile.dc.html">주간 랭킹 보기</a>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Continue</span><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 class="h2">이어 읽기</h2><a style="font-size:13px;font-weight:700;color:#3730a3;padding:8px 0" href="HomeMobile.dc.html">내서재 ›</a></div></div>
+    <div class="scroll">
+      <sc-for list="{{recents}}" as="r" hint-placeholder-count="3">
+        <a class="card" href="#top" style="flex:0 0 220px;padding:10px;display:flex;gap:10px;align-items:center">
+          <div style="width:44px;aspect-ratio:3/4;border-radius:6px;flex-shrink:0;background:{{r.bg}}"></div>
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex-grow:1">
+            <span class="t" style="font-size:13px">{{r.title}}</span>
+            <span style="font-size:12px;color:#52525b">{{r.ep}}</span>
+            <div class="bar"><div style="height:4px;width:{{r.pct}}%;background:{{accent}}"></div></div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Weekly Ranking</span><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 class="h2">주간 랭킹</h2><a style="font-size:13px;font-weight:700;color:#3730a3;padding:8px 0" href="RankingMobile.dc.html">더보기 ›</a></div><p class="sub">끝까지 읽은 비율(완독률)과 다음 화로 이어진 비율(연독률) 기준이에요.</p></div>
+    <div class="scroll"><span class="chip on" style="background:{{accent}}">전체</span><span class="chip">판타지</span><span class="chip">로맨스</span><span class="chip">미스터리</span><span class="chip">현대</span></div>
+    <div class="scroll snap" aria-label="주간 랭킹 슬라이더">
+      <sc-for list="{{ranking}}" as="w" hint-placeholder-count="5">
+        <a class="card slide" href="#top" style="flex:0 0 150px;padding:10px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:8px;background:{{w.bg}}">
+            <span style="position:absolute;left:8px;bottom:6px;font-size:30px;font-weight:800;color:#fff;line-height:1;text-shadow:0 1px 6px rgba(0,0,0,0.35)">{{w.n}}</span>
+          </div>
+          <span class="t">{{w.title}}</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ind">연독률 {{w.read}}%</span></div>
+          <span style="font-size:12px;color:#52525b">{{w.genre}}</span>
+        </a>
+      </sc-for>
+    </div>
+    <span class="sub">1–5위 / 10위 · 옆으로 밀어서 더 보기</span>
+  </div>
+
+  <div class="sec">
+    <div style="display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Rookie Quota Zone</span><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 class="h2">루키 쿼터존</h2><a style="font-size:13px;font-weight:700;color:#3730a3;padding:8px 0" href="RankingMobile.dc.html">더보기 ›</a></div><p class="sub">10화(또는 5만 자) 이상 연재한 신작만 오를 수 있어요.</p></div>
+    <div class="scroll">
+      <sc-for list="{{rookies}}" as="k" hint-placeholder-count="3">
+        <a class="card" href="#top" style="flex:0 0 150px;padding:10px;display:flex;flex-direction:column;gap:8px">
+          <div style="aspect-ratio:3/4;border-radius:8px;background:{{k.bg}}"></div>
+          <span class="t">{{k.title}}</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ind">10화 검증</span></div>
+          <span style="font-size:12px;color:#52525b">연재 {{k.eps}}화</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="sec" style="padding-bottom:40px">
+    <div style="display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Hall of Fame</span><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 class="h2">명예의 전당</h2><a style="font-size:13px;font-weight:700;color:#3730a3;padding:8px 0" href="RankingMobile.dc.html">더보기 ›</a></div></div>
+    <div class="scroll snap" aria-label="명예의 전당 슬라이더">
+      <article class="card slide" style="flex:0 0 300px;padding:16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box">
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ind">이번 주 리뷰</span><span class="badge">{{feature.genre}}</span></div>
+        <span style="font-size:16px;line-height:1.6;font-weight:600;color:#18181b">“{{feature.quote}}”</span>
+        <span style="font-size:12px;color:#52525b">{{feature.reviewer}} · {{feature.title}}</span>
+        <a class="btn" style="color:#fff;border-color:transparent;background:{{accent}}" href="#top">1화부터 정주행하기</a>
+      </article>
+      <sc-for list="{{reviews}}" as="v" hint-placeholder-count="2">
+        <article class="card slide" style="flex:0 0 260px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;box-sizing:border-box">
+          <span style="font-size:14px;line-height:1.55;font-weight:600;color:#18181b">“{{v.quote}}”</span>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#52525b">{{v.reviewer}} · {{v.title}}</span><a style="font-size:13px;font-weight:600;color:#3730a3;padding:6px 0" href="#top">{{v.cta}}</a></div>
+        </article>
+      </sc-for>
+    </div>
+    <span class="sub">리뷰 3편 · 옆으로 밀어서 더 보기</span>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":390,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const ranking = [
+      ['달빛 서고', '판타지', 92, 262],
+      ['잿빛 항구의 편지', '로맨스', 90, 20],
+      ['열세 번째 계절', '미스터리', 88, 160],
+      ['북쪽 별의 서기관', '판타지', 86, 210],
+      ['여름의 끝에서 만나', '현대', 85, 340]
+    ].map((a, i) => ({ n: i + 1, title: a[0], genre: a[1], read: a[2], bg: bg(a[3]) }));
+    const recents = [
+      ['달빛 서고', '12화 읽는 중', 60, 262],
+      ['열세 번째 계절', '4화 읽는 중', 25, 160],
+      ['잿빛 항구의 편지', '9화 읽는 중', 45, 20]
+    ].map((a) => ({ title: a[0], ep: a[1], pct: a[2], bg: bg(a[3]) }));
+    const rookies = [
+      ['새벽 배달부 일지', 14, 300],
+      ['검은 숲의 약사', 11, 130],
+      ['오후 네 시의 탐정', 10, 190],
+      ['모래시계 도서관', 12, 40],
+      ['푸른 등대의 서기', 13, 210]
+    ].map((a) => ({ title: a[0], eps: a[1], bg: bg(a[2]) }));
+    return {
+      accent: this.props.accent ?? '#4f46e5',
+      ranking: ranking, recents: recents, rookies: rookies,
+      feature: { quote: '3화에서 밀어붙이는 힘이 다음 화 버튼을 누르게 만든다', reviewer: '독자 서연', title: '달빛 서고', genre: '판타지' },
+      reviews: [
+        { quote: '결말을 알고 나서 1화를 다시 읽으면 문장이 전부 다르게 읽힌다', reviewer: '독자 도윤', title: '열세 번째 계절', cta: '1화부터 정주행하기' },
+        { quote: '느리게 시작하지만 15화부터는 멈출 수 없다', reviewer: '독자 하린', title: '잿빛 항구의 편지', cta: '15화 시작부터 읽기' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

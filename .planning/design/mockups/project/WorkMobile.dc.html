@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작품 상세 모바일</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#fff}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+.top{position:sticky;top:0;z-index:5;height:52px;box-sizing:border-box;padding:0 8px 0 4px;display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.96);border-bottom:1px solid #e4e4e7}
+.ib{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.rep{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#b91c1c;border:1px solid #fecaca;background:#fef2f2;border-radius:999px;padding:7px 10px;white-space:nowrap}
+.tok{display:flex;align-items:center;gap:6px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 10px;font-size:12px;font-weight:600;color:#18181b;margin-left:4px}
+.plus{width:20px;height:20px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+.banner{height:150px;position:relative}
+.banner:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0) 30%,#fff 100%)}
+.meta{padding:0 16px;margin-top:-86px;position:relative;z-index:2;display:flex;gap:14px}
+.cover{width:112px;aspect-ratio:3/4;border-radius:10px;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,0.18)}
+.h1{margin:0;font-size:20px;font-weight:700;color:#18181b;line-height:1.3}
+.au{font-size:14px;color:#3730a3;font-weight:600}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.ind{background:#e0e7ff;color:#3730a3}
+.badge.dk{background:#18181b;color:#fff}
+.kpi{display:flex;gap:8px;padding:14px 16px 0}
+.kc{flex:1;border:1px solid #e4e4e7;border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.kv{font-size:17px;font-weight:700;color:#18181b}
+.kl{font-size:11px;color:#71717a}
+.tags{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 0}
+.tag{font-size:12px;color:#52525b;background:#f4f4f5;border-radius:6px;padding:5px 9px}
+.syn{margin:12px 16px 0;padding:12px 14px;background:#f7f7f9;border-radius:10px;font-size:13px;line-height:1.65;color:#27272a}
+.stat{display:flex;gap:16px;padding:12px 16px 0;font-size:13px;color:#52525b}
+.stat b{color:#18181b}
+.tabs{position:sticky;top:52px;z-index:4;display:flex;background:#fff;border-bottom:1px solid #e4e4e7;margin-top:16px}
+.tb{flex:1;text-align:center;font-size:15px;font-weight:600;color:#71717a;padding:14px 0;border:0;background:transparent;border-bottom:2px solid transparent;min-height:44px}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.pane{padding:16px;display:flex;flex-direction:column;gap:12px}
+.h2{margin:0;font-size:17px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.card{border:1px solid #e4e4e7;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:#fff}
+.btn{font-size:14px;font-weight:600;padding:12px 16px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;text-align:center}
+.chip{font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid #d4d4d8;background:#fff;color:#27272a;white-space:nowrap;flex-shrink:0}
+.chip.on{background:#18181b;color:#fff;border-color:#18181b}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;border-bottom:1px solid #f1f1f3}
+.rn{width:30px;font-size:13px;font-weight:700;color:#52525b;text-align:center}
+.rt{font-size:14px;font-weight:600;color:#18181b;line-height:1.3}
+.rs{font-size:12px;color:#71717a}
+.st{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.st.free{background:#f4f4f5;color:#3f3f46}
+.st.read{background:#fff;color:#a1a1aa;border:1px solid #e4e4e7}
+.st.now{background:#e0e7ff;color:#3730a3}
+.st.paid{background:#fef3c7;color:#854d0e}
+.st.own{background:#dcfce7;color:#166534}
+.redact{display:inline-block;height:12px;border-radius:3px;background:#27272a;vertical-align:middle}
+.lock{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#52525b;background:#f4f4f5;border-radius:8px;padding:8px 10px}
+.cta{position:sticky;bottom:0;z-index:6;background:rgba(255,255,255,0.97);border-top:1px solid #e4e4e7;padding:10px 16px;display:flex;gap:8px}
+.scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.pager{display:flex;justify-content:center;gap:6px;padding:14px 0 4px}
+.pg{width:40px;height:40px;border-radius:8px;border:1px solid #e4e4e7;background:#fff;color:#27272a;font-size:14px;font-weight:600;padding:0}
+.pg.on{background:#18181b;color:#fff;border-color:#18181b}
+.pg.off{color:#d4d4d8;background:#fafafa}
+.jump{display:flex;justify-content:center;align-items:center;gap:8px;padding-top:8px}
+.jin{width:84px;height:40px;box-sizing:border-box;border:1px solid #d4d4d8;border-radius:8px;padding:0 10px;font-size:14px;text-align:center}
+</style>
+</helmet>
+<div style="width:390px;min-height:2000px;--accent: {{accent}}">
+
+  <div class="top">
+    <a class="ib" href="Home.dc.html" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+    <span style="flex-grow:1"></span>
+    <span class="rep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>불일치·표절 신고</span>
+    <button class="ib" type="button" aria-label="선호작 담기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
+    <button class="ib" type="button" aria-label="새 회차 알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+    <button class="ib" type="button" aria-label="공유"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button>
+  </div>
+
+  <div class="banner" style="background:{{bg}};filter:saturate(0.9)"></div>
+  <div class="meta">
+    <div class="cover" style="background:{{bg}}"></div>
+    <div style="display:flex;flex-direction:column;gap:7px;min-width:0;padding-top:86px">
+      <h1 class="h1">달빛 서고</h1>
+      <a class="au" href="#top">작가명</a>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">판타지</span><span class="badge">연재 중</span><span class="badge ind">유료 회차 포함</span></div>
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kc"><span class="kv">92%</span><span class="kl">연독률</span></div>
+    <div class="kc"><span class="kv">81%</span><span class="kl">완독률</span></div>
+    <div class="kc"><span class="kv">12.4만</span><span class="kl">조회</span></div>
+    <div class="kc"><span class="kv">3.1만</span><span class="kl">좋아요</span></div>
+  </div>
+
+  <div class="tags"><span class="tag">#판타지</span><span class="tag">#서고</span><span class="tag">#마법</span><span class="tag">#모험</span><span class="tag">#일상</span></div>
+
+  <div class="syn">낡은 서고의 사서가 된 소연은 책마다 다른 시간이 흐른다는 사실을 알게 된다. 단 한 권의 책을 끝까지 읽어야만 서고를 나갈 수 있다. <a style="color:#3730a3;font-weight:600" href="#top">더보기</a></div>
+
+  <div class="stat"><span>선호 <b>16,072</b></span><span>알림 <b>800</b></span><span>회차 <b>173</b>회차</span></div>
+
+  <div class="tabs" role="tablist">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+      <button class="{{t.cls}}" role="tab" type="button" onClick="{{t.pick}}">{{t.label}}</button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{isIntro}}" hint-placeholder-val="{{false}}">
+    <div class="pane">
+      <h2 class="h2">작품 소개</h2>
+      <p style="margin:0;font-size:14px;line-height:1.75;color:#27272a">낡은 서고의 사서가 된 소연은 책마다 다른 시간이 흐른다는 사실을 알게 된다. 단 한 권의 책을 끝까지 읽어야만 서고를 나갈 수 있다. 하지만 읽을수록 서고의 규칙이 하나씩 바뀐다.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px"><h2 class="h2">우수 리뷰</h2><a style="font-size:13px;font-weight:700;color:#3730a3;padding:8px 0" href="#top">더보기 ›</a></div>
+      <div class="card" style="gap:10px">
+        <div style="display:flex;gap:6px"><span class="badge ind">이번 주 우수 리뷰</span></div>
+        <span style="font-size:15px;line-height:1.6;font-weight:600;color:#18181b">“3화에서 밀어붙이는 힘이 다음 화 버튼을 누르게 만든다”</span>
+        <span class="rs">독자 서연 · 1화부터 정주행 추천</span>
+      </div>
+      <a class="btn" href="#top">리뷰 작성</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isEpisodes}}" hint-placeholder-val="{{true}}">
+    <div class="pane" style="gap:6px">
+      <div class="scroll"><span class="chip on">전체</span><span class="chip">무료</span><span class="chip">유료</span><span class="chip">소장함</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px"><span class="sub">13화부터 유료 · 회차당 10 토큰, 소장하면 계속 볼 수 있어요</span><span style="font-size:13px;font-weight:700;color:#18181b;white-space:nowrap">첫화부터 ⇅</span></div>
+      <sc-for list="{{chapters}}" as="c" hint-placeholder-count="8">
+        <a class="row" href="#top">
+          <span class="rn">{{c.n}}</span>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex-grow:1"><span class="rt" style="color:{{c.tc}}">{{c.title}}</span><span class="rs">{{c.date}}</span></div>
+          <span class="{{c.cls}}">{{c.label}}</span>
+        </a>
+      </sc-for>
+      <div class="pager">
+        <button class="{{prevCls}}" type="button" aria-label="이전 5페이지" onClick="{{prevGroup}}">‹</button>
+        <sc-for list="{{pages}}" as="p" hint-placeholder-count="5">
+          <button class="{{p.cls}}" type="button" onClick="{{p.pick}}">{{p.label}}</button>
+        </sc-for>
+        <button class="{{nextCls}}" type="button" aria-label="다음 5페이지" onClick="{{nextGroup}}">›</button>
+      </div>
+      <div class="jump"><input class="jin" type="number" min="1" max="18" placeholder="페이지" aria-label="이동할 페이지" onChange="{{onJump}}"><button class="btn" type="button" style="padding:9px 14px" onClick="{{goJump}}">이동</button></div>
+      <p class="sub" style="text-align:center;padding-top:6px">{{pageInfo}}</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isLore}}" hint-placeholder-val="{{false}}">
+    <div class="pane">
+      <div style="display:flex;flex-direction:column;gap:2px"><h2 class="h2">세계관</h2><p class="sub">작가가 공개한 설정이에요. 아직 등장하지 않은 항목은 목록에 나타나지 않고, 등장한 항목도 세부 내용 일부는 해당 회차를 읽기 전까지 가려져요.</p></div>
+      <div class="card" style="background:#eef2ff;border-color:#c7d2fe;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700;color:#3730a3">내 열람 진도 10화</span><span class="rs">10 / 173</span></div>
+        <div style="height:4px;border-radius:2px;background:#c7d2fe;overflow:hidden"><div style="width:6%;height:4px;background:{{accent}}"></div></div>
+      </div>
+      <div class="scroll"><span class="chip on">전체</span><span class="chip">인물</span><span class="chip">장소</span><span class="chip">아이템</span></div>
+
+      <sc-for list="{{lore}}" as="e" hint-placeholder-count="3">
+        <article class="card" style="gap:10px">
+          <div style="display:flex;gap:12px">
+            <div style="width:72px;aspect-ratio:1/1;border-radius:10px;flex-shrink:0;background:{{e.bg}};position:relative"></div>
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">{{e.kind}}</span><span class="badge">{{e.when}}</span></div>
+              <span style="font-size:16px;font-weight:700;color:#18181b">{{e.name}}</span>
+              <span style="font-size:11px;color:#71717a">AI 생성 이미지 · 작가 묘사 기반</span>
+            </div>
+          </div>
+          <sc-if value="{{e.open}}" hint-placeholder-val="{{true}}">
+            <span style="font-size:13px;line-height:1.7;color:#27272a">{{e.text}}</span>
+          </sc-if>
+          <sc-if value="{{e.partial}}" hint-placeholder-val="{{false}}">
+            <div style="font-size:13px;line-height:1.9;color:#27272a">{{e.text}} <span class="redact" style="width:90px"></span> <span class="redact" style="width:56px"></span></div>
+            <div class="lock"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>{{e.unlock}}</div>
+          </sc-if>
+        </article>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isReviews}}" hint-placeholder-val="{{false}}">
+    <div class="pane">
+      <div style="display:flex;align-items:center;justify-content:space-between"><h2 class="h2">리뷰</h2><span class="rs">추천순 ▾</span></div>
+      <sc-for list="{{reviews}}" as="r" hint-placeholder-count="2">
+        <article class="card" style="gap:8px">
+          <span style="font-size:14px;line-height:1.65;font-weight:600;color:#18181b">“{{r.quote}}”</span>
+          <span class="rs">{{r.who}} · {{r.when}}</span>
+        </article>
+      </sc-for>
+      <a class="btn" href="#top">리뷰 작성</a>
+    </div>
+  </sc-if>
+
+  <div class="cta">
+    <a class="btn" style="flex:1;color:#fff;border-color:transparent;background:{{accent}}" href="#top">10화 이어보기</a>
+    <a class="btn" href="#top">1화부터</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"tab":{"editor":"enum","default":"회차","options":["소개","회차","세계관","리뷰"]},"$preview":{"width":390,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cur = (this.state && this.state.tab) || this.props.tab || '회차';
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const names = ['소개', '회차', '세계관', '리뷰'];
+    const tabs = names.map((n) => ({
+      label: n, cls: n === cur ? 'tb on' : 'tb',
+      pick: () => this.setState({ tab: n })
+    }));
+    const page = (this.state && this.state.page) || 2;
+    const total = 18;
+    const group = Math.ceil(page / 5);
+    const gStart = (group - 1) * 5 + 1;
+    const gEnd = Math.min(gStart + 4, total);
+    const pages = [];
+    for (let p = gStart; p <= gEnd; p++) pages.push({ label: String(p), cls: p === page ? 'pg on' : 'pg', pick: () => this.setState({ page: p }) });
+    const pool = ['문턱의 책', '거꾸로 흐르는 장', '새벽의 문', '잿빛 항구', '사서의 약속', '닫힌 서가', '두 번째 독자', '불 꺼진 열람실'];
+    const pad = (x) => (x < 10 ? '0' + x : '' + x);
+    const ch = [];
+    for (let n = (page - 1) * 10 + 1; n <= Math.min(page * 10, 173); n++) {
+      let kind = 'free', label = '무료';
+      if (n < 10) { kind = 'read'; label = '읽음'; }
+      else if (n === 10) { kind = 'now'; label = '읽는 중'; }
+      else if (n > 12) { kind = n % 5 === 0 ? 'own' : 'paid'; label = n % 5 === 0 ? '소장함' : '10 토큰'; }
+      ch.push({ n: n, title: n + '화 ' + pool[n % 8], date: pad(Math.floor((n - 1) / 30) + 9) + '.' + pad(((n - 1) % 30) + 1), label: label, cls: 'st ' + kind, tc: kind === 'read' ? '#a1a1aa' : '#18181b' });
+    }
+    const lore = [
+      { kind: '인물', when: '1화 등장', name: '소연', bg: bg(262), open: true, partial: false, locked: false, unlock: '', text: '서고의 새 사서. 사람의 기억을 책 냄새로 구분한다.' },
+      { kind: '장소', when: '3화 등장', name: '잿빛 항구', bg: bg(20), open: false, partial: true, locked: false, unlock: '14화 열람 시 해제', text: '안개가 계단을 삼키는 항구 도시. 서고로 가는 유일한 길이다.' },
+      { kind: '아이템', when: '5화 등장', name: '낡은 열람증', bg: bg(40), open: true, partial: false, locked: false, unlock: '', text: '서고의 문을 여는 얇은 금속 카드. 뒷면에 번호가 새겨져 있다.' }
+    ];
+    const reviews = [
+      { quote: '결말을 알고 나서 1화를 다시 읽으면 문장이 전부 다르게 읽힌다', who: '독자 도윤', when: '3일 전' },
+      { quote: '느리게 시작하지만 15화부터는 멈출 수 없다', who: '독자 하린', when: '1주 전' }
+    ];
+    return {
+      accent: this.props.accent ?? '#4f46e5', bg: bg(262),
+      pages: pages, prevCls: group > 1 ? 'pg' : 'pg off', nextCls: gEnd < total ? 'pg' : 'pg off',
+      prevGroup: () => { if (group > 1) this.setState({ page: gStart - 5 }); },
+      nextGroup: () => { if (gEnd < total) this.setState({ page: gEnd + 1 }); },
+      onJump: (e) => this.setState({ jump: e.target.value }),
+      goJump: () => { const n = parseInt((this.state && this.state.jump) || '', 10); if (n >= 1 && n <= total) this.setState({ page: n }); },
+      pageInfo: page + ' / ' + total + ' 페이지 · ' + ((page - 1) * 10 + 1) + '–' + Math.min(page * 10, 173) + '화',
+      tabs: tabs, chapters: ch, lore: lore, reviews: reviews,
+      isIntro: cur === '소개', isEpisodes: cur === '회차', isLore: cur === '세계관', isReviews: cur === '리뷰'
+    };
+  }
+}
+</script>
+</body>
+</html>

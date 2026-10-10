@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>독자 글로벌 헤더</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.frame{background:#fff;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden}
+.hdi{height:60px;padding:0 20px;box-sizing:border-box;display:flex;align-items:center;gap:14px;background:#fff}
+.hdi.m{height:52px;padding:0 14px;gap:10px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ib{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pt{display:flex;gap:2px;padding:0 12px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #f1f1f3;background:#fff}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 16px;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{display:flex;gap:2px;padding:0 12px;overflow-x:auto;scrollbar-width:none;background:#fafafb;border-top:1px solid #e4e4e7}
+.s1{font-size:13px;color:#52525b;padding:11px 12px;white-space:nowrap;flex-shrink:0}
+.s1.on{color:#3730a3;font-weight:700}
+.fade{position:relative}
+.fade:after{content:"";position:absolute;right:0;top:0;bottom:0;width:44px;pointer-events:none;background:linear-gradient(90deg,rgba(250,250,251,0),#fafafb 80%)}
+.lab{margin:0;font-size:13px;font-weight:700;color:#18181b}
+.cap{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.menu{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:6px;display:flex;flex-direction:column;width:230px;box-sizing:border-box;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+.mi{font-size:14px;color:#27272a;padding:10px 12px;border-radius:8px}
+.mi.hl{background:#e0e7ff;color:#3730a3;font-weight:700}
+.mi.dim{color:#71717a}
+.sep{height:1px;background:#e4e4e7;margin:4px 6px}
+.chip{font-size:12px;color:#3f3f46;background:#f4f4f5;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.rowt{display:flex;flex-direction:column;gap:6px;padding:12px 14px;background:#fff;border:1px solid #e4e4e7;border-radius:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+</style>
+</helmet>
+<div style="width:1280px;box-sizing:border-box;padding:32px 40px 40px;display:flex;flex-direction:column;gap:22px;--accent: {{accent}}">
+
+  <div class="col" style="gap:2px">
+    <span style="font-size:20px;font-weight:700;color:#18181b">독자 글로벌 헤더: 위 한 줄 + 메인 탭 + 서브 행</span>
+    <span class="cap">위 줄은 계정·잔액·검색, 아래 두 줄은 이동용이다. 요소가 많으면 각 줄이 옆으로 밀려 스크롤되고 가장자리 그라데이션이 더 있다는 걸 알려준다. 스튜디오는 헤더 탭이 아니라 프로필 메뉴에서만 들어간다.</span>
+  </div>
+
+  <div class="col">
+    <p class="lab">랭킹 탭을 선택한 상태</p>
+    <div class="frame">
+      <div class="hdi">
+        <a class="logo" href="Home.dc.html">NovelScript</a>
+        <span style="flex-grow:1"></span>
+        <div class="tok"><span>1,500 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+        <button class="ib" type="button" aria-label="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+        <span class="av">김</span>
+      </div>
+      <nav class="pt"><a class="p1" href="Home.dc.html">무료연재</a><a class="p1" href="Home.dc.html">유료연재</a><a class="p1 on" href="Ranking.dc.html">랭킹</a><a class="p1" href="Home.dc.html">내서재</a></nav>
+      <nav class="st"><a class="s1 on" href="Ranking.dc.html">주간 랭킹</a><a class="s1" href="Ranking.dc.html">루키 쿼터존</a><a class="s1" href="Ranking.dc.html">명예의 전당</a><a class="s1" href="Ranking.dc.html">완결작</a></nav>
+    </div>
+  </div>
+
+  <div class="col">
+    <p class="lab">독자 홈 (메인 탭 미선택, 서브 행 숨김)</p>
+    <div class="frame">
+      <div class="hdi">
+        <a class="logo" href="Home.dc.html">NovelScript</a>
+        <span style="flex-grow:1"></span>
+        <div class="tok"><span>1,500 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+        <button class="ib" type="button" aria-label="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+        <span class="av">김</span>
+      </div>
+      <nav class="pt"><a class="p1" href="Home.dc.html">무료연재</a><a class="p1" href="Home.dc.html">유료연재</a><a class="p1" href="Ranking.dc.html">랭킹</a><a class="p1" href="Home.dc.html">내서재</a></nav>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:36px;align-items:flex-start">
+
+    <div class="col" style="width:470px;flex-shrink:0">
+      <p class="lab">메인 탭별 서브 행</p>
+      <div class="rowt"><span class="cap" style="font-weight:700;color:#18181b">무료연재</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">전체</span><span class="chip">신작</span><span class="chip">인기</span><span class="chip">완결</span></div></div>
+      <div class="rowt"><span class="cap" style="font-weight:700;color:#18181b">유료연재</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">전체</span><span class="chip">신작</span><span class="chip">인기</span><span class="chip">완결</span></div></div>
+      <div class="rowt"><span class="cap" style="font-weight:700;color:#18181b">랭킹</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">주간 랭킹</span><span class="chip">루키 쿼터존</span><span class="chip">명예의 전당</span><span class="chip">완결작</span></div></div>
+      <div class="rowt"><span class="cap" style="font-weight:700;color:#18181b">내서재</span><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip">이어 읽기</span><span class="chip">선호작</span><span class="chip">알림 구독</span><span class="chip">소장함</span></div></div>
+      <p class="cap">장르 칩과 정렬은 서브 행이 아니라 목록 화면 안에 둔다. 서브 행 항목이 늘어나면 같은 방식으로 옆으로 스크롤한다.</p>
+
+      <p class="lab" style="padding-top:8px">스튜디오 · 관리자 (한 줄 헤더)</p>
+      <div class="frame">
+        <div class="hdi" style="height:52px"><a class="logo" href="Home.dc.html">NovelScript</a><span style="font-size:13px;color:#52525b">달빛 서고 / 12화 새벽의 문</span><span style="flex-grow:1"></span><div class="tok"><span>1,500 토큰</span><span class="plus" style="background:{{accent}}">+</span></div><span style="font-size:13px;color:#27272a">설정</span><span class="av">김</span></div>
+      </div>
+      <div class="frame">
+        <div class="hdi" style="height:52px"><a class="logo" href="Home.dc.html">NovelScript</a><span style="font-size:13px;color:#52525b">관리자 · 신고 큐</span><span style="flex-grow:1"></span><span class="av">김</span></div>
+      </div>
+      <p class="cap">두 공간은 메인 탭과 서브 행이 없다. 독자 공간 복귀는 로고, 스튜디오·관리자 진입은 프로필 메뉴.</p>
+    </div>
+
+    <div class="col" style="width:230px;flex-shrink:0">
+      <p class="lab">프로필 메뉴 (아바타 클릭)</p>
+      <div class="menu">
+        <span class="mi">내 계정</span>
+        <span class="mi">결제 내역</span>
+        <span class="mi hl">내 작품 관리하기</span>
+        <span class="mi">통합 설정</span>
+        <span class="sep"></span>
+        <span class="mi dim">관리자 (권한 계정만)</span>
+        <span class="mi dim">로그아웃</span>
+      </div>
+      <p class="cap">스튜디오는 "내 작품 관리하기"로만 진입한다. 작가 전환 전 계정은 같은 자리에 "글쓰기 시작하기"가 보인다.</p>
+    </div>
+
+    <div class="col" style="width:390px;flex-shrink:0">
+      <p class="lab">모바일 (390px) · 내서재 선택</p>
+      <div class="frame">
+        <div class="hdi m">
+          <a class="logo" href="Home.dc.html" style="font-size:16px">NovelScript</a>
+          <span style="flex-grow:1"></span>
+          <div class="tok" style="padding:3px 5px 3px 10px;font-size:13px"><span>1,500</span><span class="plus" style="background:{{accent}};width:22px;height:22px">+</span></div>
+          <button class="ib" type="button" aria-label="검색" style="width:32px;height:32px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+          <span class="av">김</span>
+        </div>
+        <nav class="pt" style="padding:0 6px"><a class="p1" href="Home.dc.html" style="padding:12px 14px">무료연재</a><a class="p1" href="Home.dc.html" style="padding:12px 14px">유료연재</a><a class="p1" href="Ranking.dc.html" style="padding:12px 14px">랭킹</a><a class="p1 on" href="Home.dc.html" style="padding:12px 14px">내서재</a></nav>
+        <div><nav class="st"><a class="s1 on" href="Home.dc.html">이어 읽기</a><a class="s1" href="Home.dc.html">선호작</a><a class="s1" href="Home.dc.html">알림 구독</a><a class="s1" href="Home.dc.html">소장함</a></nav></div>
+      </div>
+      <p class="cap">내서재 서브 행은 4개라 한 화면에 들어간다. 항목이 더 늘면 옆으로 밀리고 오른쪽 가장자리가 흐려진다. "이어 읽기"는 최근 읽은 작품 기록을 포함한다. 잔액은 숫자만 보인다.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#4f46e5' }; }
+}
+</script>
+</body>
+</html>

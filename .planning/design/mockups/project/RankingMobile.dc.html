@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>랭킹 목록 모바일</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#fff}
+a{color:inherit;text-decoration:none}
+.hd{background:#fff}
+.hdi{height:52px;padding:0 14px;box-sizing:border-box;display:flex;align-items:center;gap:10px}
+.logo{font-size:16px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:6px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 10px;font-size:13px;font-weight:600;color:#18181b}
+.plus{width:22px;height:22px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ib{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{display:flex;gap:2px;padding:0 6px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #f1f1f3}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 14px;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{display:flex;gap:2px;padding:0 10px;overflow-x:auto;scrollbar-width:none;background:#fafafb;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7}
+.s1{font-size:14px;color:#52525b;padding:12px;white-space:nowrap;flex-shrink:0}
+.s1.on{color:#3730a3;font-weight:700}
+.fade{position:relative}
+.fade:after{content:"";position:absolute;right:0;top:0;bottom:0;width:40px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),#fff 85%)}
+.gen{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 14px;align-items:center}
+.gc{font-size:13px;color:#52525b;padding:7px 12px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.gc.on{background:#18181b;color:#fff;font-weight:600}
+.tag{font-size:13px;color:#27272a;padding:7px 12px;border:1px solid #d4d4d8;border-radius:8px;white-space:nowrap;flex-shrink:0;background:#fff}
+.sel{font-size:13px;color:#27272a;padding:8px 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fafafb}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 8px;padding:6px 10px 28px}
+.cv{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden}
+.num{position:absolute;left:0;top:0;min-width:22px;height:22px;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;box-sizing:border-box}
+.tr{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:700;color:#fff;background:rgba(24,24,27,0.8);border-radius:999px;padding:2px 6px}
+.ep{position:absolute;right:6px;bottom:6px;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.tt{font-size:13px;font-weight:600;color:#18181b;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:6px}
+.au{font-size:12px;color:#71717a;margin-top:2px}
+</style>
+</helmet>
+<div style="width:390px;min-height:1700px;--accent: {{accent}}">
+
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="HomeMobile.dc.html">NovelScript</a>
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500</span><span class="plus" style="background:{{accent}}">+</span></div>
+      <button class="ib" type="button" aria-label="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt"><a class="p1" href="HomeMobile.dc.html">무료연재</a><a class="p1" href="HomeMobile.dc.html">유료연재</a><a class="p1 on" href="RankingMobile.dc.html">랭킹</a><a class="p1" href="HomeMobile.dc.html">내서재</a></nav>
+    <nav class="st"><a class="s1 on" href="RankingMobile.dc.html">주간 랭킹</a><a class="s1" href="RankingMobile.dc.html">루키 쿼터존</a><a class="s1" href="RankingMobile.dc.html">명예의 전당</a><a class="s1" href="RankingMobile.dc.html">완결작</a></nav>
+  </header>
+
+  <div class="fade"><div class="gen">
+    <span class="tag">태그검색</span>
+    <span class="gc on">전체</span><span class="gc">판타지</span><span class="gc">무협</span><span class="gc">현대</span><span class="gc">로맨스</span><span class="gc">미스터리</span><span class="gc">현대판타지</span>
+  </div></div>
+
+  <div style="display:flex;justify-content:flex-end;gap:8px;padding:4px 14px 12px">
+    <span class="sel">완독·연독 종합 ▾</span>
+    <span class="sel">이번 주 ▾</span>
+    <span class="sel">연재 전체 ▾</span>
+  </div>
+
+  <div class="grid">
+    <sc-for list="{{items}}" as="w" hint-placeholder-count="12">
+      <a href="HomeMobile.dc.html" style="min-width:0">
+        <div class="cv" style="background:{{w.bg}}"><span class="num">{{w.n}}</span><span class="tr">연독률 {{w.read}}%</span><span class="ep">EP.{{w.ep}}</span></div>
+        <div class="tt">{{w.title}}</div>
+        <div class="au">{{w.author}}</div>
+      </a>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":390,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const src = [
+      ['달빛 서고', '작가 A', 92, 12, 262],
+      ['잿빛 항구의 편지', '작가 B', 90, 11, 20],
+      ['열세 번째 계절', '작가 C', 88, 13, 160],
+      ['북쪽 별의 서기관', '작가 D', 86, 13, 210],
+      ['여름의 끝에서 만나', '작가 E', 85, 11, 340],
+      ['소금 길의 약속', '작가 F', 84, 9, 350],
+      ['유리 탑의 수리공', '작가 G', 83, 12, 190],
+      ['밤 열한 시의 편의점', '작가 H', 82, 10, 120],
+      ['붉은 지도의 주인', '작가 I', 81, 14, 5],
+      ['겨울 해바라기', '작가 J', 80, 8, 300],
+      ['검은 숲의 약사', '작가 K', 79, 11, 130],
+      ['모래시계 도서관', '작가 L', 78, 12, 40]
+    ];
+    return {
+      accent: this.props.accent ?? '#4f46e5',
+      items: src.map((a, i) => ({ n: i + 1, title: a[0], author: a[1], read: a[2], ep: a[3], bg: bg(a[4]) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

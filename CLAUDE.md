@@ -8,6 +8,10 @@
 
 로드맵(`.planning/`)·SSOT(`docs/SSOT-PLANNING-IMPLEMENTATION.md`)·그래프(`graphify-out/`)가 어긋났는지 점검하거나 맞추라는 요청, 또는 phase 상태가 바뀐 직후에는 `traceability-sync` 스킬(`/traceability-sync`)을 따른다. 실제 절차는 `.planning/skills/traceability-sync.md`에 있고(`.claude/skills/`·`.codex/skills/`는 포인터), 핵심은 REQUIREMENTS → ROADMAP → STATE → SSOT 순으로 문서를 맞춘 뒤 `graphify update .` 직후 `python3 scripts/graph-link-requirements.py`로 요구사항 ID 노드를 다시 잇는 것이다. 요구사항 ID ↔ 코드 매핑은 PLAN/SUMMARY frontmatter와 `.planning/req-map.json`이 원본이다.
 
+# UI 설계 이어가기
+
+화면 설계·목업 작업을 이어가라는 요청("UI 설계 이어서", "다음 화면" 등)에는 `.planning/design/UI-DESIGN-RESUME.md`(재개 절차·진행 순서·현재 위치)와 `.planning/design/UI-DESIGN-BACKLOG.md`(확정된 UI 결정·영역별 백로그)를 먼저 읽는다. 목업 캔버스의 저장소 사본은 `.planning/design/mockups/project/`이고, 화면을 끝낼 때마다 두 문서와 사본을 함께 갱신한다.
+
 # Language
 
 사용자와의 모든 대화는 한국어로 진행한다.
