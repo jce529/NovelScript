@@ -4,6 +4,10 @@
 
 "다음에 뭐 할까", "부족한 게 뭐야" 같은 질문에는 코드 탐색 전에 `.planning/gaps/`의 최신 점검 문서(현재 `2026-10-04-gap-analysis.md`)와 `.planning/STATE.md`를 먼저 읽는다. 점검 문서는 시점 스냅샷이므로 인용 전에 STATE.md와 어긋나는 곳이 없는지 확인한다.
 
+# 로드맵 · SSOT · 그래프 동기화
+
+로드맵(`.planning/`)·SSOT(`docs/SSOT-PLANNING-IMPLEMENTATION.md`)·그래프(`graphify-out/`)가 어긋났는지 점검하거나 맞추라는 요청, 또는 phase 상태가 바뀐 직후에는 `traceability-sync` 스킬(`/traceability-sync`)을 따른다. 실제 절차는 `.planning/skills/traceability-sync.md`에 있고(`.claude/skills/`·`.codex/skills/`는 포인터), 핵심은 REQUIREMENTS → ROADMAP → STATE → SSOT 순으로 문서를 맞춘 뒤 `graphify update .` 직후 `python3 scripts/graph-link-requirements.py`로 요구사항 ID 노드를 다시 잇는 것이다. 요구사항 ID ↔ 코드 매핑은 PLAN/SUMMARY frontmatter와 `.planning/req-map.json`이 원본이다.
+
 # Language
 
 사용자와의 모든 대화는 한국어로 진행한다.
