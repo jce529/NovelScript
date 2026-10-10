@@ -151,7 +151,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Reader
 
-- **READ-06**: Reader-facing opt-in "AI로 작성됨" / lore-wiki showcase
+- **READ-06**: Reader-facing opt-in "AI로 작성됨" / lore-wiki showcase — **2026-10-10 결정: Lore 위키 + 스포일러 잠금은 최종 청사진 범위로 승격**(요구사항 정의·phase 배정 대기, 아직 v2 후보로 유지)
 
 ### Admin
 
@@ -184,10 +184,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | MCP 회차 본문 직접 수정 툴 (`update_chapter_body` 류) | 프롬프트 인젝션 하나로 발행 본문이 조용히 재작성될 수 있음. 초안/제안 객체만 제공해 구조적으로 차단 (MCP-05) |
 | MCP 성공 기준에 ChatGPT E2E 검증 포함 | ChatGPT가 쓰기 가능 커스텀 커넥터를 Business/Enterprise/Edu로 제한 — 개인 Plus 작가에게 달성 불가능한 기준이 됨. Claude만 검증 대상 |
 | 토큰 현금 환전 (작가 정산/Cash-out) | 초기엔 매출이 AI 비용을 상쇄하는 데 집중 |
-| SLM 기반 자동 사전검수 파이프라인 | 베타 규모에서는 운영자 수동 검토(ADMIN-01~04)로 대체 |
-| 정밀 스크롤 심도 기반 유효완독률 알고리즘 | 간소화 지표(READ-01)로 시작 |
+| SLM 기반 자동 사전검수 파이프라인 | 베타 규모에서는 운영자 수동 검토(ADMIN-01~04)로 대체. 2026-10-10: 출시는 수동 검토로 확정, 자동 검수는 출시 후 후속 |
+| 정밀 스크롤 심도 기반 유효완독률 알고리즘 | 간소화 지표(READ-01)로 시작. 2026-10-10: 완독률·연독률 랭킹은 최종 청사진 범위로 결정(요구사항 ID 미배정), 지금 로드맵에서는 계속 제외 |
 | 3-Strike 자동 제재 체계 | 계정 조치는 v1에서 전부 수동 판단(ADMIN-03) |
-| 3패널 AI 협업 캔버스 (`@`멘션 컨텍스트 주입, 전용 시스템프롬프트 모달, KB 그래프 뷰), 파일트리 내 드래그앤드롭 이동 | 멘션 기반 컨텍스트 주입 메커니즘 자체를 먼저 검증; UI 정교화는 그 다음. (Phase 2 amendment: 기본 폴더/파일 트리 탐색·생성·이름변경·삭제 자체는 범위에 포함됨 — 위 KB-02 참고. 드래그앤드롭 이동만 계속 범위 밖) |
+| 3패널 AI 협업 캔버스 (`@`멘션 컨텍스트 주입, 전용 시스템프롬프트 모달, KB 그래프 뷰), 파일트리 내 드래그앤드롭 이동 | 멘션 기반 컨텍스트 주입 메커니즘 자체를 먼저 검증; UI 정교화는 그 다음. (Phase 2 amendment: 기본 폴더/파일 트리 탐색·생성·이름변경·삭제 자체는 범위에 포함됨 — 위 KB-02 참고. 드래그앤드롭 이동만 계속 범위 밖.) 2026-10-10: 에디터 최종 형태는 3패널 IDE로 결정, 단계 배분은 미정 |
 | 실시간 색상 그라데이션 비용 게이지 / 관계 지역성 가중치 | 단순 추정치(EDIT-05)로 충분, 튜닝은 사용 데이터 확보 후 |
 | PortOne 등 PG 추상화 레이어 | Toss Payments 직접 연동으로 확정 (founder decision, 2026-08-25) |
 
@@ -285,6 +285,7 @@ Explicitly excluded. Documented to prevent scope creep.
 ---
 *Requirements defined: 2026-08-25*
 *Last updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
+*Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
 *Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
 *Previously updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
 *Previously updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*

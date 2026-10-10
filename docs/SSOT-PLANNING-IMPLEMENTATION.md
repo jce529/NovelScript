@@ -1,6 +1,6 @@
 # NovelScript 기획·구현 통합 SSOT
 
-최종 대조일: 2026-10-10 (v1.1 절·Phase 11/16/17·LEGAL·마이그레이션 번호 갱신; v1 매트릭스는 2026-10-01 판정 유지)  
+최종 대조일: 2026-10-10 (최종 청사진 결정 절 추가; v1.1 절·Phase 11/16/17·LEGAL·마이그레이션 번호 갱신; v1 매트릭스는 2026-10-01 판정 유지)  
 Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 
 ## 문서의 역할
@@ -93,7 +93,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - EDIT-06: KB 문서 간 `[[wiki-link]]`
 - EDIT-07: 초보자용 동적 추천 프롬프트 chip
 - EDIT-08: Tab 수락형 ghost text
-- READ-06: 독자에게 공개하는 AI 작성/lore wiki showcase
+- READ-06: 독자에게 공개하는 AI 작성/lore wiki showcase (Lore 위키 + 스포일러 잠금은 2026-10-10 최종 청사진 범위로 승격 결정, 요구사항 정의·phase 배정 대기)
 - ADMIN-05: 신고 검색·필터, 감사 로그 UI, 답변 템플릿
 - PROV-08: 모델별 한국 소설 창작 힌트 1줄 (실사용 데이터 확보 후)
 - BYOK-10: 사용자별 월간 BYOK 호출 상한 (`ai_usage` 데이터가 필요성을 보여줄 때)
@@ -107,12 +107,23 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 에셋 스토어와 판매자 대시보드 | 핵심 집필-열람-결제 검증 뒤로 유예 |
 | BYOK/API Key Vault | v1.0은 플랫폼 Gemini 키만 운영했고, v1.1(Phase 10~11)에서 BYOK 도입 |
 | 작가 토큰 현금화 | 현금화는 범위 밖. 구매 시 작가 지갑 크레딧(90/10, 잠정)만 PAY-02로 구현 |
-| SLM 비동기 자동 사전검수 | 베타는 관리자 수동 검토로 대체 |
-| 정밀 스크롤 완독률·관계 지역성 랭킹 | 단순 조회/좋아요 기반으로 시작 |
+| SLM 비동기 자동 사전검수 | 베타는 관리자 수동 검토로 대체. 출시도 수동 검토로 확정(2026-10-10), 자동 검수는 후속 |
+| 정밀 스크롤 완독률·관계 지역성 랭킹 | 단순 조회/좋아요 기반으로 시작. 완독률·연독률 랭킹은 최종 청사진 범위로 결정(2026-10-10, 아래 "확정된 최종 청사진 결정"), 관계 지역성 가중치는 미결정 |
 | 3-Strike 자동 제재 | 관리자 수동 판단 이후 검토 |
-| 완전한 3패널 IDE·KB 그래프·파일 DnD | 기본 tree/textarea/AI panel만 구현; 정교화는 후속 범위 |
+| 완전한 3패널 IDE·KB 그래프·파일 DnD | 기본 tree/textarea/AI panel만 구현; 에디터 최종 형태는 3패널 IDE로 결정(2026-10-10), KB 그래프·파일 DnD 포함 여부와 단계 배분은 미정 |
 | Zustand local-first/persist, pgvector RAG, Cloud Run worker | 현재 코드에서 채택되지 않은 완성형 아키텍처 제안 |
 | PortOne 등 PG 추상화 | Toss Payments 직접 연동으로 확정 |
+
+## 확정된 최종 청사진 결정 (2026-10-10)
+
+현재 로드맵(`.planning/`)에는 아직 요구사항 ID·phase가 없는 결정이다. 구현 판정(위 매트릭스)은 바꾸지 않으며, 요구사항으로 정의되는 시점에 REQUIREMENTS를 먼저 고친다. 근거는 `.planning/PROJECT.md` Key Decisions.
+
+| 영역 | 결정 | 현재 상태 |
+| --- | --- | --- |
+| 독자 공간 | 완독률·연독률 랭킹, Lore 위키 + 스포일러 잠금, 루키 쿼터존(최소 10화·5만 자)·명예의 전당을 최종 범위에 포함 | 미구현. 랭킹은 조회·좋아요 간소화(READ-01), Lore는 v2 유예(READ-06), 나머지는 범위 밖이었음 |
+| 스튜디오 에디터 | 3패널 IDE(좌 KB·회차 트리 / 중 집필 캔버스 / 우 AI 코워커·컨텍스트 칩·토큰 게이지) | 부분 구현(트리·텍스트 영역·AI 패널의 단순화 형태) |
+| 품질 관리 | 출시는 수동 신고 검토(ADMIN-01~04), SLM 자동 검수·3-Strike는 출시 후 | ADMIN-01~04 구현됨 |
+| AI 설정 위치 | BYOK 키 관리·기본 모델·MCP 연결은 스튜디오 통합 설정 허브('AI' 섹션)로 모으고, 에디터 우측 패널에는 모델 피커만 노출 | 미착수. 현재 `/account`(요약)·`/studio/settings/ai-providers`(관리)·패널(피커)로 분산, MCP UI는 Phase 12 |
 
 ## 문서 간 충돌과 해석
 

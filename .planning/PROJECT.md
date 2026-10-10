@@ -84,11 +84,14 @@ LLM API 기반의 인터랙티브 웹소설 창작·열람 플랫폼의 MVP다. 
 | BYOK 모드는 플랫폼 AI 토큰을 차감하지 않는다 | 사용자가 자기 비용으로 호출하므로 이중 과금이 됨. 사용 기록만 남겨 한도·남용 방지에 사용 | 결정됨 |
 | MCP는 원격 HTTP + OAuth 계정 연결, 읽기 + 초안 저장까지만 | 설치 없이 공식 커넥터 경로를 타고, 외부 AI가 기존 본문을 덮어쓰지 못하게 초안/제안으로만 되돌린다 | 결정됨 |
 | BYOK 키 암호화 저장은 Supabase Vault | Vault 확장(`supabase_vault` 0.3.1) 실측으로 가용성·ACL 확인 후 채택, 앱 레벨 AES-GCM은 쓰지 않음 (`.planning/phases/10-byok/10-CONTEXT.md` D-01, `10-VAULT-PROBE.md`) | 결정됨 (Phase 10) |
-| 랭킹/큐레이션은 간소화 지표로 시작 | 스크롤 심도 알고리즘은 정밀 설계·튜닝 비용이 크고, 베타에서는 반응 확인이 우선 | — Pending |
-| SLM 자동 사전검수 대신 운영자 수동 검토 | 베타 규모에서는 자동화 인프라(Cloud Run 큐 등) 구축 비용 대비 효용이 낮음 | — Pending |
+| 랭킹/큐레이션은 간소화 지표(조회·좋아요)로 시작하되, 최종 청사진에는 완독률·연독률 랭킹을 포함 | 스크롤 심도 알고리즘은 정밀 설계·튜닝 비용이 크고 베타에서는 반응 확인이 우선이라 v1.0은 간소화. 2026-10-10 최종 범위 결정으로 완독률·연독률 랭킹을 목표에 넣음(요구사항 ID·phase 미배정) | 결정됨 (순서: 간소화 → 최종) |
+| SLM 자동 사전검수 대신 운영자 수동 검토로 출시, SLM 자동 검수는 후속 | 베타 규모에서는 자동화 인프라(Cloud Run 큐 등) 구축 비용 대비 효용이 낮음. 2026-10-10 최종 청사진에서도 출시는 수동 신고 검토(ADMIN-01~04), 자동 검수·3-Strike는 출시 후로 확정 | 결정됨 (2026-10-10) |
 | 비용 상한에 로컬 입력 토큰 추정을 쓰지 않는다 — 출력 상한은 잔액 전체 기준, 차감은 실사용량을 호출 전 잔액까지만 | 실측에서 로컬 추정이 실제의 약 3배로 부정확했고, 호출 전 입력 비용 예약은 잔액이 바닥난 사용자에게만 의미가 있음 (2026-09-18) | 결정됨 — 사고 토큰 차감 여부는 미결(Phase 8 bugs/BUG-04) |
 | 에셋 스토어는 v1 범위 밖 | 집필-열람-결제 핵심 루프 검증이 먼저 | — Pending |
 | 실제 코드 구현은 GSD 표준 executor 대신 Antigravity CLI(`agy`)로 위임 | 사용자가 이미 사용 중인 별도 코딩 에이전트 CLI를 구현 단계에 활용하고 싶어함. `agy --print --dangerously-skip-permissions --output-format json`으로 비대화형 호출 가능함을 확인 | — Pending |
+| 독자 공간 최종 범위에 완독률·연독률 랭킹, Lore 위키 + 스포일러 잠금(READ-06 승격), 루키 쿼터존(최소 10화·5만 자)·명예의 전당을 포함 | 2026-10-10 사용자 결정. 독자 청사진(`docs/5-1`)의 핵심 큐레이션·몰입 기능이며, 현재는 v2 유예(READ-06) 또는 범위 밖이었음 | 결정됨 — 요구사항 ID·phase·순서는 미배정 (후속 마일스톤에서 정의) |
+| 스튜디오 에디터 최종 형태는 3패널 IDE (좌: KB·회차 트리 / 중: 집필 캔버스 / 우: AI 코워커·컨텍스트 칩·토큰 게이지) | 2026-10-10 사용자 결정. 현재 구현은 단계적 단순화 상태이며 최종 목표는 원 비전 유지 | 결정됨 — 단계 배분은 미정 |
+| BYOK 키 관리·모델 기본값·MCP 연결 등 AI 설정은 스튜디오 통합 설정 허브('AI' 섹션)에 모으고, 에디터 우측 패널에는 모델 피커만 노출 | 2026-10-10 사용자 결정. 설정 위치가 `/account`, `/studio/settings/ai-providers`, 패널로 흩어진 것을 정리. 구현은 Phase 12(MCP 연결 UI) 계획 시 함께 반영 | 결정됨 — 구현 미착수 |
 
 ## Evolution
 
@@ -108,6 +111,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-04 — Phase 7·9 검증 항목 이동, BYOK 암호화 결정(Vault) 기록, Phase 10 완료 반영*
+*Last updated: 2026-10-10 — 최종 청사진 결정 반영: 독자 공간 범위 확장, 3패널 IDE, 수동 검토 출시, AI 설정 통합 허브*
+*Previously updated: 2026-10-04 — Phase 7·9 검증 항목 이동, BYOK 암호화 결정(Vault) 기록, Phase 10 완료 반영*
 *Previously updated: 2026-09-18 — Phase 8 완료 (프로바이더 어댑터 + 멱등 차감, 로컬 토큰 추정 제거)*
 *Previously updated: 2026-09-08 — added 구독제(월정액) to Out of Scope as an explicit v2 candidate (per Phase 6 discussion follow-up)*
