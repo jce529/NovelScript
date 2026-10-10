@@ -88,6 +88,22 @@
       "title": "10. 작품 상세 (데스크톱, 탭·페이지 전환 가능)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "ViewerMobile.dc.html": {
+      "x": 0,
+      "y": 6900,
+      "w": 390,
+      "h": 844,
+      "title": "11. 뷰어 (모바일, 탭하면 상하단 바)",
+      "is_interactive": true
+    },
+    "ViewerDesktop.dc.html": {
+      "x": 510,
+      "y": 6900,
+      "w": 1280,
+      "h": 800,
+      "title": "12. 뷰어 (데스크톱, 클릭하면 상하단 바)",
+      "is_interactive": true
     }
   },
   "order": [
@@ -100,7 +116,9 @@
     "Ranking.dc.html",
     "RankingMobile.dc.html",
     "WorkMobile.dc.html",
-    "WorkDesktop.dc.html"
+    "WorkDesktop.dc.html",
+    "ViewerMobile.dc.html",
+    "ViewerDesktop.dc.html"
   ],
   "notes": {
     "t1": {
@@ -127,6 +145,13 @@
       "x": 0,
       "y": 4700,
       "text": "작품 상세",
+      "kind": "title1",
+      "maxW": 1790
+    },
+    "t4": {
+      "x": 0,
+      "y": 6650,
+      "text": "독자 뷰어",
       "kind": "title1",
       "maxW": 1790
     }

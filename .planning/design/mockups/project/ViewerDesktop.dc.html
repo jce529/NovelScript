@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>뷰어 데스크톱</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.bar{position:absolute;left:0;right:0;z-index:5;display:flex;align-items:center;box-sizing:border-box;padding:0 8px}
+.ib{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0}
+.nb{flex:1;height:44px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid;background:transparent;padding:0 12px}
+.nb.off{opacity:0.35}
+.pop{position:absolute;z-index:7;right:24px;top:62px;width:330px;box-sizing:border-box;border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 36px rgba(0,0,0,0.28)}
+.pop:before{content:"";position:absolute;top:-7px;right:24px;width:14px;height:14px;transform:rotate(45deg);background:inherit}
+.lbl{font-size:12px;font-weight:700;opacity:0.65;margin-bottom:6px}
+.seg{display:flex;gap:6px}
+.sg{flex:1;height:38px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid;background:transparent;padding:0}
+.stp{display:flex;align-items:center;gap:8px}
+.stb{width:38px;height:38px;border-radius:9px;border:1px solid;background:transparent;font-size:18px;line-height:1;padding:0}
+.stv{flex:1;text-align:center;font-size:13px;font-weight:700}
+.toc{position:absolute;z-index:7;left:50%;margin-left:-240px;width:480px;bottom:48px;top:72px;border-radius:16px;display:flex;flex-direction:column;box-shadow:0 12px 36px rgba(0,0,0,0.28)}
+.trow{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border-bottom:1px solid;font-size:14px}
+.scrim{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,0.35)}
+</style>
+</helmet>
+<div style="position:relative;width:1280px;height:800px;overflow:hidden;background:{{bgc}};color:{{fgc}}">
+
+  <div onClick="{{toggleBars}}" style="position:absolute;inset:0;overflow-y:auto;padding:{{padTop}}px {{pad}}px 120px;box-sizing:border-box;font-family:{{fam}};font-size:{{fs}}px;line-height:1.85">
+    <div style="max-width:{{mw}}px;margin:0 auto">
+      <div style="font-size:12px;opacity:0.5;margin-bottom:6px;font-family:system-ui,sans-serif">달빛 서고</div>
+      <h1 style="margin:0 0 22px;font-size:1.2em;font-weight:700;line-height:1.4">10화 새벽의 문</h1>
+      <p style="margin:0 0 1em">새벽의 문은 생각보다 낮았다. 하늘은 아직 회색이었고, 항구 쪽에서 밀려온 안개가 돌계단을 천천히 삼키고 있었다.</p>
+      <p style="margin:0 0 1em">소연은 열람증을 쥔 손에 힘을 주었다. 뒷면에 새겨진 번호는 어제보다 한 자리 더 닳아 있었다.</p>
+      <p style="margin:0 0 1em">“문이 열리면 돌아올 수 없다고 했지.”</p>
+      <p style="margin:0 0 1em">대답하는 이는 없었다. 서고의 종이 냄새가 안개 속에서 먼저 길을 열었다. 그녀는 한 걸음, 또 한 걸음 계단을 올랐다.</p>
+      <p style="margin:0 0 1em">문턱을 넘는 순간 모든 소리가 멈췄다. 높은 서가들이 천장 너머까지 이어져 있었고, 그 사이로 푸른 빛이 물처럼 흘렀다.</p>
+      <p style="margin:0 0 1em">열람실 한가운데, 누군가 펼쳐 둔 책 한 권이 바람도 없이 한 장씩 넘어가고 있었다.</p>
+      <p style="margin:0 0 1em;opacity:0.5;font-size:0.8em;font-family:system-ui,sans-serif">(샘플 문장 · 가짜 본문)</p>
+    </div>
+  </div>
+
+  <sc-if value="{{bars}}" hint-placeholder-val="{{true}}">
+    <div class="bar" style="top:0;height:52px;background:{{barBg}};border-bottom:1px solid {{line}};color:{{fgc}}">
+      <a class="ib" href="WorkDesktop.dc.html" aria-label="작품 상세로" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></a>
+      <button class="ib" type="button" aria-label="회차 목록" onClick="{{openToc}}" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+      <span style="flex-grow:1"></span>
+      <button class="ib" type="button" aria-label="뷰어 설정" onClick="{{openSet}}" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <div class="bar" style="bottom:0;height:64px;gap:10px;padding:0 24px;background:{{barBg}};border-top:1px solid {{line}};color:{{fgc}}">
+      <button class="nb" type="button" style="color:{{fgc}};border-color:{{line}};max-width:240px">‹ 이전 화</button><span style="flex-grow:1"></span>
+      <button class="nb" type="button" style="color:{{fgc}};border-color:{{line}};max-width:240px">다음 화 ›</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showSet}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePanel}}" style="background:rgba(0,0,0,0.08)"></div>
+    <div class="pop" style="background:{{panelBg}};color:{{fgc}}">
+      <div><div class="lbl">글꼴</div><div class="seg"><sc-for list="{{fonts}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">뷰어 모드</div><div class="seg"><sc-for list="{{themes}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">글자 크기</div><div class="stp"><button class="stb" type="button" onClick="{{fsDown}}" style="color:{{fgc}};border-color:{{line}}">−</button><span class="stv">{{fs}}px</span><button class="stb" type="button" onClick="{{fsUp}}" style="color:{{fgc}};border-color:{{line}}">+</button></div></div>
+      <div><div class="lbl">여백 크기</div><div class="seg"><sc-for list="{{margins}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">줄 너비</div><div class="seg"><sc-for list="{{widths}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showToc}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePanel}}"></div>
+    <div class="toc" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">
+        <span style="font-size:16px;font-weight:700">회차 목록</span>
+        <button class="ib" type="button" aria-label="닫기" onClick="{{closePanel}}" style="color:{{fgc}};width:36px;height:36px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div style="overflow-y:auto;flex-grow:1">
+        <sc-for list="{{chapters}}" as="c" hint-placeholder-count="10">
+          <div class="trow" style="border-color:{{line}};background:{{c.bg}}">
+            <span style="width:34px;font-weight:700;opacity:0.6">{{c.n}}</span>
+            <span style="flex-grow:1;font-weight:{{c.fw}}">{{c.title}}</span>
+            <span style="font-size:12px;font-weight:600;opacity:0.7">{{c.tag}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","default":"light","options":["light","dark","system"]},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const theme = st.theme || this.props.theme || 'light';
+    const dark = theme === 'dark';
+    const bgc = dark ? '#18181b' : '#ffffff';
+    const fgc = dark ? '#e4e4e7' : '#18181b';
+    const line = dark ? '#3f3f46' : '#e4e4e7';
+    const panelBg = dark ? '#27272a' : '#ffffff';
+    const barBg = dark ? 'rgba(24,24,27,0.97)' : 'rgba(255,255,255,0.97)';
+    const bars = st.bars === true;
+    const panel = st.panel || 'none';
+    const font = st.font || 'sans';
+    const fs = st.fs || 19;
+    const margin = st.margin || 'm';
+    const width = st.width || 'm';
+    const fam = font === 'serif' ? 'Georgia,"Nanum Myeongjo","Noto Serif KR",serif' : font === 'round' ? 'ui-rounded,"Nanum Gothic","Apple SD Gothic Neo",sans-serif' : 'system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+    const padMap = { s: 24, m: 48, l: 96 };
+    const widthMap = { s: 520, m: 640, l: 800 };
+    const on = dark ? 'background:#e4e4e7;color:#18181b;border-color:#e4e4e7' : 'background:#18181b;color:#fff;border-color:#18181b';
+    const offs = 'background:transparent;color:' + fgc + ';border-color:' + line;
+    const seg = (key, cur, opts) => opts.map((o) => ({ label: o[1], st: cur === o[0] ? on : offs, pick: () => this.setState({ [key]: o[0] }) }));
+    const rows = [];
+    const titles = ['문턱의 책', '거꾸로 흐르는 장', '새벽의 문', '잿빛 항구', '사서의 약속', '닫힌 서가', '두 번째 독자'];
+    for (let n = 1; n <= 14; n++) {
+      const cur = n === 10;
+      rows.push({ n: n, title: n + '화 ' + titles[n % 7], tag: cur ? '읽는 중' : n < 10 ? '읽음' : n <= 12 ? '무료' : '10 토큰', bg: cur ? (dark ? '#3f3f46' : '#eef2ff') : 'transparent', fw: cur ? 700 : 500 });
+    }
+    return {
+      bgc: bgc, fgc: fgc, line: line, panelBg: panelBg, barBg: barBg,
+      bars: bars, showSet: bars && panel === 'set', showToc: panel === 'toc',
+      fam: fam, fs: fs, pad: padMap[margin], padTop: bars ? 64 : 40, mw: widthMap[width] + (fs - 17) * 8,
+      toggleBars: () => this.setState({ bars: !bars, panel: 'none' }),
+      openToc: () => this.setState({ panel: 'toc' }),
+      openSet: () => this.setState({ panel: panel === 'set' ? 'none' : 'set' }),
+      closePanel: () => this.setState({ panel: 'none' }),
+      fsDown: () => this.setState({ fs: Math.max(14, fs - 1) }),
+      fsUp: () => this.setState({ fs: Math.min(24, fs + 1) }),
+      fonts: seg('font', font, [['sans', '고딕'], ['serif', '명조'], ['round', '둥근']]),
+      themes: seg('theme', theme, [['light', '라이트'], ['dark', '다크'], ['system', '시스템']]),
+      margins: seg('margin', margin, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
+      widths: seg('width', width, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
+      chapters: rows
+    };
+  }
+}
+</script>
+</body>
+</html>
