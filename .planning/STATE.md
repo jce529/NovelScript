@@ -5,13 +5,13 @@ milestone_name: Overview
 status: executing
 stopped_at: Phase 17 context gathered
 last_updated: "2026-10-07T23:59:23.611Z"
-last_activity: 2026-10-07 -- Phase 11 execution started
+last_activity: 2026-10-10 -- Phase 11 코드 완료 (11-01~07), 11-VERIFICATION human_needed(브라우저 UAT 6건 대기)
 progress:
   total_phases: 18
   completed_phases: 12
   total_plans: 84
-  completed_plans: 71
-  percent: 85
+  completed_plans: 78
+  percent: 93
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 
 ## Current Position
 
-Phase: 11 (byok-ux) — EXECUTING
-Plan: 1 of 8
-Status: Executing Phase 11
-Last activity: 2026-10-07 -- Phase 11 execution started
+Phase: 11 (byok-ux) — CODE COMPLETE (UAT 대기)
+Plan: 7 of 8 완료 (11-08 Task 2 브라우저 UAT 대기)
+Status: Phase 11 code complete — verification human_needed
+Last activity: 2026-10-10 -- Phase 11 상태 동기화 (ROADMAP·REQUIREMENTS·SSOT)
 
 **출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
 
@@ -36,7 +36,7 @@ Last activity: 2026-10-07 -- Phase 11 execution started
 
 병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-03~07(Toss 키 대기), Phase 6 브라우저 E2E.
 
-> **progress 카운터 기준 (2026-10-04 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 12개(1,2,3,4,04.1,6,7,8,9,10,15,16), `completed_plans`는 SUMMARY.md가 있는 GSD plan 71/84다. Phase 6·16은 GSD 밖에서 구현돼 plan 카운트에 없다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
+> **progress 카운터 기준 (2026-10-04 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 12개(1,2,3,4,04.1,6,7,8,9,10,15,16), `completed_plans`는 SUMMARY.md가 있는 GSD plan 78/84다(2026-10-10: Phase 11 11-01~07 +7). Phase 6·16은 GSD 밖에서 구현돼 plan 카운트에 없다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
@@ -161,7 +161,7 @@ Last session: 2026-10-02T02:34:57.142Z
 Stopped at: Phase 17 context gathered
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
-  - **v1.1:** Phase 11 실행 대기 (`/gsd:execute-phase 11`, 계획 8개 완료). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
+  - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
 Resume file: .planning/phases/17-bugfix-consolidation/17-CONTEXT.md

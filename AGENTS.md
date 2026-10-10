@@ -20,6 +20,7 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- `graphify update .` 직후에는 `python3 scripts/graph-link-requirements.py`를 실행한다. v1.1 요구사항 ID 노드(PROV·BYOK·COST·MCP·AIDOC·STUDIO·BUGFIX 40개)를 코드·테스트·SUMMARY·SSOT·ROADMAP과 잇는 스크립트이며, update가 그래프를 다시 만들면 이 노드가 사라진다. PLAN 없는 phase의 매핑은 `.planning/req-map.json`에 적는다. 질의 예: `graphify explain "BYOK-06"`.
 
 ## 외부 AI 호출 시 모델 명시
 
