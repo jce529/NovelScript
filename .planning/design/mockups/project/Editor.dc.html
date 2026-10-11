@@ -56,23 +56,22 @@ button{cursor:pointer}
     <span class="av">김</span>
   </header>
 
-  <div style="flex-grow:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr) 360px;gap:10px;padding:10px;box-sizing:border-box">
+  <div style="flex-grow:1;min-height:0;display:grid;grid-template-columns:{{cols}};gap:10px;padding:10px;box-sizing:border-box">
 
+    <sc-if value="{{leftOpen}}" hint-placeholder-val="{{true}}">
     <div class="pane">
-      <div class="ph"><span>달빛 서고</span><span class="chip g">작품 전환</span></div>
+      <div class="ph"><span>달빛 서고</span><div style="display:flex;gap:6px;align-items:center"><span class="chip g">작품 전환</span><button class="tb" type="button" aria-label="왼쪽 패널 접기" onClick="{{toggleLeft}}" style="padding:4px 8px">«</button></div></div>
       <div class="pb">
-        <span class="sec">설정집</span>
-        <sc-for list="{{tree}}" as="n" hint-placeholder-count="8">
-          <button class="{{n.cls}}" type="button" onClick="{{n.pick}}"><span style="width:14px;opacity:0.6">{{n.icon}}</span><span>{{n.label}}</span></button>
+        <sc-for list="{{tree}}" as="n" hint-placeholder-count="14">
+          <button class="{{n.cls}}" type="button" onClick="{{n.pick}}" style="padding-left:{{n.pad}}px"><span style="width:14px;opacity:0.6;flex-shrink:0">{{n.glyph}}</span><span style="flex-grow:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{n.label}}</span><span style="font-size:11px;color:#a1a1aa">{{n.right}}</span></button>
         </sc-for>
-        <span class="sec">회차 (12)</span>
-        <button class="it sub" type="button" style="color:#a1a1aa">11화 잿빛 항구</button>
-        <button class="{{chCls}}" type="button" onClick="{{pickChapter}}">12화 새벽의 문</button>
-        <button class="it sub" type="button" style="color:#71717a">13화 (초안)</button>
-        <button class="it" type="button" style="color:#4f46e5;font-weight:600">+ 새 회차</button>
         <span class="ann" style="padding:10px 8px">폴더 만들기·이름 바꾸기·삭제는 각 행의 ⋯ 메뉴에서. 드래그앤드롭 이동은 범위 미정.</span>
       </div>
     </div>
+    </sc-if>
+    <sc-if value="{{leftClosed}}" hint-placeholder-val="{{false}}">
+    <div class="pane" style="align-items:center;padding-top:10px;gap:10px"><button class="tb" type="button" aria-label="왼쪽 패널 열기" onClick="{{toggleLeft}}" style="padding:6px 8px">»</button><span style="writing-mode:vertical-rl;font-size:12px;font-weight:700;color:#71717a;letter-spacing:0.1em">설정집 · 회차</span></div>
+    </sc-if>
 
     <div class="pane" style="position:relative">
       <div class="ph">
@@ -105,11 +104,13 @@ button{cursor:pointer}
       </div>
     </div>
 
+    <sc-if value="{{rightOpen}}" hint-placeholder-val="{{true}}">
     <div class="pane">
       <div class="ph">
         <span>AI 코워커</span>
         <div style="display:flex;gap:6px;align-items:center;position:relative">
           <button class="tb" type="button" onClick="{{togglePreset}}">{{presetLabel}} ▾</button>
+          <button class="tb" type="button" aria-label="오른쪽 패널 접기" onClick="{{toggleRight}}" style="padding:6px 8px">»</button>
           <button class="tb" type="button" aria-label="시스템 프롬프트 설정" onClick="{{openSys}}" style="{{sysSt}}">⚙</button>
           <sc-if value="{{showPreset}}" hint-placeholder-val="{{false}}">
             <div class="pop" style="right:0;top:36px;min-width:170px"><sc-for list="{{presets}}" as="p"><button class="pi" type="button" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</button></sc-for></div>
@@ -150,6 +151,10 @@ button{cursor:pointer}
         </sc-if>
       </div>
     </div>
+    </sc-if>
+    <sc-if value="{{rightClosed}}" hint-placeholder-val="{{false}}">
+    <div class="pane" style="align-items:center;padding-top:10px;gap:10px"><button class="tb" type="button" aria-label="오른쪽 패널 열기" onClick="{{toggleRight}}" style="padding:6px 8px">«</button><span style="writing-mode:vertical-rl;font-size:12px;font-weight:700;color:#71717a;letter-spacing:0.1em">AI 코워커</span></div>
+    </sc-if>
   </div>
 
   <sc-if value="{{showSys}}" hint-placeholder-val="{{false}}">
@@ -193,7 +198,7 @@ button{cursor:pointer}
 class Component extends DCLogic {
   renderVals() {
     const st = this.state || {};
-    const docs = [{ id: 'so', icon: '◉', label: '소연', kind: '인물' }, { id: 'ga', icon: '◉', label: '잿빛 항구', kind: '장소' }, { id: 'yl', icon: '◆', label: '낡은 열람증', kind: '아이템' }, { id: 'ev', icon: '▲', label: '첫 번째 역전', kind: '사건' }];
+    const docs = [{ id: 'so', label: '소연', kind: '인물' }, { id: 'hk', label: '한결', kind: '인물' }, { id: 'ga', label: '잿빛 항구', kind: '장소' }, { id: 'rr', label: '서고 열람실', kind: '장소' }, { id: 'ev', label: '첫 번째 역전', kind: '사건' }, { id: 'gd', label: '서고 수호단', kind: '세력' }, { id: 'yl', label: '낡은 열람증', kind: '아이템' }, { id: 'mr', label: '마법 규칙', kind: '내 폴더', folder: '세계관 메모' }, { id: 'sg', label: '공통 문체 가이드', kind: '공유', folder: '계정 공유' }];
     const created = st.created || [];
     const allDocs = docs.concat(created);
     const mode = st.mode || 'chapter';
@@ -225,12 +230,39 @@ class Component extends DCLogic {
     const modelsAll = [['svc', '서비스 · Gemini 표준', '서비스', 'g'], ['oa', '내 키 · gpt-4o-mini', '내 키', ''], ['an', '내 키 · claude-haiku-4-5', '내 키', '']];
     const presetsAll = [['beginner', '🔰 초보자형'], ['intermediate', '⚡ 중급자형'], ['freeform', '🔥 자유형']];
     const sysOk = preset !== 'beginner';
+    const folded = st.folded || {};
+    const flip = (k) => () => { const f = Object.assign({}, folded); f[k] = !f[k]; this.setState({ folded: f }); };
+    const treeRows = [];
+    const secRow = (k, label, count) => treeRows.push({ cls: 'it', pad: 8, glyph: folded[k] ? '▸' : '▾', label: label, right: String(count), pick: flip(k) });
+    const kinds = [['인물', '◉'], ['장소', '▣'], ['사건', '▲'], ['세력', '◆'], ['아이템', '✦']];
+    treeRows.push({ cls: 'sec', pad: 8, glyph: '', label: '설정집 (KB)', right: '', pick: () => {} });
+    kinds.forEach((kv) => {
+      const list = allDocs.filter((d) => d.kind === kv[0]);
+      secRow('k' + kv[0], kv[0], list.length);
+      if (!folded['k' + kv[0]]) list.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: kv[1], label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) }));
+    });
+    const mine = allDocs.filter((d) => d.folder === '세계관 메모');
+    secRow('fMine', '내 폴더 · 세계관 메모', mine.length);
+    if (!folded.fMine) mine.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: '▤', label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) }));
+    const shared = allDocs.filter((d) => d.folder === '계정 공유');
+    secRow('fShared', '계정 공유 폴더', shared.length);
+    if (!folded.fShared) shared.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: '▤', label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) }));
+    treeRows.push({ cls: 'sec', pad: 8, glyph: '', label: '원고', right: '', pick: () => {} });
+    secRow('fCh', '회차', 12);
+    if (!folded.fCh) {
+      treeRows.push({ cls: 'it', pad: 28, glyph: '¶', label: '11화 잿빛 항구', right: '', pick: () => {} });
+      treeRows.push({ cls: mode === 'chapter' ? 'it on' : 'it', pad: 28, glyph: '¶', label: '12화 새벽의 문', right: '', pick: () => this.setState({ mode: 'chapter', atOpen: false }) });
+      treeRows.push({ cls: 'it', pad: 28, glyph: '¶', label: '13화 (초안)', right: '임시', pick: () => {} });
+      treeRows.push({ cls: 'it', pad: 28, glyph: '+', label: '새 회차', right: '', pick: () => {} });
+    }
     return {
       accent: this.props.accent ?? '#4f46e5', docName: docName,
       stateText: mode === 'chapter' ? (published ? '발행됨' : '임시저장') : '설정 문서', stateCls: mode === 'chapter' && published ? '' : 'g',
       isChapter: mode === 'chapter', isDoc: mode === 'doc',
       chCls: mode === 'chapter' ? 'it sub on' : 'it sub', pickChapter: () => this.setState({ mode: 'chapter', atOpen: false }),
-      tree: allDocs.map((d) => ({ icon: d.icon, label: d.label, cls: mode === 'doc' && sel === d.id ? 'it sub on' : 'it sub', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) })),
+      tree: treeRows, cols: (st.leftOpen === false ? '44px' : '280px') + ' minmax(0,1fr) ' + (st.rightOpen === false ? '44px' : '360px'),
+      leftOpen: st.leftOpen !== false, leftClosed: st.leftOpen === false, rightOpen: st.rightOpen !== false, rightClosed: st.rightOpen === false,
+      toggleLeft: () => this.setState({ leftOpen: st.leftOpen === false }), toggleRight: () => this.setState({ rightOpen: st.rightOpen === false }),
       body: body, charCount: body.replace(/\s/g, '').length,
       onBody: (e) => { const v = e.target.value; const b = Object.assign({}, bodies); b[key] = v; this.setState({ bodies: b, atOpen: /@[^\s@]*$/.test(v) }); },
       typeAt: () => { const b = Object.assign({}, bodies); b[key] = body + ' @'; this.setState({ bodies: b, atOpen: true }); },
@@ -240,7 +272,7 @@ class Component extends DCLogic {
       showMention: showMention, mentionItems: items.map((d) => ({ label: '@' + d.label + ' · ' + d.kind, pick: () => { const nb = body.replace(/@[^\s@]*$/, '@' + d.label + ' '); const b = Object.assign({}, bodies); b[key] = nb; this.setState({ bodies: b, atOpen: false }); addChip(d.id); } })),
       canQuickAdd: partial.length > 0 && !allDocs.some((d) => d.label === partial), partial: partial,
       openQuick: () => this.setState({ quick: true }), showQuick: st.quick === true,
-      createQuick: () => { const id = 'n' + Date.now(); const nb = body.replace(/@[^\s@]*$/, '@' + partial + ' '); const b = Object.assign({}, bodies); b[key] = nb; this.setState({ created: created.concat([{ id: id, icon: '◉', label: partial, kind: '인물' }]), chips: chips.concat([id]), bodies: b, quick: false, atOpen: false }); say('“' + partial + '” 문서를 만들고 컨텍스트에 넣었어요.'); },
+      createQuick: () => { const id = 'n' + Date.now(); const nb = body.replace(/@[^\s@]*$/, '@' + partial + ' '); const b = Object.assign({}, bodies); b[key] = nb; this.setState({ created: created.concat([{ id: id, label: partial, kind: '인물' }]), chips: chips.concat([id]), bodies: b, quick: false, atOpen: false }); say('“' + partial + '” 문서를 만들고 컨텍스트에 넣었어요.'); },
       chips: chips.map((id) => { const d = allDocs.find((x) => x.id === id); return { label: d ? d.label : id, remove: () => this.setState({ chips: chips.filter((x) => x !== id) }) }; }),
       noChips: chips.length === 0,
       presetLabel: presetsAll.find((p) => p[0] === preset)[1], showPreset: st.showPreset === true,
