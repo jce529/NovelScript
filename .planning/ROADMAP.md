@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
 - [x] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
 - [x] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다
-- [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다
+- [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** (7/8 plans) - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다 (코드 완료·검증 human_needed 2026-10-08 — 브라우저 UAT 6건 대기, 11-08 Task 2)
 
 **v1.1 — 하드 경계 — 2단계: LLM이 NovelScript를 호출한다**
 
@@ -316,16 +316,16 @@ Residual (stays in v1.0, not yet done):
   3. 무효·폐기된 키 / 레이트리밋 / 크레딧 소진 / 타임아웃·장애 네 가지 실패가 각각 구분되는 한국어 메시지로 안내되고, 무효 키만 `검증 실패`로 바뀐다 — 자동 재시도도, 서비스 키로의 조용한 폴백도 일어나지 않는다
   4. 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 스스로 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 없다
   5. 작가가 이번 달 제공자별 BYOK 호출 수·토큰 수를 보고, 모든 AI 호출이 제공자·모델·토큰 수와 함께 지갑 원장과 분리된 사용 기록에 남는다 (지갑 원장에 0원 행이 기록되지 않는다)
-**Plans**: 8 plans (계획·검증 완료, 실행 전)
+**Plans**: 8 plans (11-01~07 실행 완료, 11-08 Task 2 브라우저 UAT 대기)
 
 Plans:
-- [ ] 11-01-PLAN.md — ai_usage 스키마·KST 집계·원격 DB 차단 게이트
-- [ ] 11-02-PLAN.md — provider 실패 4분류·SDK 자동 retry 비활성화
-- [ ] 11-03-PLAN.md — 서버 재도출 BYOK route·race-safe invalid 전환
-- [ ] 11-04-PLAN.md — BYOK wallet 완전 우회·공통 usage settlement
-- [ ] 11-05-PLAN.md — chat·문서 계획·재생성 공통 진입점 연결
-- [ ] 11-06-PLAN.md — AI 패널 BYOK 전송·실패·명시 대체 UX
-- [ ] 11-07-PLAN.md — 설정 카드 KST 월간 BYOK 사용량
+- [x] 11-01-PLAN.md — ai_usage 스키마·KST 집계·원격 DB 차단 게이트
+- [x] 11-02-PLAN.md — provider 실패 4분류·SDK 자동 retry 비활성화
+- [x] 11-03-PLAN.md — 서버 재도출 BYOK route·race-safe invalid 전환
+- [x] 11-04-PLAN.md — BYOK wallet 완전 우회·공통 usage settlement
+- [x] 11-05-PLAN.md — chat·문서 계획·재생성 공통 진입점 연결
+- [x] 11-06-PLAN.md — AI 패널 BYOK 전송·실패·명시 대체 UX
+- [x] 11-07-PLAN.md — 설정 카드 KST 월간 BYOK 사용량
 - [ ] 11-08-PLAN.md — 전체 자동·DB·live·브라우저 검증
 
 **UI hint**: yes
@@ -488,7 +488,7 @@ Plans:
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (BUG-03 빌드 실패는 07-03으로 수정) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 7/7 | Complete (UAT 10단계·11단계 일부 미확인) | 2026-09-30 |
-| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 0/8 | Planned (ready to execute) | - |
+| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 7/8 | Code complete (11-VERIFICATION human_needed; 11-08 Task 2 브라우저 UAT 6건 대기) | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |

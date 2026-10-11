@@ -68,7 +68,7 @@
 - [x] **PROV-03**: 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [x] **PROV-04**: 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
 - [x] **PROV-05**: 모델 피커에는 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 (전역 모드 토글 없음)
-- [ ] **PROV-06**: 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 일어나지 않는다
+- [x] **PROV-06**: 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 일어나지 않는다
 - [x] **PROV-07**: 서비스 키 모드에서 작가는 선택한 제공자·모델의 실제 단가가 반영된 비용 추정치를 생성 전에 본다 (Gemini 단가를 다른 제공자에 재사용하지 않는다)
 
 ### BYOK 키 관리 (BYOK)
@@ -77,16 +77,16 @@
 - [x] **BYOK-02**: 서버가 저장 전에 제공자의 모델 목록 엔드포인트로 키의 유효성·소유권을 검증하고, 실패하면 활성 키로 저장하지 않는다 (실제 생성 호출로 검증해 사용자에게 과금하지 않는다)
 - [x] **BYOK-03**: 저장된 키는 제공자·끝 4자리·등록일과 `연결됨/검증 실패/미등록` 상태로만 표시되고, 평문은 클라이언트 응답이나 로그로 다시 노출되지 않는다
 - [x] **BYOK-04**: 작가가 키를 삭제할 수 있고, 삭제 시 해당 제공자가 어떻게 되는지 안내받는다. 삭제된 키가 기본 선택이었다면 선택이 자동 대체된다. 교체는 삭제 후 재등록으로 이뤄진다
-- [ ] **BYOK-05**: 무효·폐기된 키 / 레이트리밋 / 크레딧 소진 / 타임아웃·장애 네 가지 실패가 각각 구분되는 메시지로 안내되고, 경우마다 키 상태 변화와 재시도 동작이 다르다 (무효 키만 `검증 실패`로 표시, 자동 재시도 없음, 서비스 키로 자동 폴백하지 않음)
-- [ ] **BYOK-06**: BYOK 모델로 호출하면 플랫폼 토큰이 전혀 차감되지 않고, 지갑 잔액이 0이어도 호출이 차단되지 않는다
-- [ ] **BYOK-07**: 작가가 이번 달 제공자별 BYOK 호출 수·토큰 수를 볼 수 있다 (금액은 표시하지 않음 — Phase 11 D-09)
-- [ ] **BYOK-08**: BYOK 모델을 선택하면 AI 패널의 지갑 토큰 비용 게이지가 숨겨진다
-- [ ] **BYOK-09**: BYOK 호출은 서비스 키 호출보다 높은 1회 출력 토큰 상한을 사용한다
+- [x] **BYOK-05**: 무효·폐기된 키 / 레이트리밋 / 크레딧 소진 / 타임아웃·장애 네 가지 실패가 각각 구분되는 메시지로 안내되고, 경우마다 키 상태 변화와 재시도 동작이 다르다 (무효 키만 `검증 실패`로 표시, 자동 재시도 없음, 서비스 키로 자동 폴백하지 않음)
+- [x] **BYOK-06**: BYOK 모델로 호출하면 플랫폼 토큰이 전혀 차감되지 않고, 지갑 잔액이 0이어도 호출이 차단되지 않는다
+- [x] **BYOK-07**: 작가가 이번 달 제공자별 BYOK 호출 수·토큰 수를 볼 수 있다 (금액은 표시하지 않음 — Phase 11 D-09)
+- [x] **BYOK-08**: BYOK 모델을 선택하면 AI 패널의 지갑 토큰 비용 게이지가 숨겨진다
+- [x] **BYOK-09**: BYOK 호출은 서비스 키 호출보다 높은 1회 출력 토큰 상한을 사용한다
 
 ### AI 과금 경로 (COST)
 
 - [x] **COST-01**: 서비스 키 호출의 토큰 차감이 멱등하다 — 같은 호출이 재시도돼도 두 번 차감되지 않는다 (현재 매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지가 무력화된 상태를 수정)
-- [ ] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
+- [x] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
 
 ### MCP 서버 (MCP)
 
@@ -236,19 +236,19 @@ Explicitly excluded. Documented to prevent scope creep.
 | PROV-03 | Phase 9 | Complete |
 | PROV-04 | Phase 9 | Complete |
 | PROV-05 | Phase 10 | Complete |
-| PROV-06 | Phase 11 | Mapped |
+| PROV-06 | Phase 11 | Code complete (browser UAT pending) |
 | PROV-07 | Phase 9 | Complete |
 | BYOK-01 | Phase 10 | Complete |
 | BYOK-02 | Phase 10 | Complete |
 | BYOK-03 | Phase 10 | Complete |
 | BYOK-04 | Phase 10 | Complete |
-| BYOK-05 | Phase 11 | Mapped |
-| BYOK-06 | Phase 11 | Mapped |
-| BYOK-07 | Phase 11 | Mapped |
-| BYOK-08 | Phase 11 | Mapped |
-| BYOK-09 | Phase 11 | Mapped |
+| BYOK-05 | Phase 11 | Code complete (browser UAT pending) |
+| BYOK-06 | Phase 11 | Code complete (browser UAT pending) |
+| BYOK-07 | Phase 11 | Code complete (browser UAT pending) |
+| BYOK-08 | Phase 11 | Code complete (browser UAT pending) |
+| BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
-| COST-02 | Phase 11 | Mapped |
+| COST-02 | Phase 11 | Code complete (browser UAT pending) |
 | MCP-01 | Phase 12 | Mapped |
 | MCP-02 | Phase 13 | Mapped |
 | MCP-03 | Phase 13 | Mapped |

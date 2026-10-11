@@ -1,6 +1,6 @@
 # NovelScript 기획·구현 통합 SSOT
 
-최종 대조일: 2026-10-01  
+최종 대조일: 2026-10-10 (v1.1 절·Phase 11/16/17·LEGAL·마이그레이션 번호 갱신; v1 매트릭스는 2026-10-01 판정 유지)  
 Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 
 ## 문서의 역할
@@ -28,8 +28,8 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 
 - 핵심 가치: 작가의 설정 관리·집필·AI 보조와 독자의 탐색·열람이 한 서비스에서 이어지는 창작/소비 루프.
 - 현재 구현 범위(v1.0): 인증, 작가 전환, 작품/KB/회차 관리, 독자 탐색/열람/반응, 멘션 기반 AI 생성, 지갑 원장, 유료 회차 소장과 작가 90/10 정산(Phase 6), 관리자 신고 검토·제재(Phase 7).
-- 현재 구현 범위(v1.1): 멀티 프로바이더 어댑터와 OpenAI·Anthropic 지원(Phase 8~9), BYOK 키 등록·검증·관리와 모델 피커(Phase 10), Jev 선계획 기반 AI 문서 생성(Phase 15, 코드 완료·활성화 보류).
-- 진행/다음: Phase 11 BYOK 호출 경로(계획 완료, 실행 전) → Phase 12~14 MCP. v1.0 잔여는 Phase 5 Toss 결제(05-01·05-02 서버 기반만 구현, 05-03~07 미실행).
+- 현재 구현 범위(v1.1): 멀티 프로바이더 어댑터와 OpenAI·Anthropic 지원(Phase 8~9), BYOK 키 등록·검증·관리와 모델 피커(Phase 10), BYOK 호출 경로·사용 기록·실패 UX(Phase 11, 코드 완료·브라우저 UAT 대기), Jev 선계획 기반 AI 문서 생성(Phase 15, 코드 완료·활성화 보류), 스튜디오 작업 흐름 확장(Phase 16, GSD 밖 구현·실사용 검증 대기).
+- 진행/다음: Phase 11 브라우저 UAT 6건(11-08 Task 2) → Phase 17 버그 수정 통합(계획 전) → Phase 12~14 MCP(하드 경계: Phase 11 안정화 후). 공개 출시 전 LEGAL-01~04 출시 게이트. v1.0 잔여는 Phase 5 Toss 결제(05-01·05-02 서버 기반만 구현, 05-03~07 미실행).
 - 현재 차단/확인 사항: Toss 가맹·사업자 심사 상태, 선불전자지급수단 규제 검토, 라이브 `GEMINI_API_KEY` 쿼터(429), Phase 15 활성화 조건(데이터 정책 승인·벤더 holdout 평가·그림자 표본), Phase 6 브라우저 E2E와 독립 세션 동시성 검증.
 
 ## v1 요구사항 구현 매트릭스
@@ -70,18 +70,21 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 
 집계: **구현됨 26 / 부분 구현 3 / 미구현 2 = v1 총 31개**.
 
-## v1.1 요구사항 진행 (31개)
+## v1.1 요구사항 진행 (40개 + 출시 게이트 LEGAL 4개)
 
-`.planning/REQUIREMENTS.md` 추적표 기준. 이 문서는 요약만 두고 개별 판정은 요구사항 문서를 따른다.
+`.planning/REQUIREMENTS.md` 추적표 기준(PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5 = 40). 이 문서는 요약만 두고 개별 판정은 요구사항 문서를 따른다.
 
 | 영역 | 상태 |
 | --- | --- |
 | PROV-01~05, 07 (어댑터·OpenAI·Anthropic·기본 제공자·모델 피커) | 완료 (Phase 8~10). 라이브 호출·브라우저 UAT 통과 |
 | BYOK-01~04 (키 등록·검증·마스킹·삭제) | 완료 (Phase 10). Vault 보관, 계정 삭제 시 시크릿 정리(0015_byok_secret_cleanup) |
 | COST-01 | 완료 (Phase 8, 멱등 차감) |
-| PROV-06, BYOK-05~09, COST-02 | 미구현 — Phase 11 계획 8개 작성, 실행 전 |
-| MCP-01~09 | 미구현 — Phase 12~14 |
+| PROV-06, BYOK-05~09, COST-02 | 부분 구현 — 코드 완료(Phase 11, 11-01~07, `0018_ai_usage`), `11-VERIFICATION` human_needed: 브라우저 UAT 6건·잔액 0 BYOK 실호출 확인 대기 |
+| MCP-01~09 | 미구현 — Phase 12~14 (Phase 12는 research-phase 필수, Phase 11 안정화 전 시작 금지) |
 | AIDOC-01~04 | 코드 완료(Phase 15), 활성화 보류·브라우저 UAT 대기 |
+| STUDIO-01~04 (BYOK 요약·설정 문서 AI·파일 업로드·모바일) | 코드 완료(Phase 16, GSD 밖 구현), Jev·브라우저·모바일 실사용 검증 대기 |
+| BUGFIX-01~05 | 미구현 — Phase 17 계획 전(`17-CONTEXT.md`만 존재) |
+| LEGAL-01~04 (변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지) | 미착수 — 로드맵 "Launch Gate", phase 아님. 공개 출시 전 조건 |
 
 ## v2 및 완성형 비전
 
@@ -92,6 +95,10 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - EDIT-08: Tab 수락형 ghost text
 - READ-06: 독자에게 공개하는 AI 작성/lore wiki showcase
 - ADMIN-05: 신고 검색·필터, 감사 로그 UI, 답변 템플릿
+- PROV-08: 모델별 한국 소설 창작 힌트 1줄 (실사용 데이터 확보 후)
+- BYOK-10: 사용자별 월간 BYOK 호출 상한 (`ai_usage` 데이터가 필요성을 보여줄 때)
+- MCP-10 / MCP-11: MCP prompts·resources 노출 (지원 클라이언트 확인 후)
+- PAY-04: 구독제(월정액 무제한 열람, 정기결제 인프라 필요)
 
 ### 현재 MVP 범위 밖
 
@@ -130,8 +137,9 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
-- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018`은 Phase 11 `ai_usage`용으로 예약됐고 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터(Phase 11이 `0018`을 쓰기 전이면 번호 조율)이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다.
+- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`
-- 코드 기반 Platty 문서: `docs/ssot/`
+- 코드 기반 Platty 문서: `docs/ssot/` — ⚠️ 마지막 export 2026-09-02(기준 커밋 190fc89)로 마이그레이션 0005~0021·`/admin`·`/studio/settings/ai-providers`·결제/BYOK 테이블이 반영되지 않았다. Platty sync 재실행 전까지 이 문서의 매트릭스를 우선한다.
+- 기획·상태 점검: `.planning/gaps/` 최신 문서, 상태 스냅샷은 `.planning/STATE.md`

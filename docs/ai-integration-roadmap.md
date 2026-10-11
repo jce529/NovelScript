@@ -1,6 +1,6 @@
 # AI 연결 확장 목표
 
-상태: 목표·범위 합의, 구현 미착수
+상태: Phase 8~11 구현됨(Phase 11은 브라우저 UAT 대기). 진행 상태의 기준은 `.planning/ROADMAP.md`
 작업 브랜치: `codex/multi-provider-byok`
 기존 MVP 진행 브랜치: `master`
 
