@@ -131,6 +131,14 @@
       "title": "15. 독자 계정 설정 (모바일)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "EmptyStates.dc.html": {
+      "x": 0,
+      "y": 10300,
+      "w": 1280,
+      "h": 1500,
+      "title": "16. 빈 상태·볼 수 없음 모음",
+      "expand": "fill"
     }
   },
   "order": [
@@ -148,7 +156,8 @@
     "ViewerDesktop.dc.html",
     "AdminComments.dc.html",
     "AccountSettings.dc.html",
-    "AccountSettingsMobile.dc.html"
+    "AccountSettingsMobile.dc.html",
+    "EmptyStates.dc.html"
   ],
   "notes": {
     "t1": {
@@ -196,6 +205,13 @@
       "x": 0,
       "y": 8850,
       "text": "독자 계정 설정",
+      "kind": "title1",
+      "maxW": 1790
+    },
+    "t7": {
+      "x": 0,
+      "y": 10050,
+      "text": "빈 상태",
       "kind": "title1",
       "maxW": 1790
     }
