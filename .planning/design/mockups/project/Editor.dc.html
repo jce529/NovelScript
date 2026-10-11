@@ -63,9 +63,9 @@ button{cursor:pointer}
       <div class="ph"><span>달빛 서고</span><div style="display:flex;gap:6px;align-items:center"><span class="chip g">작품 전환</span><button class="tb" type="button" aria-label="왼쪽 패널 접기" onClick="{{toggleLeft}}" style="padding:4px 8px">«</button></div></div>
       <div class="pb">
         <sc-for list="{{tree}}" as="n" hint-placeholder-count="14">
-          <button class="{{n.cls}}" type="button" onClick="{{n.pick}}" style="padding-left:{{n.pad}}px"><span style="width:14px;opacity:0.6;flex-shrink:0">{{n.glyph}}</span><span style="flex-grow:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{n.label}}</span><span style="font-size:11px;color:#a1a1aa">{{n.right}}</span></button>
+          <button class="{{n.cls}}" type="button" onClick="{{n.pick}}" onContextMenu="{{n.menu}}" style="padding-left:{{n.pad}}px"><span style="width:14px;opacity:0.6;flex-shrink:0">{{n.glyph}}</span><span style="flex-grow:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{n.label}}</span><span style="font-size:11px;color:#a1a1aa">{{n.right}}</span></button>
         </sc-for>
-        <span class="ann" style="padding:10px 8px">폴더 만들기·이름 바꾸기·삭제는 각 행의 ⋯ 메뉴에서. 드래그앤드롭 이동은 범위 미정.</span>
+        <span class="ann" style="padding:10px 8px">문서·템플릿 행을 우클릭(모바일은 길게 누르기)하면 이름 바꾸기·사본 만들기 메뉴가 나와요. 드래그앤드롭 이동은 범위 미정.</span>
       </div>
     </div>
     </sc-if>
@@ -87,7 +87,8 @@ button{cursor:pointer}
         <sc-if value="{{isTpl}}" hint-placeholder-val="{{false}}">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#eef2ff;border-radius:8px">
             <span class="chip">{{tplBadge}}</span>
-            <span class="ann">양식은 자유롭게 고치고 항목을 더할 수 있어요. 새 문서를 만들면 이 양식이 채워진 채로 시작해요.</span>
+            <span class="ann" style="flex-grow:1">{{tplNote}}</span>
+            <sc-if value="{{ro}}" hint-placeholder-val="{{false}}"><button class="tb" type="button" onClick="{{copyTpl}}">사본 만들어 수정</button></sc-if>
           </div>
         </sc-if>
         <sc-if value="{{isDoc}}" hint-placeholder-val="{{false}}">
@@ -97,7 +98,7 @@ button{cursor:pointer}
             <span class="ann">등장 회차·공개 범위는 세계관 공개 설정(작가 영역 7번 화면)에서 관리해요.</span>
           </div>
         </sc-if>
-        <textarea aria-label="본문" value="{{body}}" onChange="{{onBody}}" style="flex-grow:1;border:0;outline:0;resize:none;font-size:16px;line-height:1.9;font-family:Georgia,'Noto Serif KR',serif;color:#18181b;padding:0"></textarea>
+        <textarea aria-label="본문" readOnly="{{ro}}" value="{{body}}" onChange="{{onBody}}" style="flex-grow:1;border:0;outline:0;resize:none;font-size:16px;line-height:1.9;font-family:Georgia,'Noto Serif KR',serif;color:#18181b;padding:0"></textarea>
         <sc-if value="{{showMention}}" hint-placeholder-val="{{false}}">
           <div class="pop" style="left:32px;bottom:64px">
             <sc-for list="{{mentionItems}}" as="m"><button class="pi" type="button" onClick="{{m.pick}}">{{m.label}}</button></sc-for>
@@ -199,6 +200,21 @@ button{cursor:pointer}
     </div>
   </sc-if>
 
+  <sc-if value="{{showName}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeAll}}"></div>
+    <div class="dlg">
+      <span style="font-size:17px;font-weight:700">{{ndTitle}}</span>
+      <span class="ann">{{ndHint}}</span>
+      <input class="inp" type="text" value="{{ndValue}}" placeholder="이름을 입력하세요" aria-label="이름" onChange="{{onNd}}">
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="tb" type="button" onClick="{{closeAll}}" style="height:38px">취소</button><button class="tb p" type="button" onClick="{{confirmNd}}" style="height:38px">확인</button></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{showCtx}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closeCtx}}" onContextMenu="{{closeCtx}}" style="position:fixed;inset:0;z-index:70"></div>
+    <div class="pop" style="position:fixed;left:{{ctxX}}px;top:{{ctxY}}px;z-index:71;min-width:210px">
+      <sc-for list="{{ctxItems}}" as="i"><button class="pi" type="button" onClick="{{i.pick}}" style="{{i.st}}">{{i.label}}</button></sc-for>
+    </div>
+  </sc-if>
   <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
 </div>
 </x-dc>
@@ -208,7 +224,8 @@ class Component extends DCLogic {
     const st = this.state || {};
     const docs = [{ id: 'so', label: '소연', kind: '인물' }, { id: 'hk', label: '한결', kind: '인물' }, { id: 'ga', label: '잿빛 항구', kind: '장소' }, { id: 'rr', label: '서고 열람실', kind: '장소' }, { id: 'ev', label: '첫 번째 역전', kind: '사건' }, { id: 'gd', label: '서고 수호단', kind: '세력' }, { id: 'yl', label: '낡은 열람증', kind: '아이템' }, { id: 'mr', label: '마법 규칙', kind: '내 폴더', folder: '세계관 메모' }, { id: 'sg', label: '공통 문체 가이드', kind: '공유', folder: '계정 공유' }];
     const created = st.created || [];
-    const allDocs = docs.concat(created);
+    const renames = st.renames || {};
+    const allDocs = docs.concat(created).map((d) => (renames[d.id] ? Object.assign({}, d, { label: renames[d.id] }) : d));
     const mode = st.mode || 'chapter';
     const sel = st.sel || 'so';
     const cur = allDocs.find((d) => d.id === sel) || allDocs[0];
@@ -251,22 +268,22 @@ class Component extends DCLogic {
     kinds.forEach((kv) => {
       const list = allDocs.filter((d) => d.kind === kv[0]);
       secRow('k' + kv[0], kv[0], list.length);
-      if (!folded['k' + kv[0]]) list.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: kv[1], label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) }));
+      if (!folded['k' + kv[0]]) list.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: kv[1], label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }), ctx: { t: 'doc', id: d.id } }));
     });
     treeRows.push({ cls: 'it', pad: 8, glyph: '+', label: '새 문서 (템플릿에서)', right: '', pick: () => this.setState({ quick: true, fromAt: false, qname: '', qkind: '인물' }) });
     const mine = allDocs.filter((d) => d.folder === '세계관 메모');
     secRow('fMine', '내 폴더 · 세계관 메모', mine.length);
-    if (!folded.fMine) mine.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: '▤', label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) }));
+    if (!folded.fMine) mine.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: '▤', label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }), ctx: { t: 'doc', id: d.id } }));
     const shared = allDocs.filter((d) => d.folder === '계정 공유');
     secRow('fShared', '계정 공유 폴더', shared.length);
-    if (!folded.fShared) shared.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: '▤', label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) }));
+    if (!folded.fShared) shared.forEach((d) => treeRows.push({ cls: mode === 'doc' && sel === d.id ? 'it on' : 'it', pad: 28, glyph: '▤', label: d.label, right: '', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }), ctx: { t: 'doc', id: d.id } }));
     treeRows.push({ cls: 'sec', pad: 8, glyph: '', label: '템플릿', right: '', pick: () => {} });
     secRow('fTpl', '기본 템플릿', 5);
-    if (!folded.fTpl) Object.keys(TPL).forEach((k) => treeRows.push({ cls: mode === 'tpl' && selT === k ? 'it on' : 'it', pad: 28, glyph: '❏', label: k + ' 템플릿', right: '기본', pick: () => this.setState({ mode: 'tpl', selT: k, atOpen: false }) }));
+    if (!folded.fTpl) Object.keys(TPL).forEach((k) => treeRows.push({ cls: mode === 'tpl' && selT === k ? 'it on' : 'it', pad: 28, glyph: '❏', label: k + ' 템플릿', right: '기본', pick: () => this.setState({ mode: 'tpl', selT: k, atOpen: false }), ctx: { t: 'btpl', name: k } }));
     secRow('fMyTpl', '내 템플릿', ctpls.length);
     if (!folded.fMyTpl) {
-      ctpls.forEach((k) => treeRows.push({ cls: mode === 'tpl' && selT === k ? 'it on' : 'it', pad: 28, glyph: '❏', label: k, right: '', pick: () => this.setState({ mode: 'tpl', selT: k, atOpen: false }) }));
-      treeRows.push({ cls: 'it', pad: 28, glyph: '+', label: '템플릿 만들기', right: '', pick: () => { const n = '내 양식 ' + (ctpls.length + 1); this.setState({ ctpls: ctpls.concat([n]), mode: 'tpl', selT: n }); } });
+      ctpls.forEach((k) => treeRows.push({ cls: mode === 'tpl' && selT === k ? 'it on' : 'it', pad: 28, glyph: '❏', label: k, right: '', pick: () => this.setState({ mode: 'tpl', selT: k, atOpen: false }), ctx: { t: 'ctpl', name: k } }));
+      treeRows.push({ cls: 'it', pad: 28, glyph: '+', label: '템플릿 만들기', right: '', pick: () => this.setState({ nd: { mode: 'newTpl', v: '' } }) });
     }
     treeRows.push({ cls: 'sec', pad: 8, glyph: '', label: '원고', right: '', pick: () => {} });
     secRow('fCh', '회차', 12);
@@ -276,7 +293,32 @@ class Component extends DCLogic {
       treeRows.push({ cls: 'it', pad: 28, glyph: '¶', label: '13화 (초안)', right: '임시', pick: () => {} });
       treeRows.push({ cls: 'it', pad: 28, glyph: '+', label: '새 회차', right: '', pick: () => {} });
     }
+    treeRows.forEach((r) => { r.menu = (e) => { if (!r.ctx) return; e.preventDefault(); this.setState({ ctx: { x: Math.min(e.clientX, 1060), y: Math.min(e.clientY, 700), t: r.ctx.t, id: r.ctx.id, name: r.ctx.name } }); }; });
+    const ctx = st.ctx;
+    const nd = st.nd;
+    const tplNames = Object.keys(TPL).concat(ctpls);
+    const ro = mode === 'tpl' && !!TPL[selT];
+    const ctxItems = !ctx ? [] : ctx.t === 'doc' ? [{ label: '이름 바꾸기', st: '', pick: () => this.setState({ ctx: null, nd: { mode: 'rename', target: { t: 'doc', id: ctx.id }, v: (allDocs.find((d) => d.id === ctx.id) || {}).label || '' } }) }]
+      : ctx.t === 'btpl' ? [{ label: '사본 만들기', st: '', pick: () => this.setState({ ctx: null, mode: 'tpl', selT: ctx.name, nd: { mode: 'copyTpl', src: ctx.name, v: ctx.name + ' 사본' } }) }, { label: '이름 바꾸기 (기본 템플릿은 불가)', st: 'color:#a1a1aa;pointer-events:none', pick: () => {} }]
+      : [{ label: '이름 바꾸기', st: '', pick: () => this.setState({ ctx: null, nd: { mode: 'rename', target: { t: 'ctpl', name: ctx.name }, v: ctx.name } }) }, { label: '이 템플릿으로 새 문서', st: '', pick: () => this.setState({ ctx: null, quick: true, fromAt: false, qname: '', qkind: ctx.name }) }];
+    const confirmNd = () => {
+      const val = ((nd && nd.v) || '').trim(); if (!val) return;
+      if (nd.mode === 'rename' && nd.target.t === 'doc') { const r = Object.assign({}, renames); r[nd.target.id] = val; this.setState({ renames: r, nd: null }); say('이름을 바꿨어요.'); return; }
+      const same = nd.mode === 'rename' && nd.target.name === val;
+      if (!same && tplNames.indexOf(val) >= 0) { say('이미 있는 템플릿 이름이에요.'); return; }
+      if (nd.mode === 'newTpl') { this.setState({ ctpls: ctpls.concat([val]), mode: 'tpl', selT: val, nd: null }); say('“' + val + '” 템플릿을 만들었어요.'); return; }
+      if (nd.mode === 'copyTpl') { const b = Object.assign({}, bodies); b['tpl:' + val] = body; this.setState({ ctpls: ctpls.concat([val]), bodies: b, mode: 'tpl', selT: val, nd: null }); say('사본 “' + val + '”을 만들었어요. 이 사본은 자유롭게 고칠 수 있어요.'); return; }
+      const old = nd.target.name; const b = Object.assign({}, bodies);
+      if (b['tpl:' + old] !== undefined) { b['tpl:' + val] = b['tpl:' + old]; delete b['tpl:' + old]; }
+      this.setState({ ctpls: ctpls.map((k) => (k === old ? val : k)), created: created.map((d) => (d.kind === old ? Object.assign({}, d, { kind: val }) : d)), bodies: b, selT: selT === old ? val : selT, nd: null }); say('템플릿 이름을 바꿨어요.');
+    };
     return {
+      ro: ro, copyTpl: () => this.setState({ nd: { mode: 'copyTpl', src: selT, v: selT + ' 템플릿 사본' } }),
+      tplNote: ro ? '기본 템플릿은 수정할 수 없어요. 고치려면 사본을 만들어 수정하세요.' : '양식은 자유롭게 고치고 항목을 더할 수 있어요. 새 문서를 만들면 이 양식이 채워진 채로 시작해요.',
+      showName: !!nd, ndTitle: nd ? (nd.mode === 'newTpl' ? '새 템플릿 만들기' : nd.mode === 'copyTpl' ? '기본 템플릿 사본 만들기' : '이름 바꾸기') : '',
+      ndHint: nd ? (nd.mode === 'rename' ? '문서나 템플릿의 이름을 바꿔요.' : nd.mode === 'copyTpl' ? '기본 템플릿 내용을 복사해 내 템플릿으로 만들어요. 이후 이름은 우클릭으로 바꿀 수 있어요.' : '내 템플릿의 이름을 정해 주세요. 이후 우클릭으로 이름을 바꿀 수 있어요.') : '',
+      ndValue: nd ? nd.v : '', onNd: (e) => this.setState({ nd: Object.assign({}, nd, { v: e.target.value }) }), confirmNd: confirmNd,
+      showCtx: !!ctx, ctxX: ctx ? ctx.x : 0, ctxY: ctx ? ctx.y : 0, ctxItems: ctxItems, closeCtx: () => this.setState({ ctx: null }),
       accent: this.props.accent ?? '#4f46e5', docName: docName,
       stateText: mode === 'chapter' ? (published ? '발행됨' : '임시저장') : mode === 'tpl' ? '템플릿' : '설정 문서', stateCls: mode === 'chapter' && published ? '' : 'g',
       isChapter: mode === 'chapter', isDoc: mode === 'doc', isTpl: mode === 'tpl', tplBadge: TPL[selT] ? '기본 템플릿' : '내 템플릿', useTpl: () => this.setState({ quick: true, fromAt: false, qname: '', qkind: selT }),
@@ -330,7 +372,7 @@ class Component extends DCLogic {
       tiers: [10, 30, 50, 100].map((t) => ({ label: t + '토큰', cls: t === tier ? 'sg on' : 'sg', pick: () => this.setState({ tier: t }) })),
       publish: () => { this.setState({ published: true, pubDlg: false }); say('발행했어요.'); },
       unpublish: () => { this.setState({ published: false, pubDlg: false }); say('발행을 취소했어요.'); },
-      closeAll: () => this.setState({ sys: false, quick: false, pubDlg: false }),
+      closeAll: () => this.setState({ sys: false, quick: false, pubDlg: false, nd: null, ctx: null }),
       toast: st.toast || ''
     };
   }
