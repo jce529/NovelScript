@@ -79,6 +79,7 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
 
+    <p class="sub" style="font-size:12px">신작은 연재 시작일이 가까운 순, 인기는 완독률과 조회수를 함께 반영한 순서예요.</p>
     <sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">
         <sc-for list="{{items}}" as="w" hint-placeholder-count="12">
@@ -146,7 +147,7 @@ class Component extends DCLogic {
       eyebrow: isFree ? 'Free Series' : 'Paid Series',
       title: isFree ? '무료연재' : '유료연재',
       desc: isFree ? '모든 회차를 무료로 읽을 수 있는 작품이에요.' : '앞부분은 무료로 읽고, 이후 회차는 소장하거나 대여해서 읽는 작품이에요.',
-      sortLabel: sub === 'hot' ? '인기순' : sub === 'new' ? '최신 연재순' : '업데이트순',
+      sortLabel: sub === 'hot' ? '인기순 (완독률·조회수)' : sub === 'new' ? '연재 시작일순' : '업데이트순',
       statusLabel: sub === 'end' ? '완결만' : '연재 전체',
       reset: () => this.setState({ genre: '전체', sub: 'all' })
     };

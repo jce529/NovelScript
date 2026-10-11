@@ -64,13 +64,28 @@ a{color:inherit;text-decoration:none}
   </header>
 
   <main class="wrap">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="au">목업 보기 전환 (실제 화면에는 없는 컨트롤)</span><sc-for list="{{views}}" as="v"><button class="{{v.cls}}" type="button" onClick="{{v.pick}}">{{v.label}}</button></sc-for></div>
+    <sc-if value="{{panel}}" hint-placeholder-val="{{false}}">
+      <section style="background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">최근 검색어</b><button class="gc" type="button" onClick="{{clearRecent}}" style="border:0;background:transparent">전체 삭제</button></div>
+          <sc-if value="{{hasRecent}}" hint-placeholder-val="{{true}}"><div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{recents}}" as="r"><span style="display:inline-flex;align-items:center;border:1px solid #d4d4d8;border-radius:999px;background:#fff"><button type="button" onClick="{{r.pick}}" style="border:0;background:transparent;min-height:44px;padding:0 6px 0 14px;font-size:13px;font-family:inherit;cursor:pointer">{{r.word}}</button><button type="button" aria-label="{{r.word}} 삭제" onClick="{{r.del}}" style="border:0;background:transparent;width:44px;min-height:44px;font-size:16px;color:#71717a;cursor:pointer">×</button></span></sc-for></div></sc-if>
+          <sc-if value="{{noRecent}}" hint-placeholder-val="{{false}}"><span class="sub">최근 검색어가 없어요.</span></sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <b style="font-size:14px">추천 검색어</b>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{suggests}}" as="g"><button class="gc" type="button" onClick="{{g.pick}}">{{g.rank}} {{g.word}}</button></sc-for></div>
+          <span class="au">운영에서 고른 키워드와 이번 주 많이 검색된 키워드예요. 입력 중 자동완성은 제공하지 않아요.</span>
+        </div>
+      </section>
+    </sc-if>
     <div style="display:flex;flex-direction:column;gap:4px">
       <h1 class="h2">“{{q}}” 검색 결과</h1>
       <p class="sub">{{count}}</p>
     </div>
     <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none"><sc-for list="{{tabs}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
 
-    <sc-if value="{{showWorks}}" hint-placeholder-val="{{true}}">
+    <sc-if value="{{results}}" hint-placeholder-val="{{true}}"><div style="display:flex;flex-direction:column;gap:16px"><sc-if value="{{showWorks}}" hint-placeholder-val="{{true}}">
       <div style="display:flex;flex-direction:column;gap:10px">
         <sc-if value="{{tabAll}}" hint-placeholder-val="{{true}}"><span style="font-size:14px;font-weight:700">작품</span></sc-if>
         <sc-for list="{{works}}" as="w">
@@ -93,17 +108,18 @@ a{color:inherit;text-decoration:none}
     <sc-if value="{{showAuthors}}" hint-placeholder-val="{{true}}">
       <div style="display:flex;flex-direction:column;gap:10px">
         <sc-if value="{{tabAll}}" hint-placeholder-val="{{true}}"><span style="font-size:14px;font-weight:700">작가</span></sc-if>
-        <div style="display:flex;gap:16px;flex-wrap:wrap"><sc-for list="{{authors}}" as="a"><a class="mini" href="Home.dc.html"><div class="mav" style="background:{{a.bg}}"></div><b>{{a.name}}</b><span class="au">작품 {{a.n}}편</span></a></sc-for></div>
+        <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{authors}}" as="a"><a class="rowc" href="AuthorPage.dc.html"><div class="mav" style="background:{{a.bg}}"></div><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="t">{{a.name}}</span><span class="au">작품 {{a.n}}편 · 대표작 {{a.top}}</span></div><span class="au">작가 페이지 ›</span></a></sc-for></div>
       </div>
     </sc-if>
 
+    </div></sc-if>
     <sc-if value="{{noRes}}" hint-placeholder-val="{{false}}">
       <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:36px 16px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center">
         <b style="font-size:16px">“{{q}}” 검색 결과가 없어요</b><span class="sub">철자를 확인하거나 다른 검색어로 찾아 보세요. 대신 이런 작품은 어때요?</span>
         <a class="btn" href="Ranking.dc.html" style="margin-top:6px">랭킹 보러 가기</a>
       </div>
     </sc-if>
-    <p class="sub">검색어가 비어 있으면 최근 검색어와 인기 태그를 보여주고, 결과가 없으면 16번 보드의 빈 상태를 써요. 작가 결과를 누르면 작가의 작품 목록으로 가요.</p>
+    <p class="sub">검색어가 비어 있으면 최근 검색어와 인기 태그를 보여주고, 결과가 없으면 16번 보드의 빈 상태를 써요. 작품 결과는 작품 상세로, 작가 결과는 작가 페이지로 이동해요.</p>
   </main>
 </div>
 </x-dc>
@@ -113,6 +129,7 @@ class Component extends DCLogic {
     const st = this.state || {};
     const q = st.q === undefined ? '달빛' : st.q;
     const tab = st.tab || 'all';
+    const rec = st.rec || ['달빛', '북쪽 별', '무협 완결'];
     const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
     const hit = q.trim() === '달빛';
     const workSrc = hit ? [
@@ -120,7 +137,7 @@ class Component extends DCLogic {
       { title: '달빛 아래 우체국', author: '작가 P', genre: '로맨스', ep: 30, state: '완결', read: 77, tags: ['우편', '힐링'], h: 20 }
     ] : [];
     const tagSrc = hit ? [{ name: '달빛', n: 14 }, { name: '달빛마법', n: 3 }] : [];
-    const authorSrc = hit ? [{ name: '달빛작가', n: 2, h: 40 }] : [];
+    const authorSrc = hit ? [{ name: '달빛작가', n: 2, h: 40, top: '달빛 서고' }, { name: '달빛이든방', n: 1, h: 200, top: '달빛 아래 우체국' }, { name: '한달빛', n: 4, h: 330, top: '소금 길의 약속' }] : [];
     const counts = { works: workSrc.length, tags: tagSrc.length, authors: authorSrc.length };
     const total = counts.works + counts.tags + counts.authors;
     const defs = [['all', '전체 ' + total], ['works', '작품 ' + counts.works], ['tags', '태그 ' + counts.tags], ['authors', '작가 ' + counts.authors]];
@@ -132,9 +149,13 @@ class Component extends DCLogic {
       showWorks: total > 0 && (tab === 'all' || tab === 'works') && counts.works > 0,
       showTags: total > 0 && (tab === 'all' || tab === 'tags') && counts.tags > 0,
       showAuthors: total > 0 && (tab === 'all' || tab === 'authors') && counts.authors > 0,
-      noRes: total === 0,
+      noRes: total === 0 && st.view !== 'panel',
       works: workSrc.map((w) => ({ title: w.title, author: w.author, genre: w.genre, ep: w.ep, state: w.state, read: w.read, tags: w.tags, bg: bg(w.h) })),
-      tags: tagSrc, authors: authorSrc.map((a) => ({ name: a.name, n: a.n, bg: bg(a.h) }))
+      tags: tagSrc, authors: authorSrc.map((a) => ({ name: a.name, n: a.n, top: a.top, bg: bg(a.h) })),
+      views: [['res', '검색 결과'], ['panel', '검색창을 눌렀을 때']].map((v) => ({ label: v[1], cls: (st.view === 'panel') === (v[0] === 'panel') ? 'gc on' : 'gc', pick: () => this.setState({ view: v[0] }) })),
+      panel: st.view === 'panel', results: st.view !== 'panel' && total > 0,
+      recents: rec.map((w, i) => ({ word: w, pick: () => this.setState({ q: w, view: 'res' }), del: () => this.setState({ rec: rec.filter((x, j) => j !== i) }) })), hasRecent: rec.length > 0, noRecent: rec.length === 0, clearRecent: () => this.setState({ rec: [] }),
+      suggests: ['회귀', '서고', '궁중 로맨스', '헌터물', '완결 추천'].map((w, i) => ({ word: w, rank: String(i + 1), pick: () => this.setState({ q: w, view: 'res' }) }))
     };
   }
 }

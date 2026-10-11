@@ -184,6 +184,15 @@
       "title": "21. 검색 결과 (작품·태그·작가)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "AuthorPage.dc.html": {
+      "x": 1400,
+      "y": 15300,
+      "w": 1280,
+      "h": 1100,
+      "title": "22. 작가 페이지 (작품 상세·검색 결과에서 진입)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -207,7 +216,8 @@
     "Library.dc.html",
     "Series.dc.html",
     "HallOfFame.dc.html",
-    "Search.dc.html"
+    "Search.dc.html",
+    "AuthorPage.dc.html"
   ],
   "notes": {
     "t1": {

@@ -55,7 +55,7 @@ button{font-family:inherit;cursor:pointer}
     <div class="chips">
       <sc-for list="{{entries}}" as="e"><button class="{{e.cls}}" type="button" onClick="{{e.pick}}" style="font-family:inherit">{{e.label}}</button></sc-for>
     </div>
-    <span class="k">충전소는 헤더의 + 버튼, 뷰어·작품 상세의 결제 중 잔액 부족, 정주행 중 잔액 소진에서 같은 모달로 열려요. 결제 수단·승인은 Toss 연동 전이라 화면만 있어요.</span>
+    <span class="k">충전소는 헤더의 + 버튼, 뷰어·작품 상세의 결제 중 잔액 부족, 정주행 중 잔액 소진에서 같은 모달로 열려요. 결제 수단·승인은 Toss 연동 전이라 화면만 있어요. 묶음과 결제 수단은 화면에 고정된 값이 아니라 운영에서 관리하는 목록이라, 이벤트 묶음·기간 한정 라벨·새 결제 수단을 코드 수정 없이 추가·교체할 수 있어요(아래 이벤트 묶음이 예시).</span>
   </div>
   <div class="ghost"><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div></div>
 
@@ -116,7 +116,7 @@ class Component extends DCLogic {
     const balance = st.balance === undefined ? (entry === 'shortage' ? 4 : 1500) : st.balance;
     const need = 10;
     const fmt = (n) => n.toLocaleString('ko-KR');
-    const price = pack === 100 ? 1000 : 5000;
+    const price = pack === 100 ? 1000 : pack === 550 ? 5000 : 10000;
     const setEntry = (e) => () => this.setState({ entry: e, view: 'select', open: true, balance: e === 'shortage' ? 4 : 1500 });
     const entries = [
       { key: 'header', label: '헤더 + 버튼으로 열기' },
@@ -130,12 +130,14 @@ class Component extends DCLogic {
     }));
     const packs = [
       { v: 100, name: '100 토큰', per: '1토큰 10원', price: '1,000원', badge: '' },
-      { v: 550, name: '550 토큰', per: '1토큰 약 9.1원 · 50토큰 보너스', price: '5,000원', badge: '보너스' }
+      { v: 550, name: '550 토큰', per: '1토큰 약 9.1원 · 50토큰 보너스', price: '5,000원', badge: '보너스' },
+      { v: 1200, name: '1,200 토큰', per: '1토큰 약 8.3원 · 200토큰 이벤트 보너스 · 10월 31일까지', price: '10,000원', badge: '이벤트' }
     ].map((p) => ({ name: p.name, per: p.per, price: p.price, badge: p.badge, cls: p.v === pack ? 'pack on' : 'pack', pick: () => this.setState({ pack: p.v }) }));
     const methods = [
       { v: 'card', name: '신용·체크카드' },
       { v: 'kakao', name: '카카오페이' },
-      { v: 'toss', name: '토스페이' }
+      { v: 'toss', name: '토스페이' },
+      { v: 'phone', name: '휴대폰 결제 (예시: 나중에 추가되는 수단)' }
     ].map((m) => ({ name: m.name, cls: m.v === method ? 'pm on' : 'pm', pick: () => this.setState({ method: m.v }) }));
     return {
       accent: this.props.accent ?? '#4f46e5',
