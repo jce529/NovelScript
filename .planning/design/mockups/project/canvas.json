@@ -139,6 +139,51 @@
       "h": 1500,
       "title": "16. 빈 상태·볼 수 없음 모음",
       "expand": "fill"
+    },
+    "TokenCharge.dc.html": {
+      "x": 0,
+      "y": 12200,
+      "w": 1280,
+      "h": 900,
+      "title": "17. 토큰 충전소 (선택·완료·실패)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Library.dc.html": {
+      "x": 1400,
+      "y": 12200,
+      "w": 1280,
+      "h": 1000,
+      "title": "18. 내서재 (이어 읽기·선호작·알림 구독·소장함)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Series.dc.html": {
+      "x": 0,
+      "y": 13500,
+      "w": 1280,
+      "h": 1500,
+      "title": "19. 무료·유료 연재 목록 (서브 행: 전체·신작·인기·완결)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "HallOfFame.dc.html": {
+      "x": 1400,
+      "y": 13500,
+      "w": 1280,
+      "h": 1500,
+      "title": "20. 명예의 전당 (리뷰 카드)·리뷰 작성 폼",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Search.dc.html": {
+      "x": 0,
+      "y": 15300,
+      "w": 1280,
+      "h": 1300,
+      "title": "21. 검색 결과 (작품·태그·작가)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -157,7 +202,12 @@
     "AdminComments.dc.html",
     "AccountSettings.dc.html",
     "AccountSettingsMobile.dc.html",
-    "EmptyStates.dc.html"
+    "EmptyStates.dc.html",
+    "TokenCharge.dc.html",
+    "Library.dc.html",
+    "Series.dc.html",
+    "HallOfFame.dc.html",
+    "Search.dc.html"
   ],
   "notes": {
     "t1": {
@@ -214,6 +264,13 @@
       "text": "빈 상태",
       "kind": "title1",
       "maxW": 1790
+    },
+    "t8": {
+      "x": 0,
+      "y": 11950,
+      "text": "독자 영역 마무리",
+      "kind": "title1",
+      "maxW": 2680
     }
   },
   "designSystems": []

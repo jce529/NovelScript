@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>토큰 충전소</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.bar{max-width:1152px;margin:0 auto;padding:20px 16px 0;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:13px;color:#52525b;padding:7px 14px;border-radius:8px;border:1px solid #e4e4e7;background:#fff}
+.chip.on{background:#18181b;color:#fff;border-color:#18181b;font-weight:600}
+.k{font-size:12px;color:#71717a}
+.ghost{max-width:1152px;margin:16px auto 0;padding:0 16px;box-sizing:border-box;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;opacity:0.5}
+.gh{height:210px;border-radius:12px;background:#e4e4e7}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45)}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:#fff;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.pack{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;padding:12px 14px;border-radius:12px;border:1px solid #d4d4d8;background:#fff;text-align:left;color:#18181b}
+.pack.on{border-color:#4f46e5;background:#eef2ff;box-shadow:0 0 0 1px #4f46e5 inset}
+.pn{font-size:17px;font-weight:700}
+.pb{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#e0e7ff;color:#3730a3}
+.pm{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;font-size:14px;font-weight:600;color:#27272a;text-align:left}
+.pm.on{border-color:#4f46e5;background:#eef2ff;box-shadow:0 0 0 1px #4f46e5 inset}
+.dot{width:16px;height:16px;border-radius:999px;border:2px solid #a1a1aa;box-sizing:border-box;flex-shrink:0}
+.pm.on .dot{border-color:#4f46e5;background:radial-gradient(#4f46e5 45%,#fff 50%)}
+.btn{height:48px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:15px;font-weight:700;padding:0 16px}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.note{background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.55}
+.sum{background:#f4f4f5;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3f3f46}
+.sum div{display:flex;justify-content:space-between}
+.ic{width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:900px">
+  <header class="hd">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span style="flex-grow:1"></span>
+    <div class="tok"><span>{{balText}} 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <div class="bar">
+    <span class="k">목업 보기 전환 (실제 화면에는 없는 컨트롤)</span>
+    <div class="chips">
+      <sc-for list="{{entries}}" as="e"><button class="{{e.cls}}" type="button" onClick="{{e.pick}}" style="font-family:inherit">{{e.label}}</button></sc-for>
+    </div>
+    <span class="k">충전소는 헤더의 + 버튼, 뷰어·작품 상세의 결제 중 잔액 부족, 정주행 중 잔액 소진에서 같은 모달로 열려요. 결제 수단·승인은 Toss 연동 전이라 화면만 있어요.</span>
+  </div>
+  <div class="ghost"><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div></div>
+
+  <sc-if value="{{open}}" hint-placeholder-val="{{true}}">
+    <div class="scrim" onClick="{{closeAll}}"></div>
+    <div class="dlg">
+      <sc-if value="{{isSelect}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <sc-if value="{{shortage}}" hint-placeholder-val="{{false}}"><span style="font-size:12px;font-weight:700;color:#b45309">토큰이 부족해요</span></sc-if>
+            <span style="font-size:20px;font-weight:700">토큰 충전</span>
+            <span style="font-size:13px;color:#52525b">{{subText}}</span>
+          </div>
+          <button type="button" aria-label="닫기" onClick="{{closeAll}}" style="width:44px;height:44px;border:0;background:transparent;font-size:22px;color:#52525b">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{packs}}" as="p"><button class="{{p.cls}}" type="button" onClick="{{p.pick}}"><div style="display:flex;flex-direction:column;gap:2px"><span class="pn">{{p.name}}</span><span style="font-size:12px;color:#52525b">{{p.per}}</span></div><div style="display:flex;align-items:center;gap:8px"><sc-if value="{{p.badge}}" hint-placeholder-val="{{false}}"><span class="pb">{{p.badge}}</span></sc-if><span style="font-size:15px;font-weight:700">{{p.price}}</span></div></button></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:13px;font-weight:700;color:#3f3f46">결제 수단</span>
+          <sc-for list="{{methods}}" as="m"><button class="{{m.cls}}" type="button" onClick="{{m.pick}}"><span class="dot"></span>{{m.name}}</button></sc-for>
+        </div>
+        <div class="sum">
+          <div><span>충전 토큰</span><b>{{sumTok}}</b></div>
+          <div><span>충전 후 잔액</span><b>{{sumAfter}}</b></div>
+          <div style="border-top:1px solid #e4e4e7;padding-top:6px;color:#18181b;font-size:15px"><span>결제 금액</span><b>{{sumPrice}}</b></div>
+        </div>
+        <button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{pay}}">{{sumPrice}} 결제하기</button>
+        <span style="font-size:11px;color:#71717a;line-height:1.5;text-align:center">결제하면 이용약관과 환불 정책에 동의한 것으로 봐요. 사용하지 않은 토큰의 환불 기준은 환불 정책에서 확인할 수 있어요.</span>
+      </sc-if>
+
+      <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+        <div class="ic" style="background:#dcfce7;color:#166534"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></div>
+        <div style="text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-size:20px;font-weight:700">충전이 끝났어요</span><span style="font-size:14px;color:#52525b">{{doneText}}</span></div>
+        <div class="sum"><div><span>충전</span><b>{{sumTok}}</b></div><div><span>현재 잔액</span><b>{{sumAfter}}</b></div></div>
+        <sc-if value="{{back}}" hint-placeholder-val="{{false}}"><button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{closeAll}}">결제하던 회차로 돌아가기</button></sc-if>
+        <sc-if value="{{notBack}}" hint-placeholder-val="{{true}}"><button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{closeAll}}">확인</button></sc-if>
+      </sc-if>
+
+      <sc-if value="{{isFail}}" hint-placeholder-val="{{false}}">
+        <div class="ic" style="background:#fee2e2;color:#991b1b"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 7v6M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <div style="text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-size:20px;font-weight:700">결제하지 못했어요</span><span style="font-size:14px;color:#52525b">결제가 승인되지 않았어요. 토큰은 충전되지 않았고 금액도 청구되지 않아요.</span></div>
+        <div style="display:flex;gap:8px"><button class="btn" type="button" style="flex:1" onClick="{{closeAll}}">닫기</button><button class="btn p" type="button" style="flex:1;background:{{accent}};border-color:{{accent}}" onClick="{{retry}}">다시 시도</button></div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const entry = st.entry || 'header';
+    const view = st.view || 'select';
+    const open = st.open !== false;
+    const pack = st.pack || 550;
+    const method = st.method || 'card';
+    const balance = st.balance === undefined ? (entry === 'shortage' ? 4 : 1500) : st.balance;
+    const need = 10;
+    const fmt = (n) => n.toLocaleString('ko-KR');
+    const price = pack === 100 ? 1000 : 5000;
+    const setEntry = (e) => () => this.setState({ entry: e, view: 'select', open: true, balance: e === 'shortage' ? 4 : 1500 });
+    const entries = [
+      { key: 'header', label: '헤더 + 버튼으로 열기' },
+      { key: 'shortage', label: '결제 중 잔액 부족으로 열기' },
+      { key: 'done', label: '충전 완료' },
+      { key: 'fail', label: '결제 실패' }
+    ].map((e) => ({
+      label: e.label,
+      cls: (e.key === 'done' ? (view === 'done') : e.key === 'fail' ? (view === 'fail') : (entry === e.key && view === 'select')) ? 'chip on' : 'chip',
+      pick: e.key === 'done' ? () => this.setState({ view: 'done', open: true, balance: (entry === 'shortage' ? 4 : 1500) + pack }) : e.key === 'fail' ? () => this.setState({ view: 'fail', open: true }) : setEntry(e.key)
+    }));
+    const packs = [
+      { v: 100, name: '100 토큰', per: '1토큰 10원', price: '1,000원', badge: '' },
+      { v: 550, name: '550 토큰', per: '1토큰 약 9.1원 · 50토큰 보너스', price: '5,000원', badge: '보너스' }
+    ].map((p) => ({ name: p.name, per: p.per, price: p.price, badge: p.badge, cls: p.v === pack ? 'pack on' : 'pack', pick: () => this.setState({ pack: p.v }) }));
+    const methods = [
+      { v: 'card', name: '신용·체크카드' },
+      { v: 'kakao', name: '카카오페이' },
+      { v: 'toss', name: '토스페이' }
+    ].map((m) => ({ name: m.name, cls: m.v === method ? 'pm on' : 'pm', pick: () => this.setState({ method: m.v }) }));
+    return {
+      accent: this.props.accent ?? '#4f46e5',
+      entries: entries, packs: packs, methods: methods, open: open,
+      balText: fmt(balance),
+      shortage: entry === 'shortage',
+      subText: entry === 'shortage' ? '보유 ' + fmt(balance) + ' 토큰 · 이 회차를 소장하려면 ' + need + ' 토큰이 필요해요' : '보유 ' + fmt(balance) + ' 토큰',
+      isSelect: view === 'select', isDone: view === 'done', isFail: view === 'fail',
+      sumTok: fmt(pack) + ' 토큰', sumPrice: fmt(price) + '원', sumAfter: fmt(view === 'done' ? balance : balance + pack) + ' 토큰',
+      back: entry === 'shortage', notBack: entry !== 'shortage',
+      doneText: entry === 'shortage' ? '결제하던 회차로 돌아가 이어서 소장·대여할 수 있어요.' : '충전한 토큰은 바로 쓸 수 있어요.',
+      pay: () => this.setState({ view: 'done', balance: balance + pack }),
+      retry: () => this.setState({ view: 'select' }),
+      closeAll: () => this.setState({ open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>명예의 전당·리뷰 작성</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.hd{background:#fff}
+.hdi{max-width:1152px;margin:0 auto;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ib{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{border-top:1px solid #f1f1f3}
+.pti,.sti{max-width:1152px;margin:0 auto;padding:0 8px;box-sizing:border-box;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 16px;background:transparent;border-top:0;border-left:0;border-right:0;font-family:inherit;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{background:#fafafb;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7}
+.s1{font-size:14px;color:#52525b;padding:0 12px;min-height:44px;background:transparent;border:0;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.s1.on{color:#3730a3;font-weight:700}
+.wrap{max-width:1152px;margin:0 auto;padding:28px 16px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:0.08em;color:#71717a;text-transform:uppercase}
+.h2{margin:0;font-size:22px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:13px;color:#52525b;line-height:1.5}
+.gc{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#52525b;padding:7px 14px;border-radius:8px;white-space:nowrap;flex-shrink:0;background:#fff;border:1px solid #e4e4e7}
+.gc.on{background:#18181b;color:#fff;font-weight:600;border-color:#18181b}
+.tag{font-size:13px;color:#27272a;padding:7px 14px;border:1px solid #d4d4d8;border-radius:8px;white-space:nowrap;background:#fff}
+.sel{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#27272a;padding:8px 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;white-space:nowrap}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cv{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden}
+.num{position:absolute;left:0;top:0;min-width:28px;height:28px;background:rgba(0,0,0,0.6);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 8px;box-sizing:border-box}
+.trust{position:absolute;right:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#18181b;color:#fff}
+.t{font-size:14px;font-weight:600;color:#18181b;line-height:1.35}
+.au{font-size:12px;color:#71717a}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.btn{font-size:13px;font-weight:600;padding:9px 18px;border-radius:8px;border:1px solid #d4d4d8;background:#fff;color:#27272a}
+.st2{position:absolute;left:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:#27272a}
+.pr{font-size:12px;font-weight:700;color:#3730a3}
+.rv{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:16px;display:flex;gap:16px}
+.rvc{width:84px;aspect-ratio:3/4;border-radius:8px;flex-shrink:0}
+.stars{color:#b45309;font-size:14px;letter-spacing:1px}
+.q{font-size:14px;line-height:1.65;color:#27272a;margin:0}
+.crit{background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#312e81;line-height:1.55}
+.lk{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.lk.on{background:#eef2ff;border-color:#4f46e5;color:#3730a3}
+.cta{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #4f46e5;background:#4f46e5;color:#fff;font-size:13px;font-weight:700;display:inline-flex;align-items:center;font-family:inherit;cursor:pointer;white-space:nowrap}
+.cta.o{background:#fff;color:#3730a3}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45)}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(480px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:#fff;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.star-b{width:44px;height:44px;border:0;background:transparent;font-size:28px;color:#d4d4d8;font-family:inherit;cursor:pointer;padding:0}
+.star-b.on{color:#b45309}
+.ta{width:100%;min-height:140px;box-sizing:border-box;border-radius:10px;border:1px solid #d4d4d8;padding:12px;font-size:14px;line-height:1.6;font-family:inherit;resize:vertical}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:40px;max-width:360px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+@media (max-width:640px){.rv{flex-direction:column}.rvc{width:64px}}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1500px">
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="Home.dc.html">NovelScript</a>
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500 토큰</span><a class="plus" href="TokenCharge.dc.html" style="background:{{accent}}" aria-label="토큰 충전">+</a></div>
+      <button class="ib" type="button" aria-label="검색" style="width:44px;height:44px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt" style="background:#fff"><div class="pti"><a class="p1" href="Series.dc.html">무료연재</a><a class="p1" href="Series.dc.html">유료연재</a><a class="p1 on" href="Ranking.dc.html">랭킹</a><a class="p1" href="Library.dc.html">내서재</a></div></nav>
+    <nav class="st"><div class="sti"><a class="s1" href="Ranking.dc.html">주간 랭킹</a><a class="s1" href="Ranking.dc.html">루키 쿼터존</a><a class="s1 on" href="HallOfFame.dc.html">명예의 전당</a><a class="s1" href="Ranking.dc.html">완결작</a></div></nav>
+  </header>
+
+  <main class="wrap" style="max-width:860px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span class="eyebrow">Hall of Fame</span>
+      <h1 class="h2">명예의 전당</h1>
+      <p class="sub">독자들이 남긴 리뷰 중 우수 리뷰로 뽑힌 글이에요. 리뷰에서 마음에 든 작품을 처음부터 읽어 보세요.</p>
+    </div>
+
+    <div class="crit">
+      <b>우수 리뷰는 이렇게 뽑혀요 (임시안)</b>
+      <span>· 작성자가 리뷰 대상 작품을 3화 이상 읽은 뒤에 쓴 글</span>
+      <span>· 본문 50자 이상, 광고·욕설·스포일러 미표시 글은 제외</span>
+      <span>· 도움이 됐어요 수가 일정 이상이면 매주 월요일에 선정</span>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none"><sc-for list="{{sorts}}" as="s"><button class="{{s.cls}}" type="button" onClick="{{s.pick}}">{{s.label}}</button></sc-for></div>
+      <button class="cta" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{openForm}}">리뷰 작성</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <sc-for list="{{reviews}}" as="r" hint-placeholder-count="4">
+        <article class="rv">
+          <a href="WorkDesktop.dc.html"><div class="rvc" style="background:{{r.bg}}"></div></a>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline">
+              <a href="WorkDesktop.dc.html" class="t" style="font-size:16px">{{r.work}}</a>
+              <span class="au">{{r.who}} · {{r.when}}</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="stars" aria-label="별점 {{r.score}}점">{{r.stars}}</span><span class="badge">{{r.read}}화까지 읽음</span><sc-if value="{{r.spoiler}}" hint-placeholder-val="{{false}}"><span class="badge" style="background:#fef3c7;color:#854d0e">스포일러 포함</span></sc-if></div>
+            <p class="q">{{r.text}}</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="{{r.likeCls}}" type="button" onClick="{{r.like}}">도움이 됐어요 {{r.likes}}</button>
+              <button class="lk" type="button" style="color:#71717a" onClick="{{r.report}}">신고</button>
+              <span style="flex-grow:1"></span>
+              <a class="cta" href="ViewerMobile.dc.html" style="background:{{accent}};border-color:{{accent}}">{{r.cta}}</a>
+            </div>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    <p class="sub">리뷰 하이라이트의 읽기 버튼은 `1화부터 정주행하기` 또는 `해당 에피소드 시작부터 읽기`만 있어요. 중간 회차로 바로 이동하지 않아요.</p>
+  </main>
+
+  <sc-if value="{{showForm}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeForm}}"></div>
+    <div class="dlg">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:18px;font-weight:700">리뷰 작성</span><span class="au">달빛 서고 · 12화까지 읽음</span></div><button type="button" aria-label="닫기" onClick="{{closeForm}}" style="width:44px;height:44px;border:0;background:transparent;font-size:22px;color:#52525b;cursor:pointer">×</button></div>
+      <div><span class="au" style="font-weight:700">별점</span><div><sc-for list="{{starBtns}}" as="b"><button class="{{b.cls}}" type="button" aria-label="{{b.n}}점" onClick="{{b.pick}}">★</button></sc-for></div></div>
+      <div><label class="au" style="font-weight:700" for="rt">리뷰 내용</label><textarea id="rt" class="ta" placeholder="작품을 읽고 느낀 점을 남겨 주세요. (50자 이상)" onChange="{{onText}}">{{text}}</textarea><div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px"><span style="color:{{lenColor}}">{{lenHint}}</span><span class="au">{{len}} / 1000</span></div></div>
+      <button class="{{spCls}}" type="button" onClick="{{toggleSp}}" style="text-align:left;min-height:44px">{{spLabel}}</button>
+      <div class="crit" style="font-size:12px">닉네임이 공개돼요 (익명 불가). 도움이 됐어요를 많이 받으면 우수 리뷰로 뽑혀 명예의 전당에 올라가요. 3화 이상 읽어야 쓸 수 있어요.</div>
+      <div style="display:flex;gap:8px"><button class="lk" type="button" style="flex:1" onClick="{{closeForm}}">취소</button><button class="cta" type="button" style="flex:1;justify-content:center;background:{{accent}};border-color:{{accent}}" onClick="{{submit}}">등록</button></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const sort = st.sort || 'best';
+    const liked = st.liked || {};
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2200); };
+    const sorts = [['best', '선정순'], ['new', '최신순'], ['like', '도움순']].map((s) => ({ label: s[1], cls: sort === s[0] ? 'gc on' : 'gc', pick: () => this.setState({ sort: s[0] }) }));
+    const rs = [
+      { work: '열세 번째 계절', who: '밤독서', when: '3일 전', score: 5, read: 13, likes: 128, spoiler: false, text: '계절이 바뀔 때마다 한 사람이 사라지는 설정이 처음엔 낯설었는데, 7화에서 모든 단서가 한 줄로 이어지는 순간 소름이 돋았어요. 끝까지 읽고 나면 1화를 다시 읽게 돼요.', start: 1, h: 160 },
+      { work: '달빛 서고', who: '책벌레서연', when: '1주 전', score: 4, read: 12, likes: 96, spoiler: false, text: '서고가 살아 움직이는 묘사가 좋아요. 문장이 짧고 호흡이 좋아서 출퇴근길에 읽기 편했어요. 중반 전개가 조금 느린 게 아쉽지만 12화의 반전으로 만회돼요.', start: 1, h: 262 },
+      { work: '북쪽 별의 서기관', who: '느린독자', when: '2주 전', score: 5, read: 25, likes: 74, spoiler: true, text: '8화부터 이야기의 방향이 완전히 바뀌는데, 앞부분에 깔아 둔 복선이 전부 회수돼요. 복선 회수를 좋아하는 분께 강력 추천해요.', start: 8, h: 210 }
+    ];
+    const order = rs.slice();
+    if (sort === 'new') order.sort((a, b) => a.when.length - b.when.length);
+    if (sort === 'like') order.sort((a, b) => b.likes - a.likes);
+    const reviews = order.map((r) => {
+      const on = !!liked[r.work];
+      return { work: r.work, who: r.who, when: r.when, score: r.score, stars: '★★★★★'.slice(0, r.score) + '☆☆☆☆☆'.slice(0, 5 - r.score), read: r.read, spoiler: r.spoiler, text: r.text, bg: bg(r.h),
+        likes: r.likes + (on ? 1 : 0), likeCls: on ? 'lk on' : 'lk',
+        like: () => { const n = Object.assign({}, liked); n[r.work] = !on; this.setState({ liked: n }); },
+        report: () => say('신고 사유 선택 창이 열려요. (댓글 신고와 같은 사유)'),
+        cta: r.start === 1 ? '1화부터 정주행하기' : r.start + '화 시작부터 읽기' };
+    });
+    const score = st.score || 0;
+    const text = st.text || '';
+    const len = text.length;
+    const tooShort = len > 0 && len < 50;
+    const sp = st.sp === true;
+    return {
+      accent: this.props.accent ?? '#4f46e5', sorts: sorts, reviews: reviews,
+      showForm: st.showForm === true, openForm: () => this.setState({ showForm: true }), closeForm: () => this.setState({ showForm: false }),
+      starBtns: [1, 2, 3, 4, 5].map((n) => ({ n: n, cls: n <= score ? 'star-b on' : 'star-b', pick: () => this.setState({ score: n }) })),
+      text: text, len: len, onText: (e) => this.setState({ text: e.target.value }),
+      lenHint: len === 0 ? '50자 이상 입력해 주세요.' : tooShort ? (50 - len) + '자 더 입력해 주세요.' : '좋아요, 등록할 수 있어요.',
+      lenColor: tooShort ? '#b91c1c' : '#52525b',
+      spCls: sp ? 'lk on' : 'lk', spLabel: (sp ? '☑ ' : '☐ ') + '스포일러가 포함돼 있어요 (목록에서 가려서 보여줘요)', toggleSp: () => this.setState({ sp: !sp }),
+      submit: () => { if (!score) { say('별점을 선택해 주세요.'); return; } if (len < 50) { say('리뷰는 50자 이상 써 주세요.'); return; } this.setState({ showForm: false, score: 0, text: '', sp: false }); say('리뷰를 등록했어요. 도움이 됐어요를 받으면 우수 리뷰로 뽑힐 수 있어요.'); },
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

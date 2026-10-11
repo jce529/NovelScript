@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내서재</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hd{background:#fff}
+.hdi{max-width:1152px;margin:0 auto;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ib{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{border-top:1px solid #f1f1f3;background:#fff}
+.pti,.sti{max-width:1152px;margin:0 auto;padding:0 8px;box-sizing:border-box;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 16px;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{background:#fafafb;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7}
+.s1{font-size:14px;color:#52525b;padding:0 12px;min-height:44px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;border:0;background:transparent}
+.s1.on{color:#3730a3;font-weight:700}
+.wrap{max-width:1152px;margin:0 auto;padding:24px 16px 64px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px}
+.h2{margin:0;font-size:22px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:13px;color:#52525b;line-height:1.5}
+.gc{font-size:13px;color:#52525b;padding:0 14px;min-height:36px;display:inline-flex;align-items:center;border-radius:8px;white-space:nowrap;flex-shrink:0;background:#fff;border:1px solid #e4e4e7}
+.gc.on{background:#18181b;color:#fff;font-weight:600;border-color:#18181b}
+.row{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:12px;display:flex;gap:14px;align-items:center}
+.cv{width:64px;aspect-ratio:3/4;border-radius:8px;flex-shrink:0}
+.t{font-size:15px;font-weight:700;color:#18181b}
+.au{font-size:12px;color:#71717a}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.new{background:#e0e7ff;color:#3730a3}
+.badge.gone{background:#f4f4f5;color:#71717a}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:14px;font-weight:600;white-space:nowrap}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.btn.dis{background:#f4f4f5;color:#a1a1aa;border-color:#e4e4e7;cursor:not-allowed}
+.bar{height:6px;border-radius:999px;background:#e4e4e7;overflow:hidden}
+.bar i{display:block;height:100%;background:#4f46e5}
+.sw{width:48px;height:28px;border-radius:999px;border:0;background:#d4d4d8;position:relative;padding:0;flex-shrink:0}
+.sw.on{background:#4f46e5}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:999px;background:#fff;transition:left .15s}
+.sw.on i{left:23px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.gv{position:relative;aspect-ratio:3/4;border-radius:8px}
+.nb{position:absolute;right:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#4f46e5;color:#fff}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.4)}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(380px,calc(100vw - 32px));box-sizing:border-box;background:#fff;border-radius:18px;padding:22px 20px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:40px;max-width:360px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+@media (max-width:640px){.row{flex-wrap:wrap}.act{width:100%}}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1000px">
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="Home.dc.html">NovelScript</a>
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500 토큰</span><a class="plus" href="TokenCharge.dc.html" style="background:{{accent}}" aria-label="토큰 충전">+</a></div>
+      <button class="ib" type="button" aria-label="검색"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt"><div class="pti"><a class="p1" href="Series.dc.html">무료연재</a><a class="p1" href="Series.dc.html">유료연재</a><a class="p1" href="Ranking.dc.html">랭킹</a><a class="p1 on" href="Library.dc.html">내서재</a></div></nav>
+    <nav class="st"><div class="sti"><sc-for list="{{tabs}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div></nav>
+  </header>
+
+  <main class="wrap">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <h1 class="h2">{{title}}</h1>
+      <p class="sub">{{desc}}</p>
+    </div>
+
+    <sc-if value="{{isRead}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{reads}}" as="r">
+          <div class="row">
+            <div class="cv" style="background:{{r.bg}}"></div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="t">{{r.title}}</span><sc-if value="{{r.gone}}" hint-placeholder-val="{{false}}"><span class="badge gone">볼 수 없음</span></sc-if></div>
+              <span class="au">{{r.meta}}</span>
+              <sc-if value="{{r.ok}}" hint-placeholder-val="{{true}}"><div class="bar"><i style="width:{{r.pct}}%"></i></div></sc-if>
+            </div>
+            <div class="act" style="display:flex;gap:8px">
+              <sc-if value="{{r.ok}}" hint-placeholder-val="{{true}}"><a class="btn p" href="ViewerMobile.dc.html" style="display:flex;align-items:center;background:{{accent}};border-color:{{accent}}">이어 읽기</a></sc-if>
+              <sc-if value="{{r.gone}}" hint-placeholder-val="{{false}}"><a class="btn" href="EmptyStates.dc.html" style="display:flex;align-items:center">자세히</a></sc-if>
+              <button type="button" aria-label="이어 읽기 기록 삭제" onClick="{{r.remove}}" style="width:44px;height:44px;border:0;background:transparent;color:#71717a;font-size:22px;line-height:1;padding:0;cursor:pointer">×</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <p class="sub">최근에 읽은 순서예요. 기록을 삭제해도 읽은 진도와 완독 기록은 유지돼요. 숨겨진 회차는 목록에 `볼 수 없음`으로만 표시돼요.</p>
+    </sc-if>
+
+    <sc-if value="{{isFav}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none"><sc-for list="{{favSorts}}" as="s"><button class="{{s.cls}}" type="button" onClick="{{s.pick}}">{{s.label}}</button></sc-for></div>
+      <div class="grid">
+        <sc-for list="{{favs}}" as="w">
+          <a class="card" href="WorkDesktop.dc.html">
+            <div class="gv" style="background:{{w.bg}}"><sc-if value="{{w.fresh}}" hint-placeholder-val="{{false}}"><span class="nb">새 회차</span></sc-if></div>
+            <span class="t" style="font-size:14px">{{w.title}}</span>
+            <span class="au">{{w.meta}}</span>
+          </a>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSub}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{subs}}" as="s">
+          <div class="row">
+            <div class="cv" style="background:{{s.bg}};width:52px"></div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="t">{{s.title}}</span><span class="au">{{s.meta}}</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span class="au" style="color:#3f3f46">{{s.state}}</span><button class="{{s.cls}}" type="button" aria-label="{{s.title}} 새 회차 알림" onClick="{{s.toggle}}"><i></i></button></div>
+          </div>
+        </sc-for>
+      </div>
+      <p class="sub">알림을 끄면 새 회차가 올라와도 알려드리지 않아요. 선호작과 알림 구독은 따로 관리돼요.</p>
+    </sc-if>
+
+    <sc-if value="{{isOwn}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none"><sc-for list="{{ownFilters}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{owns}}" as="o">
+          <div class="row">
+            <div class="cv" style="background:{{o.bg}};width:52px"></div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="t">{{o.title}}</span><span class="au">{{o.ep}}</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:120px"><span style="font-size:13px;font-weight:700;color:{{o.color}}">{{o.state}}</span><sc-if value="{{o.until}}" hint-placeholder-val="{{false}}"><span style="font-size:11px;color:#71717a">{{o.until}}</span></sc-if></div>
+            <button class="btn" type="button" onClick="{{o.open}}">{{o.cta}}</button>
+          </div>
+        </sc-for>
+      </div>
+      <p class="sub">대여 만료 알림은 따로 보내지 않아요. 만료된 회차를 누르면 소장/대여 선택 팝업이 열려요.</p>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{pop}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePop}}"></div>
+    <div class="dlg">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#b91c1c">대여 기간이 끝났어요</span><span style="font-size:18px;font-weight:700">{{popTitle}}</span><span style="font-size:13px;color:#52525b">다시 보려면 소장하거나 대여해 주세요.</span></div>
+      <button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{closePop}}">소장 10토큰</button>
+      <button class="btn" type="button" onClick="{{closePop}}">대여 3토큰 · 7일</button>
+      <button class="btn" type="button" style="border:0;color:#52525b" onClick="{{closePop}}">닫기</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const tab = st.tab || 'read';
+    const favSort = st.favSort || 'upd';
+    const ownF = st.ownF || 'all';
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2200); };
+    const titles = { read: '이어 읽기', fav: '선호작', sub: '알림 구독', own: '소장함' };
+    const descs = {
+      read: '최근에 읽은 작품을 마지막으로 읽은 위치부터 이어서 볼 수 있어요.',
+      fav: '하트를 누른 작품이에요. 새 회차가 올라온 작품에는 표시가 붙어요.',
+      sub: '새 회차 알림을 받는 작품이에요. 작품별로 켜고 끌 수 있어요.',
+      own: '소장하거나 대여한 유료 회차를 작품별로 모아 볼 수 있어요.'
+    };
+    const tabs = ['read', 'fav', 'sub', 'own'].map((k) => ({ label: titles[k], cls: tab === k ? 's1 on' : 's1', pick: () => this.setState({ tab: k }) }));
+
+    const removed = st.removed || {};
+    const reads = [
+      { id: 'a', title: '달빛 서고', meta: '12화 · 2시간 전 · 68% 읽음', pct: 68, h: 262, ok: true },
+      { id: 'b', title: '잿빛 항구의 편지', meta: '7화 · 어제 · 31% 읽음', pct: 31, h: 20, ok: true },
+      { id: 'c', title: '열세 번째 계절', meta: '3화 · 3일 전', pct: 0, h: 160, ok: false },
+      { id: 'd', title: '북쪽 별의 서기관', meta: '25화 · 5일 전 · 100% 읽음', pct: 100, h: 210, ok: true }
+    ].filter((r) => !removed[r.id]).map((r) => ({
+      title: r.title, meta: r.meta, pct: r.pct, bg: bg(r.h), ok: r.ok, gone: !r.ok,
+      remove: () => { const n = Object.assign({}, removed); n[r.id] = true; this.setState({ removed: n }); say('기록을 삭제했어요.'); }
+    }));
+
+    const favSorts = [['upd', '최근 업데이트순'], ['add', '최근 추가순'], ['name', '제목순']].map((s) => ({ label: s[1], cls: favSort === s[0] ? 'gc on' : 'gc', pick: () => this.setState({ favSort: s[0] }) }));
+    const favSrc = [['달빛 서고', '12화 · 어제 업데이트', true, 262], ['소금 길의 약속', '9화 · 3일 전', false, 350], ['유리 탑의 수리공', '12화 · 오늘 업데이트', true, 190], ['밤 열한 시의 편의점', '10화 · 1주 전', false, 120], ['겨울 해바라기', '8화 · 2주 전', false, 300]];
+    const favs = favSrc.map((f) => ({ title: f[0], meta: f[1], fresh: f[2], bg: bg(f[3]) }));
+
+    const subOff = st.subOff || {};
+    const subs = [['달빛 서고', '매주 월·목 연재', 262], ['유리 탑의 수리공', '매주 화·금 연재', 190], ['소금 길의 약속', '완결 · 알림 받을 회차 없음', 350]].map((s, i) => {
+      const on = !subOff[i];
+      return { title: s[0], meta: s[1], bg: bg(s[2]), cls: on ? 'sw on' : 'sw', state: on ? '알림 켜짐' : '알림 꺼짐',
+        toggle: () => { const n = Object.assign({}, subOff); n[i] = on; this.setState({ subOff: n }); say(on ? '새 회차 알림을 껐어요.' : '새 회차 알림을 켰어요.'); } };
+    });
+
+    const ownFilters = [['all', '전체'], ['own', '소장중'], ['rent', '대여중'], ['exp', '대여 만료']].map((f) => ({ label: f[1], cls: ownF === f[0] ? 'gc on' : 'gc', pick: () => this.setState({ ownF: f[0] }) }));
+    const ownSrc = [
+      ['달빛 서고', '13화 · 소장중 회차 5개', 'own', 262],
+      ['달빛 서고', '18화 · 대여', 'rent', 262],
+      ['유리 탑의 수리공', '9화 · 대여', 'exp', 190],
+      ['잿빛 항구의 편지', '11화 · 소장', 'own', 20]
+    ];
+    const stateOf = { own: ['소장중', '#166534', ''], rent: ['대여중', '#3730a3', '10월 18일 21:30 까지'], exp: ['대여 만료', '#b91c1c', ''] };
+    const owns = ownSrc.filter((o) => ownF === 'all' || o[2] === ownF).map((o) => ({
+      title: o[0], ep: o[1], bg: bg(o[3]), state: stateOf[o[2]][0], color: stateOf[o[2]][1], until: stateOf[o[2]][2],
+      cta: o[2] === 'exp' ? '다시 보기' : '읽기',
+      open: () => { if (o[2] === 'exp') this.setState({ pop: true, popTitle: o[0] + ' ' + o[1].split(' · ')[0] }); else say('뷰어로 이동해요.'); }
+    }));
+
+    return {
+      accent: this.props.accent ?? '#4f46e5', tabs: tabs, title: titles[tab], desc: descs[tab],
+      isRead: tab === 'read', isFav: tab === 'fav', isSub: tab === 'sub', isOwn: tab === 'own',
+      reads: reads, favSorts: favSorts, favs: favs, subs: subs, ownFilters: ownFilters, owns: owns,
+      pop: st.pop === true, popTitle: st.popTitle || '', closePop: () => this.setState({ pop: false }),
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>
