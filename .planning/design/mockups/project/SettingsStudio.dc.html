@@ -114,13 +114,18 @@ button{cursor:pointer}
           <sc-for list="{{toggles}}" as="t"><div class="row"><div style="min-width:0"><div class="v">{{t.label}}</div><div class="d">{{t.desc}}</div></div><button class="{{t.cls}}" type="button" role="switch" aria-label="{{t.label}}" onClick="{{t.pick}}"><i></i></button></div></sc-for>
         </section>
         <section class="card">
-          <h2 class="h">유료 회차 기본 가격</h2>
-          <p class="d">발행 설정에서 유료를 고를 때 처음 선택돼 있는 소장 가격이에요. 대여는 소장의 30%(임시).</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{tiers}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
-        </section>
-        <section class="card">
           <h2 class="h">작품별 설정</h2>
-          <sc-for list="{{workRows}}" as="w"><div class="row"><div><div class="v">{{w.title}}</div><div class="d">{{w.meta}}</div></div><div style="display:flex;gap:8px"><a class="btn" href="WorldSettings.dc.html">세계관 공개</a><button class="btn" type="button" onClick="{{w.edit}}">작품 정보 편집</button></div></div></sc-for>
+          <p class="d">회차 기본 가격은 작품마다 따로 정해요. 회차를 유료로 발행할 때 이 가격이 처음 선택돼 있고, 회차마다 바꿀 수도 있어요. 대여 가격은 소장의 30%(임시)예요. 이미 발행한 회차의 가격은 바뀌지 않아요.</p>
+          <sc-for list="{{workRows}}" as="w">
+            <div class="row" style="align-items:flex-start;flex-wrap:wrap">
+              <div style="min-width:180px"><div class="v">{{w.title}}</div><div class="d">{{w.meta}}</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+                <span class="k" style="margin:0">회차 기본 가격(소장) · 대여 {{w.rent}}토큰</span>
+                <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{w.tiers}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+              </div>
+              <div style="display:flex;gap:8px"><a class="btn" href="WorldSettings.dc.html">세계관 공개</a><button class="btn" type="button" onClick="{{w.edit}}">작품 정보 편집</button></div>
+            </div>
+          </sc-for>
         </section>
       </sc-if>
     </div>
@@ -146,7 +151,7 @@ class Component extends DCLogic {
     const pen = st.pen !== undefined ? st.pen : '김서연';
     const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
     const on = Object.assign({ notify: true, comment: true, lore: false, mark: true }, st.on || {});
-    const tier = st.tier || 30;
+    const tiers0 = Object.assign({ mk: 30, sg: 10, dr: 30 }, st.tiers || {});
     const nav = (id, label) => ({ cls: sec === id ? 'ni on' : 'ni', label: label, pick: () => this.setState({ sec: id }) });
     let penHint = '2~20자. 작가 페이지와 작품 상세에 표시돼요.'; let penColor = '#52525b';
     if (pen.length < 2 || pen.length > 20) { penHint = '2~20자로 입력해 주세요.'; penColor = '#b91c1c'; }
@@ -162,8 +167,7 @@ class Component extends DCLogic {
       charge: () => say('토큰 충전소 모달이 열려요. (17번 보드)'),
       pays: [{ what: '토큰 충전 550개', at: '10/09 18:12', how: '카드', amt: '5,000원', state: '완료' }, { what: '토큰 충전 100개', at: '10/01 09:03', how: '카카오페이', amt: '1,000원', state: '완료' }, { what: '토큰 충전 100개', at: '09/18 22:40', how: '카드', amt: '1,000원', state: '실패 · 청구 안 됨' }],
       toggles: TG.map((t) => ({ label: t[1], desc: t[2], cls: on[t[0]] ? 'sw on' : 'sw', pick: () => this.setState({ on: Object.assign({}, on, { [t[0]]: !on[t[0]] }) }) })),
-      tiers: [10, 30, 50, 100].map((n) => ({ cls: tier === n ? 'btn p' : 'btn', label: n + '토큰', pick: () => this.setState({ tier: n }) })),
-      workRows: [['달빛 서고', '연재중 · 12화 · 세계관 공개 5개'], ['잿빛 항구의 밤', '완결 · 48화 · 세계관 공개 2개'], ['새벽의 편지 (초안)', '임시저장 · 3화 · 세계관 공개 0개']].map((w) => ({ title: w[0], meta: w[1], edit: () => say('작품 정보(표지·소개·장르·태그) 편집 화면으로 이동해요.') })),
+      workRows: [['mk', '달빛 서고', '연재중 · 12화 · 세계관 공개 5개'], ['sg', '잿빛 항구의 밤', '완결 · 48화 · 세계관 공개 2개'], ['dr', '새벽의 편지 (초안)', '임시저장 · 3화 · 세계관 공개 0개']].map((w) => ({ title: w[1], meta: w[2], rent: Math.round(tiers0[w[0]] * 0.3), tiers: [10, 30, 50, 100].map((n) => ({ cls: tiers0[w[0]] === n ? 'btn p' : 'btn', label: n + '토큰', pick: () => { this.setState({ tiers: Object.assign({}, tiers0, { [w[0]]: n }) }); say(w[1] + '의 회차 기본 가격을 ' + n + '토큰으로 바꿨어요.'); } })), edit: () => say('작품 정보(표지·소개·장르·태그) 편집 화면으로 이동해요.') })),
       toast: st.toast || ''
     };
   }

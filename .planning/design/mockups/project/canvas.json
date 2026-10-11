@@ -253,6 +253,14 @@
       "title": "29. 통합 설정 허브 (계정·지갑·작품)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "StudioEmptyStates.dc.html": {
+      "x": 1400,
+      "y": 20800,
+      "w": 1280,
+      "h": 2000,
+      "title": "30. 작가·관리자 빈 상태와 AI 호출 실패 모음",
+      "expand": "fill"
     }
   },
   "order": [
@@ -284,7 +292,8 @@
     "Dashboard.dc.html",
     "Economy.dc.html",
     "Earnings.dc.html",
-    "SettingsStudio.dc.html"
+    "SettingsStudio.dc.html",
+    "StudioEmptyStates.dc.html"
   ],
   "notes": {
     "t1": {
