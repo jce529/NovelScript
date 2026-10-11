@@ -54,6 +54,7 @@ button{font-family:inherit}
 .st.read{background:#fff;color:#a1a1aa;border:1px solid #e4e4e7}
 .st.now{background:#e0e7ff;color:#3730a3}
 .st.paid{background:#fef3c7;color:#854d0e}
+.st.exp{background:#fee2e2;color:#b91c1c}
 .st.own{background:#dcfce7;color:#166534}
 .redact{display:inline-block;height:12px;border-radius:3px;background:#27272a;vertical-align:middle}
 .lock{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#52525b;background:#f4f4f5;border-radius:8px;padding:8px 10px}
@@ -134,12 +135,12 @@ button{font-family:inherit}
         <sc-if value="{{c.go}}" hint-placeholder-val="{{true}}"><a class="row" href="ViewerMobile.dc.html">
           <span class="rn">{{c.n}}</span>
           <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex-grow:1"><span class="rt" style="color:{{c.tc}}">{{c.title}}</span><span class="rs">{{c.date}}</span></div>
-          <span class="{{c.cls}}">{{c.label}}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0"><span class="{{c.cls}}">{{c.label}}</span><span style="font-size:10px;color:#71717a">{{c.sub}}</span></div>
         </a></sc-if>
         <sc-if value="{{c.ask}}" hint-placeholder-val="{{false}}"><button class="row" type="button" onClick="{{c.pick}}" style="width:100%;background:transparent;border:0;border-bottom:1px solid #f1f1f3;text-align:left;font-family:inherit;cursor:pointer">
           <span class="rn">{{c.n}}</span>
           <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex-grow:1"><span class="rt" style="color:{{c.tc}}">{{c.title}}</span><span class="rs">{{c.date}}</span></div>
-          <span class="{{c.cls}}">{{c.label}}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0"><span class="{{c.cls}}">{{c.label}}</span><span style="font-size:10px;color:#71717a">{{c.sub}}</span></div>
         </button></sc-if>
       </sc-for>
       <div class="pager">
@@ -259,13 +260,13 @@ class Component extends DCLogic {
     };
     const topup = (add) => this.setState({ bal: bal + add, charge: 0 });
     for (let n = (page - 1) * 10 + 1; n <= Math.min(page * 10, 173); n++) {
-      let kind = 'free', label = '무료';
-      const ow = owned[n] || (n > 12 && n % 5 === 0 ? '소장' : n === 14 ? '대여' : '');
+      let kind = 'free', label = '무료', sub = '';
+      const ow = owned[n] || (n > 12 && n % 5 === 0 ? '소장' : n === 14 ? '대여' : n === 17 ? '만료' : '');
       if (n < 10) { kind = 'read'; label = '읽음'; }
       else if (n === 10) { kind = 'now'; label = '읽는 중'; }
-      else if (n > 12) { if (ow) { kind = 'own'; label = ow + '중'; } else { kind = 'paid'; label = '유료'; } }
-      const go = kind !== 'paid';
-      ch.push({ n: n, title: n + '화 ' + pool[n % 8], date: pad(Math.floor((n - 1) / 30) + 9) + '.' + pad(((n - 1) % 30) + 1), label: label, cls: 'st ' + kind, tc: kind === 'read' ? '#a1a1aa' : '#18181b', go: go, ask: !go, pick: () => this.setState({ pay: n }) });
+      else if (n > 12) { if (ow === '만료') { kind = 'exp'; label = '대여 만료'; } else if (ow === '대여') { kind = 'own'; label = '대여중'; sub = (n === 14 ? '10.18 14:20' : '10.18 18:00') + ' 까지'; } else if (ow) { kind = 'own'; label = '소장중'; } else { kind = 'paid'; label = '유료'; } }
+      const go = kind !== 'paid' && kind !== 'exp';
+      ch.push({ n: n, title: n + '화 ' + pool[n % 8], date: pad(Math.floor((n - 1) / 30) + 9) + '.' + pad(((n - 1) % 30) + 1), label: label, sub: sub, cls: 'st ' + kind, tc: kind === 'read' ? '#a1a1aa' : '#18181b', go: go, ask: !go, pick: () => this.setState({ pay: n }) });
     }
     const lore = [
       { kind: '인물', when: '1화 등장', name: '소연', bg: bg(262), open: true, partial: false, locked: false, unlock: '', text: '서고의 새 사서. 사람의 기억을 책 냄새로 구분한다.' },
