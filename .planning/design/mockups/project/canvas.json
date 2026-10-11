@@ -113,6 +113,24 @@
       "title": "13. 관리자 댓글 신고 처리",
       "expand": "fill",
       "is_interactive": true
+    },
+    "AccountSettings.dc.html": {
+      "x": 0,
+      "y": 9100,
+      "w": 1280,
+      "h": 900,
+      "title": "14. 독자 계정 설정 (닉네임 변경·자동 결제 방식)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AccountSettingsMobile.dc.html": {
+      "x": 1400,
+      "y": 9100,
+      "w": 390,
+      "h": 844,
+      "title": "15. 독자 계정 설정 (모바일)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -128,7 +146,9 @@
     "WorkDesktop.dc.html",
     "ViewerMobile.dc.html",
     "ViewerDesktop.dc.html",
-    "AdminComments.dc.html"
+    "AdminComments.dc.html",
+    "AccountSettings.dc.html",
+    "AccountSettingsMobile.dc.html"
   ],
   "notes": {
     "t1": {
@@ -169,6 +189,13 @@
       "x": 0,
       "y": 7750,
       "text": "관리자",
+      "kind": "title1",
+      "maxW": 1790
+    },
+    "t6": {
+      "x": 0,
+      "y": 8850,
+      "text": "독자 계정 설정",
       "kind": "title1",
       "maxW": 1790
     }
