@@ -217,6 +217,15 @@
       "h": 900,
       "title": "25. 세계관 공개 설정 (공개 여부·등장 회차·잠금·AI 에셋)",
       "is_interactive": true
+    },
+    "Dashboard.dc.html": {
+      "x": 1400,
+      "y": 17900,
+      "w": 1280,
+      "h": 1000,
+      "title": "26. 작가 대시보드 (작품 그리드·통계·경제 관리)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -244,7 +253,8 @@
     "AuthorPage.dc.html",
     "Editor.dc.html",
     "EditorMobile.dc.html",
-    "WorldSettings.dc.html"
+    "WorldSettings.dc.html",
+    "Dashboard.dc.html"
   ],
   "notes": {
     "t1": {
