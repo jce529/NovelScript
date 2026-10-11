@@ -110,7 +110,7 @@
       "y": 8000,
       "w": 1280,
       "h": 820,
-      "title": "13. 관리자 댓글 신고 처리",
+      "title": "13. 관리자 댓글 신고 처리 (탭 구조 반영)",
       "expand": "fill",
       "is_interactive": true
     },
@@ -261,6 +261,33 @@
       "h": 2000,
       "title": "30. 작가·관리자 빈 상태와 AI 호출 실패 모음",
       "expand": "fill"
+    },
+    "AdminReports.dc.html": {
+      "x": 0,
+      "y": 23100,
+      "w": 1280,
+      "h": 820,
+      "title": "31. 관리자 작품·회차 신고 (큐·상세·조치)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminReviews.dc.html": {
+      "x": 1400,
+      "y": 23100,
+      "w": 1280,
+      "h": 820,
+      "title": "32. 관리자 작가 재검토 (블라인드 해제·유지)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AdminSanctions.dc.html": {
+      "x": 2800,
+      "y": 23100,
+      "w": 1280,
+      "h": 820,
+      "title": "33. 관리자 제재 이력 (경고·댓글 정지·계정 정지)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -293,7 +320,10 @@
     "Economy.dc.html",
     "Earnings.dc.html",
     "SettingsStudio.dc.html",
-    "StudioEmptyStates.dc.html"
+    "StudioEmptyStates.dc.html",
+    "AdminReports.dc.html",
+    "AdminReviews.dc.html",
+    "AdminSanctions.dc.html"
   ],
   "notes": {
     "t1": {
@@ -364,6 +394,13 @@
       "text": "작가 영역 — 스튜디오 에디터",
       "kind": "title1",
       "maxW": 1790
+    },
+    "t10": {
+      "x": 0,
+      "y": 22850,
+      "text": "관리자 영역 정리",
+      "kind": "title1",
+      "maxW": 4080
     }
   },
   "designSystems": []

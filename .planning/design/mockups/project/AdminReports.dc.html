@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>관리자 작품·회차 신고</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font-family:inherit}
+button{cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:52px;padding:0 24px;box-sizing:border-box;display:flex;align-items:center;gap:16px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tabs{display:flex;gap:2px;padding:0 24px;background:#fff;border-bottom:1px solid #e4e4e7;overflow-x:auto}
+.tb{font-size:14px;font-weight:600;color:#71717a;padding:12px 16px;border-bottom:2px solid transparent;white-space:nowrap}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px}
+.qi{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:0;border-bottom:1px solid #f1f1f3;background:#fff;text-align:left;width:100%;box-sizing:border-box}
+.qi.on{background:#eef2ff}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.red{background:#fee2e2;color:#991b1b}
+.badge.ind{background:#e0e7ff;color:#3730a3}
+.badge.ok{background:#dcfce7;color:#166534}
+.badge.warn{background:#fef3c7;color:#854d0e}
+.lbl{font-size:12px;font-weight:700;color:#52525b;margin-bottom:6px}
+.opt{height:42px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;padding:0 12px}
+.opt.on{background:#18181b;color:#fff;border-color:#18181b}
+.opt.danger.on{background:#dc2626;border-color:#dc2626}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.box{border:1px solid #d4d4d8;border-radius:10px;padding:10px 12px;min-height:56px;font-size:13px;color:#52525b;line-height:1.55;width:100%;box-sizing:border-box}
+.pb{height:42px;border-radius:9px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;padding:0 20px}
+.msg{font-size:13px;font-weight:600;color:#166534;background:#dcfce7;border-radius:10px;padding:10px 12px}
+.tl{border-left:2px solid #e4e4e7;margin-left:6px;padding-left:16px;display:flex;flex-direction:column;gap:14px}
+.tli{position:relative;display:flex;flex-direction:column;gap:3px}
+.tli:before{content:"";position:absolute;left:-23px;top:5px;width:10px;height:10px;border-radius:999px;background:#a1a1aa}
+</style>
+</helmet>
+<div style="width:1280px;min-height:820px;box-sizing:border-box">
+  <header class="hd"><a class="logo" href="Home.dc.html">NovelScript</a><span style="font-size:13px;color:#52525b">관리자</span><span style="flex-grow:1"></span><span class="av">관</span></header>
+  <nav class="tabs"><a class="tb on" href="AdminReports.dc.html">작품·회차 신고</a><a class="tb" href="AdminComments.dc.html">댓글 신고</a><a class="tb" href="AdminReviews.dc.html">작가 재검토</a><a class="tb" href="AdminSanctions.dc.html">제재 이력</a></nav>
+
+  <div style="display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;padding:20px 24px 40px;align-items:start">
+    <div class="card" style="overflow:hidden">
+      <div style="padding:10px 12px;border-bottom:1px solid #e4e4e7;display:flex;gap:6px"><sc-for list="{{filters}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}" style="height:34px;font-size:12px">{{f.label}}</button></sc-for></div>
+      <sc-for list="{{queue}}" as="q" hint-placeholder-count="4">
+        <button class="{{q.cls}}" type="button" onClick="{{q.pick}}">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge ind">{{q.target}}</span><span class="badge red">{{q.reason}}</span><span class="badge">{{q.count}}건 신고</span><span class="badge {{q.stCls}}">{{q.status}}</span></div>
+          <span style="font-size:13px;font-weight:600;color:#18181b">{{q.title}}</span>
+          <span class="sub">작가 {{q.author}} · 최근 신고 {{q.when}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:18px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#71717a">{{sel.target}} 신고 상세</span><span style="font-size:18px;font-weight:700">{{sel.title}}</span></div>
+        <div style="display:flex;gap:6px"><span class="badge {{sel.blindCls}}" style="font-size:12px">{{sel.blind}}</span><span class="badge {{sel.stCls}}" style="font-size:12px">{{sel.status}}</span></div>
+      </div>
+      <div style="background:#f7f7f9;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700">신고 대상 미리보기</span><span style="font-size:14px;line-height:1.65;color:#27272a">{{sel.preview}}</span><a class="sub" style="color:#4f46e5;font-weight:600" href="WorkDesktop.dc.html">원문 보기 ›</a></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+        <div><div class="lbl">신고 내역 ({{sel.count}}건)</div><div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{sel.items}}" as="i"><span>· {{i}}</span></sc-for></div></div>
+        <div><div class="lbl">작가 이력</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">경고 {{sel.warn}}회</span><span class="badge">정지 {{sel.ban}}회</span><span class="badge">다른 신고 {{sel.other}}건</span></div></div>
+      </div>
+      <div><div class="lbl">조치</div><div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{actions}}" as="o"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div></div>
+      <sc-if value="{{needTerm}}" hint-placeholder-val="{{false}}"><div><div class="lbl">정지 기간</div><div style="display:flex;gap:8px"><sc-for list="{{terms}}" as="o"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div></div></sc-if>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+        <div><div class="lbl">조치 사유 (내부)</div><div class="box">{{inner}}</div></div>
+        <div><div class="lbl">공개 사유 (작가에게 표시)</div><div class="box">{{outer}}</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="sub">블라인드·정지는 확인 창을 거쳐 적용돼요. 되돌리려면 `작가 재검토` 또는 `제재 이력`에서 해제해요.</span><button class="pb" type="button" onClick="{{apply}}">조치 확정</button></div>
+      <sc-if value="{{msg}}" hint-placeholder-val="{{false}}"><div class="msg">{{msg}}</div></sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const items = [
+      { id: 1, target: '작품', title: '달빛 서고', reason: '내용 불일치·표절', count: 4, author: '문턱지기', when: '2시간 전', preview: '소개문: “낡은 서고의 사서가 된 소연은…” — 유명 작품 줄거리와 유사하다는 신고.', items: ['내용 불일치·표절 · 3건', '기타 · 1건 (유사 설정 주장)'], warn: 0, ban: 0, other: 1, blind: '공개 중' },
+      { id: 2, target: '회차', title: '열세 번째 계절 · 5화', reason: '선정성', count: 2, author: '북극여우', when: '5시간 전', preview: '5화 중반 묘사 수위가 연령 설정보다 높다는 신고.', items: ['선정성 · 2건'], warn: 1, ban: 0, other: 0, blind: '공개 중' },
+      { id: 3, target: '회차', title: '잿빛 항구의 편지 · 20화', reason: '내용 불일치', count: 6, author: '소금길', when: '어제', preview: '시놉시스와 무관한 광고성 본문이라는 신고.', items: ['내용 불일치 · 6건'], warn: 2, ban: 0, other: 2, blind: '블라인드 중' }
+    ];
+    const done = st.done || {}; const selId = st.sel || 1; const sel = items.find((x) => x.id === selId);
+    const filt = st.filt || 'open'; const act = st.act || 'warn'; const term = st.term || '7일';
+    const stateOf = (id) => (done[id] ? (done[id] === 'dismiss' ? '기각' : '처리됨') : '열림');
+    const list = items.filter((x) => filt === 'all' || (filt === 'open') === !done[x.id]);
+    const acts = [['resolve', '처리 완료'], ['dismiss', '기각'], ['blind', '블라인드'], ['warn', '경고'], ['suspend', '기간 정지'], ['perm', '영구 정지']];
+    const inner = { resolve: '신고 확인 결과 문제 없어 처리 완료.', dismiss: '신고 사유에 해당하지 않아 기각.', blind: '운영 정책 위반으로 노출 차단.', warn: '1차 경고. 반복 시 정지.', suspend: term + ' 정지.', perm: '반복 위반으로 영구 정지.' };
+    const outer = { resolve: '(작가에게 표시되지 않음)', dismiss: '(작가에게 표시되지 않음)', blind: '운영 정책에 따라 이 콘텐츠의 노출이 중단됐어요. 수정 후 재검토를 요청할 수 있어요.', warn: '운영 정책 위반으로 경고드려요.', suspend: '운영 정책 위반으로 ' + term + ' 동안 이용이 제한돼요.', perm: '반복된 정책 위반으로 계정이 영구 정지됐어요.' };
+    return {
+      filters: [['open', '열림'], ['done', '처리됨'], ['all', '전체']].map((f) => ({ label: f[1], cls: filt === f[0] ? 'opt on' : 'opt', pick: () => this.setState({ filt: f[0] }) })),
+      queue: list.map((q) => ({ target: q.target, title: q.title, reason: q.reason, count: q.count, author: q.author, when: q.when, status: stateOf(q.id), stCls: done[q.id] ? 'ok' : 'warn', cls: q.id === selId ? 'qi on' : 'qi', pick: () => this.setState({ sel: q.id, msg: '' }) })),
+      sel: Object.assign({}, sel, { status: stateOf(selId), stCls: done[selId] ? 'ok' : 'warn', blindCls: sel.blind === '공개 중' ? '' : 'red' }),
+      actions: acts.map((a) => ({ label: a[1], cls: (a[0] === act ? 'opt on' : 'opt') + (a[0] === 'perm' || a[0] === 'suspend' || a[0] === 'blind' ? ' danger' : ''), pick: () => this.setState({ act: a[0] }) })),
+      needTerm: act === 'suspend', terms: ['1일', '7일', '30일'].map((t) => ({ label: t, cls: t === term ? 'opt on' : 'opt', pick: () => this.setState({ term: t }) })),
+      inner: inner[act], outer: outer[act], msg: st.msg || '',
+      apply: () => { const d = Object.assign({}, done); d[selId] = act; this.setState({ done: d, msg: '조치가 확정돼 작가에게 알림이 전달됐어요. (' + acts.find((a) => a[0] === act)[1] + (act === 'suspend' ? ' · ' + term : '') + ')' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

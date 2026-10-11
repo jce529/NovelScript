@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>관리자 제재 이력</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font-family:inherit}
+button{cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:52px;padding:0 24px;box-sizing:border-box;display:flex;align-items:center;gap:16px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tabs{display:flex;gap:2px;padding:0 24px;background:#fff;border-bottom:1px solid #e4e4e7;overflow-x:auto}
+.tb{font-size:14px;font-weight:600;color:#71717a;padding:12px 16px;border-bottom:2px solid transparent;white-space:nowrap}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px}
+.qi{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:0;border-bottom:1px solid #f1f1f3;background:#fff;text-align:left;width:100%;box-sizing:border-box}
+.qi.on{background:#eef2ff}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.red{background:#fee2e2;color:#991b1b}
+.badge.ind{background:#e0e7ff;color:#3730a3}
+.badge.ok{background:#dcfce7;color:#166534}
+.badge.warn{background:#fef3c7;color:#854d0e}
+.lbl{font-size:12px;font-weight:700;color:#52525b;margin-bottom:6px}
+.opt{height:42px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;padding:0 12px}
+.opt.on{background:#18181b;color:#fff;border-color:#18181b}
+.opt.danger.on{background:#dc2626;border-color:#dc2626}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.box{border:1px solid #d4d4d8;border-radius:10px;padding:10px 12px;min-height:56px;font-size:13px;color:#52525b;line-height:1.55;width:100%;box-sizing:border-box}
+.pb{height:42px;border-radius:9px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;padding:0 20px}
+.msg{font-size:13px;font-weight:600;color:#166534;background:#dcfce7;border-radius:10px;padding:10px 12px}
+.tl{border-left:2px solid #e4e4e7;margin-left:6px;padding-left:16px;display:flex;flex-direction:column;gap:14px}
+.tli{position:relative;display:flex;flex-direction:column;gap:3px}
+.tli:before{content:"";position:absolute;left:-23px;top:5px;width:10px;height:10px;border-radius:999px;background:#a1a1aa}
+</style>
+</helmet>
+<div style="width:1280px;min-height:820px;box-sizing:border-box">
+  <header class="hd"><a class="logo" href="Home.dc.html">NovelScript</a><span style="font-size:13px;color:#52525b">관리자</span><span style="flex-grow:1"></span><span class="av">관</span></header>
+  <nav class="tabs"><a class="tb" href="AdminReports.dc.html">작품·회차 신고</a><a class="tb" href="AdminComments.dc.html">댓글 신고</a><a class="tb" href="AdminReviews.dc.html">작가 재검토</a><a class="tb on" href="AdminSanctions.dc.html">제재 이력</a></nav>
+
+  <div style="display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;padding:20px 24px 40px;align-items:start">
+    <div class="card" style="overflow:hidden">
+      <div style="padding:12px 14px;border-bottom:1px solid #e4e4e7;display:flex;flex-direction:column;gap:8px"><input class="box" style="min-height:0;height:40px;padding:0 12px" placeholder="닉네임·필명·계정 검색" aria-label="사용자 검색"><div style="display:flex;gap:6px"><sc-for list="{{filters}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}" style="height:32px;font-size:12px;padding:0 10px">{{f.label}}</button></sc-for></div></div>
+      <sc-for list="{{users}}" as="u" hint-placeholder-count="4">
+        <button class="{{u.cls}}" type="button" onClick="{{u.pick}}">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:14px;font-weight:700">{{u.nick}}</span><span class="badge">{{u.role}}</span><span class="badge {{u.stCls}}">{{u.status}}</span></div>
+          <span class="sub">경고 {{u.warn}} · 댓글 정지 {{u.mute}} · 계정 정지 {{u.ban}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:18px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#71717a">사용자 제재 이력</span><span style="font-size:18px;font-weight:700">{{sel.nick}} <span class="badge">{{sel.role}}</span></span></div>
+        <span class="badge {{sel.stCls}}" style="font-size:12px">{{sel.status}}</span>
+      </div>
+      <sc-if value="{{sel.active}}" hint-placeholder-val="{{false}}">
+        <div style="background:#fef3c7;border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <span style="font-size:13px;line-height:1.6;color:#854d0e">현재 제재: <b>{{sel.current}}</b> (만료 {{sel.until}})</span>
+          <div style="display:flex;gap:8px"><button class="opt" type="button" onClick="{{extend}}">기간 변경</button><button class="opt danger on" type="button" onClick="{{lift}}">제재 해제</button></div>
+        </div>
+      </sc-if>
+      <div><div class="lbl">이력 타임라인</div>
+        <div class="tl"><sc-for list="{{timeline}}" as="t"><div class="tli"><div style="display:flex;gap:8px;align-items:center"><span class="badge {{t.cls}}">{{t.kind}}</span><span class="sub">{{t.when}} · {{t.by}}</span></div><span style="font-size:13px;line-height:1.55">{{t.reason}}</span><a class="sub" style="color:#4f46e5;font-weight:600" href="AdminComments.dc.html">근거 신고 보기 ›</a></div></sc-for></div>
+      </div>
+      <sc-if value="{{msg}}" hint-placeholder-val="{{false}}"><div class="msg">{{msg}}</div></sc-if>
+      <span class="sub">제재는 작가·독자 구분 없이 같은 기준으로 기록해요. 해제와 기간 변경도 이력에 남아요.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const base = [
+      { id: 1, nick: '밤새는독자', role: '독자', warn: 1, mute: 1, ban: 0, cur: { kind: '댓글 정지', until: '10.17' }, tl: [{ kind: '댓글 정지', cls: 'warn', when: '10.10', by: '관리자A', reason: '욕설·비하 댓글 5건 신고. 7일 댓글 정지.' }, { kind: '경고', cls: '', when: '09.28', by: '관리자B', reason: '스포일러 댓글 2건. 1차 경고.' }] },
+      { id: 2, nick: '도윤', role: '독자', warn: 2, mute: 1, ban: 0, cur: null, tl: [{ kind: '제재 해제', cls: 'ok', when: '10.05', by: '관리자A', reason: '댓글 정지 기간 만료.' }, { kind: '댓글 정지', cls: 'warn', when: '09.28', by: '관리자A', reason: '광고·도배 댓글. 7일 댓글 정지.' }, { kind: '경고', cls: '', when: '09.20', by: '관리자B', reason: '광고 링크 반복.' }] },
+      { id: 3, nick: '문턱지기', role: '작가', warn: 0, mute: 0, ban: 0, cur: null, tl: [{ kind: '기록 없음', cls: '', when: '—', by: '—', reason: '제재 이력이 없어요.' }] },
+      { id: 4, nick: '소금길', role: '작가', warn: 2, mute: 0, ban: 1, cur: { kind: '계정 정지', until: '10.25' }, tl: [{ kind: '계정 정지', cls: 'red', when: '10.11', by: '관리자B', reason: '광고성 회차 반복 게시. 14일 계정 정지.' }, { kind: '경고', cls: '', when: '10.01', by: '관리자A', reason: '2차 경고.' }, { kind: '경고', cls: '', when: '09.15', by: '관리자A', reason: '1차 경고.' }] }
+    ];
+    const lifted = st.lifted || {}; const extra = st.extra || {};
+    const selId = st.sel || 1; const filt = st.filt || 'all';
+    const active = (u) => !!u.cur && !lifted[u.id];
+    const stOf = (u) => (active(u) ? u.cur.kind + ' 중' : '정상');
+    const list = base.filter((u) => filt === 'all' || (filt === 'active' && active(u)));
+    const u = base.find((x) => x.id === selId);
+    const tl = (extra[selId] || []).concat(u.tl);
+    return {
+      filters: [['all', '전체'], ['active', '제재 중']].map((f) => ({ label: f[1], cls: filt === f[0] ? 'opt on' : 'opt', pick: () => this.setState({ filt: f[0] }) })),
+      users: list.map((x) => ({ nick: x.nick, role: x.role, warn: x.warn, mute: x.mute, ban: x.ban, status: stOf(x), stCls: active(x) ? 'warn' : 'ok', cls: x.id === selId ? 'qi on' : 'qi', pick: () => this.setState({ sel: x.id, msg: '' }) })),
+      sel: { nick: u.nick, role: u.role, status: stOf(u), stCls: active(u) ? 'warn' : 'ok', active: active(u), current: u.cur ? u.cur.kind : '', until: u.cur ? u.cur.until : '' },
+      timeline: tl, msg: st.msg || '',
+      lift: () => { const l = Object.assign({}, lifted); l[selId] = true; const e = Object.assign({}, extra); e[selId] = [{ kind: '제재 해제', cls: 'ok', when: '방금', by: '관리자(나)', reason: '관리자 판단으로 조기 해제.' }]; this.setState({ lifted: l, extra: e, msg: '제재를 해제하고 이력에 남겼어요. 대상 계정에 알림이 전달돼요.' }); },
+      extend: () => this.setState({ msg: '기간 변경 창은 목업에서 생략했어요. 변경 내용도 이력에 남아요.' })
+    };
+  }
+}
+</script>
+</body>
+</html>
