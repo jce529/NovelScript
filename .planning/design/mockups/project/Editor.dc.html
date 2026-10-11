@@ -193,7 +193,7 @@ button{cursor:pointer}
       <span style="font-size:17px;font-weight:700">12화 발행 설정</span>
       <div class="seg"><button class="{{freeCls}}" type="button" onClick="{{setFree}}">무료</button><button class="{{paidCls}}" type="button" onClick="{{setPaid}}">유료</button></div>
       <sc-if value="{{paid}}" hint-placeholder-val="{{false}}">
-        <div><div class="ann" style="margin-bottom:6px">소장 가격(토큰) · 대여 가격은 소장의 30% 기준(임시)</div><div class="seg"><sc-for list="{{tiers}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div></div>
+        <div><div class="ann" style="margin-bottom:6px">소장 가격(토큰) · 대여 가격은 소장의 30% 기준(임시) · 이 작품의 기본값은 30토큰이고 설정 &gt; 작품에서 바꿔요</div><div class="seg"><sc-for list="{{tiers}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div></div>
       </sc-if>
       <span class="ann">발행하면 독자에게 공개되고, 발행 취소하면 다시 임시저장 상태가 돼요. 작가 90% · 플랫폼 10%(잠정).</span>
       <div style="display:flex;gap:8px;justify-content:flex-end"><button class="tb" type="button" onClick="{{closeAll}}" style="height:38px">닫기</button><button class="tb" type="button" onClick="{{unpublish}}" style="height:38px">발행 취소</button><button class="tb p" type="button" onClick="{{publish}}" style="height:38px;background:{{accent}};border-color:{{accent}}">발행하기</button></div>
