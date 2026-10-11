@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>경제 관리 상세</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.top{height:52px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;gap:12px;padding:0 16px;box-sizing:border-box}
+.logo{font-size:16px;font-weight:800;letter-spacing:-0.02em;color:#18181b}
+.crumb{font-size:13px;color:#52525b}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.plus{width:22px;height:22px;border-radius:999px;color:#fff;background:#4f46e5;display:flex;align-items:center;justify-content:center;font-size:15px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.h2{margin:0;font-size:15px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.chip.g{background:#f4f4f5;color:#3f3f46}
+.chip.ok{background:#dcfce7;color:#166534}
+.btn{height:40px;padding:0 14px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.sg{height:34px;padding:0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font-size:12px;font-weight:600;color:#27272a}
+.sg.on{background:#18181b;border-color:#18181b;color:#fff}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:12px;border:1px solid #f1f1f3;border-radius:10px;background:#fafafa}
+.kpi b{font-size:20px;color:#18181b}
+.kpi span{font-size:11px;color:#71717a}
+.bar{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;border:0;background:transparent;padding:0 1px;gap:0}
+.bar.on{background:#eef2ff}
+.leg{display:inline-flex;align-items:center;gap:6px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;background:#fff;color:#27272a}
+.leg.off{color:#a1a1aa;background:#f4f4f5}
+.leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;color:#71717a;font-weight:700;padding:8px 8px;border-bottom:1px solid #e4e4e7;white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid #f4f4f5;color:#27272a;vertical-align:middle}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl{color:#166534;font-weight:700}
+.mn{color:#27272a;font-weight:700}
+.meter{height:8px;border-radius:999px;background:#f4f4f5;overflow:hidden;min-width:80px}
+.meter i{display:block;height:100%;background:#4f46e5}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:30px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="min-height:1500px">
+  <header class="top">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span class="crumb">내 스튜디오 / <a href="Dashboard.dc.html" style="text-decoration:underline">대시보드</a> / <b style="color:#18181b">경제 관리 상세</b></span>
+    <span style="flex-grow:1"></span>
+    <div class="tok"><span>1,500 토큰</span><span class="plus">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <main class="wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div><h1 style="margin:0;font-size:22px;font-weight:700">경제 관리 상세</h1><p class="sub">토큰이 어디에 얼마나 쓰였는지 기간·종류·작품별로 확인해요. 수치는 샘플입니다.</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div class="seg"><sc-for list="{{periods}}" as="p"><button class="{{p.cls}}" type="button" onClick="{{p.pick}}">{{p.label}}</button></sc-for></div>
+        <button class="btn" type="button" onClick="{{csv}}">내역 내려받기 (CSV)</button>
+        <button class="btn p" type="button" onClick="{{charge}}">토큰 충전</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div class="kpi"><b>1,500</b><span>현재 잔액 (토큰)</span></div>
+      <div class="kpi"><b>−{{totUse}}</b><span>{{periodName}} 소모 합계</span></div>
+      <div class="kpi"><b>+{{totCharge}}</b><span>{{periodName}} 충전</span></div>
+      <div class="kpi"><b>+{{totCredit}}</b><span>{{periodName}} 작가 크레딧 (유료 회차)</span></div>
+      <div class="kpi"><b>{{avg}}</b><span>하루 평균 소모</span></div>
+    </div>
+
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div><h2 class="h2">일별 토큰 소모</h2><p class="sub">종류 이름을 눌러 켜고 끌 수 있어요. 막대를 누르면 그날의 상세가 아래에 나와요.</p></div>
+        <div class="seg"><sc-for list="{{legend}}" as="l"><button class="{{l.cls}}" type="button" onClick="{{l.pick}}"><i style="background:{{l.color}}"></i>{{l.label}} {{l.sum}}</button></sc-for></div>
+      </div>
+      <sc-if value="{{hasDays}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex;height:200px;border-bottom:1px solid #e4e4e7;padding:0 4px;gap:0;position:relative">
+          <sc-for list="{{days}}" as="d">
+            <button class="{{d.cls}}" type="button" aria-label="{{d.aria}}" onClick="{{d.pick}}">
+              <sc-for list="{{d.segs}}" as="s"><div style="height:{{s.h}}%;background:{{s.color}}"></div></sc-for>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#71717a;padding:0 4px"><span>{{firstDay}}</span><span>{{lastDay}}</span></div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:#f7f7f9;border-radius:10px;padding:10px 12px">
+          <b style="font-size:13px">{{pickLabel}}</b>
+          <sc-for list="{{pickRows}}" as="r"><span style="font-size:12px;color:#27272a"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:{{r.color}};margin-right:5px"></i>{{r.label}} {{r.v}}</span></sc-for>
+          <span style="font-size:12px;color:#52525b">합계 {{pickTotal}}</span>
+        </div>
+      </sc-if>
+    </section>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px">
+      <section class="card">
+        <h2 class="h2">작품별 소모</h2>
+        <table>
+          <thead><tr><th>작품</th><th class="num">소모</th><th style="width:34%">비중</th></tr></thead>
+          <tbody><sc-for list="{{byWork}}" as="w"><tr><td>{{w.label}}</td><td class="num">{{w.v}}</td><td><div class="meter"><i style="width:{{w.pct}}%"></i></div></td></tr></sc-for></tbody>
+        </table>
+      </section>
+      <section class="card">
+        <h2 class="h2">모델별 소모</h2>
+        <table>
+          <thead><tr><th>모델</th><th class="num">호출</th><th class="num">토큰</th></tr></thead>
+          <tbody><sc-for list="{{byModel}}" as="m"><tr><td>{{m.label}} <span class="{{m.chip}}">{{m.badge}}</span></td><td class="num">{{m.calls}}</td><td class="num">{{m.v}}</td></tr></sc-for></tbody>
+        </table>
+        <p class="sub">내 키 모델은 지갑 토큰이 차감되지 않아 소모 합계에 넣지 않고 호출 수만 보여줘요. 금액은 표시하지 않아요.</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <h2 class="h2">거래 내역</h2>
+        <div class="seg"><sc-for list="{{filters}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+      </div>
+      <table>
+        <thead><tr><th>일시</th><th>내역</th><th>작품</th><th>모델</th><th class="num">증감</th><th class="num">잔액</th></tr></thead>
+        <tbody><sc-for list="{{ledger}}" as="r"><tr><td style="white-space:nowrap;color:#52525b">{{r.at}}</td><td>{{r.what}}</td><td>{{r.work}}</td><td style="color:#52525b">{{r.model}}</td><td class="{{r.cls}}">{{r.delta}}</td><td class="num">{{r.bal}}</td></tr></sc-for></tbody>
+      </table>
+      <sc-if value="{{ledgerEmpty}}" hint-placeholder-val="{{false}}"><div style="text-align:center;padding:24px;color:#71717a;font-size:13px">조건에 맞는 거래가 없어요. 필터를 바꿔 보세요.</div></sc-if>
+      <p class="sub">최근 거래만 보여줘요. 더 오래된 내역은 CSV로 내려받아 확인해요. 토큰 충전·환불의 영수증은 결제 내역(후속 화면)에서 봐요.</p>
+    </section>
+  </main>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const CATS = [{ id: 'chat', label: 'AI 코워커 대화', color: '#4f46e5' }, { id: 'img', label: 'AI 이미지 생성', color: '#0f766e' }, { id: 'read', label: '회차 구매(독자 활동)', color: '#b45309' }];
+    const N = 30;
+    const days = [];
+    for (let i = 0; i < N; i++) {
+      const d = new Date(2026, 9, 11 - (N - 1 - i));
+      const w = (i * 7 + 3) % 11;
+      days.push({ date: d, label: (d.getMonth() + 1) + '월 ' + d.getDate() + '일', chat: 18 + ((i * 13) % 37) + (i % 7 === 0 ? 30 : 0), img: i % 5 === 2 ? 20 * (1 + (w % 3)) : 0, read: i % 4 === 1 ? 3 * (1 + (w % 4)) : 0, charge: i % 10 === 4 ? 550 : i % 10 === 9 ? 100 : 0, credit: 10 + ((i * 17) % 60) });
+    }
+    const period = st.period || '30';
+    const count = period === '7' ? 7 : period === 'm' ? 11 : 30;
+    const shown = days.slice(N - count);
+    const off = st.off || {};
+    const pickIdx = st.pick === undefined || st.pick >= count ? count - 1 : st.pick;
+    const periodName = period === '7' ? '최근 7일' : period === 'm' ? '이번 달' : '최근 30일';
+    const sum = (k) => shown.reduce((a, d) => a + d[k], 0);
+    const fmt = (n) => n.toLocaleString();
+    const use = (d) => CATS.reduce((a, c) => a + (off[c.id] ? 0 : d[c.id]), 0);
+    const totUse = shown.reduce((a, d) => a + use(d), 0);
+    const max = Math.max.apply(null, shown.map((d) => use(d)).concat([1]));
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
+    const dayEls = shown.map((d, i) => ({
+      cls: i === pickIdx ? 'bar on' : 'bar', aria: d.label + ' 소모 ' + use(d), pick: () => this.setState({ pick: i }),
+      segs: CATS.filter((c) => !off[c.id]).map((c) => ({ h: (d[c.id] / max) * 100, color: c.color })).reverse()
+    }));
+    const pd = shown[pickIdx];
+    const wk = [['달빛 서고', 0.62], ['잿빛 항구의 밤', 0.23], ['새벽의 편지 (초안)', 0.1], ['작품 미지정 (설정집 대화 등)', 0.05]];
+    const ledgerAll = [
+      { t: 'use', c: 'chat', at: '10/11 12:41', what: 'AI 대화 · 12화 장면 다듬기', work: '달빛 서고', model: 'Gemini 표준', d: -64, bal: 1500 },
+      { t: 'use', c: 'img', at: '10/11 11:20', what: '설정 이미지 생성 · 소연', work: '달빛 서고', model: '이미지 생성', d: -20, bal: 1564 },
+      { t: 'credit', c: '', at: '10/10 22:05', what: '유료 회차 소장 · 11화 (독자 3명)', work: '달빛 서고', model: '—', d: 27, bal: 1584 },
+      { t: 'use', c: 'chat', at: '10/10 21:30', what: 'AI 대화 · 컨텍스트 3개', work: '달빛 서고', model: 'Gemini 표준', d: -88, bal: 1557 },
+      { t: 'charge', c: '', at: '10/09 18:12', what: '토큰 충전 · 550토큰 묶음', work: '—', model: '카드', d: 550, bal: 1645 },
+      { t: 'use', c: 'read', at: '10/09 08:40', what: '회차 대여 · 타 작가 작품 3화', work: '타 작가 작품', model: '—', d: -9, bal: 1095 },
+      { t: 'use', c: 'chat', at: '10/08 23:11', what: 'AI 대화 · 초안 요약', work: '잿빛 항구의 밤', model: 'Gemini 표준', d: -41, bal: 1104 },
+      { t: 'credit', c: '', at: '10/08 20:45', what: '유료 회차 대여 · 10화 (독자 5명)', work: '달빛 서고', model: '—', d: 13, bal: 1145 },
+      { t: 'use', c: 'img', at: '10/07 14:02', what: '설정 이미지 생성 · 잿빛 항구', work: '달빛 서고', model: '이미지 생성', d: -20, bal: 1132 }
+    ];
+    const lf = st.lf || 'all';
+    const ledger = ledgerAll.filter((r) => lf === 'all' || r.t === lf).filter((r) => r.t !== 'use' || !off[r.c]).map((r) => ({ at: r.at, what: r.what, work: r.work, model: r.model, delta: (r.d > 0 ? '+' : '−') + Math.abs(r.d), cls: r.d > 0 ? 'num pl' : 'num mn', bal: fmt(r.bal) }));
+    const fl = [['all', '전체'], ['use', '소모'], ['charge', '충전'], ['credit', '작가 크레딧']];
+    return {
+      periods: [['7', '7일'], ['m', '이번 달'], ['30', '30일']].map((p) => ({ cls: period === p[0] ? 'sg on' : 'sg', label: p[1], pick: () => this.setState({ period: p[0], pick: undefined }) })),
+      periodName: periodName, totUse: fmt(totUse), totCharge: fmt(sum('charge')), totCredit: fmt(sum('credit')), avg: fmt(Math.round(totUse / count)),
+      legend: CATS.map((c) => ({ cls: off[c.id] ? 'leg off' : 'leg', color: c.color, label: c.label, sum: fmt(sum(c.id)), pick: () => this.setState({ off: Object.assign({}, off, { [c.id]: !off[c.id] }) }) })),
+      hasDays: true, days: dayEls, firstDay: shown[0].label, lastDay: shown[count - 1].label,
+      pickLabel: pd.label, pickRows: CATS.map((c) => ({ color: c.color, label: c.label, v: fmt(pd[c.id]) })), pickTotal: fmt(CATS.reduce((a, c) => a + pd[c.id], 0)),
+      byWork: wk.map((w) => ({ label: w[0], v: fmt(Math.round(totUse * w[1])), pct: Math.round(w[1] * 100) })),
+      byModel: [
+        { label: 'Gemini 표준', badge: '서비스', chip: 'chip g', calls: fmt(Math.round(count * 3.1)), v: fmt(Math.round(totUse * 0.78)) },
+        { label: '이미지 생성', badge: '서비스', chip: 'chip g', calls: fmt(Math.round(count * 0.4)), v: fmt(Math.round(totUse * 0.17)) },
+        { label: 'gpt-4o-mini', badge: '내 키', chip: 'chip', calls: fmt(Math.round(count * 1.4)), v: '차감 없음' },
+        { label: 'claude-haiku-4-5', badge: '내 키', chip: 'chip', calls: '0', v: '차감 없음' }
+      ],
+      filters: fl.map((f) => ({ cls: lf === f[0] ? 'sg on' : 'sg', label: f[1], pick: () => this.setState({ lf: f[0] }) })),
+      ledger: ledger, ledgerEmpty: ledger.length === 0,
+      csv: () => say('거래 내역을 CSV로 내려받아요.'),
+      charge: () => say('토큰 충전소 모달이 열려요. (17번 보드)'),
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>
