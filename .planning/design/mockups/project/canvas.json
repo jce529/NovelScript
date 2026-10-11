@@ -209,6 +209,14 @@
       "h": 844,
       "title": "24. 스튜디오 에디터 (모바일, 탭 전환)",
       "is_interactive": true
+    },
+    "WorldSettings.dc.html": {
+      "x": 0,
+      "y": 17900,
+      "w": 1280,
+      "h": 900,
+      "title": "25. 세계관 공개 설정 (공개 여부·등장 회차·잠금·AI 에셋)",
+      "is_interactive": true
     }
   },
   "order": [
@@ -235,7 +243,8 @@
     "Search.dc.html",
     "AuthorPage.dc.html",
     "Editor.dc.html",
-    "EditorMobile.dc.html"
+    "EditorMobile.dc.html",
+    "WorldSettings.dc.html"
   ],
   "notes": {
     "t1": {
