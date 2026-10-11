@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>스튜디오 에디터</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font-family:inherit}
+button{cursor:pointer}
+.top{height:52px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;gap:12px;padding:0 16px;box-sizing:border-box}
+.logo{font-size:16px;font-weight:800;letter-spacing:-0.02em;color:#18181b}
+.crumb{font-size:13px;color:#52525b}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.plus{width:22px;height:22px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pane{background:#fff;border:1px solid #e4e4e7;border-radius:10px;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.ph{padding:10px 14px;border-bottom:1px solid #e4e4e7;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+.pb{padding:10px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;font-size:13px;color:#27272a}
+.sec{font-size:11px;font-weight:700;color:#71717a;letter-spacing:0.04em;padding:10px 8px 4px}
+.it{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:0;background:transparent;text-align:left;width:100%;font-size:13px;color:#27272a;min-height:34px}
+.it.on{background:#e0e7ff;color:#3730a3;font-weight:600}
+.it.sub{padding-left:22px}
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap;border:0}
+.chip.g{background:#f4f4f5;color:#3f3f46}
+.chip.x{display:inline-flex;align-items:center;gap:4px}
+.tb{font-size:12px;font-weight:600;color:#3f3f46;padding:6px 10px;border:1px solid #e4e4e7;border-radius:8px;background:#fff;white-space:nowrap}
+.tb.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.ann{font-size:11px;color:#71717a;line-height:1.5}
+.bubble{border-radius:10px;padding:9px 11px;font-size:13px;line-height:1.55}
+.pop{position:absolute;z-index:20;background:#fff;border:1px solid #d4d4d8;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.14);padding:4px;display:flex;flex-direction:column;min-width:200px}
+.pi{padding:8px 10px;border:0;background:transparent;text-align:left;font-size:13px;border-radius:6px;color:#27272a}
+.pi:hover{background:#f4f4f5}
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,0.4)}
+.dlg{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));box-sizing:border-box;background:#fff;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.inp{border:1px solid #d4d4d8;border-radius:8px;padding:9px 11px;font-size:14px;box-sizing:border-box;width:100%}
+.seg{display:flex;gap:6px}
+.sg{flex:1;height:40px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font-size:13px;font-weight:600;color:#27272a}
+.sg.on{background:#18181b;border-color:#18181b;color:#fff}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:30px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="width:1280px;height:820px;display:flex;flex-direction:column;overflow:hidden;--accent: {{accent}}">
+
+  <header class="top">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span class="crumb">내 스튜디오 / 달빛 서고 / <b style="color:#18181b">{{docName}}</b></span>
+    <span style="flex-grow:1"></span>
+    <span class="chip {{stateCls}}">{{stateText}}</span>
+    <div class="tok"><span>1,500 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <div style="flex-grow:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr) 360px;gap:10px;padding:10px;box-sizing:border-box">
+
+    <div class="pane">
+      <div class="ph"><span>달빛 서고</span><span class="chip g">작품 전환</span></div>
+      <div class="pb">
+        <span class="sec">설정집</span>
+        <sc-for list="{{tree}}" as="n" hint-placeholder-count="8">
+          <button class="{{n.cls}}" type="button" onClick="{{n.pick}}"><span style="width:14px;opacity:0.6">{{n.icon}}</span><span>{{n.label}}</span></button>
+        </sc-for>
+        <span class="sec">회차 (12)</span>
+        <button class="it sub" type="button" style="color:#a1a1aa">11화 잿빛 항구</button>
+        <button class="{{chCls}}" type="button" onClick="{{pickChapter}}">12화 새벽의 문</button>
+        <button class="it sub" type="button" style="color:#71717a">13화 (초안)</button>
+        <button class="it" type="button" style="color:#4f46e5;font-weight:600">+ 새 회차</button>
+        <span class="ann" style="padding:10px 8px">폴더 만들기·이름 바꾸기·삭제는 각 행의 ⋯ 메뉴에서. 드래그앤드롭 이동은 범위 미정.</span>
+      </div>
+    </div>
+
+    <div class="pane" style="position:relative">
+      <div class="ph">
+        <span>{{docName}}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="ann">{{charCount}}자</span>
+          <button class="tb" type="button" onClick="{{saveDoc}}">저장</button>
+          <sc-if value="{{isChapter}}" hint-placeholder-val="{{true}}"><button class="tb p" type="button" onClick="{{openPublish}}" style="background:{{accent}};border-color:{{accent}}">발행 설정</button></sc-if>
+        </div>
+      </div>
+      <div style="flex-grow:1;min-height:0;position:relative;padding:16px 28px 0;display:flex;flex-direction:column;gap:8px">
+        <sc-if value="{{isDoc}}" hint-placeholder-val="{{false}}">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#f7f7f9;border-radius:8px">
+            <span style="font-size:12px;font-weight:700;color:#52525b">세계관 공개</span>
+            <button class="tb" type="button" style="{{pubSt}}" onClick="{{togglePub}}">{{pubLabel}}</button>
+            <span class="ann">등장 회차·공개 범위는 세계관 공개 설정(작가 영역 7번 화면)에서 관리해요.</span>
+          </div>
+        </sc-if>
+        <textarea aria-label="본문" value="{{body}}" onChange="{{onBody}}" style="flex-grow:1;border:0;outline:0;resize:none;font-size:16px;line-height:1.9;font-family:Georgia,'Noto Serif KR',serif;color:#18181b;padding:0"></textarea>
+        <sc-if value="{{showMention}}" hint-placeholder-val="{{false}}">
+          <div class="pop" style="left:32px;bottom:64px">
+            <sc-for list="{{mentionItems}}" as="m"><button class="pi" type="button" onClick="{{m.pick}}">{{m.label}}</button></sc-for>
+            <sc-if value="{{canQuickAdd}}" hint-placeholder-val="{{false}}"><button class="pi" type="button" onClick="{{openQuick}}" style="color:#4f46e5;font-weight:700">+ “{{partial}}” 새 문서 만들기</button></sc-if>
+          </div>
+        </sc-if>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 12px;border-top:1px solid #f1f1f3">
+          <span class="ann">`@`를 입력하면 설정 문서를 불러와 AI 컨텍스트에 넣을 수 있어요. 마지막 저장 12:41.</span>
+          <button class="tb" type="button" onClick="{{typeAt}}">@ 입력해 보기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="ph">
+        <span>AI 코워커</span>
+        <div style="display:flex;gap:6px;align-items:center;position:relative">
+          <button class="tb" type="button" onClick="{{togglePreset}}">{{presetLabel}} ▾</button>
+          <button class="tb" type="button" aria-label="시스템 프롬프트 설정" onClick="{{openSys}}" style="{{sysSt}}">⚙</button>
+          <sc-if value="{{showPreset}}" hint-placeholder-val="{{false}}">
+            <div class="pop" style="right:0;top:36px;min-width:170px"><sc-for list="{{presets}}" as="p"><button class="pi" type="button" onClick="{{p.pick}}" style="{{p.st}}">{{p.label}}</button></sc-for></div>
+          </sc-if>
+        </div>
+      </div>
+      <div style="padding:10px 12px 0;display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="2"><span class="chip x">{{c.label}} <button type="button" aria-label="컨텍스트에서 제외" onClick="{{c.remove}}" style="border:0;background:transparent;padding:0;color:#3730a3;font-size:12px">✕</button></span></sc-for>
+        <sc-if value="{{noChips}}" hint-placeholder-val="{{false}}"><span class="ann">컨텍스트에 넣은 문서가 없어요. 본문에서 @로 추가하세요.</span></sc-if>
+      </div>
+      <div style="flex-grow:1;min-height:0;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{msgs}}" as="m" hint-placeholder-count="2">
+          <div class="bubble" style="background:{{m.bg}};color:{{m.fg}}">
+            {{m.text}}
+            <sc-if value="{{m.canInsert}}" hint-placeholder-val="{{false}}"><div style="padding-top:8px"><button class="tb" type="button" onClick="{{m.insert}}">캔버스에 삽입</button></div></sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{showRec}}" hint-placeholder-val="{{false}}">
+        <div style="padding:0 12px 6px;display:flex;gap:6px;flex-wrap:wrap"><span class="chip g">갈등 심화시키기</span><span class="chip g">묘사 늘리기</span><span class="chip g">대사 다듬기</span><span class="ann" style="width:100%">추천 프롬프트는 후속(EDIT-07) 예정 기능이에요.</span></div>
+      </sc-if>
+      <div style="padding:8px 12px 12px;border-top:1px solid #e4e4e7;display:flex;flex-direction:column;gap:8px;flex-shrink:0;position:relative">
+        <div style="display:flex;gap:6px">
+          <input class="inp" type="text" placeholder="다음 장면을 어떻게 이어 쓸까요?" aria-label="AI에게 요청" value="{{ask}}" onChange="{{onAsk}}">
+          <button class="tb p" type="button" onClick="{{send}}" style="background:{{accent}};border-color:{{accent}}">보내기</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <button class="tb" type="button" onClick="{{toggleModel}}">모델: {{modelName}} ▾</button>
+          <sc-if value="{{isService}}" hint-placeholder-val="{{true}}"><span class="ann">예상 약 {{estTokens}} 토큰</span></sc-if>
+          <sc-if value="{{isByok}}" hint-placeholder-val="{{false}}"><span class="ann" style="color:#166534;font-weight:600">지갑 토큰은 차감되지 않아요</span></sc-if>
+        </div>
+        <sc-if value="{{isService}}" hint-placeholder-val="{{true}}"><div style="height:6px;border-radius:3px;background:#e4e4e7;overflow:hidden"><div style="height:6px;width:{{gaugeW}}%;background:{{gaugeC}}"></div></div></sc-if>
+        <sc-if value="{{showModel}}" hint-placeholder-val="{{false}}">
+          <div class="pop" style="left:12px;bottom:92px;min-width:300px">
+            <sc-for list="{{models}}" as="m"><button class="pi" type="button" onClick="{{m.pick}}" style="display:flex;justify-content:space-between;gap:12px"><span>{{m.label}}</span><span class="chip {{m.cls}}">{{m.badge}}</span></button></sc-for>
+            <span class="ann" style="padding:8px 10px;border-top:1px solid #f1f1f3">키 등록·삭제와 MCP 연결은 통합 설정 허브(AI)에서 해요. <a href="SettingsHub.dc.html" style="color:#4f46e5;font-weight:600">설정으로</a></span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{showSys}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeAll}}"></div>
+    <div class="dlg">
+      <span style="font-size:17px;font-weight:700">시스템 프롬프트 설정</span>
+      <span class="ann">이 작품의 AI가 항상 따를 문체·지시어예요. 중급·자유형 프리셋에서 쓸 수 있어요.</span>
+      <textarea class="inp" style="min-height:120px;resize:none;line-height:1.6" aria-label="시스템 프롬프트" value="{{sysText}}" onChange="{{onSys}}"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="tb" type="button" onClick="{{closeAll}}" style="height:38px">취소</button><button class="tb p" type="button" onClick="{{saveSys}}" style="height:38px">저장</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showQuick}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeAll}}"></div>
+    <div class="dlg">
+      <span style="font-size:17px;font-weight:700">새 설정 문서 만들기</span>
+      <span class="ann">화면 전환 없이 만들고 바로 본문으로 돌아와요.</span>
+      <input class="inp" type="text" value="{{partial}}" aria-label="문서 이름">
+      <div class="seg"><button class="sg on" type="button">인물</button><button class="sg" type="button">장소</button><button class="sg" type="button">사건</button><button class="sg" type="button">세력</button><button class="sg" type="button">아이템</button></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="tb" type="button" onClick="{{closeAll}}" style="height:38px">취소</button><button class="tb p" type="button" onClick="{{createQuick}}" style="height:38px">만들고 컨텍스트에 추가</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showPublish}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeAll}}"></div>
+    <div class="dlg">
+      <span style="font-size:17px;font-weight:700">12화 발행 설정</span>
+      <div class="seg"><button class="{{freeCls}}" type="button" onClick="{{setFree}}">무료</button><button class="{{paidCls}}" type="button" onClick="{{setPaid}}">유료</button></div>
+      <sc-if value="{{paid}}" hint-placeholder-val="{{false}}">
+        <div><div class="ann" style="margin-bottom:6px">소장 가격(토큰) · 대여 가격은 소장의 30% 기준(임시)</div><div class="seg"><sc-for list="{{tiers}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div></div>
+      </sc-if>
+      <span class="ann">발행하면 독자에게 공개되고, 발행 취소하면 다시 임시저장 상태가 돼요. 작가 90% · 플랫폼 10%(잠정).</span>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="tb" type="button" onClick="{{closeAll}}" style="height:38px">닫기</button><button class="tb" type="button" onClick="{{unpublish}}" style="height:38px">발행 취소</button><button class="tb p" type="button" onClick="{{publish}}" style="height:38px;background:{{accent}};border-color:{{accent}}">발행하기</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const docs = [{ id: 'so', icon: '◉', label: '소연', kind: '인물' }, { id: 'ga', icon: '◉', label: '잿빛 항구', kind: '장소' }, { id: 'yl', icon: '◆', label: '낡은 열람증', kind: '아이템' }, { id: 'ev', icon: '▲', label: '첫 번째 역전', kind: '사건' }];
+    const created = st.created || [];
+    const allDocs = docs.concat(created);
+    const mode = st.mode || 'chapter';
+    const sel = st.sel || 'so';
+    const cur = allDocs.find((d) => d.id === sel);
+    const docName = mode === 'chapter' ? '12화 새벽의 문' : cur.label;
+    const bodies = st.bodies || {};
+    const dflt = mode === 'chapter' ? '새벽의 문은 생각보다 낮았다. 하늘은 아직 회색이었고, 항구 쪽에서 밀려온 안개가 돌계단을 천천히 삼키고 있었다.\\n\\n소연은 열람증을 쥔 손에 힘을 주었다.' : '# ' + cur.label + '\\n\\n- 종류: ' + cur.kind + '\\n- 등장 회차: 1화\\n\\n서고의 새 사서. 사람의 기억을 책 냄새로 구분한다.';
+    const key = mode === 'chapter' ? 'chapter' : sel;
+    const body = bodies[key] !== undefined ? bodies[key] : dflt.replace(/\\n/g, '\n');
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
+    const setBody = (v) => { const b = Object.assign({}, bodies); b[key] = v; this.setState({ bodies: b }); };
+    const chips = st.chips || ['so', 'ga'];
+    const preset = st.preset || 'intermediate';
+    const model = st.model || 'svc';
+    const published = st.published === true;
+    const paid = st.paid === true;
+    const tier = st.tier || 30;
+    const m = /@([^\s@]*)$/.exec(body);
+    const partial = st.atOpen && m ? m[1] : '';
+    const showMention = st.atOpen === true && !!m;
+    const items = allDocs.filter((d) => d.label.indexOf(partial) === 0 || partial === '').slice(0, 5);
+    const addChip = (id) => { if (chips.indexOf(id) < 0) this.setState({ chips: chips.concat([id]) }); };
+    const insertText = (t) => setBody(body + (body && body.slice(-1) !== '\n' ? '\n\n' : '') + t);
+    const replyFor = (q) => ({ id: 'a' + Date.now(), text: '안개가 계단을 삼키는 묘사를 짧은 문장으로 끊어 속도를 높였습니다. “문이 열리면 돌아올 수 없다고 했지.” 소연은 대답 없이 계단을 올랐다.', canInsert: true });
+    const msgs = (st.msgs || []).map((x) => ({ text: x.text, bg: x.me ? '#e0e7ff' : '#f4f4f5', fg: x.me ? '#312e81' : '#27272a', canInsert: !!x.canInsert, insert: () => { insertText(x.text); say('캔버스에 삽입했어요.'); } }));
+    const est = 60 + chips.length * 90 + (preset === 'freeform' ? 40 : 0);
+    const ratio = Math.min(100, Math.round(est / 5));
+    const modelsAll = [['svc', '서비스 · Gemini 표준', '서비스', 'g'], ['oa', '내 키 · gpt-4o-mini', '내 키', ''], ['an', '내 키 · claude-haiku-4-5', '내 키', '']];
+    const presetsAll = [['beginner', '🔰 초보자형'], ['intermediate', '⚡ 중급자형'], ['freeform', '🔥 자유형']];
+    const sysOk = preset !== 'beginner';
+    return {
+      accent: this.props.accent ?? '#4f46e5', docName: docName,
+      stateText: mode === 'chapter' ? (published ? '발행됨' : '임시저장') : '설정 문서', stateCls: mode === 'chapter' && published ? '' : 'g',
+      isChapter: mode === 'chapter', isDoc: mode === 'doc',
+      chCls: mode === 'chapter' ? 'it sub on' : 'it sub', pickChapter: () => this.setState({ mode: 'chapter', atOpen: false }),
+      tree: allDocs.map((d) => ({ icon: d.icon, label: d.label, cls: mode === 'doc' && sel === d.id ? 'it sub on' : 'it sub', pick: () => this.setState({ mode: 'doc', sel: d.id, atOpen: false }) })),
+      body: body, charCount: body.replace(/\s/g, '').length,
+      onBody: (e) => { const v = e.target.value; const b = Object.assign({}, bodies); b[key] = v; this.setState({ bodies: b, atOpen: /@[^\s@]*$/.test(v) }); },
+      typeAt: () => { const b = Object.assign({}, bodies); b[key] = body + ' @'; this.setState({ bodies: b, atOpen: true }); },
+      saveDoc: () => say('저장했어요.'),
+      pubLabel: st.pub ? '공개 중' : '비공개 (기본)', pubSt: st.pub ? 'background:#dcfce7;border-color:#86efac;color:#166534' : '',
+      togglePub: () => this.setState({ pub: !st.pub }),
+      showMention: showMention, mentionItems: items.map((d) => ({ label: '@' + d.label + ' · ' + d.kind, pick: () => { const nb = body.replace(/@[^\s@]*$/, '@' + d.label + ' '); const b = Object.assign({}, bodies); b[key] = nb; this.setState({ bodies: b, atOpen: false }); addChip(d.id); } })),
+      canQuickAdd: partial.length > 0 && !allDocs.some((d) => d.label === partial), partial: partial,
+      openQuick: () => this.setState({ quick: true }), showQuick: st.quick === true,
+      createQuick: () => { const id = 'n' + Date.now(); const nb = body.replace(/@[^\s@]*$/, '@' + partial + ' '); const b = Object.assign({}, bodies); b[key] = nb; this.setState({ created: created.concat([{ id: id, icon: '◉', label: partial, kind: '인물' }]), chips: chips.concat([id]), bodies: b, quick: false, atOpen: false }); say('“' + partial + '” 문서를 만들고 컨텍스트에 넣었어요.'); },
+      chips: chips.map((id) => { const d = allDocs.find((x) => x.id === id); return { label: d ? d.label : id, remove: () => this.setState({ chips: chips.filter((x) => x !== id) }) }; }),
+      noChips: chips.length === 0,
+      presetLabel: presetsAll.find((p) => p[0] === preset)[1], showPreset: st.showPreset === true,
+      togglePreset: () => this.setState({ showPreset: !st.showPreset }),
+      presets: presetsAll.map((p) => ({ label: p[1], st: p[0] === preset ? 'font-weight:700;background:#eef2ff' : '', pick: () => this.setState({ preset: p[0], showPreset: false }) })),
+      sysSt: sysOk ? '' : 'opacity:0.4', openSys: () => { if (sysOk) this.setState({ sys: true }); else say('초보자형에서는 시스템 프롬프트를 쓸 수 없어요.'); },
+      showSys: st.sys === true, sysText: st.sysText || '하드보일드 문체로, 짧은 문장을 선호한다.',
+      onSys: (e) => this.setState({ sysDraft: e.target.value }),
+      saveSys: () => { this.setState({ sys: false, sysText: st.sysDraft || st.sysText || '하드보일드 문체로, 짧은 문장을 선호한다.' }); say('시스템 프롬프트를 저장했어요.'); },
+      showRec: preset === 'beginner',
+      msgs: (st.msgs || [{ text: '12화 마지막 문단을 더 긴장감 있게 다듬어줘.', me: true }, { text: '안개가 계단을 삼키는 묘사를 짧은 문장으로 끊어 속도를 높였습니다. 초안을 캔버스에 삽입할까요?', me: false, canInsert: true }]).map((x) => ({ text: x.text, bg: x.me ? '#e0e7ff' : '#f4f4f5', fg: x.me ? '#312e81' : '#27272a', canInsert: !!x.canInsert, insert: () => { insertText(x.text); say('캔버스에 삽입했어요.'); } })),
+      ask: st.ask || '', onAsk: (e) => this.setState({ ask: e.target.value }),
+      send: () => { const q = (st.ask || '').trim(); if (!q) return; const base = st.msgs || [{ text: '12화 마지막 문단을 더 긴장감 있게 다듬어줘.', me: true }, { text: '안개가 계단을 삼키는 묘사를 짧은 문장으로 끊어 속도를 높였습니다. 초안을 캔버스에 삽입할까요?', me: false, canInsert: true }]; this.setState({ msgs: base.concat([{ text: q, me: true }, replyFor(q)]), ask: '' }); },
+      modelName: modelsAll.find((x) => x[0] === model)[1], isService: model === 'svc', isByok: model !== 'svc',
+      estTokens: est, gaugeW: ratio, gaugeC: ratio > 75 ? '#dc2626' : ratio > 45 ? '#f59e0b' : '#16a34a',
+      showModel: st.showModel === true, toggleModel: () => this.setState({ showModel: !st.showModel }),
+      models: modelsAll.map((x) => ({ label: x[1], badge: x[2], cls: x[3], pick: () => this.setState({ model: x[0], showModel: false }) })),
+      openPublish: () => this.setState({ pubDlg: true }), showPublish: st.pubDlg === true, paid: paid,
+      freeCls: paid ? 'sg' : 'sg on', paidCls: paid ? 'sg on' : 'sg', setFree: () => this.setState({ paid: false }), setPaid: () => this.setState({ paid: true }),
+      tiers: [10, 30, 50, 100].map((t) => ({ label: t + '토큰', cls: t === tier ? 'sg on' : 'sg', pick: () => this.setState({ tier: t }) })),
+      publish: () => { this.setState({ published: true, pubDlg: false }); say('발행했어요.'); },
+      unpublish: () => { this.setState({ published: false, pubDlg: false }); say('발행을 취소했어요.'); },
+      closeAll: () => this.setState({ sys: false, quick: false, pubDlg: false }),
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -193,6 +193,22 @@
       "title": "22. 작가 페이지 (작품 상세·검색 결과에서 진입)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "Editor.dc.html": {
+      "x": 0,
+      "y": 16900,
+      "w": 1280,
+      "h": 820,
+      "title": "23. 스튜디오 에디터 (3패널, 회차·설정 문서 통합)",
+      "is_interactive": true
+    },
+    "EditorMobile.dc.html": {
+      "x": 1400,
+      "y": 16900,
+      "w": 390,
+      "h": 844,
+      "title": "24. 스튜디오 에디터 (모바일, 탭 전환)",
+      "is_interactive": true
     }
   },
   "order": [
@@ -217,7 +233,9 @@
     "Series.dc.html",
     "HallOfFame.dc.html",
     "Search.dc.html",
-    "AuthorPage.dc.html"
+    "AuthorPage.dc.html",
+    "Editor.dc.html",
+    "EditorMobile.dc.html"
   ],
   "notes": {
     "t1": {
@@ -281,6 +299,13 @@
       "text": "독자 영역 마무리",
       "kind": "title1",
       "maxW": 2680
+    },
+    "t9": {
+      "x": 0,
+      "y": 16650,
+      "text": "작가 영역 — 스튜디오 에디터",
+      "kind": "title1",
+      "maxW": 1790
     }
   },
   "designSystems": []
