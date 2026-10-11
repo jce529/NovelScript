@@ -235,6 +235,24 @@
       "title": "27. 경제 관리 상세 (토큰 소모 분석·거래 내역)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "Earnings.dc.html": {
+      "x": 1400,
+      "y": 19200,
+      "w": 1280,
+      "h": 1300,
+      "title": "28. 작가 정산·수익 (크레딧 내역)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "SettingsStudio.dc.html": {
+      "x": 0,
+      "y": 20800,
+      "w": 1280,
+      "h": 900,
+      "title": "29. 통합 설정 허브 (계정·지갑·작품)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -264,7 +282,9 @@
     "EditorMobile.dc.html",
     "WorldSettings.dc.html",
     "Dashboard.dc.html",
-    "Economy.dc.html"
+    "Economy.dc.html",
+    "Earnings.dc.html",
+    "SettingsStudio.dc.html"
   ],
   "notes": {
     "t1": {
