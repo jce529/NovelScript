@@ -117,3 +117,10 @@ None — no pending todos matched this phase (`todo match-phase 4` returned 0 ma
 
 *Phase: 04-ai-gateway-mention-based-generation*
 *Context gathered: 2026-08-30*
+
+## Reopen 논의 결정 (2026-10-12)
+
+- **EDIT-03 자유형 지시 복구:** D-09 그대로 — 자유형 선택 시 프리셋 행 아래에 인라인 textarea. `composeSystemInstruction`에 자유형 지시 인자를 추가해 합성에 반영한다(모달 아님). 문서(SUMMARY·VERIFICATION의 SATISFIED)와 코드 불일치를 plan에서 테스트로 고정한다.
+- **토큰 게이지:** **지갑 잔액 게이지로 부활.** 요청별 사전 추정은 2026-09-18 결정대로 만들지 않고, 현재 지갑 잔액·최근 차감량을 표시한다. 내 키(BYOK) 모델이면 게이지 대신 "지갑 토큰은 차감되지 않아요".
+- **⚙ 시스템 프롬프트 모달:** **작품별 커스텀 시스템 지시.** D-14 기본 지시는 항상 앞에 고정, 작가는 그 뒤에 붙는 작품 단위 추가 지시만 편집한다. 초보자형에서는 비활성(청사진). 저장 위치(작품 단위 컬럼/테이블)는 plan에서 정한다.
+- **다음 단계:** plan(자유형 복구 + 지갑 게이지 + ⚙ 모달). 별도 research 불필요.
