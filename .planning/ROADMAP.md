@@ -44,6 +44,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
 - [x] **Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)** - 작가가 계정 설정에서 BYOK 현황을 보고, 설정 문서에서도 AI와 대화하며, 로컬 작업물을 업로드해 Jev가 제안한 배치를 트리에서 수정·승인해 저장하고, 모바일 세로 화면에서도 스튜디오를 쓴다 (completed 2026-10-02; shipped outside GSD, live Jev/browser/mobile verification pending — see Phase 16 detail)
+- [ ] **Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)** - 작가가 자기 세계관을 가지 쳐 If·확장 가지 작품을 연재하고, 연표로 작품을 배치하며, 독자가 작품 상세 세계관 탭에서 세계수를 본다
 
 ## Phase Details
 
@@ -444,6 +445,21 @@ Plans:
 **Source**: Phase 16 UAT 갭 4건 (`.planning/phases/16-studio-workflow-upload/16-UAT.md`) + Phase 8 BUG-04, Phase 15 BUG-03·04, Phase 8 기록의 eslint·테스트 기준선 이슈
 **Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. 수정 전 Phase 8 BUG-04(thinking 토큰 정책)는 사용자 결정이 필요하다.
 
+### Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)
+**Goal**: 작가가 자기 작품의 세계관(설정집)을 복제해 If 가지·확장 가지 작품을 연재하고, 세계관 연표에 작품을 배치하며, 독자가 작품 상세의 `세계관` 탭에서 세계수(본가지·잔가지·열매)를 본다. 첫 버전은 **셀프 가지만** 다루고 스토어 구매 연동(WTREE-11~13)은 스토어 보류 해제 후로 미룬다.
+**Depends on**: Phase 2 (설정집 KB), Phase 3 (독자 작품 상세·세계관 탭·독자 지표). 스포일러 잠금 확장(WTREE-09)은 READ-06 Lore 위키 phase와 함께 별도 처리.
+**Requirements**: WTREE-01, WTREE-02, WTREE-03, WTREE-04, WTREE-05, WTREE-06, WTREE-07, WTREE-08, WTREE-10
+**Success Criteria** (what must be TRUE):
+  1. 작가가 세계관마다 연표(시대 구간 필수·연도 선택)를 만들고 작품을 배치하며, 같은 시기 작품을 `동시 진행`으로 표시한다. 잔가지는 분기 시점까지 본가지 연표를 이어받아(수정 불가) 이후 구간만 독립 편집하고 선택 메모를 적을 수 있다
+  2. 작가가 `이 세계관에서 가지 치기`로 If 가지(설정 1개 이상 수정·삭제·추가) 또는 확장 가지(새 설정 1개 이상 추가, 기존 수정·삭제 불가)를 확정할 수 있고, 변경 0건이면 확정이 막힌다. 확정한 가지는 스냅샷으로 고정되고 원작 변경은 알림만 간다
+  3. 독자는 작품 상세 `세계관` 탭의 `세계수` 보기(모바일 포함)에서 본가지·잔가지·열매를 시간순으로 보고 항목을 눌러 상세를 본다. 작가는 스튜디오 세계관 공개 설정에서 편집하며, 큰 화면용 단독 화면이 있다
+  4. 작가가 세계수 연결 공개를 끄면 독자에게는 본가지 작품만 보이고 작가 본인·관리자에게는 전체가 보인다
+  5. 가지 굵기·열매 크기는 근접도와 독자 지표(작가 본인 조회 제외)로 계산되고, 하위 가지가 있는 가지·작품은 삭제할 수 없으며 비공개는 하위로 전파되지 않는다
+**Plans**: TBD (`/gsd:plan-phase 18`로 분할)
+**UI hint**: yes
+**Source**: `.planning/design/WORLD-TREE.md`(규칙 1~17), 목업 보드 40~43(`.planning/design/mockups/project/`)
+**Notes**: 근접도·크기 산식의 세부 계수는 phase 계획에서 정한다. 요구사항 WTREE-09(스포일러 잠금 가지 확장)·WTREE-11~13(스토어 편입·환불·운영 검토)은 이 phase 범위가 아니다. 화면 확정 후 `18-UI-SPEC.md`를 작성한다(CLAUDE.md "UI phase 완료 후 예시 목업" 규칙).
+
 ## Launch Gate (법무) — phase 아님
 
 코드 phase와 별도로, **서비스 공개 전** 충족해야 하는 조건이다. 어떤 phase의 완료 여부와도 독립이며, 모든 항목이 끝나기 전에는 공개 출시를 하지 않는다 (베타·내부 테스트는 제외).
@@ -464,7 +480,7 @@ Plans:
 
 **Execution Order:**
 **v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
-**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 → 18 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -495,5 +511,6 @@ Plans:
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | n/a (outside GSD) | Complete (live Jev/browser/mobile verification pending) | 2026-10-02 |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 0/TBD | Not started | - |
+| 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 0/TBD | Not started (설계 확정 2026-10-12, UI-SPEC 대기) | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.

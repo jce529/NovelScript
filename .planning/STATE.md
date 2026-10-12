@@ -7,7 +7,7 @@ stopped_at: Phase 17 context gathered
 last_updated: "2026-10-07T23:59:23.611Z"
 last_activity: 2026-10-10 -- Phase 11 코드 완료 (11-01~07), 11-VERIFICATION human_needed(브라우저 UAT 6건 대기)
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 12
   total_plans: 84
   completed_plans: 78
@@ -31,6 +31,8 @@ Status: Phase 11 code complete — verification human_needed
 Last activity: 2026-10-10 -- Phase 11 상태 동기화 (ROADMAP·REQUIREMENTS·SSOT)
 
 **출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
+
+**세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). Next: 18-UI-SPEC 작성 후 `/gsd:plan-phase 18`.
 
 **부족한 부분·다음 할 일 점검:** `.planning/gaps/2026-10-04-gap-analysis.md` (우선순위·공백·법무 게이트 정리)
 

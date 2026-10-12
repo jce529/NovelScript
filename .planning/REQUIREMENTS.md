@@ -139,7 +139,7 @@
 - [ ] **LEGAL-03**: AI기본법(2026.1 시행)의 생성형 AI 고지 의무 해당 여부가 검토되고, 해당하면 약관·화면에 반영된다 (현재 문서에 미반영)
 - [ ] **LEGAL-04**: BYOK 사용 시 개인정보 국외 이전·제3자 제공 고지와 동의 구조(약관 조항 10④)가 처리방침에 반영된다
 
-### 세계수 (WTREE) — 설계 확정(2026-10-12), phase 배정 대기
+### 세계수 (WTREE) — 설계 확정(2026-10-12), Phase 18 배정
 
 첫 버전은 **셀프 가지**(작가가 자기 작품의 세계관을 가지치기)만 범위다. 스토어 구매 연동(판매 철회·라이선스·크레딧)은 스토어 보류 해제 후 별도 정의한다. 규칙 원본은 `.planning/design/WORLD-TREE.md`, 시안은 목업 보드 40~43.
 
@@ -289,7 +289,19 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
-| WTREE-01~13 | 미배정 | Defined (phase 배정 대기, 2026-10-12) |
+| WTREE-01 | Phase 18 | Not started |
+| WTREE-02 | Phase 18 | Not started |
+| WTREE-03 | Phase 18 | Not started |
+| WTREE-04 | Phase 18 | Not started |
+| WTREE-05 | Phase 18 | Not started |
+| WTREE-06 | Phase 18 | Not started |
+| WTREE-07 | Phase 18 | Not started |
+| WTREE-08 | Phase 18 | Not started |
+| WTREE-09 | Deferred (READ-06 Lore 위키·스포일러 잠금 phase에서 함께) | Defined |
+| WTREE-10 | Phase 18 | Not started |
+| WTREE-11 | Deferred (스토어 보류 해제 후) | Defined |
+| WTREE-12 | Deferred (스토어 보류 해제 후) | Defined |
+| WTREE-13 | Deferred (스토어 보류 해제 후) | Defined |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -298,13 +310,13 @@ Explicitly excluded. Documented to prevent scope creep.
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
-- 세계수(WTREE): 13 defined / phase 미배정 (v1.1 합계와 별도, ROADMAP 배정 시 편입)
+- 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-10-12 — 세계수 요구사항 WTREE-01~10 정의(phase 미배정)*
+*Last updated: 2026-10-12 — 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
 *Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
 *Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
 *Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
