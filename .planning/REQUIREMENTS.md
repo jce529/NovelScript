@@ -153,6 +153,7 @@
 - [ ] **WTREE-08**: 가지 굵기는 본가지와의 근접도(1 − 변경·추가 문서 비율, 분기 깊이 감쇠)와 파생 규모, 열매 크기는 독자 지표(독자 수·완독률·연독률)로 정해진다 — 작가 본인 조회는 지표에서 제외하고 세부 계수는 phase 계획에서 확정한다
 - [ ] **WTREE-09**: 스포일러 잠금이 가지로 확장된다 — 독자 진도는 세계관 단위로 합산하고, 분기 이전 설정은 본가지 진도 기준, 잔가지 고유 설정은 잔가지 진도 기준으로 잠근다 (READ-06 Lore 위키 선행)
 - [ ] **WTREE-10**: 하위 가지가 있는 가지·작품은 삭제할 수 없고(하위부터 정리), 비공개 전환은 하위 가지에 전파되지 않는다
+- [ ] **WTREE-11**: 작가가 스토어에서 구매한 세계관을 `내 구매 에셋`에서 `이 세계관으로 작품 시작`(가지 치기)으로 편입한다 — 설정을 수정하면 If 가지, 새 설정만 추가하면 확장 가지로 확정되고, 변경·추가가 없으면 확정할 수 없다. 이 가지는 원작자 세계수에 잔가지로 연결되며 원작자는 숨길 수 없고 구매자는 자기 가지의 독자 공개만 선택한다 (스토어 보류 해제 후 구현, WTREE-03~05 선행)
 
 ## v2 Requirements
 
@@ -286,7 +287,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
-| WTREE-01~10 | 미배정 | Defined (phase 배정 대기, 2026-10-12) |
+| WTREE-01~11 | 미배정 | Defined (phase 배정 대기, 2026-10-12) |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -295,7 +296,7 @@ Explicitly excluded. Documented to prevent scope creep.
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
-- 세계수(WTREE): 10 defined / phase 미배정 (v1.1 합계와 별도, ROADMAP 배정 시 편입)
+- 세계수(WTREE): 11 defined / phase 미배정 (v1.1 합계와 별도, ROADMAP 배정 시 편입)
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
