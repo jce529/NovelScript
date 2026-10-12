@@ -74,8 +74,8 @@ a{color:inherit;text-decoration:none}
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <b style="font-size:14px">추천 검색어</b>
-          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{suggests}}" as="g"><button class="gc" type="button" onClick="{{g.pick}}">{{g.rank}} {{g.word}}</button></sc-for></div>
-          <span class="au">운영에서 고른 키워드와 이번 주 많이 검색된 키워드예요. 입력 중 자동완성은 제공하지 않아요.</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{suggests}}" as="g"><button class="gc" type="button" onClick="{{g.pick}}">{{g.rank}} {{g.word}} <small style="font-size:11px;color:#71717a">{{g.tag}}</small></button></sc-for></div>
+          <span class="au">앞의 세 개는 운영에서 고른 키워드, 뒤의 둘은 이번 주 많이 검색된 키워드예요. 비율은 운영에서 바꿀 수 있고 여기서는 3:2 예시예요. 입력 중 자동완성은 제공하지 않아요.</span>
         </div>
       </section>
     </sc-if>
@@ -155,7 +155,7 @@ class Component extends DCLogic {
       views: [['res', '검색 결과'], ['panel', '검색창을 눌렀을 때']].map((v) => ({ label: v[1], cls: (st.view === 'panel') === (v[0] === 'panel') ? 'gc on' : 'gc', pick: () => this.setState({ view: v[0] }) })),
       panel: st.view === 'panel', results: st.view !== 'panel' && total > 0,
       recents: rec.map((w, i) => ({ word: w, pick: () => this.setState({ q: w, view: 'res' }), del: () => this.setState({ rec: rec.filter((x, j) => j !== i) }) })), hasRecent: rec.length > 0, noRecent: rec.length === 0, clearRecent: () => this.setState({ rec: [] }),
-      suggests: ['회귀', '서고', '궁중 로맨스', '헌터물', '완결 추천'].map((w, i) => ({ word: w, rank: String(i + 1), pick: () => this.setState({ q: w, view: 'res' }) }))
+      suggests: ['회귀', '서고', '궁중 로맨스', '헌터물', '완결 추천'].map((w, i) => ({ word: w, rank: String(i + 1), tag: i < 3 ? '운영' : '인기', pick: () => this.setState({ q: w, view: 'res' }) }))
     };
   }
 }

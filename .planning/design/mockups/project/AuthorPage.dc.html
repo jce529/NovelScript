@@ -64,7 +64,11 @@ a{color:inherit;text-decoration:none}
       <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px">
         <h1 class="h2">달빛작가</h1>
         <p class="sub">서고와 도서관을 무대로 한 판타지를 씁니다. 매주 월·목 연재.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">작품 {{total}}편</span><span class="badge">연재중 {{ongoing}}편</span><span class="badge">완결 {{ended}}편</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">작품 {{total}}편</span><span class="badge">연재중 {{ongoing}}편</span><span class="badge">완결 {{ended}}편</span><span class="badge">구독자 {{subs}}명</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:150px">
+        <button class="{{subCls}}" type="button" onClick="{{toggleSub}}" aria-pressed="{{subOn}}">{{subLabel}}</button>
+        <span class="sub" style="text-align:center">새 작품·새 회차 알림</span>
       </div>
     </section>
 
@@ -93,6 +97,7 @@ class Component extends DCLogic {
     const st = this.state || {};
     const f = st.f || 'all';
     const sort = st.sort || 'upd';
+    const subOn = !!st.sub;
     const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
     const src = [
       { title: '달빛 서고', genre: '판타지', ep: 12, state: '연재중', read: 92, comp: 81, h: 262, date: '2026.09.20 연재 시작 · 어제 업데이트', start: 3, upd: 1, pop: 1 },
@@ -104,6 +109,7 @@ class Component extends DCLogic {
     const mk = (defs, cur, key) => defs.map((d) => ({ label: d[1], cls: cur === d[0] ? 'gc on' : 'gc', pick: () => this.setState({ [key]: d[0] }) }));
     return {
       accent: this.props.accent ?? '#4f46e5',
+      subOn: subOn, subs: subOn ? '3,421' : '3,420', subLabel: subOn ? '구독 중' : '작가 알림 구독', subCls: subOn ? 'gc on' : 'gc', toggleSub: () => this.setState({ sub: !subOn }),
       total: src.length, ongoing: src.filter((w) => w.state === '연재중').length, ended: src.filter((w) => w.state === '완결').length,
       filters: mk([['all', '전체'], ['on', '연재중'], ['end', '완결']], f, 'f'),
       sorts: mk([['upd', '업데이트순'], ['start', '신작순'], ['pop', '인기순']], sort, 'sort'),
