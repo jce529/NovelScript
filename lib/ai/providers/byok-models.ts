@@ -9,7 +9,9 @@ export async function loadConnectedByokModels(supabase: SupabaseClient, ownerId:
     if (error || !Array.isArray(data)) return {};
     const result: ByokModelMap = {};
     for (const row of data) {
-      if (!row || !['gemini', 'openai', 'anthropic'].includes(row.provider) || row.status !== 'connected' || !Array.isArray(row.model_ids) || !row.model_ids.every((id: unknown) => typeof id === 'string')) return {};
+      // A failed key is a normal state, not bad data: hide only its models, keep the other providers'.
+      if (row && row.status !== 'connected') continue;
+      if (!row || !['gemini', 'openai', 'anthropic'].includes(row.provider) || !Array.isArray(row.model_ids) || !row.model_ids.every((id: unknown) => typeof id === 'string')) return {};
       const provider = row.provider as ProviderId;
       const models = intersectWithCatalog(provider, row.model_ids as string[]);
       if (models.length) result[provider] = models;
