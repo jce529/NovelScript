@@ -71,7 +71,7 @@ button{font-family:inherit;cursor:pointer}
             <sc-for list="{{g.items}}" as="i"><div class="it"><span style="flex:1">{{i.name}}</span><b>{{i.price}}토큰</b><button class="x" type="button" aria-label="{{i.name}} 빼기" onClick="{{i.del}}">×</button></div></sc-for>
           </div>
         </sc-for>
-        <span class="k">같은 에셋의 다른 모듈은 상세 페이지에서 더 담을 수 있어요. 이미 구매한 모듈은 담기지 않아요.</span>
+        <span class="k">에셋은 한 세트씩 담겨요. 이미 구매한 에셋은 담기지 않아요.</span>
       </sc-if>
       <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
         <div style="text-align:center;padding:48px 8px;display:flex;flex-direction:column;gap:10px;align-items:center">
@@ -97,8 +97,8 @@ button{font-family:inherit;cursor:pointer}
       <div class="ok">✓</div>
       <b style="font-size:19px;text-align:center">구매했어요</b>
       <div class="sum"><sc-for list="{{doneItems}}" as="d"><div><span>{{d.name}}</span><b>{{d.price}}토큰</b></div></sc-for><div style="border-top:1px solid #d4d4d8;padding-top:6px"><span>결제 후 잔액</span><b>{{after}}토큰</b></div></div>
-      <div class="warn" style="background:#eef2ff;color:#3730a3">설정집 모듈은 스튜디오 파일 탐색기의 `구매함` 폴더에, 문체 프롬프트는 AI 코워커의 시스템 설정 목록에 바로 들어갔어요. 이 에셋을 컨텍스트에 올려 쓴 회차에는 `활용된 에셋` 표기가 자동으로 붙어요.</div>
-      <a class="btn p" href="Editor.dc.html">스튜디오에서 열기</a>
+      <div class="warn" style="background:#eef2ff;color:#3730a3">구매한 에셋은 `내 구매 에셋`에 보관돼요. 세계관을 내 작품에 들이는 방식과 문체 프롬프트·템플릿 적용 방법은 정해지면 이곳에 안내해요. 이 에셋을 쓴 작품의 상세 소개 맨 아래에는 출처가 작게 표기돼요.</div>
+      <a class="btn p" href="Editor.dc.html">스튜디오로 이동</a>
       <a class="btn" href="StoreMain.dc.html">스토어 계속 둘러보기</a>
     </div>
   </sc-if>
@@ -114,8 +114,8 @@ class Component extends DCLogic {
     const removed = st.removed || {};
     const bg = (h) => 'linear-gradient(150deg,hsl(' + h + ' 45% 40%),hsl(' + (h + 40) + ' 50% 62%))';
     const all = [
-      { id: 'a', pack: '다크 판타지 유니버스 팩', seller: '달빛작가', h: 260, name: '[장소] 암흑 성채', price: 5 },
-      { id: 'b', pack: '제국 암살자 문체 프롬프트', seller: '검은펜', h: 20, name: '[문체] 제국 암살자 프롬프트', price: 8 }
+      { id: 'a', pack: '다크 판타지 유니버스 팩', seller: '달빛작가', h: 260, name: '세계관 한 세트', price: 25 },
+      { id: 'b', pack: '제국 암살자 문체 프롬프트', seller: '검은펜', h: 20, name: '문체 프롬프트', price: 12 }
     ];
     const items = view === 'empty' ? [] : all.filter((i) => !removed[i.id]);
     const total = items.reduce((a, i) => a + i.price, 0);

@@ -102,7 +102,7 @@ button{cursor:pointer}
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h2 class="h2">내 에셋</h2><button class="btn p" type="button" onClick="{{newPack}}">새 에셋 만들기</button></div>
         <div class="scroll"><table class="tbl">
           <thead><tr><th>에셋</th><th>유형</th><th>상태</th><th style="text-align:right">판매</th><th style="text-align:right">평점</th><th style="text-align:right">수익</th><th></th></tr></thead>
-          <tbody><sc-for list="{{mine}}" as="m"><tr><td><b>{{m.title}}</b><div class="k">모듈 {{m.mods}}개 · 최저 {{m.min}}토큰</div></td><td>{{m.type}}</td><td><span class="{{m.stCls}}">{{m.st}}</span></td><td class="n">{{m.sold}}</td><td class="n">{{m.rate}}</td><td class="n">{{m.earn}}</td><td style="white-space:nowrap"><button class="lnk" type="button" onClick="{{m.edit}}">{{m.editLabel}}</button></td></tr></sc-for></tbody>
+          <tbody><sc-for list="{{mine}}" as="m"><tr><td><b>{{m.title}}</b><div class="k">포함 항목 {{m.mods}}개 · {{m.min}}토큰</div></td><td>{{m.type}}</td><td><span class="{{m.stCls}}">{{m.st}}</span></td><td class="n">{{m.sold}}</td><td class="n">{{m.rate}}</td><td class="n">{{m.earn}}</td><td style="white-space:nowrap"><button class="lnk" type="button" onClick="{{m.edit}}">{{m.editLabel}}</button></td></tr></sc-for></tbody>
         </table></div>
         <p class="k" style="margin:0">판매 중지하면 새 구매만 막혀요. 이미 구매한 작가의 구매함 폴더는 그대로 남아요.</p>
       </section>
@@ -114,7 +114,7 @@ button{cursor:pointer}
         <div class="pk">
           <div class="card" style="padding:14px">
             <b style="font-size:14px">내 스튜디오</b>
-            <span class="k">모듈로 팔 항목의 `담기`를 눌러요.</span>
+            <span class="k">에셋에 포함할 항목의 `담기`를 눌러요. 포함한 항목은 한 세트로 팔려요.</span>
             <div class="tree">
               <sc-for list="{{tree}}" as="r">
                 <div class="{{r.cls}}"><span style="{{r.indent}}">{{r.name}}</span><sc-if value="{{r.hasBtn}}" hint-placeholder-val="{{true}}"><button class="add" type="button" disabled="{{r.dis}}" onClick="{{r.pick}}">{{r.btn}}</button></sc-if></div>
@@ -125,15 +125,16 @@ button{cursor:pointer}
             <label class="fld">에셋 이름<input class="in" type="text" value="{{name}}" onInput="{{onName}}" placeholder="예: 다크 판타지 유니버스 팩"></label>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="fld" style="flex-direction:row;align-items:center;gap:8px">유형</span><sc-for list="{{kinds}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
             <label class="fld">무료 소개 (구매 전에 모두 공개돼요)<textarea class="ta" onInput="{{onOver}}" placeholder="분위기와 핵심 배경을 적어 주세요.">{{over}}</textarea></label>
-            <div class="fld">구성 모듈과 가격 (토큰)
-              <sc-if value="{{noMods}}" hint-placeholder-val="{{true}}"><div class="k" style="font-weight:400;padding:14px;border:1px dashed #d4d4d8;border-radius:10px;text-align:center">왼쪽에서 모듈로 팔 항목을 담아 주세요.</div></sc-if>
-              <sc-for list="{{mods}}" as="m"><div class="mrow"><b style="flex:1;min-width:140px;font-size:13px">{{m.name}}</b><input class="pin" type="number" min="1" value="{{m.price}}" onInput="{{m.setPrice}}" aria-label="{{m.name}} 가격"><span class="k">토큰</span><button class="lnk" type="button" onClick="{{m.del}}">빼기</button></div></sc-for>
+            <div class="fld">포함 항목
+              <sc-if value="{{noMods}}" hint-placeholder-val="{{true}}"><div class="k" style="font-weight:400;padding:14px;border:1px dashed #d4d4d8;border-radius:10px;text-align:center">왼쪽에서 에셋에 포함할 항목을 담아 주세요.</div></sc-if>
+              <sc-for list="{{mods}}" as="m"><div class="mrow"><b style="flex:1;min-width:140px;font-size:13px">{{m.name}}</b><button class="lnk" type="button" onClick="{{m.del}}">빼기</button></div></sc-for>
             </div>
+            <label class="fld">판매 가격 (한 세트, 토큰)<input class="pin" style="width:120px;height:42px;font-size:15px" type="number" min="1" value="{{price}}" onInput="{{onPrice}}" aria-label="판매 가격"></label>
             <label class="fld">AI 출력 미리보기 예시 (적용 후 문장)<textarea class="ta" onInput="{{onAfter}}" placeholder="이 에셋을 넣었을 때 AI가 쓴 문장을 붙여 넣어 주세요.">{{after}}</textarea></label>
             <div class="mrow" style="justify-content:space-between"><div><b style="font-size:13px">이 에셋으로 만든 연재작을 상세 페이지에 전시</b><div class="k">연재작 작가가 허용한 작품만 `이 에셋이 만들어낸 히트작`으로 보여요</div></div><button class="{{showCls}}" type="button" role="switch" aria-label="파생작 전시" onClick="{{toggleShow}}"><i></i></button></div>
             <div class="card" style="background:#fafafa;padding:14px"><b style="font-size:13px">등록 전 확인</b>
               <div class="chk"><sc-for list="{{checks}}" as="c"><div><span class="{{c.cls}}">{{c.mark}}</span><span style="color:{{c.color}}">{{c.text}}</span></div></sc-for></div>
-              <sc-if value="{{customWarn}}" hint-placeholder-val="{{false}}"><div class="warn">빈 양식만 파는 것은 안 돼요. 커스텀 템플릿에는 그 양식으로 작성한 예시 문서를 모듈로 함께 담아야 해요.</div></sc-if>
+              <sc-if value="{{customWarn}}" hint-placeholder-val="{{false}}"><div class="warn">빈 양식만 파는 것은 안 돼요. 템플릿에는 그 양식으로 작성한 예시 문서를 함께 담아야 해요.</div></sc-if>
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn" type="button" onClick="{{saveDraft}}">임시저장</button><button class="btn p" type="button" disabled="{{cantPub}}" onClick="{{publish}}">판매 등록</button></div>
           </div>
@@ -152,8 +153,8 @@ button{cursor:pointer}
       <section class="card"><h2 class="h2">일별 판매 수익 <span class="k" style="font-weight:400">최근 14일</span></h2>
         <div class="bars"><sc-for list="{{bars}}" as="b"><div class="bar"><i style="height:{{b.h}}%"></i><span>{{b.d}}</span></div></sc-for></div>
       </section>
-      <section class="card"><h2 class="h2">모듈별 판매</h2>
-        <div class="scroll"><table class="tbl"><thead><tr><th>모듈</th><th style="text-align:right">가격</th><th style="text-align:right">판매</th><th style="text-align:right">수익</th></tr></thead>
+      <section class="card"><h2 class="h2">에셋별 판매</h2>
+        <div class="scroll"><table class="tbl"><thead><tr><th>에셋</th><th style="text-align:right">가격</th><th style="text-align:right">판매</th><th style="text-align:right">수익</th></tr></thead>
         <tbody><sc-for list="{{modSales}}" as="m"><tr><td>{{m.name}}</td><td class="n">{{m.price}}</td><td class="n">{{m.sold}}</td><td class="n">{{m.earn}}</td></tr></sc-for></tbody></table></div>
       </section>
       <section class="card"><h2 class="h2">파생 작품 성적</h2>
@@ -175,10 +176,10 @@ class Component extends DCLogic {
     const tabs = [['mine', '내 에셋'], ['pack', '패키징'], ['earn', '수익 분석']].map((t) => ({ label: t[1], cls: tab === t[0] ? 'tb on' : 'tb', pick: () => this.setState({ tab: t[0] }) }));
 
     const mine = [
-      { title: '다크 판타지 유니버스 팩', type: '세계관', mods: 5, min: 5, st: '판매 중', stCls: 'badge g', sold: 842, rate: '★ 4.8', earn: '+3,120' },
-      { title: '폐허 도시 생존 규칙', type: '세계관', mods: 4, min: 9, st: '판매 중', stCls: 'badge g', sold: 96, rate: '★ 4.3', earn: '+1,740' },
-      { title: '황혼 문체 프롬프트 2', type: '문체', mods: 1, min: 8, st: '임시저장', stCls: 'badge z', sold: 0, rate: '-', earn: '-' },
-      { title: '궁정 암투 템플릿', type: '커스텀 템플릿', mods: 2, min: 6, st: '판매 중지', stCls: 'badge y', sold: 12, rate: '★ 4.1', earn: '+0' }
+      { title: '다크 판타지 유니버스 팩', type: '세계관', mods: 5, min: 25, st: '판매 중', stCls: 'badge g', sold: 842, rate: '★ 4.8', earn: '+3,120' },
+      { title: '폐허 도시 생존 규칙', type: '세계관', mods: 4, min: 28, st: '판매 중', stCls: 'badge g', sold: 96, rate: '★ 4.3', earn: '+1,740' },
+      { title: '황혼 문체 프롬프트 2', type: '문체 프롬프트', mods: 1, min: 12, st: '임시저장', stCls: 'badge z', sold: 0, rate: '-', earn: '-' },
+      { title: '궁정 암투 템플릿', type: '템플릿', mods: 2, min: 10, st: '판매 중지', stCls: 'badge y', sold: 12, rate: '★ 4.1', earn: '+0' }
     ].map((m) => Object.assign(m, { editLabel: m.st === '임시저장' ? '이어서 만들기' : '수정', edit: () => this.setState({ tab: 'pack' }) }));
 
     const lib = [
@@ -197,26 +198,27 @@ class Component extends DCLogic {
     const sec = (title, ids) => { tree.push({ cls: 'fo', name: title, indent: '', btn: '', hasBtn: false, dis: true, pick: () => {} });
       lib.filter((l) => ids.indexOf(l.id) >= 0).forEach((l) => { const on = !!picked[l.id]; tree.push({ cls: on ? 'tr on' : 'tr', name: '[' + l.kind + '] ' + l.name, indent: 'padding-left:6px', btn: on ? '담음' : '담기', hasBtn: true, dis: on, pick: () => { const n = Object.assign({}, picked); n[l.id] = true; this.setState({ picked: n }); } }); }); };
     sec('설정집', ['w1', 'c1', 'c2', 'p1', 'e1']); sec('시스템 프롬프트', ['pr1']); sec('내 템플릿', ['t1']);
-    const mods = lib.filter((l) => picked[l.id]).map((l) => ({ name: '[' + l.kind + '] ' + l.name, price: prices[l.id] == null ? 5 : prices[l.id],
-      setPrice: (e) => { const n = Object.assign({}, prices); n[l.id] = parseInt(e.target.value || '0', 10); this.setState({ prices: n }); },
+    const mods = lib.filter((l) => picked[l.id]).map((l) => ({ name: '[' + l.kind + '] ' + l.name,
       del: () => { const n = Object.assign({}, picked); delete n[l.id]; this.setState({ picked: n }); } }));
     const kind = st.kind || '세계관';
-    const kinds = ['세계관', '문체', '커스텀 템플릿'].map((k) => ({ label: k, cls: kind === k ? 'chip on' : 'chip', pick: () => this.setState({ kind: k }) }));
+    const kinds = ['세계관', '문체 프롬프트', '템플릿'].map((k) => ({ label: k, cls: kind === k ? 'chip on' : 'chip', pick: () => this.setState({ kind: k }) }));
     const name = st.name || '', over = st.over || '', after = st.after || '';
-    const hasSample = lib.some((l) => picked[l.id] && l.kind !== '템플릿');
-    const custom = kind === '커스텀 템플릿';
+    const hasSample = lib.some((l) => picked[l.id] && l.kind !== '템플릿' && l.kind !== '문체');
+    const custom = kind === '템플릿';
+    const price = st.price == null ? '' : st.price;
+    const typeOk = kind === '세계관' ? lib.some((l) => picked[l.id] && ['세계관', '인물', '장소', '사건'].indexOf(l.kind) >= 0) : kind === '문체 프롬프트' ? !!picked.pr1 : !!(picked.t1 && hasSample);
     const checks = [
       [name.trim().length > 0, '에셋 이름을 적었어요'],
       [over.trim().length >= 20, '무료 소개를 20자 이상 적었어요'],
-      [mods.length > 0 && mods.every((m) => m.price > 0), '모듈을 1개 이상 담고 가격을 정했어요'],
+      [mods.length > 0 && parseInt(price || '0', 10) > 0, '포함 항목을 1개 이상 담고 가격을 정했어요'],
+      [typeOk, kind === '세계관' ? '세계관에 설정 문서가 포함돼 있어요' : kind === '문체 프롬프트' ? '문체 프롬프트가 포함돼 있어요' : '템플릿과 그 양식으로 쓴 예시 문서가 함께 포함돼 있어요'],
       [after.trim().length > 0, 'AI 출력 미리보기 예시를 붙여 넣었어요'],
-      [!custom || (picked.t1 && hasSample), custom ? '커스텀 템플릿에 예시 문서를 함께 담았어요' : '커스텀 템플릿 규칙 확인 (해당 없음)']
     ].map((c) => ({ cls: c[0] ? 'ck ok' : 'ck no', mark: c[0] ? '✓' : '·', text: c[1], color: c[0] ? '#18181b' : '#71717a' }));
     const ok = checks.every((c) => c.mark === '✓');
     const showOn = st.show == null ? true : st.show;
 
     const earnBars = [3, 5, 2, 8, 6, 4, 9, 7, 5, 6, 10, 8, 6, 12].map((v, i) => ({ h: Math.round(v / 12 * 100), d: String(i + 1) }));
-    const modSales = [['[세계관] 황혼 제국 기본 설정', '5토큰', 14, '+63'], ['[인물] 제국 암살자 템플릿', '5토큰', 10, '+45'], ['[문체] 어두운 서사 프롬프트', '8토큰', 8, '+58'], ['[장소] 암흑 성채', '5토큰', 5, '+23']].map((m) => ({ name: m[0], price: m[1], sold: m[2], earn: m[3] }));
+    const modSales = [['다크 판타지 유니버스 팩', '25토큰', 14, '+315'], ['폐허 도시 생존 규칙', '28토큰', 5, '+126'], ['궁정 암투 템플릿', '10토큰', 1, '+9']].map((m) => ({ name: m[0], price: m[1], sold: m[2], earn: m[3] }));
     const dOff = st.dOff || {};
     const derived = [['그림자 성채의 후계', '랭킹 주간 12위 · 연독률 88%', true], ['검은 달의 서약', '루키 쿼터존 · 연독률 81%', true], ['이름 없는 서고', '연재 3화 · 전시 허용 안 함', false]].map((w, i) => {
       const on = w[2] && !dOff[i];
@@ -228,7 +230,7 @@ class Component extends DCLogic {
       mine: mine, newPack: () => this.setState({ tab: 'pack' }),
       tree: tree, name: name, over: over, after: after, mods: mods, noMods: mods.length === 0, kinds: kinds,
       onName: (e) => this.setState({ name: e.target.value }), onOver: (e) => this.setState({ over: e.target.value }), onAfter: (e) => this.setState({ after: e.target.value }),
-      checks: checks, customWarn: custom && !(picked.t1 && hasSample), cantPub: !ok,
+      checks: checks, customWarn: custom && !(picked.t1 && hasSample), price: price, onPrice: (e) => this.setState({ price: e.target.value }), cantPub: !ok,
       showCls: showOn ? 'sw on' : 'sw', toggleShow: () => this.setState({ show: !showOn }),
       saveDraft: () => say('임시저장했어요. 내 에셋에서 이어서 만들 수 있어요.'),
       publish: () => { this.setState({ tab: 'mine' }); say('판매 등록했어요. 스토어에 바로 보여요.'); },

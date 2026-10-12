@@ -54,7 +54,7 @@ button{cursor:pointer}
   <header class="hd">
     <a class="logo" href="Home.dc.html">NovelScript</a>
     <span class="sp">에셋 스토어</span>
-    <input class="srch" type="search" placeholder="세계관·문체·템플릿 검색" aria-label="에셋 검색" value="{{q}}" onInput="{{onQ}}">
+    <input class="srch" type="search" placeholder="세계관·문체 프롬프트·템플릿 검색" aria-label="에셋 검색" value="{{q}}" onInput="{{onQ}}">
     <span style="flex-grow:1"></span>
     <a class="btn" href="StoreSeller.dc.html" style="height:36px;display:flex;align-items:center;font-size:13px">내 에셋 판매</a>
     <button class="ib" type="button" aria-label="장바구니"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12zM6 6L5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg><span class="cnt">2</span></button>
@@ -63,7 +63,7 @@ button{cursor:pointer}
   </header>
 
   <main class="wrap">
-    <p class="k" style="margin:0">스토어 진입은 프로필 메뉴의 `에셋 스토어`와 스튜디오 헤더의 링크 두 곳이다(헤더 탭으로는 두지 않는다). 장바구니는 스토어 안에서만 보인다. 에셋 이름·판매자·가격·평점은 모두 샘플이다.</p>
+    <p class="k" style="margin:0">스토어 진입은 프로필 메뉴의 `에셋 스토어`와 스튜디오 헤더의 링크 두 곳이다(헤더 탭으로는 두지 않는다). 에셋은 세계관 · 문체 프롬프트 · 템플릿 세 종류이고 각각 통째로 판매한다(인물·장소만 따로 팔지 않는다). 장바구니는 스토어 안에서만 보인다. 에셋 이름·판매자·가격·평점은 모두 샘플이다.</p>
 
     <section style="display:flex;flex-direction:column;gap:12px">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 class="h2">추천 모음</h2><span class="k">운영에서 고른 주제별 큐레이션</span></div>
@@ -120,18 +120,18 @@ class Component extends DCLogic {
     const genre = st.genre || 'all', type = st.type || 'all', price = st.price || 'all', sort = st.sort || 'pop', q = (st.q || '').trim();
     const bg = (h) => 'linear-gradient(150deg,hsl(' + h + ' 45% 40%),hsl(' + (h + 40) + ' 50% 62%))';
     const all = [
-      { title: '다크 판타지 유니버스 팩', type: '세계관', genre: '판타지', seller: '달빛작가', min: 5, rating: '4.8', rev: 126, sold: 842, h: 260, sample: false, owned: true, date: 3 },
-      { title: '제국 암살자 문체 프롬프트', type: '문체', genre: '무협', seller: '검은펜', min: 8, rating: '4.6', rev: 88, sold: 530, h: 20, sample: false, owned: false, date: 5 },
-      { title: '궁중 로맨스 설정 템플릿', type: '커스텀 템플릿', genre: '로맨스', seller: '유리공방', min: 6, rating: '4.7', rev: 54, sold: 301, h: 330, sample: true, owned: false, date: 2 },
-      { title: '성간 항로 세계관', type: '세계관', genre: 'SF', seller: '소금길', min: 10, rating: '4.5', rev: 41, sold: 218, h: 200, sample: false, owned: false, date: 1 },
-      { title: '강호 연대기', type: '세계관', genre: '무협', seller: '검은펜', min: 7, rating: '4.4', rev: 33, sold: 190, h: 140, sample: false, owned: false, date: 4 },
-      { title: '담백한 1인칭 문체', type: '문체', genre: '로맨스', seller: '유리공방', min: 5, rating: '4.9', rev: 71, sold: 477, h: 300, sample: false, owned: false, date: 6 },
-      { title: '폐허 도시 생존 규칙', type: '세계관', genre: 'SF', seller: '달빛작가', min: 9, rating: '4.3', rev: 19, sold: 96, h: 60, sample: false, owned: false, date: 7 },
-      { title: '학원 이능 설정 템플릿', type: '커스텀 템플릿', genre: '판타지', seller: '소금길', min: 4, rating: '4.2', rev: 12, sold: 58, h: 100, sample: true, owned: false, date: 8 }
+      { title: '다크 판타지 유니버스 팩', type: '세계관', genre: '판타지', seller: '달빛작가', min: 25, rating: '4.8', rev: 126, sold: 842, h: 260, sample: false, owned: true, date: 3 },
+      { title: '제국 암살자 문체 프롬프트', type: '문체 프롬프트', genre: '무협', seller: '검은펜', min: 12, rating: '4.6', rev: 88, sold: 530, h: 20, sample: false, owned: false, date: 5 },
+      { title: '궁중 로맨스 설정 템플릿', type: '템플릿', genre: '로맨스', seller: '유리공방', min: 10, rating: '4.7', rev: 54, sold: 301, h: 330, sample: true, owned: false, date: 2 },
+      { title: '성간 항로 세계관', type: '세계관', genre: 'SF', seller: '소금길', min: 30, rating: '4.5', rev: 41, sold: 218, h: 200, sample: false, owned: false, date: 1 },
+      { title: '강호 연대기', type: '세계관', genre: '무협', seller: '검은펜', min: 22, rating: '4.4', rev: 33, sold: 190, h: 140, sample: false, owned: false, date: 4 },
+      { title: '담백한 1인칭 문체', type: '문체 프롬프트', genre: '로맨스', seller: '유리공방', min: 8, rating: '4.9', rev: 71, sold: 477, h: 300, sample: false, owned: false, date: 6 },
+      { title: '폐허 도시 생존 규칙', type: '세계관', genre: 'SF', seller: '달빛작가', min: 28, rating: '4.3', rev: 19, sold: 96, h: 60, sample: false, owned: false, date: 7 },
+      { title: '학원 이능 설정 템플릿', type: '템플릿', genre: '판타지', seller: '소금길', min: 9, rating: '4.2', rev: 12, sold: 58, h: 100, sample: true, owned: false, date: 8 }
     ];
     const mk = (defs, cur, key) => defs.map((d) => ({ label: d[1], cls: cur === d[0] ? 'chip on' : 'chip', pick: () => this.setState({ [key]: d[0] }) }));
     let items = all.filter((a) => (genre === 'all' || a.genre === genre) && (type === 'all' || a.type === type)
-      && (price === 'all' || (price === 'lo' ? a.min <= 5 : price === 'mid' ? a.min >= 6 && a.min <= 9 : a.min >= 10))
+      && (price === 'all' || (price === 'lo' ? a.min <= 10 : price === 'mid' ? a.min >= 11 && a.min <= 20 : a.min >= 21))
       && (!q || (a.title + a.seller + a.genre).indexOf(q) >= 0));
     if (sort === 'pop') items.sort((x, y) => y.sold - x.sold);
     if (sort === 'new') items.sort((x, y) => x.date - y.date);
@@ -142,14 +142,14 @@ class Component extends DCLogic {
       accent: this.props.accent ?? '#4f46e5', q: st.q || '',
       onQ: (e) => this.setState({ q: e.target.value }),
       genres: mk([['all', '전체'], ['판타지', '판타지'], ['무협', '무협'], ['로맨스', '로맨스'], ['SF', 'SF']], genre, 'genre'),
-      types: mk([['all', '전체'], ['세계관', '세계관'], ['문체', '문체'], ['커스텀 템플릿', '커스텀 템플릿']], type, 'type'),
-      prices: mk([['all', '전체'], ['lo', '5토큰 이하'], ['mid', '6~9토큰'], ['hi', '10토큰 이상']], price, 'price'),
+      types: mk([['all', '전체'], ['세계관', '세계관'], ['문체 프롬프트', '문체 프롬프트'], ['템플릿', '템플릿']], type, 'type'),
+      prices: mk([['all', '전체'], ['lo', '10토큰 이하'], ['mid', '11~20토큰'], ['hi', '21토큰 이상']], price, 'price'),
       sorts: sortDefs.map((s) => ({ v: s[0], label: s[1], sel: sort === s[0] })),
       onSort: (e) => this.setState({ sort: e.target.value }),
       count: items.length + '개',
       hasItems: items.length > 0, noItems: items.length === 0,
       reset: () => this.setState({ genre: 'all', type: 'all', price: 'all', q: '' }),
-      items: items.map((a) => ({ title: a.title, type: a.type, genre: a.genre, seller: a.seller, rating: a.rating, rev: a.rev, sold: a.sold, sample: a.sample, owned: a.owned, bg: bg(a.h), price: a.min + '토큰부터' }))
+      items: items.map((a) => ({ title: a.title, type: a.type, genre: a.genre, seller: a.seller, rating: a.rating, rev: a.rev, sold: a.sold, sample: a.sample, owned: a.owned, bg: bg(a.h), price: a.min + '토큰' }))
     };
   }
 }
