@@ -90,7 +90,8 @@
 
 ## 문서 불일치 정리 내역
 - 재개 phase의 ROADMAP 체크박스·Progress, REQUIREMENTS 체크박스·traceability, STATE 카운터, SSOT 판정을 이 문서 기준으로 맞췄다.
-- 이번에 고치지 않은 것(별도 정리 대상): `06-VERIFICATION.md` 낡음, `09-VALIDATION.md` draft, `0014_byok_keys.sql` Vault 주석, BUG-02 문서 open 상태(코드 완료), `fixed/` 문서 없는 BUGFIX-03 G2.
+- 이번에 고치지 않은 것(별도 정리 대상): `09-VALIDATION.md` draft, `0014_byok_keys.sql` Vault 주석, BUG-02 문서 open 상태(코드 완료), `fixed/` 문서 없는 BUGFIX-03 G2.
+- `06-VERIFICATION.md`는 2026-10-12에 정리했다(작가 정산 FAILED→PARTIAL, 동시성 UNVERIFIED→PARTIAL, 청사진 갭 항목 추가).
 - BUGFIX-02는 fixed/15-03·15-04에 2026-10-02 종결 기록이 있어 REQUIREMENTS 상태를 "대부분 해결(잔여 검증)"로 고쳤다.
 
 ## Sonnet 검증 결과 (2026-10-12)

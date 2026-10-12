@@ -1,8 +1,9 @@
 ---
 phase: 06-paid-chapter-unlock
 verified: 2026-09-15
+updated: 2026-10-12
 status: gaps_found
-score: 0/3 phase success criteria fully verified
+score: 1/3 phase success criteria verified at DB level (browser E2E and independent-session concurrency pending); blueprint scope reopened 2026-10-12
 gaps:
   - truth: "Purchased tokens unlock a chapter for immediate reading"
     status: partial
@@ -10,21 +11,26 @@ gaps:
     missing:
       - "Phase 5 integration and runtime evidence"
   - truth: "Atomic purchase does not double-charge under concurrency"
-    status: unverified
-    reason: "SQL and constraints exist; database tests not run"
+    status: partial
+    reason: "2026-10-01 DB tests passed (idempotent retry, rollback); independent-session concurrent purchase evidence for Phase 6 itself is still missing (Phase 7 concurrency suite covers the purchase-vs-blind race only)"
     missing:
-      - "SQL/RLS and independent-session concurrency evidence"
+      - "Independent-session concurrent purchase evidence"
   - truth: "Author receives the provisional 90 percent share"
-    status: failed
-    reason: "Author settlement not implemented; retained as roadmap work"
+    status: partial
+    reason: "Implemented in 0017_author_settlement.sql (settlement_author_rate_bps = 9000, distribution snapshot); DB tests passed 2026-10-01 (44 tests); browser E2E pending. The 2026-09-15 'not implemented' finding is superseded."
     missing:
-      - "Author credit, fee distribution and single rate adjustment point"
+      - "Browser E2E, live DB re-run"
+  - truth: "Blueprint payment model (2026-10-12): 소장/대여 선택, 대여 기간, 정주행 자동 결제, 소장함, 정산·수익 화면"
+    status: failed
+    reason: "Only permanent purchase is implemented (06-CONTEXT D: 대여 deferred). entitlements.expires_at and can_view already support time limits, so no schema change is required; grant logic and UI are missing."
+    missing:
+      - "소장/대여 선택 팝업, 대여 기간 부여·만료, 정주행 자동 결제, 소장함, 작가 정산·수익 화면 — see .planning/gaps/2026-10-12-blueprint-reconcile.md (Phase 6)"
 ---
 
 # Phase 6: Paid Chapter Unlock Verification Report
 
 **Phase Goal:** 구매 토큰으로 회차 소장, 원자적 차감·권한 부여, 작가 정산.
-**Status:** gaps_found
+**Status:** gaps_found (2026-10-12 갱신: 작가 정산 구현 반영, 청사진 갭으로 phase 재개)
 **Scope:** 최신 코드 기준 문서 감사. gsd-verifier 에이전트 실행 보고나 새 DB 검증 결과가 아니다.
 
 ## Goal Achievement
@@ -33,10 +39,10 @@ gaps:
 | # | Truth | Status | Evidence |
 |---|---|---|---|
 | 1 | 토큰 구매 → 권한 → 본문 표시 | PARTIAL | 구매 버튼·서비스·본문 RPC 연결 존재. 실충전/DB/E2E 미검증 |
-| 2 | 원자적 차감·중복 방지 | UNVERIFIED | 단일 SQL 함수와 UNIQUE 존재. 실제 동시성 증거 없음 |
-| 3 | 작가 90% / 플랫폼 10% | FAILED | 작가 credit·분배 snapshot·조정점 없음. 로드맵 구현 예정 |
+| 2 | 원자적 차감·중복 방지 | PARTIAL (2026-10-12 갱신) | 단일 SQL 함수·UNIQUE, 2026-10-01 DB 테스트로 멱등 재시도·롤백 확인. 독립 세션 동시 구매 증거는 아직 없음 |
+| 3 | 작가 90% / 플랫폼 10% | PARTIAL (2026-10-12 갱신) | 0017_author_settlement.sql 구현, 2026-10-01 DB 테스트 44개 통과. 브라우저 E2E 미검증. (2026-09-15의 FAILED 판정은 이후 구현으로 대체됨) |
 
-0/3은 코드가 없다는 뜻이 아니라 phase 전체 완료 기준의 실행 증거가 부족하다는 뜻이다.
+0/3은 코드가 없다는 뜻이 아니라 phase 전체 완료 기준의 실행 증거가 부족하다는 뜻이었다(2026-09-15 기준). 2026-10-01 DB 검증 이후 1·2·3 모두 PARTIAL이며 브라우저 E2E와 독립 세션 동시성이 남아 있다.
 
 ### Required Artifacts
 | Artifact | Status | Details |
@@ -56,11 +62,11 @@ gaps:
 | purchaseChapterAction | create/pay_purchase_order | commerce service | 소스 확인 |
 | pay_purchase_order | ledger/PAID/entitlements | 단일 함수 | 소스 확인, DB 미검증 |
 | getPublicChapter | read_chapter_content | RPC | 소스 확인 |
-| pay_purchase_order | author wallet | 없음 | 미구현 |
+| pay_purchase_order | author wallet | apply_wallet_delta (0017) | 구현됨, DB 테스트 통과(2026-10-01), E2E 미검증 |
 | 구매 | 실제 토큰 충전 | Phase 5 | 미연결 |
 
 ## Requirements Coverage
-PAY-02: PARTIAL, 체크박스 미완료 유지.
+PAY-02: PARTIAL. 2026-10-12 청사진 재판정으로 REQUIREMENTS 체크박스 해제·Phase 6 Reopened(청사진 결제 모델 갭).
 새 구매·권한 구조의 존재와 작가 정산까지 포함하는 PAY-02의 전체 충족을 구분한다.
 
 ## Validation Evidence
@@ -83,6 +89,7 @@ TypeScript·변경 파일 ESLint 통과 기록. 컴파일 이후 /login 환경�
 - Phase 5가 구현되면 검증된 충전 후 전체 구매 흐름 확인.
 
 ## Gaps Summary
-- 작가 정산: 미구현, ROADMAP Phase 6에 남겨 둠.
-- DB/동시성/E2E: 증거 필요, 미실행을 성공으로 처리하지 않음.
+- 작가 정산(90/10): 구현됨(0017), DB 테스트 통과. 정산 화면은 없음(청사진 갭).
+- DB/동시성/E2E: 브라우저 E2E와 독립 세션 동시 구매 증거 필요, 미실행을 성공으로 처리하지 않음.
 - 실충전: Phase 5 의존.
+- 청사진 갭(2026-10-12 재개): 소장/대여 선택, 대여 기간, 정주행 자동 결제, 소장함, 정산·수익 화면. 이어갈 단계는 discuss(Phase 6 확장 vs 신규 phase) — `.planning/gaps/2026-10-12-blueprint-reconcile.md`.
