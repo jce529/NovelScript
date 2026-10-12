@@ -53,3 +53,16 @@ if (!row || !['gemini','openai','anthropic'].includes(row.provider) || row.statu
 - `npx tsc --noEmit`, `eslint`가 깨끗해야 한다.
 - 브라우저: connected 1개 + failed 1개 상태에서 모델 피커에 connected 제공자 BYOK 모델이 보이고, 기본 모델 대체 안내가 뜨지 않는지 확인(Phase 10 잔여 UAT 10·11 항목과 함께).
 - 관련: PROV-05는 별개 결함(09 BUG-03, 서비스 키 미확인 노출)으로 아직 open이므로 이 버그를 고쳐도 PROV-05는 완결되지 않는다.
+
+## 적용한 수정 (2026-10-12, 커밋 aa5ee95)
+- `lib/ai/providers/byok-models.ts`: `row.status !== 'connected'` 행을 먼저 `continue`로 건너뛴다(failed 키는 정상 비연결 상태이므로 shape 검증보다 앞에서 처리, 이상한 `model_ids`가 남아 있어도 무시). 연결된 행의 이상 데이터(미지원 provider, `model_ids` 타입 불일치)와 조회 오류는 계획대로 fail closed(`{}`)를 유지했다. 한 행의 이상 데이터가 다른 제공자를 숨기는 점은 계획 문구(10-03-PLAN) 그대로 두었고 바꾸지 않았다.
+- `tests/ai/byok-models.test.ts` 신규 7개 + 기본 모델 회귀 1개: 읽는 컬럼·소유자 필터, connected 전체, failed 혼합(두 순서), failed만, 이상한 failed 행 무시, 카탈로그 교집합, 이상 데이터·조회 오류 fail closed, 혼합 상태에서 `resolveDefaultProviderModel`이 `byok_key_missing`을 내지 않음. 수정 전 혼합 상태 2건이 실패했고 수정 후 통과.
+
+## 검증 결과
+- `npx vitest run tests/ai/byok-models.test.ts provider-settings byok-settings-actions byok-settings-ui`: 4파일 49개 통과.
+- `npx eslint`(변경 2파일, `--max-warnings=0`) 깨끗.
+- `npx vitest run --project unit tests/ai`: 47파일 통과, 1파일 실패 2개(`provider-fixture.test.ts` drop-response hook). 수정 전(stash)에도 같은 2개가 실패하므로 이 버그와 무관한 기존 실패.
+- `npx tsc --noEmit`: `app/layout.tsx(22,50) Cannot find name 'LayoutProps'` 1건이 남는데 수정 전에도 동일(Next 생성 타입 누락 추정, 이 버그와 무관).
+- 브라우저 확인(connected 1 + failed 1 상태의 피커·기본 모델 안내)은 아직 하지 않았다 — Phase 10 잔여 UAT 10·11과 함께 진행한다.
+
+상태는 `open`으로 유지한다(`/bug-complete`가 정리). PROV-05는 09 BUG-03(서비스 키 미확인 노출)이 열려 있어 이 수정으로 완결되지 않는다.
