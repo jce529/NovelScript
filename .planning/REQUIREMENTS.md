@@ -155,6 +155,7 @@
 - [ ] **WTREE-10**: 하위 가지가 있는 가지·작품은 삭제할 수 없고(하위부터 정리), 비공개 전환은 하위 가지에 전파되지 않는다
 - [ ] **WTREE-11**: 작가가 스토어에서 구매한 세계관을 `내 구매 에셋`에서 `이 세계관으로 작품 시작`(가지 치기)으로 편입한다 — 설정을 수정하면 If 가지, 새 설정만 추가하면 확장 가지로 확정되고, 변경·추가가 없으면 확정할 수 없다. 이 가지는 원작자 세계수에 잔가지로 연결되며 원작자는 숨길 수 없고 구매자는 자기 가지의 독자 공개만 선택한다 (스토어 보류 해제 후 구현, WTREE-03~05 선행)
 - [ ] **WTREE-12**: 구매한 세계관 에셋은 구매 후 7일 이내이고 가지 확정(스냅샷 복제)을 하지 않았을 때만 전액 환불되며(토큰 그대로 반환, 판매자 크레딧 환불분 차감·미정산분은 정산 전 취소), 가지를 확정하거나 작품을 공개하면 취소·환불할 수 없다(이후 비공개·삭제해도 동일). 구매 화면과 `가지 확정` 직전에 이를 안내한다 (스토어 보류 해제 후 구현, WTREE-11 선행, 법적 청약철회 정합성은 LEGAL 게이트에서 확인)
+- [ ] **WTREE-13**: 세계관 에셋은 등록 시 자동 점검(금칙어·저작권 유사 등)을 통과하면 사전 심사 없이 등록되고, 이후 신고가 접수되면 관리자 신고 큐에서 판매 중지·경고·정지로 처리된다. 판매가 중지되면 세계관 자체의 문제(표절·저작권 침해 등)일 때는 파생 가지도 블라인드하고 해당 구매자를 보상하며, 그 외 사유는 기존 가지·구매를 스냅샷 그대로 유지하고 신규 구매만 막는다 (스토어 보류 해제 후 구현, 저작권·보상 범위는 LEGAL 게이트에서 확인)
 
 ## v2 Requirements
 
@@ -288,7 +289,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
-| WTREE-01~12 | 미배정 | Defined (phase 배정 대기, 2026-10-12) |
+| WTREE-01~13 | 미배정 | Defined (phase 배정 대기, 2026-10-12) |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -297,7 +298,7 @@ Explicitly excluded. Documented to prevent scope creep.
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
-- 세계수(WTREE): 12 defined / phase 미배정 (v1.1 합계와 별도, ROADMAP 배정 시 편입)
+- 세계수(WTREE): 13 defined / phase 미배정 (v1.1 합계와 별도, ROADMAP 배정 시 편입)
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
