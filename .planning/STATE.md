@@ -32,7 +32,7 @@ Last activity: 2026-10-10 -- Phase 11 상태 동기화 (ROADMAP·REQUIREMENTS·S
 
 **출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
 
-**세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). Next: 18-UI-SPEC 작성 후 `/gsd:plan-phase 18`.
+**세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). 18-UI-SPEC.md 초안 작성됨(checker 검증 대기). Next: checker 검증 → `/gsd:plan-phase 18`.
 
 **부족한 부분·다음 할 일 점검:** `.planning/gaps/2026-10-04-gap-analysis.md` (우선순위·공백·법무 게이트 정리)
 

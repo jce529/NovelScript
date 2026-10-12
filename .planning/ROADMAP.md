@@ -458,7 +458,7 @@ Plans:
 **Plans**: TBD (`/gsd:plan-phase 18`로 분할)
 **UI hint**: yes
 **Source**: `.planning/design/WORLD-TREE.md`(규칙 1~17), 목업 보드 40~43(`.planning/design/mockups/project/`)
-**Notes**: 근접도·크기 산식의 세부 계수는 phase 계획에서 정한다. 요구사항 WTREE-09(스포일러 잠금 가지 확장)·WTREE-11~13(스토어 편입·환불·운영 검토)은 이 phase 범위가 아니다. 화면 확정 후 `18-UI-SPEC.md`를 작성한다(CLAUDE.md "UI phase 완료 후 예시 목업" 규칙).
+**Notes**: 근접도·크기 산식의 세부 계수는 phase 계획에서 정한다. 요구사항 WTREE-09(스포일러 잠금 가지 확장)·WTREE-11~13(스토어 편입·환불·운영 검토)은 이 phase 범위가 아니다. UI 계약 초안: `.planning/phases/18-world-tree/18-UI-SPEC.md`(checker 검증 전). 목업은 보드 40~43.
 
 ## Launch Gate (법무) — phase 아님
 
@@ -511,6 +511,6 @@ Plans:
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | n/a (outside GSD) | Complete (live Jev/browser/mobile verification pending) | 2026-10-02 |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 0/TBD | Not started | - |
-| 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 0/TBD | Not started (설계 확정 2026-10-12, UI-SPEC 대기) | - |
+| 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 0/TBD | Not started (설계 확정 2026-10-12, UI-SPEC 초안 작성·checker 검증 대기) | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
