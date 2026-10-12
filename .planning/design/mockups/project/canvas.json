@@ -296,6 +296,15 @@
       "h": 900,
       "title": "34. 작품 상세 모바일 상단 바 비교 (잔액 칩·검색)",
       "expand": "fill"
+    },
+    "Subscription.dc.html": {
+      "x": 0,
+      "y": 25700,
+      "w": 1280,
+      "h": 1100,
+      "title": "35. 구독 플랜·결제 내역 (영수증·환불)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -332,7 +341,8 @@
     "AdminReports.dc.html",
     "AdminReviews.dc.html",
     "AdminSanctions.dc.html",
-    "WorkMobileTopBar.dc.html"
+    "WorkMobileTopBar.dc.html",
+    "Subscription.dc.html"
   ],
   "notes": {
     "t1": {
@@ -410,6 +420,13 @@
       "text": "관리자 영역 정리",
       "kind": "title1",
       "maxW": 4080
+    },
+    "t11": {
+      "x": 0,
+      "y": 25450,
+      "text": "스토어 영역 — 구독·결제",
+      "kind": "title1",
+      "maxW": 1280
     }
   },
   "designSystems": []

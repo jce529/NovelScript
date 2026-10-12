@@ -100,9 +100,9 @@ button{cursor:pointer}
         </section>
         <section class="card">
           <h2 class="h">결제 내역</h2>
-          <p class="d">충전 결제와 영수증, 환불 신청은 결제 phase 이후 화면에서 다뤄요(후속). 지금은 최근 충전만 보여줘요.</p>
+          <p class="d">최근 결제 3건만 보여줘요. 전체 내역과 영수증, 환불 요청은 `구독 · 결제 내역`에서 해요.</p>
           <sc-for list="{{pays}}" as="p"><div class="row"><div><div class="v">{{p.what}}</div><div class="d">{{p.at}} · {{p.how}}</div></div><div style="display:flex;gap:8px;align-items:center"><span class="v">{{p.amt}}</span><span class="chip">{{p.state}}</span></div></div></sc-for>
-          <div class="row"><span class="d">구독 플랜 · 환불은 후속 화면(12번)에서 설계해요.</span><span class="chip">준비 중</span></div>
+          <div class="row"><span class="d">구독 플랜 · 영수증 · 환불 요청</span><a class="btn" href="Subscription.dc.html">구독 · 결제 내역 보기</a></div>
         </section>
       </sc-if>
 
