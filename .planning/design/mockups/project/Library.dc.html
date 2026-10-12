@@ -111,6 +111,7 @@ button{font-family:inherit;cursor:pointer}
     </sc-if>
 
     <sc-if value="{{isSub}}" hint-placeholder-val="{{false}}">
+      <b style="font-size:15px">작품 알림</b>
       <div style="display:flex;flex-direction:column;gap:10px">
         <sc-for list="{{subs}}" as="s">
           <div class="row">
@@ -121,6 +122,17 @@ button{font-family:inherit;cursor:pointer}
         </sc-for>
       </div>
       <p class="sub">알림을 끄면 새 회차가 올라와도 알려드리지 않아요. 선호작과 알림 구독은 따로 관리돼요.</p>
+      <b style="font-size:15px;margin-top:8px">작가 알림</b>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{authors}}" as="a">
+          <div class="row">
+            <div style="width:52px;height:52px;border-radius:999px;flex-shrink:0;background:{{a.bg}}"></div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><a class="t" href="AuthorPage.dc.html">{{a.name}}</a><span class="au">{{a.meta}}</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span class="au" style="color:#3f3f46">{{a.state}}</span><button class="{{a.cls}}" type="button" aria-label="{{a.name}} 작가 알림" onClick="{{a.toggle}}"><i></i></button></div>
+          </div>
+        </sc-for>
+      </div>
+      <p class="sub">작가 알림을 켜 두면 그 작가의 새 작품과 새 회차를 알려드려요. 작가 페이지에서 구독하면 이곳에 나타나요. 끄면 알림만 멈추고 목록에는 남아요.</p>
     </sc-if>
 
     <sc-if value="{{isOwn}}" hint-placeholder-val="{{false}}">
@@ -164,7 +176,7 @@ class Component extends DCLogic {
     const descs = {
       read: '최근에 읽은 작품을 마지막으로 읽은 위치부터 이어서 볼 수 있어요.',
       fav: '하트를 누른 작품이에요. 새 회차가 올라온 작품에는 표시가 붙어요.',
-      sub: '새 회차 알림을 받는 작품이에요. 작품별로 켜고 끌 수 있어요.',
+      sub: '새 회차 알림을 받는 작품과 작가예요. 각각 켜고 끌 수 있어요.',
       own: '소장하거나 대여한 유료 회차를 작품별로 모아 볼 수 있어요.'
     };
     const tabs = ['read', 'fav', 'sub', 'own'].map((k) => ({ label: titles[k], cls: tab === k ? 's1 on' : 's1', pick: () => this.setState({ tab: k }) }));
@@ -191,6 +203,13 @@ class Component extends DCLogic {
         toggle: () => { const n = Object.assign({}, subOff); n[i] = on; this.setState({ subOff: n }); say(on ? '새 회차 알림을 껐어요.' : '새 회차 알림을 켰어요.'); } };
     });
 
+    const authOff = st.authOff || {};
+    const authors = [['달빛작가', '작품 3편 · 구독자 3,420명', 40], ['유리공방', '작품 2편 · 구독자 1,208명', 200], ['소금길', '작품 1편 · 구독자 764명', 350]].map((a, i) => {
+      const on = !authOff[i];
+      return { name: a[0], meta: a[1], bg: bg(a[2]), cls: on ? 'sw on' : 'sw', state: on ? '알림 켜짐' : '알림 꺼짐',
+        toggle: () => { const n = Object.assign({}, authOff); n[i] = on; this.setState({ authOff: n }); say(on ? '작가 알림을 껐어요.' : '작가 알림을 켰어요.'); } };
+    });
+
     const ownFilters = [['all', '전체'], ['own', '소장중'], ['rent', '대여중'], ['exp', '대여 만료']].map((f) => ({ label: f[1], cls: ownF === f[0] ? 'gc on' : 'gc', pick: () => this.setState({ ownF: f[0] }) }));
     const ownSrc = [
       ['달빛 서고', '13화 · 소장중 회차 5개', 'own', 262],
@@ -208,7 +227,7 @@ class Component extends DCLogic {
     return {
       accent: this.props.accent ?? '#4f46e5', tabs: tabs, title: titles[tab], desc: descs[tab],
       isRead: tab === 'read', isFav: tab === 'fav', isSub: tab === 'sub', isOwn: tab === 'own',
-      reads: reads, favSorts: favSorts, favs: favs, subs: subs, ownFilters: ownFilters, owns: owns,
+      reads: reads, favSorts: favSorts, favs: favs, subs: subs, authors: authors, ownFilters: ownFilters, owns: owns,
       pop: st.pop === true, popTitle: st.popTitle || '', closePop: () => this.setState({ pop: false }),
       toast: st.toast || ''
     };
