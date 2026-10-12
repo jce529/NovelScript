@@ -288,6 +288,14 @@
       "title": "33. 관리자 제재 이력 (경고·댓글 정지·계정 정지)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "WorkMobileTopBar.dc.html": {
+      "x": 0,
+      "y": 24300,
+      "w": 1760,
+      "h": 900,
+      "title": "34. 작품 상세 모바일 상단 바 비교 (잔액 칩·검색)",
+      "expand": "fill"
     }
   },
   "order": [
@@ -323,7 +331,8 @@
     "StudioEmptyStates.dc.html",
     "AdminReports.dc.html",
     "AdminReviews.dc.html",
-    "AdminSanctions.dc.html"
+    "AdminSanctions.dc.html",
+    "WorkMobileTopBar.dc.html"
   ],
   "notes": {
     "t1": {
