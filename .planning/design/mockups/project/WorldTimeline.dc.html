@@ -56,6 +56,9 @@ button{cursor:pointer}
             <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">{{e.name}}</span><span class="chip g">{{e.count}}편</span></div>
             <input class="yr" type="text" value="{{e.year}}" placeholder="연도(선택) 예: 세계력 120~180년" aria-label="연도 숫자(선택)" onChange="{{e.onYear}}">
             <span class="sub">{{e.note}}</span>
+            <sc-if value="{{e.showMemo}}" hint-placeholder-val="{{false}}">
+              <label style="display:flex;flex-direction:column;gap:3px"><span class="lbl" style="font-size:11px;font-weight:700;color:#52525b">본가지 대응 메모(선택)</span><input class="yr" type="text" value="{{e.memo}}" placeholder="예: 본가지 3기 후반에 해당" aria-label="본가지 몇 기에 해당하는지 메모(선택)" onChange="{{e.onMemo}}"></label>
+            </sc-if>
           </div>
           <div style="min-height:150px;padding-bottom:6px">
             <sc-for list="{{e.works}}" as="w">
@@ -71,7 +74,7 @@ button{cursor:pointer}
       <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:13px;font-weight:700">선택한 작품: {{selTitle}}</span><span class="sub">{{selNote}}</span></div>
       <div style="display:flex;gap:8px;align-items:center"><button class="{{mvCls}}" type="button" onClick="{{moveEarlier}}">← 이전 구간으로</button><button class="{{mvCls}}" type="button" onClick="{{moveLater}}">다음 구간으로 →</button><button class="{{mvCls}}" type="button" onClick="{{moveUp}}">구간 안에서 ↑</button><button class="{{mvCls}}" type="button" onClick="{{moveDown}}">↓</button><button class="{{parCls}}" type="button" onClick="{{togglePar}}">{{parLabel}}</button></div>
     </div>
-    <div class="card" style="padding:12px 16px"><span class="sub">연표를 비교하고 싶을 때는 세계수 보기에서 가지의 <b>분기점</b>을 기준으로 이어서 봐요. 연표가 가지마다 독립이라 구간 이름이 같아도 가지끼리 시점이 일치한다고 보장하지 않아요.</span></div>
+    <div class="card" style="padding:12px 16px"><span class="sub">연표를 비교하고 싶을 때는 세계수 보기에서 가지의 <b>분기점</b>을 기준으로 이어서 봐요. 연표가 가지마다 독립이라 구간 이름이 같아도 가지끼리 시점이 일치한다고 보장하지 않아요. 잔가지의 독립 구간에는 `본가지 대응 메모`를 선택으로 적어 어느 시기에 해당하는지 알려 줄 수 있어요(본가지와 이어받은 구간에는 메모가 없어요).</span></div>
   </div>
   <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
 </div>
@@ -96,6 +99,7 @@ class Component extends DCLogic {
     const works = all[bk] || bd.works;
     const eraNames = (st.eraNames && st.eraNames[bk]) || bd.eras.map((e) => e[0]);
     const years = (st.years && st.years[bk]) || {};
+    const memos = (st.memos && st.memos[bk]) || (bk === 'bA' ? { 2: '본가지 3기 초반에 해당' } : {});
     const sel = st.sel && works.some((w) => w.id === st.sel) ? st.sel : works[0].id;
     const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2200); };
     const set = (nw) => { const d = Object.assign({}, all); d[bk] = nw; this.setState({ data: d }); };
@@ -106,6 +110,7 @@ class Component extends DCLogic {
       return {
         name: name, note: bd.eras[i] ? bd.eras[i][1] : '새 시대 구간', count: ws.length, empty: ws.length === 0, laneCls: locked(i) ? 'lane lock' : 'lane',
         year: years[i] || '', onYear: (e) => { const y = Object.assign({}, st.years || {}); const yb = Object.assign({}, years); yb[i] = e.target.value; y[bk] = yb; this.setState({ years: y }); },
+        showMemo: bk !== 'trunk' && !locked(i), memo: memos[i] || '', onMemo: (e) => { const m = Object.assign({}, st.memos || {}); const mb = Object.assign({}, memos); mb[i] = e.target.value; m[bk] = mb; this.setState({ memos: m }); },
         works: ws.map((w) => ({ title: w.title, tag: w.tag, color: w.color, par: !!w.par, cls: (w.id === sel ? 'work on' : 'work') + (w.par ? ' par' : '') + (locked(i) ? ' ro' : ''), pick: () => this.setState({ sel: w.id }) }))
       };
     });
