@@ -54,7 +54,7 @@ button{font-family:inherit;cursor:pointer}
       <sc-if value="{{hiddenNote}}" hint-placeholder-val="{{false}}">
         <div style="position:absolute;left:18px;bottom:14px;right:18px;background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55">독자 화면 미리보기예요. 작가가 `연결 공개`를 껐기 때문에 잔가지는 보이지 않고 본가지의 작품만 보여요. (작가 본인과 관리자에게는 모두 보여요.)</div>
       </sc-if>
-      <div style="position:absolute;left:18px;bottom:{{legendBottom}}px;right:18px;display:flex;gap:18px;align-items:center;font-size:12px;color:#52525b"><span>가지 굵기 = 본가지와의 근접도 · 파생 규모</span><span>열매 크기 = 작품 인기</span><span class="chip g">산식은 임시안</span></div>
+      <div style="position:absolute;left:18px;bottom:{{legendBottom}}px;right:18px;display:flex;gap:18px;align-items:center;font-size:12px;color:#52525b"><span>가지 굵기 = 본가지와의 근접도 · 파생 규모 (초록 = 확장 가지)</span><span>열매 크기 = 작품 인기</span><span class="chip g">산식은 임시안</span></div>
     </div>
 
     <div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
@@ -89,10 +89,11 @@ class Component extends DCLogic {
     const branches = [
       { id: 'bA', x1: 360, y1: TY, x2: 760, y2: 100, th: 11, name: '가지 A · 소연이 서고를 떠났다면', near: '가까움', size: '중간', docs: 2, pop: '높음' },
       { id: 'bA2', x1: 560, y1: 175, x2: 900, y2: 50, th: 5, name: '가지 A-2 · 떠난 뒤 10년', near: '조금 멈', size: '작음', docs: 5, pop: '낮음', parent: 'bA' },
+      { id: 'bC', x1: 700, y1: TY, x2: 940, y2: 400, th: 9, name: '가지 C · 북쪽 항구 연대기(확장 가지)', near: '가까움', size: '중간', docs: 4, pop: '중간', expand: true },
       { id: 'bB', x1: 220, y1: TY, x2: 540, y2: 420, th: 5, name: '가지 B · 열람증이 없었다면', near: '멈', size: '작음', docs: 6, pop: '낮음' }
     ];
     const segDefs = [trunk].concat(branches);
-    const palette = { trunk: '#92400e', bA: '#a16207', bA2: '#ca8a04', bB: '#b45309' };
+    const palette = { bC: '#15803d', trunk: '#92400e', bA: '#a16207', bA2: '#ca8a04', bB: '#b45309' };
     const fruitsAll = [
       { id: 'f1', branch: 'trunk', x: 170, y: TY, up: -1, title: '서고의 문지기', era: '1기 · 서고 이전', pop: 35, tag: '프리퀄', color: '#16a34a', n: '프' },
       { id: 'f2', branch: 'trunk', x: 380, y: TY, up: 1, title: '달빛 서고', era: '2기 · 서고 시대', pop: 92, tag: '원작', color: '#dc2626', n: '원작' },
@@ -100,6 +101,7 @@ class Component extends DCLogic {
       { id: 'f4', branch: 'trunk', x: 960, y: TY, up: 1, title: '달빛 서고 2부', era: '3기 · 서고 이후', pop: 60, tag: '속편', color: '#d97706', n: '2부' },
       { id: 'f5', branch: 'bA', x: 740, y: 106, up: -1, title: '소연이 서고를 떠났다면', era: '3기 · If', pop: 80, tag: '셀프 가지', color: '#be185d', n: 'If' },
       { id: 'f6', branch: 'bA2', x: 880, y: 56, up: -1, title: '떠난 뒤 10년', era: '4기 · If', pop: 30, tag: '셀프 가지', color: '#a21caf', n: '10' },
+      { id: 'f8', branch: 'bC', x: 920, y: 392, up: 1, title: '북쪽 항구 연대기', era: '3기 · 다른 지역', pop: 55, tag: '확장 가지', color: '#0d9488', n: '북' },
       { id: 'f7', branch: 'bB', x: 520, y: 410, up: 1, title: '열람증이 없었다면', era: '2기 · If', pop: 20, tag: '셀프 가지', color: '#7c3aed', n: 'If' }
     ];
     const visible = (id) => !hideBranches || id === 'trunk';
@@ -116,7 +118,7 @@ class Component extends DCLogic {
     let selInfo;
     const fr = fruitsAll.find((f) => f.id === sel); const br = segDefs.find((s) => s.id === sel);
     if (fr) selInfo = { kind: '열매 · 작품', title: fr.title, chip: fr.tag, chipCls: fr.branch === 'trunk' ? '' : 'g', desc: '세계관 내 시점: ' + fr.era + '. 인기는 독자 지표(독자 수·완독률) 중심으로 열매 크기에 반영돼요.', facts: [{ k: '세계관 내 시점', v: fr.era }, { k: '인기(임시 지수)', v: String(fr.pop) }, { k: '속한 가지', v: fr.branch === 'trunk' ? '본가지' : '잔가지' }, { k: '연재 상태', v: fr.id === 'f4' ? '연재 중' : '완결' }], isBranch: false, isFruit: true, changes: [] };
-    else selInfo = { kind: sel === 'trunk' ? '본가지' : '잔가지(If 스토리)', title: br.name, chip: sel === 'trunk' ? '원작·작가 기반' : '스냅샷 고정', chipCls: sel === 'trunk' ? 'ok' : 'g', desc: sel === 'trunk' ? '세계관의 기본 설정 흐름이에요. 작가가 판매 여부를 선택할 수 있고, 시점이 늦은 작품일수록 가지 끝에 열려요.' : '설정을 바꿔서 갈라진 If 스토리예요. 굵기는 본가지와의 근접도와 파생 규모를 나타내요.', facts: sel === 'trunk' ? [{ k: '열매(작품)', v: '4편' }, { k: '잔가지', v: '3개' }] : [{ k: '본가지와의 근접도', v: br.near }, { k: '변경한 설정 문서', v: br.docs + '개' }, { k: '인기', v: br.pop }, { k: '굵기', v: br.size }], isBranch: sel !== 'trunk', isFruit: false, changes: sel === 'bA' ? ['소연: 서고를 떠난 인물로 변경', '잿빛 항구: 거점으로 추가'] : sel === 'bA2' ? ['5개 문서 변경(가지 A 이후)'] : ['열람증: 삭제', '서고 규칙 외 5개 문서 변경'] };
+    else selInfo = { kind: sel === 'trunk' ? '본가지' : (br.expand ? '잔가지(확장: 같은 세계관의 다른 지역)' : '잔가지(If 스토리)'), title: br.name, chip: sel === 'trunk' ? '원작·작가 기반' : (br.expand ? '확장 가지 · 스냅샷 고정' : '스냅샷 고정'), chipCls: sel === 'trunk' ? 'ok' : 'g', desc: sel === 'trunk' ? '세계관의 기본 설정 흐름이에요. 작가가 판매 여부를 선택할 수 있고, 시점이 늦은 작품일수록 가지 끝에 열려요.' : '설정을 바꿔서 갈라진 If 스토리예요. 굵기는 본가지와의 근접도와 파생 규모를 나타내요.', facts: sel === 'trunk' ? [{ k: '열매(작품)', v: '4편' }, { k: '잔가지', v: '4개' }] : [{ k: '본가지와의 근접도', v: br.near }, { k: '변경한 설정 문서', v: br.docs + '개' }, { k: '인기', v: br.pop }, { k: '굵기', v: br.size }], isBranch: sel !== 'trunk', isFruit: false, changes: sel === 'bC' ? ['기존 설정은 그대로 유지', '새 인물 3명·새 장소 1곳 추가(같은 세계관의 북쪽 지역)'] : sel === 'bA' ? ['소연: 서고를 떠난 인물로 변경', '잿빛 항구: 거점으로 추가'] : sel === 'bA2' ? ['5개 문서 변경(가지 A 이후)'] : ['열람증: 삭제', '서고 규칙 외 5개 문서 변경'] };
     return {
       accent: this.props.accent ?? '#4f46e5',
       viewers: [['author', '작가 보기'], ['reader', '독자 보기']].map((v) => ({ label: v[1], cls: viewer === v[0] ? 'sg on' : 'sg', pick: () => this.setState({ viewer: v[0] }) })).concat(viewer === 'reader' ? [{ label: open ? '연결 공개: 켜짐' : '연결 공개: 꺼짐', cls: 'sg', pick: () => this.setState({ open: !open }) }] : []),
