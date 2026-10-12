@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it (completed 2026-08-29)
 - [ ] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29) — **재개(청사진 갭, 2026-10-12): 기본 템플릿 정책·우클릭·패널 접기**
 - [ ] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30) — **재개(청사진 갭, 2026-10-12): 독자 화면 구조·완독 데이터·뷰어 chrome**
-- [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md) — **재개(청사진 갭, 2026-10-12): EDIT-03 자유형 지시 회귀·⚙ 모달**
+- [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md) — **재개(청사진 갭, 2026-10-12): EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치)·⚙ 모달**
 - [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
 - [ ] **Phase 5: Real Payment Integration** (2/7 plans) - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
 - [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (completed 2026-10-01; shipped outside GSD, live-DB/E2E verification pending — see Phase 6 detail) — **재개(청사진 갭, 2026-10-12): 대여·정주행·소장함·정산 화면**
@@ -119,7 +119,7 @@ Plans:
 
 ### Phase 4: AI Gateway (Mention-Based Generation)
 
-> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: EDIT-03 자유형 지시 회귀·⚙ 모달. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 4 절.
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치)·⚙ 모달. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 4 절.
 
 **Goal**: Writers can generate AI-assisted prose from mention-injected KB context, with cost visibility and spend guardrails built in from the start (not bolted on later).
 **Depends on**: Phase 1, Phase 2
@@ -522,7 +522,7 @@ Plans:
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
 | 2. Studio Core (Writer Loop, No AI) | 6/6 | Reopened — 청사진 갭(템플릿 정책·우클릭·패널 접기); discuss 필요 (이전: Complete) | 2026-08-29 (최초) |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Reopened — 청사진 갭(독자 화면 구조·완독 데이터); discuss→research→plan (이전: Complete) | 2026-08-30 (최초) |
-| 4. AI Gateway (Mention-Based Generation) | 6/6 | Reopened (부분) — EDIT-03 자유형 지시 회귀; plan / ⚙ 모달·게이지 discuss (이전: Complete (live-key UAT pending)) | 2026-08-30 (최초) |
+| 4. AI Gateway (Mention-Based Generation) | 6/6 | Reopened (부분) — EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치); plan / ⚙ 모달·게이지 discuss (이전: Complete (live-key UAT pending)) | 2026-08-30 (최초) |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
 | 5. Real Payment Integration | 2/7 | In progress (05-03~07 미실행; 샌드박스 검증은 Toss keys 대기) | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Reopened — 대여·정주행·소장함·정산 화면 미구현(기존 소장·90/10은 유효, E2E 대기); discuss (이전: Complete (live-DB/E2E verification pending)) | 2026-10-01 (최초) |
