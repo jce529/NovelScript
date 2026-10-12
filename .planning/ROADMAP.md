@@ -448,7 +448,7 @@ Plans:
   6. 스튜디오(작품 사이드바·편집기·AI 패널·계정/설정 페이지)가 모바일 세로 화면에서 가로 스크롤 없이 쓸 수 있다
 **Plans**: TBD. Implementation was outside the GSD plan flow; `16-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated.
 **UI hint**: yes
-**Status**: Complete (2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
+**Status**: Reopened (2026-10-12 청사진 갭; 최초 Complete 2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
 **Notes**: 설정 문서 AI 채팅에서도 BYOK 모델 전송은 Phase 11 전까지 막혀 있다. 업로드 자동 분류는 Jev 활성화 게이트(AIDOC-04)와 별개로 Jev 연결만 있으면 동작하므로, 정책 검토 전 실제 작품 본문 전송 허용 여부를 결정해야 한다. 독자 화면·admin 모바일 대응은 범위 밖. 결정 기록: `.planning/phases/16-studio-workflow-upload/16-CONTEXT.md`.
 
 ### Phase 17: 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그)
