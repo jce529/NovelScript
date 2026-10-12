@@ -8,7 +8,7 @@ last_updated: "2026-10-07T23:59:23.611Z"
 last_activity: 2026-10-10 -- Phase 11 코드 완료 (11-01~07), 11-VERIFICATION human_needed(브라우저 UAT 6건 대기)
 progress:
   total_phases: 19
-  completed_phases: 12
+  completed_phases: 5
   total_plans: 84
   completed_plans: 78
   percent: 93
@@ -34,11 +34,13 @@ Last activity: 2026-10-10 -- Phase 11 상태 동기화 (ROADMAP·REQUIREMENTS·S
 
 **세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). 18-UI-SPEC.md 초안 작성됨(checker 검증 대기). Next: checker 검증 → `/gsd:plan-phase 18`.
 
+**청사진 재판정(2026-10-12):** Phase 2·3·4·6·7·10·16 완료 취소(Reopened, 5·11은 기존 미완료). 완료 유지: 1·04.1·8·9·15. 근거·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`. 어느 phase에도 속하지 않는 청사진 영역(댓글·완독 데이터·독자 공간 화면 등)은 ROADMAP "미배정 청사진 영역"에 모았다.
+
 **부족한 부분·다음 할 일 점검:** `.planning/gaps/2026-10-04-gap-analysis.md` (우선순위·공백·법무 게이트 정리)
 
 병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-03~07(Toss 키 대기), Phase 6 브라우저 E2E.
 
-> **progress 카운터 기준 (2026-10-04 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 12개(1,2,3,4,04.1,6,7,8,9,10,15,16), `completed_plans`는 SUMMARY.md가 있는 GSD plan 78/84다(2026-10-10: Phase 11 11-01~07 +7). Phase 6·16은 GSD 밖에서 구현돼 plan 카운트에 없다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
+> **progress 카운터 기준 (2026-10-04 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 5개(1,04.1,8,9,15; 2026-10-12 청사진 재판정으로 2,3,4,6,7,10,16 완료 취소 — 이전 12개), `completed_plans`는 SUMMARY.md가 있는 GSD plan 78/84다(2026-10-10: Phase 11 11-01~07 +7). Phase 6·16은 GSD 밖에서 구현돼 plan 카운트에 없다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 

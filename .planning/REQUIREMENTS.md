@@ -13,8 +13,8 @@
 
 ### Knowledge Base (KB)
 
-- [x] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
-- [x] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
+- [ ] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
+- [ ] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
 - [x] **KB-03**: Writer can create new folders (not just documents) at any point in the KB tree except the two root containers themselves (the work root and the account-shared root) — including brand-new user-defined top-level folders directly under a work or under the account-shared space, with no template auto-applied to user-defined folders (added in Phase 04.1 discussion — see `.planning/phases/04.1-kb/04.1-CONTEXT.md`)
 - [x] **KB-04**: The account-level KB space is a "계정 공유 폴더" root containing multiple top-level shared folders (the existing `template` folder plus any user-created shared folders, e.g. world-bible content meant to be reused across works); every document inside it is mentionable (`@`) from any of the writer's works, one-directionally (added in Phase 04.1 discussion)
 - [x] **KB-05**: 회차(chapters) appear as a fixed, locked "회차" folder inside each work's KB tree (alongside template/인물/장소/사건/세력/아이템), and writers can create sub-folders inside it to organize episodes (e.g. story arcs); individual chapter items keep all existing fields/behavior (title, draft/publish state, price tier, view count) unchanged — chapters remain a distinct, non-mentionable content type, not merged into generic KB documents (added in Phase 04.1 discussion)
@@ -23,7 +23,7 @@
 
 - [x] **EDIT-01**: Writer can insert `@`-mention references to KB documents via autocomplete search by name/type
 - [x] **EDIT-02**: Writer can see a visible list of currently-mentioned/in-context documents before generating
-- [x] **EDIT-03**: Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
+- [ ] **EDIT-03**: Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
 - [x] **EDIT-04**: Writer can trigger AI generation that sends mentioned KB docs + preset + instruction to Gemini and inserts the result into the canvas
 - [x] **EDIT-05**: Writer sees a token/cost estimate before generating
 
@@ -35,10 +35,10 @@
 
 ### Reader / Discovery (READ)
 
-- [x] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
-- [x] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
-- [x] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
-- [x] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
+- [ ] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
+- [ ] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
+- [ ] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
+- [ ] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
 - [x] **READ-05**: Reader can report a novel or chapter for review from the detail page or viewer
 - [x] **READ-07**: Reader can toggle a per-work new-chapter notification subscription (알림) from the work detail page header, login-gated; subscription state persists to the account. Actual delivery channel (push/email/in-app inbox) is not defined by this requirement and remains open for a later phase — v1 scope is the subscription toggle and its persisted state only.
 - [x] **READ-08**: Reader can save/unsave a work to a personal 선호작 (bookmark) list from the work detail page header, login-gated — distinct from the 좋아요 (like) action, which remains a separate count-based control.
@@ -47,14 +47,14 @@
 ### Payments (PAY)
 
 - [ ] **PAY-01**: User can purchase tokens through Toss Payments and see the charge reflected as a wallet balance
-- [x] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
+- [ ] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
 - [ ] **PAY-03**: Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
 
 ### Admin / Moderation (ADMIN)
 
-- [x] **ADMIN-01**: Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
-- [x] **ADMIN-02**: Admin can unpublish/blind a specific chapter
-- [x] **ADMIN-03**: Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
+- [ ] **ADMIN-01**: Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
+- [ ] **ADMIN-02**: Admin can unpublish/blind a specific chapter
+- [ ] **ADMIN-03**: Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
 - [x] **ADMIN-04**: Admin can mark a report resolved or dismissed with a short note
 
 ## v1.1 Requirements (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)
@@ -67,7 +67,7 @@
 - [x] **PROV-02**: 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [x] **PROV-03**: 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [x] **PROV-04**: 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
-- [x] **PROV-05**: 모델 피커에는 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 (전역 모드 토글 없음)
+- [ ] **PROV-05**: 모델 피커에는 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 (전역 모드 토글 없음)
 - [x] **PROV-06**: 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 일어나지 않는다
 - [x] **PROV-07**: 서비스 키 모드에서 작가는 선택한 제공자·모델의 실제 단가가 반영된 비용 추정치를 생성 전에 본다 (Gemini 단가를 다른 제공자에 재사용하지 않는다)
 
@@ -86,7 +86,7 @@
 ### AI 과금 경로 (COST)
 
 - [x] **COST-01**: 서비스 키 호출의 토큰 차감이 멱등하다 — 같은 호출이 재시도돼도 두 번 차감되지 않는다 (현재 매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지가 무력화된 상태를 수정)
-- [x] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
+- [ ] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
 
 ### MCP 서버 (MCP)
 
@@ -112,7 +112,7 @@
 - [x] **STUDIO-01**: 작가가 계정 설정에서 제공자별 BYOK 연결 상태와 키 끝 4자리를 바로 확인하고 관리 페이지로 이동할 수 있다
 - [x] **STUDIO-02**: 작가가 설정 문서 편집 화면에서 회차와 동일한 AI 패널로 대화할 수 있고, 현재 문서가 컨텍스트로 쓰이며 초안 삽입·문서 제안 저장이 동일하게 동작한다
 - [x] **STUDIO-03**: 작가가 로컬 .md/.txt를 업로드해 설정 문서로 일괄 저장하거나 이번 대화에만 첨부할 수 있고, Jev 자동 분류 시 기존 트리 위의 제안 배치를 드래그앤드롭으로 수정·승인한 뒤에만 그 배치대로 저장된다 (저장 시 서버가 폴더를 재검증)
-- [x] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
+- [ ] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
 
 ### 버그 수정 통합 (BUGFIX)
 
@@ -216,33 +216,33 @@ Explicitly excluded. Documented to prevent scope creep.
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
-| KB-01 | Phase 2 | Complete |
-| KB-02 | Phase 2 | Complete |
+| KB-01 | Phase 2 | Reopened (청사진 갭: 기본 템플릿 읽기 전용·사본 규칙 불일치; 이전: Complete) |
+| KB-02 | Phase 2 | Reopened (청사진 갭: 우클릭 이름 바꾸기·패널 접기 없음; 이전: Complete) |
 | KB-03 | Phase 04.1 | Complete |
 | KB-04 | Phase 04.1 | Complete |
 | KB-05 | Phase 04.1 | Complete |
 | EDIT-01 | Phase 4 | Complete |
 | EDIT-02 | Phase 4 | Complete |
-| EDIT-03 | Phase 4 | Complete |
+| EDIT-03 | Phase 4 | Reopened (청사진 갭: 자유형 지시 입력 없음; 이전: Complete) |
 | EDIT-04 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
 | EDIT-05 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
 | CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
 | CONT-03 | Phase 2 | Complete |
-| READ-01 | Phase 3 | Complete |
-| READ-02 | Phase 3 | Complete |
-| READ-03 | Phase 3 | Complete |
-| READ-04 | Phase 3 | Complete |
+| READ-01 | Phase 3 | Reopened (청사진 갭: 랭킹 기준이 완독률·연독률이 아님; 이전: Complete) |
+| READ-02 | Phase 3 | Reopened (청사진 갭: 뷰어 chrome·경계 처리·댓글 버튼 없음; 이전: Complete) |
+| READ-03 | Phase 3 | Reopened (청사진 갭: 설정 5항목·저장 없음; 이전: Complete) |
+| READ-04 | Phase 3 | Reopened (청사진 갭: 스크롤 위치 진도·완독 판정 없음; 이전: Complete) |
 | READ-05 | Phase 3 | Complete |
 | READ-07 | Phase 3 | Complete |
 | READ-08 | Phase 3 | Complete |
 | READ-09 | Phase 3 | Complete |
 | PAY-01 | Phase 5 | Mapped |
-| PAY-02 | Phase 6 | Complete (DB tests passed 2026-10-01; browser E2E pending) |
+| PAY-02 | Phase 6 | Reopened (청사진 갭: 대여·정주행·소장함 없음; 이전: Complete (DB tests passed 2026-10-01; browser E2E pending)) |
 | PAY-03 | Phase 5 | Mapped |
-| ADMIN-01 | Phase 7 | Complete |
-| ADMIN-02 | Phase 7 | Complete |
-| ADMIN-03 | Phase 7 | Complete |
+| ADMIN-01 | Phase 7 | Reopened (청사진 갭: 탭 4개·`전체` 필터 없음; 이전: Complete) |
+| ADMIN-02 | Phase 7 | Reopened (청사진 갭: 해제 공개 알림 없음; 이전: Complete) |
+| ADMIN-03 | Phase 7 | Reopened (청사진 갭: 프리셋·조기 해제·제재 이력 없음; 이전: Complete) |
 | ADMIN-04 | Phase 7 | Complete |
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
@@ -253,7 +253,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | PROV-02 | Phase 9 | Complete |
 | PROV-03 | Phase 9 | Complete |
 | PROV-04 | Phase 9 | Complete |
-| PROV-05 | Phase 10 | Complete |
+| PROV-05 | Phase 10 | Reopened (청사진 갭: 서비스 키 없는 모델 노출; 이전: Complete) |
 | PROV-06 | Phase 11 | Code complete (browser UAT pending) |
 | PROV-07 | Phase 9 | Complete |
 | BYOK-01 | Phase 10 | Complete |
@@ -266,7 +266,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-08 | Phase 11 | Code complete (browser UAT pending) |
 | BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
-| COST-02 | Phase 11 | Code complete (browser UAT pending) |
+| COST-02 | Phase 11 | Reopened (청사진 갭: 서비스 경로 0원 원장 행; 이전: Code complete (browser UAT pending)) |
 | MCP-01 | Phase 12 | Mapped |
 | MCP-02 | Phase 13 | Mapped |
 | MCP-03 | Phase 13 | Mapped |
@@ -283,9 +283,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | STUDIO-01 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-02 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-03 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
-| STUDIO-04 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
+| STUDIO-04 | Phase 16 | Reopened (청사진 갭: 청사진 모바일 하단 탭과 결정 충돌; 이전: Complete (live Jev/browser/mobile verification pending)) |
 | BUGFIX-01 | Phase 17 | Not started |
-| BUGFIX-02 | Phase 17 | Not started |
+| BUGFIX-02 | Phase 17 | Mostly fixed (fixed/15-03·15-04 2026-10-02; 잔여 검증·문서 갱신) |
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
@@ -312,11 +312,12 @@ Explicitly excluded. Documented to prevent scope creep.
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
 - 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
+- Reopened(청사진 갭): KB-01·02, EDIT-03, READ-01~04, PAY-02, ADMIN-01~03, PROV-05, COST-02, STUDIO-04 (체크박스 해제, 구현·검증 기록은 유효)
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-10-12 — 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
+*Last updated: 2026-10-12 — 청사진 기준 재판정으로 14개 요구사항을 Reopened 처리(`.planning/gaps/2026-10-12-blueprint-reconcile.md`), 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
 *Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
 *Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
 *Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*

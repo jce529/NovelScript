@@ -918,21 +918,21 @@
     "semantic_hash": ""
   },
   ".planning/REQUIREMENTS.md": {
-    "mtime": 1791773811.4883728,
-    "seen": 1791773832.8199618,
-    "ast_hash": "0c4b8981ae48c2405af464c73836e4ca",
+    "mtime": 1791778157.3731618,
+    "seen": 1791778179.865489,
+    "ast_hash": "76a55951b27e2aa9fc670cddc1dedfa4",
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1791773817.8753424,
-    "seen": 1791773832.8199632,
-    "ast_hash": "9f0733665dfdd5cbe2d83feec57a6b03",
+    "mtime": 1791778157.3679652,
+    "seen": 1791778179.865493,
+    "ast_hash": "552e9dbd4ad8a3652e671fc758566c6a",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
-    "mtime": 1791773811.4900696,
-    "seen": 1791773832.8199644,
-    "ast_hash": "f5b60986ccb0127b1da61f895bcb6d1b",
+    "mtime": 1791778157.373966,
+    "seen": 1791778179.8654952,
+    "ast_hash": "099060b1d56c09d3800bf5a84a280ad2",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-01-PLAN.md": {
@@ -1482,9 +1482,9 @@
     "semantic_hash": ""
   },
   "docs/SSOT-PLANNING-IMPLEMENTATION.md": {
-    "mtime": 1791773817.8761396,
-    "seen": 1791773832.8204892,
-    "ast_hash": "96ec2634666c2795fbf25f09fa91ac36",
+    "mtime": 1791778168.65906,
+    "seen": 1791778179.8665152,
+    "ast_hash": "75a0b1d76aa91d709d10cd166b9d25f9",
     "semantic_hash": ""
   },
   "docs/Template/\uc0ac\uac74 \ud15c\ud50c\ub9bf.md": {
@@ -5673,6 +5673,24 @@
     "mtime": 1791608600.4698417,
     "seen": 1791773832.8204715,
     "ast_hash": "0318c869e8402f371d6d1b9fb244f7fb",
+    "semantic_hash": ""
+  },
+  ".planning/gaps/2026-10-12-blueprint-gap.md": {
+    "mtime": 1791778168.659466,
+    "seen": 1791778179.8657355,
+    "ast_hash": "e8f592d99977773fe18519fb61d34334",
+    "semantic_hash": ""
+  },
+  ".planning/gaps/2026-10-12-blueprint-reconcile.md": {
+    "mtime": 1791778131.8286304,
+    "seen": 1791778179.865739,
+    "ast_hash": "4828d186b8fd6d7944193e77dd3b8fd6",
+    "semantic_hash": ""
+  },
+  ".planning/phases/18-world-tree/18-UI-SPEC.md": {
+    "mtime": 1791774563.1396003,
+    "seen": 1791778179.866427,
+    "ast_hash": "67947bd6ce97e9da18bf5ab423e2bc0d",
     "semantic_hash": ""
   }
 }
