@@ -311,7 +311,7 @@ Residual (stays in v1.0, not yet done):
 
 ### Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지
 
-> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: PROV-05·failed 키 전체 은닉 결함. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 10 절.
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: PROV-05·failed 키 전체 은닉 결함. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 10 절. 발견된 버그: `.planning/phases/10-byok/bugs/BUG-01-byok-models-loader-wipes-all-on-failed-key.md`.
 
 **Goal**: 작가가 자신의 API 키를 플랫폼에 맡기고, 그 키 검증이 돌려준 모델 목록이 곧 피커가 보여주는 "내가 실제로 쓸 수 있는 모델"이 된다 — 누가 비용을 내는지가 선택 시점에 보인다.
 **Depends on**: Phase 9
