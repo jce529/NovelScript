@@ -341,6 +341,30 @@
       "title": "39. 에셋 판매자 대시보드 (내 에셋·패키징·수익 분석)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "WorldTree.dc.html": {
+      "x": 0,
+      "y": 31100,
+      "w": 1280,
+      "h": 820,
+      "title": "40. 세계수 보기 (본가지·잔가지·열매, 작가/독자 보기)",
+      "is_interactive": true
+    },
+    "WorldTimeline.dc.html": {
+      "x": 1400,
+      "y": 31100,
+      "w": 1280,
+      "h": 820,
+      "title": "41. 세계관 연표 편집 (작품 배치)",
+      "is_interactive": true
+    },
+    "BranchFlow.dc.html": {
+      "x": 2800,
+      "y": 31100,
+      "w": 1280,
+      "h": 820,
+      "title": "42. 가지 치기 흐름 (복제·수정·확정·새 작품)",
+      "is_interactive": true
     }
   },
   "order": [
@@ -382,7 +406,10 @@
     "StoreMain.dc.html",
     "AssetDetail.dc.html",
     "StoreCart.dc.html",
-    "StoreSeller.dc.html"
+    "StoreSeller.dc.html",
+    "WorldTree.dc.html",
+    "WorldTimeline.dc.html",
+    "BranchFlow.dc.html"
   ],
   "notes": {
     "t1": {
@@ -474,6 +501,13 @@
       "text": "스토어 영역 — 에셋 스토어",
       "kind": "title1",
       "maxW": 2680
+    },
+    "t13": {
+      "x": 0,
+      "y": 30850,
+      "text": "세계수 시스템 (셀프 가지)",
+      "kind": "title1",
+      "maxW": 4080
     }
   },
   "designSystems": []

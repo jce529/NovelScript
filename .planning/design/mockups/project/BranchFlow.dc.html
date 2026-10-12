@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>가지 치기 흐름</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+button{cursor:pointer}
+.top{height:52px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;gap:12px;padding:0 20px;box-sizing:border-box}
+.logo{font-size:16px;font-weight:800;letter-spacing:-0.02em}
+.crumb{font-size:13px;color:#52525b}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px}
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.chip.g{background:#f4f4f5;color:#3f3f46}
+.chip.red{background:#fee2e2;color:#991b1b}
+.chip.ok{background:#dcfce7;color:#166534}
+.chip.warn{background:#fef3c7;color:#854d0e}
+.btn{height:42px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:14px;font-weight:600;padding:0 18px;white-space:nowrap}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.btn.dis{background:#f4f4f5;color:#a1a1aa;border-color:#e4e4e7;cursor:not-allowed}
+.btn.sm{height:30px;font-size:12px;padding:0 10px}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.step{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#a1a1aa}
+.step.on{color:#18181b}.step.done{color:#166534}
+.sn{width:24px;height:24px;border-radius:999px;background:#e4e4e7;color:#52525b;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step.on .sn{background:#4f46e5;color:#fff}.step.done .sn{background:#16a34a;color:#fff}
+.row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f1f1f3}
+.inp{height:42px;border-radius:9px;border:1px solid #d4d4d8;padding:0 12px;font-size:14px;box-sizing:border-box;width:100%}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:30px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="width:1280px;height:820px;display:flex;flex-direction:column;--accent:{{accent}}">
+  <header class="top"><a class="logo" href="Home.dc.html">NovelScript</a><span class="crumb">내 스튜디오 / 달빛 서고 / 세계수 / <b style="color:#18181b">가지 치기</b></span><span style="flex-grow:1"></span><span class="av">김</span></header>
+
+  <div style="flex-grow:1;min-height:0;display:grid;grid-template-columns:240px minmax(0,1fr);gap:16px;padding:16px 20px;box-sizing:border-box">
+    <div class="card" style="padding:18px;display:flex;flex-direction:column;gap:16px;align-self:start">
+      <span style="font-size:14px;font-weight:700">가지 치기 단계</span>
+      <sc-for list="{{steps}}" as="s"><div class="{{s.cls}}"><span class="sn">{{s.n}}</span><span>{{s.label}}</span></div></sc-for>
+      <p class="sub">원본 세계관은 바뀌지 않아요. 가지는 확정하는 순간의 스냅샷으로 고정돼요.</p>
+    </div>
+
+    <div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto">
+
+      <sc-if value="{{s1}}" hint-placeholder-val="{{true}}">
+        <span style="font-size:18px;font-weight:700">1. 이 세계관에서 가지 치기</span>
+        <div style="border:1px solid #e4e4e7;border-radius:12px;padding:14px 16px;background:#fafafb;display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:13px;color:#52525b">진입 위치 예시 · 작품 설정 &gt; 세계관 공개 설정 화면 상단과 작품 홈</span>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:700">달빛 서고 세계관 (설정 문서 9개 · 작품 4편)</span><button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{start}}">이 세계관에서 가지 치기</button></div>
+        </div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:#27272a"><li>설정집(KB) 전체를 복제해 새 가지를 시작해요. 본문과 원고는 복제되지 않아요.</li><li>복제한 설정 문서를 고쳐 If 스토리를 만들어요.</li><li>설정을 <b>하나라도</b> 수정·삭제·추가해야 가지로 확정할 수 있어요.</li><li>확정하면 새 작품이 만들어지고 세계수에 잔가지로 이어져요.</li></ul>
+      </sc-if>
+
+      <sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:18px;font-weight:700">2. 복제한 설정 고치기</span><span class="chip {{sumCls}}">{{sumText}}</span></div>
+        <p class="sub">고칠 문서를 골라 수정·삭제하거나 새 문서를 추가해요. (실제 편집은 스튜디오 에디터에서 이어져요)</p>
+        <div style="border:1px solid #e4e4e7;border-radius:12px;overflow:hidden">
+          <sc-for list="{{docs}}" as="d"><div class="row"><span class="chip g" style="width:48px;text-align:center">{{d.kind}}</span><span style="flex-grow:1;font-size:14px;font-weight:600;text-decoration:{{d.deco}};color:{{d.tc}}">{{d.name}}</span><span class="chip {{d.stCls}}">{{d.status}}</span><button class="btn sm" type="button" onClick="{{d.edit}}">수정</button><button class="btn sm" type="button" onClick="{{d.del}}">삭제</button></div></sc-for>
+          <div class="row" style="border-bottom:0"><button class="btn sm" type="button" onClick="{{addDoc}}">+ 새 설정 문서 추가</button><span class="sub">추가한 문서 {{addedCount}}개</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between"><button class="btn" type="button" onClick="{{back}}">이전</button><button class="{{nextCls}}" type="button" onClick="{{toConfirm}}">변경 내용 확인</button></div>
+      </sc-if>
+
+      <sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+        <span style="font-size:18px;font-weight:700">3. 가지 확정</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><span class="chip warn">수정 {{cMod}}</span><span class="chip red">삭제 {{cDel}}</span><span class="chip ok">추가 {{cAdd}}</span></div>
+        <div style="border:1px solid #e4e4e7;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{changeList}}" as="c"><span>· {{c}}</span></sc-for></div>
+        <div style="background:#fef3c7;color:#854d0e;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.6">확정하면 이 시점의 설정이 스냅샷으로 고정돼요. 원본 세계관이 나중에 바뀌어도 이 가지에는 반영되지 않고 알림만 가요. 확정 뒤에는 가지 설정을 되돌릴 수 없어요.</div>
+        <div style="display:flex;justify-content:space-between"><button class="btn" type="button" onClick="{{back}}">이전</button><button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{toInfo}}">가지 확정하기</button></div>
+      </sc-if>
+
+      <sc-if value="{{s4}}" hint-placeholder-val="{{false}}">
+        <span style="font-size:18px;font-weight:700">4. 새 작품 정보와 연표 위치</span>
+        <div><div class="sub" style="font-weight:700;margin-bottom:4px">작품 제목</div><input class="inp" type="text" value="{{title}}" aria-label="작품 제목" onChange="{{onTitle}}"></div>
+        <div><div class="sub" style="font-weight:700;margin-bottom:4px">세계관 내 시점 (연표 위치)</div><div style="display:flex;gap:8px"><sc-for list="{{eras}}" as="e"><button class="{{e.cls}}" type="button" onClick="{{e.pick}}">{{e.label}}</button></sc-for></div></div>
+        <div><div class="sub" style="font-weight:700;margin-bottom:4px">세계수 연결 공개</div><div style="display:flex;gap:8px"><button class="{{pubOn}}" type="button" onClick="{{setPub}}">공개 (기본)</button><button class="{{pubOff}}" type="button" onClick="{{setHide}}">숨김</button></div><p class="sub" style="padding-top:6px">숨겨도 작가 본인과 관리자에게는 연결이 보여요.</p></div>
+        <div style="display:flex;justify-content:space-between"><button class="btn" type="button" onClick="{{back}}">이전</button><button class="btn p" type="button" style="background:{{accent}};border-color:{{accent}}" onClick="{{finish}}">작품 만들기</button></div>
+      </sc-if>
+
+      <sc-if value="{{s5}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 0;text-align:center">
+          <span style="font-size:22px;font-weight:700">가지가 열렸어요</span>
+          <span class="sub" style="max-width:420px">“{{title}}”이 세계수에 잔가지로 이어졌어요. 설정 {{total}}개가 바뀐 가지예요. 이제 이 작품의 회차를 연재할 수 있어요.</span>
+          <div style="display:flex;gap:8px"><a class="btn p" href="WorldTree.dc.html" style="background:{{accent}};border-color:{{accent}};display:flex;align-items:center">세계수에서 보기</a><a class="btn" href="Editor.dc.html" style="display:flex;align-items:center">에디터로 가서 연재 시작</a></div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const step = st.step || 1;
+    const base = [['인물', '소연'], ['인물', '한결'], ['장소', '잿빛 항구'], ['장소', '서고 열람실'], ['사건', '첫 번째 역전'], ['세력', '서고 수호단'], ['아이템', '낡은 열람증'], ['규칙', '마법 규칙'], ['공유', '공통 문체 가이드']];
+    const mark = st.mark || {};
+    const added = st.added || 0;
+    const mods = Object.keys(mark).filter((k) => mark[k] === 'mod').length;
+    const dels = Object.keys(mark).filter((k) => mark[k] === 'del').length;
+    const total = mods + dels + added;
+    const flip = (i, v) => () => { const m = Object.assign({}, mark); m[i] = m[i] === v ? undefined : v; this.setState({ mark: m }); };
+    const docs = base.map((d, i) => ({
+      kind: d[0], name: d[1], status: mark[i] === 'mod' ? '수정됨' : mark[i] === 'del' ? '삭제됨' : '원본 그대로', stCls: mark[i] === 'mod' ? 'warn' : mark[i] === 'del' ? 'red' : 'g',
+      deco: mark[i] === 'del' ? 'line-through' : 'none', tc: mark[i] === 'del' ? '#a1a1aa' : '#18181b', edit: flip(i, 'mod'), del: flip(i, 'del')
+    }));
+    const changeList = base.map((d, i) => (mark[i] === 'mod' ? d[1] + ': 수정' : mark[i] === 'del' ? d[1] + ': 삭제' : null)).filter(Boolean).concat(added ? ['새 설정 문서 ' + added + '개 추가'] : []);
+    const eraNames = ['1기 · 서고 이전', '2기 · 서고 시대', '3기 · 서고 이후'];
+    const era = st.era === undefined ? 2 : st.era;
+    const pub = st.pub !== false;
+    const title = st.title !== undefined ? st.title : '달빛 서고 If — 소연이 서고를 떠났다면';
+    const labels = ['세계수 시작', '설정 복제·수정', '변경 확인', '새 작품 정보'];
+    return {
+      accent: this.props.accent ?? '#4f46e5',
+      steps: labels.map((l, i) => ({ n: i + 1, label: l, cls: 'step' + (step === i + 1 ? ' on' : step > i + 1 ? ' done' : '') })),
+      s1: step === 1, s2: step === 2, s3: step === 3, s4: step === 4, s5: step === 5,
+      start: () => this.setState({ step: 2 }),
+      back: () => this.setState({ step: Math.max(1, step - 1) }),
+      docs: docs, addDoc: () => this.setState({ added: added + 1 }), addedCount: added,
+      sumText: total === 0 ? '아직 변경 없음 · 가지 확정 불가' : '변경 ' + total + '건', sumCls: total === 0 ? 'g' : 'ok',
+      nextCls: total === 0 ? 'btn dis' : 'btn p',
+      toConfirm: () => { if (total > 0) this.setState({ step: 3 }); else { this.setState({ toast: '설정을 하나 이상 바꿔야 가지를 확정할 수 있어요.' }); setTimeout(() => this.setState({ toast: '' }), 2400); } },
+      cMod: mods, cDel: dels, cAdd: added, changeList: changeList,
+      toInfo: () => this.setState({ step: 4 }),
+      title: title, onTitle: (e) => this.setState({ title: e.target.value }),
+      eras: eraNames.map((n, i) => ({ label: n, cls: era === i ? 'btn p' : 'btn', pick: () => this.setState({ era: i }) })),
+      pubOn: pub ? 'btn p' : 'btn', pubOff: pub ? 'btn' : 'btn p', setPub: () => this.setState({ pub: true }), setHide: () => this.setState({ pub: false }),
+      finish: () => this.setState({ step: 5 }), total: total,
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>
