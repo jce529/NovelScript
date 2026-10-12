@@ -40,7 +40,7 @@ button{font-family:inherit;cursor:pointer}
   <div style="flex-grow:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;padding:14px;box-sizing:border-box">
 
     <div class="card" style="position:relative;overflow:hidden;background:linear-gradient(180deg,#fcfcfd,#f5f7ff)">
-      <div style="position:absolute;left:18px;top:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:18px;font-weight:700">달빛 서고 세계수</span><span class="sub">가지 = 설정 흐름 · 열매 = 작품 · 오른쪽 끝일수록 세계관 내 최신</span></div>
+      <div style="position:absolute;left:18px;top:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:18px;font-weight:700">달빛 서고 세계수</span><span class="sub">가지 = 설정 흐름 · 열매 = 작품 · 오른쪽 끝일수록 세계관 내 최신 · 같은 시점에 함께 벌어진 작품은 가지 위·아래에 나란히 매달림</span></div>
       <div style="position:absolute;right:18px;top:16px;display:flex;gap:8px;align-items:center"><button class="sg" type="button">연표 편집</button><button class="sg" type="button" style="background:{{accent}};border-color:{{accent}};color:#fff">이 세계관에서 가지 치기</button></div>
 
       <div style="position:absolute;left:0;top:70px;width:100%;height:500px">
@@ -97,7 +97,7 @@ class Component extends DCLogic {
     const fruitsAll = [
       { id: 'f1', branch: 'trunk', x: 170, y: TY, up: -1, title: '서고의 문지기', era: '1기 · 서고 이전', pop: 35, tag: '프리퀄', color: '#16a34a', n: '프' },
       { id: 'f2', branch: 'trunk', x: 380, y: TY, up: 1, title: '달빛 서고', era: '2기 · 서고 시대', pop: 92, tag: '원작', color: '#dc2626', n: '원작' },
-      { id: 'f3', branch: 'trunk', x: 640, y: TY, up: -1, title: '항구의 편지', era: '2기 · 서고 시대 말', pop: 70, tag: '외전', color: '#ea580c', n: '외' },
+      { id: 'f3', branch: 'trunk', x: 380, y: TY, up: -1, title: '항구의 편지', era: '2기 · 서고 시대 (원작과 동시 진행)', pop: 70, tag: '외전 · 동시 진행', color: '#ea580c', n: '외' },
       { id: 'f4', branch: 'trunk', x: 960, y: TY, up: 1, title: '달빛 서고 2부', era: '3기 · 서고 이후', pop: 60, tag: '속편', color: '#d97706', n: '2부' },
       { id: 'f5', branch: 'bA', x: 740, y: 106, up: -1, title: '소연이 서고를 떠났다면', era: '3기 · If', pop: 80, tag: '셀프 가지', color: '#be185d', n: 'If' },
       { id: 'f6', branch: 'bA2', x: 880, y: 56, up: -1, title: '떠난 뒤 10년', era: '4기 · If', pop: 30, tag: '셀프 가지', color: '#a21caf', n: '10' },
