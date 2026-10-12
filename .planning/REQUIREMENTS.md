@@ -139,6 +139,21 @@
 - [ ] **LEGAL-03**: AI기본법(2026.1 시행)의 생성형 AI 고지 의무 해당 여부가 검토되고, 해당하면 약관·화면에 반영된다 (현재 문서에 미반영)
 - [ ] **LEGAL-04**: BYOK 사용 시 개인정보 국외 이전·제3자 제공 고지와 동의 구조(약관 조항 10④)가 처리방침에 반영된다
 
+### 세계수 (WTREE) — 설계 확정(2026-10-12), phase 배정 대기
+
+첫 버전은 **셀프 가지**(작가가 자기 작품의 세계관을 가지치기)만 범위다. 스토어 구매 연동(판매 철회·라이선스·크레딧)은 스토어 보류 해제 후 별도 정의한다. 규칙 원본은 `.planning/design/WORLD-TREE.md`, 시안은 목업 보드 40~43.
+
+- [ ] **WTREE-01**: 작가가 세계관마다 연표를 만들 수 있다 — 시대 구간(이름·순서)은 필수, 연도 숫자는 선택이며, 작품을 구간에 배치하고 같은 구간 안 순서를 수동 지정하며 병렬 작품은 `동시 진행`으로 표시한다(구간의 첫 작품은 표시 불가)
+- [ ] **WTREE-02**: 각 가지가 자기 연표를 가진다 — 잔가지는 분기 시점까지 본가지 연표를 이어받고(수정 불가) 이후 구간만 독립 편집하며, 독립 구간에 "본가지 몇 기에 해당" 메모를 선택 입력할 수 있다
+- [ ] **WTREE-03**: 작가가 `이 세계관에서 가지 치기`로 If 가지를 만든다 — 세계관을 복제해 설정 문서를 하나 이상 수정·삭제·추가해야 `가지 확정`되고(변경 0건이면 확정 불가) 새 작품과 연표 위치가 만들어진다
+- [ ] **WTREE-04**: 작가가 확장 가지를 만든다 — 기존 설정은 그대로 가져오고(수정·삭제 불가) 새 설정을 하나 이상 추가해야 확정된다(추가가 없으면 가지가 아니라 연표의 새 작품)
+- [ ] **WTREE-05**: 잔가지는 분기 시점 스냅샷으로 고정되고, 원작 설정이 나중에 바뀌어도 가지에는 반영되지 않고 알림만 간다
+- [ ] **WTREE-06**: 세계수 보기에서 본가지·잔가지·열매(작품)를 세계관 내 시간순으로 보고(동시 진행은 위·아래), If 가지와 확장 가지가 구분되며, 열매·가지를 선택하면 상세가 나온다 — 독자는 작품 상세 `세계관` 탭의 `세계수` 보기(모바일 포함), 작가는 스튜디오 세계관 공개 설정에서 편집하고, 큰 화면용 단독 화면을 병행한다
+- [ ] **WTREE-07**: 작가가 세계수 연결 공개 여부를 선택한다(기본 공개) — 끄면 독자에게는 본가지 작품만 보이고, 작가 본인과 관리자에게는 항상 전체가 보인다
+- [ ] **WTREE-08**: 가지 굵기는 본가지와의 근접도(1 − 변경·추가 문서 비율, 분기 깊이 감쇠)와 파생 규모, 열매 크기는 독자 지표(독자 수·완독률·연독률)로 정해진다 — 작가 본인 조회는 지표에서 제외하고 세부 계수는 phase 계획에서 확정한다
+- [ ] **WTREE-09**: 스포일러 잠금이 가지로 확장된다 — 독자 진도는 세계관 단위로 합산하고, 분기 이전 설정은 본가지 진도 기준, 잔가지 고유 설정은 잔가지 진도 기준으로 잠근다 (READ-06 Lore 위키 선행)
+- [ ] **WTREE-10**: 하위 가지가 있는 가지·작품은 삭제할 수 없고(하위부터 정리), 비공개 전환은 하위 가지에 전파되지 않는다
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -271,6 +286,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
+| WTREE-01~10 | 미배정 | Defined (phase 배정 대기, 2026-10-12) |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -279,12 +295,14 @@ Explicitly excluded. Documented to prevent scope creep.
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
+- 세계수(WTREE): 10 defined / phase 미배정 (v1.1 합계와 별도, ROADMAP 배정 시 편입)
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
+*Last updated: 2026-10-12 — 세계수 요구사항 WTREE-01~10 정의(phase 미배정)*
+*Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
 *Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
 *Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
 *Previously updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
