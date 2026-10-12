@@ -72,7 +72,7 @@ button{font-family:inherit;cursor:pointer}
           </div>
         </sc-for>
         <span class="k">에셋은 한 세트씩 담겨요. 이미 구매한 에셋은 담기지 않아요.</span>
-        <div class="warn">세계관으로 만든 작품을 공개하면 구매를 취소·환불할 수 없어요.</div>
+        <div class="warn">세계관은 구매 후 7일 이내, 가지를 확정하기 전에만 환불할 수 있어요.</div>
       </sc-if>
       <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
         <div style="text-align:center;padding:48px 8px;display:flex;flex-direction:column;gap:10px;align-items:center">
@@ -98,7 +98,7 @@ button{font-family:inherit;cursor:pointer}
       <div class="ok">✓</div>
       <b style="font-size:19px;text-align:center">구매했어요</b>
       <div class="sum"><sc-for list="{{doneItems}}" as="d"><div><span>{{d.name}}</span><b>{{d.price}}토큰</b></div></sc-for><div style="border-top:1px solid #d4d4d8;padding-top:6px"><span>결제 후 잔액</span><b>{{after}}토큰</b></div></div>
-      <div class="warn" style="background:#eef2ff;color:#3730a3">구매한 에셋은 `내 구매 에셋`에 보관돼요. 세계관은 거기서 `이 세계관으로 작품 시작`(가지 치기)으로 내 작품에 들여요. 이 에셋을 쓴 작품의 상세 소개 맨 아래에는 출처가 작게 표기돼요. 문체 프롬프트·템플릿 적용 방법은 정해지면 안내해요.</div><div class="warn"><b>환불 안내</b> · 이 세계관으로 만든 작품을 공개(첫 회차 발행)하면 구매를 취소·환불할 수 없어요. 공개 전에는 환불할 수 있고, 환불하면 만들던 초안 가지도 함께 회수돼요.</div>
+      <div class="warn" style="background:#eef2ff;color:#3730a3">구매한 에셋은 `내 구매 에셋`에 보관돼요. 세계관은 거기서 `이 세계관으로 작품 시작`(가지 치기)으로 내 작품에 들여요. 이 에셋을 쓴 작품의 상세 소개 맨 아래에는 출처가 작게 표기돼요. 문체 프롬프트·템플릿 적용 방법은 정해지면 안내해요.</div><div class="warn"><b>환불 안내</b> · 구매 후 7일 이내에 가지를 확정하기 전이면 전액 환불돼요(토큰 그대로 반환). 가지를 확정하거나 작품을 공개하면 환불할 수 없어요.</div>
       <a class="btn p" href="BranchFlow.dc.html">내 구매 에셋에서 작품 시작 (세계관)</a><a class="btn" href="Editor.dc.html">스튜디오로 이동</a>
       <a class="btn" href="StoreMain.dc.html">스토어 계속 둘러보기</a>
     </div>
