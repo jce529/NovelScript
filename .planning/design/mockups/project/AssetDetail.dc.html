@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>에셋 상세</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9;color:#18181b}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hd{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #e4e4e7;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:12px}
+.logo{font-size:17px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap}
+.sp{font-size:13px;font-weight:700;color:#3730a3;background:#e0e7ff;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.ib{position:relative;width:40px;height:40px;border-radius:999px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:#27272a;flex-shrink:0}
+.cnt{position:absolute;top:2px;right:0;min-width:18px;height:18px;border-radius:999px;background:#4f46e5;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wrap{max-width:1152px;margin:0 auto;padding:16px 16px 56px;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.h2{margin:0;font-size:18px;font-weight:700}
+.d{margin:0;font-size:14px;line-height:1.7;color:#3f3f46}
+.k{font-size:12px;color:#71717a;line-height:1.5}
+.tg{font-size:12px;color:#52525b;background:#f4f4f5;border-radius:6px;padding:4px 9px}
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.badge.g{background:#dcfce7;color:#166534}
+.badge.y{background:#fef3c7;color:#854d0e}
+.hero{height:200px;border-radius:16px;position:relative;background:linear-gradient(150deg,#1f2937,#6d28d9 60%,#a855f7)}
+.hero b{position:absolute;left:20px;bottom:16px;color:#fff;font-size:12px;opacity:.9}
+.ba{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.bx{border:1px solid #e4e4e7;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.75;color:#27272a}
+.bx.after{border-color:#4f46e5;background:#eef2ff}
+.mod{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #e4e4e7;border-radius:12px;background:#fff;text-align:left;width:100%;box-sizing:border-box}
+.mod.on{border-color:#4f46e5;background:#eef2ff}
+.mod.own{background:#f4f4f5;color:#71717a;cursor:default}
+.cb{width:20px;height:20px;border-radius:5px;border:2px solid #a1a1aa;box-sizing:border-box;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;line-height:1}
+.mod.on .cb{background:#4f46e5;border-color:#4f46e5}
+.mod.own .cb{background:#a1a1aa;border-color:#a1a1aa}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.btn{height:46px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:15px;font-weight:700;padding:0 16px;width:100%}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.btn[disabled]{opacity:.45;cursor:default}
+.buy{position:sticky;top:76px}
+.sum{background:#f4f4f5;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3f3f46}
+.sum div{display:flex;justify-content:space-between;gap:12px}
+.rv{border-top:1px solid #f1f1f3;padding-top:12px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.65}
+.lock{background:#f4f4f5;border-radius:10px;padding:12px;font-size:13px;color:#52525b;line-height:1.6}
+.hit{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid #e4e4e7;border-radius:12px}
+.hc{width:44px;height:58px;border-radius:6px;flex-shrink:0}
+.chip{font-size:13px;color:#52525b;padding:7px 13px;min-height:36px;border-radius:8px;border:1px solid #e4e4e7;background:#fff;white-space:nowrap}
+.chip.on{background:#18181b;color:#fff;border-color:#18181b;font-weight:600}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45)}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:#fff;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:40px;max-width:380px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1900px">
+  <header class="hd">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <a class="sp" href="StoreMain.dc.html">에셋 스토어</a>
+    <span style="flex-grow:1"></span>
+    <a class="ib" href="StoreCart.dc.html" aria-label="장바구니"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12zM6 6L5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg><span class="cnt">{{cartN}}</span></a>
+    <div class="tok"><span>{{bal}} 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <div style="max-width:1152px;margin:0 auto;padding:16px 16px 0;box-sizing:border-box;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <a class="k" href="StoreMain.dc.html" style="font-size:13px">‹ 스토어로</a>
+    <span class="k">목업 보기 전환 (실제 화면에는 없는 컨트롤)</span>
+    <sc-for list="{{views}}" as="v"><button class="{{v.cls}}" type="button" onClick="{{v.pick}}">{{v.label}}</button></sc-for>
+  </div>
+
+  <main class="wrap">
+    <div class="col">
+      <div class="hero"><b>샘플 표지 · AI 출력 예시가 아닌 판매자가 올린 대표 이미지</b></div>
+      <section class="card">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="badge">세계관 팩</span><span class="tg">판타지</span><span class="tg">다크</span><span class="tg">제국</span></div>
+        <h1 style="margin:0;font-size:24px;font-weight:800">다크 판타지 유니버스 팩</h1>
+        <div class="row" style="justify-content:flex-start;flex-wrap:wrap"><a href="AuthorPage.dc.html" style="color:#3730a3;font-weight:700;font-size:14px">달빛작가</a><span class="k">★ 4.8 (리뷰 126) · 판매 842 · 최근 업데이트 2026.10.02</span></div>
+      </section>
+
+      <section class="card">
+        <h2 class="h2">소개 <span class="badge g">무료 공개</span></h2>
+        <p class="d">몰락한 제국의 수도 아래에 잠든 어둠과, 그 어둠을 쓰는 가문들의 이야기를 위한 세계관입니다. 분위기와 핵심 배경 설정은 구매 전에 모두 읽을 수 있어요.</p>
+        <p class="d"><b>핵심 배경</b> · 황혼 제국은 300년 전 달이 지지 않던 밤 이후 두 갈래로 갈라졌고, 지하 성채 ‘암흑 성채’가 마지막 균형점으로 남아 있습니다.</p>
+        <div class="lock">주요 인물 열두 명과 장소 일곱 곳의 상세 설정, 문체 프롬프트 전문은 구매하면 내 스튜디오 설정집으로 들어와요.</div>
+      </section>
+
+      <section class="card">
+        <div class="row"><h2 class="h2">AI 출력 미리보기</h2><span class="k">같은 장면을 에셋 없이 / 에셋을 넣어 생성한 예시</span></div>
+        <div class="ba">
+          <div class="bx"><span class="badge" style="align-self:flex-start;background:#f4f4f5;color:#52525b">에셋 없이</span>“그는 성문을 열고 안으로 들어갔다. 안은 어두웠다. 그는 조심스럽게 걸었다.”</div>
+          <div class="bx after"><span class="badge" style="align-self:flex-start">이 에셋 적용</span>“암흑 성채의 문은 숨을 죽인 짐승처럼 열렸다. 달 없는 지하의 냉기가 발목을 감았고, 그는 가문의 문장이 새겨진 단검에서 손을 떼지 않았다.”</div>
+        </div>
+        <span class="k">판매자가 직접 올린 예시이며, 구매자 계정의 모델·설정에 따라 결과는 달라질 수 있어요.</span>
+      </section>
+
+      <section class="card">
+        <h2 class="h2">이 에셋으로 연재된 작품 <span class="badge">히트작</span></h2>
+        <div class="hit"><div class="hc" style="background:linear-gradient(160deg,hsl(260 45% 50%),hsl(300 40% 65%))"></div><div style="flex:1"><b style="font-size:14px">그림자 성채의 후계</b><div class="k">랭킹 주간 12위 · 연독률 88%</div></div><span class="badge y">활용된 에셋</span></div>
+        <div class="hit"><div class="hc" style="background:linear-gradient(160deg,hsl(20 45% 50%),hsl(60 40% 65%))"></div><div style="flex:1"><b style="font-size:14px">검은 달의 서약</b><div class="k">루키 쿼터존 · 연독률 81%</div></div><span class="badge y">활용된 에셋</span></div>
+        <span class="k">구매한 에셋을 컨텍스트에 올려 쓴 회차에는 독자 뷰어 하단과 작품 상세에 `활용된 에셋: 다크 판타지 유니버스 팩 by 달빛작가` 표기가 자동으로 붙어요. 판매자가 허용한 작품만 이곳에 전시돼요.</span>
+      </section>
+
+      <section class="card">
+        <div class="row"><h2 class="h2">리뷰 <span class="k" style="font-weight:400">★ 4.8 · 126개</span></h2></div>
+        <sc-if value="{{canReview}}" hint-placeholder-val="{{false}}"><div class="lock" style="background:#eef2ff;color:#3730a3">이 에셋을 구매했어요. 리뷰를 남길 수 있어요. <button class="chip" type="button" onClick="{{writeRv}}" style="margin-left:8px">리뷰 쓰기</button></div></sc-if>
+        <sc-if value="{{cannotReview}}" hint-placeholder-val="{{true}}"><div class="lock">리뷰는 이 에셋을 구매한 작가만 쓸 수 있어요.</div></sc-if>
+        <div class="rv"><div class="row"><b>★★★★★ 설정 충돌이 없어요</b><span class="k">구매자 · 2026.10.05</span></div>인물 템플릿이 장소 설정과 서로 어긋나지 않아서 바로 연재에 썼어요.</div>
+        <div class="rv"><div class="row"><b>★★★★★ 전투 묘사가 훌륭해요</b><span class="k">구매자 · 2026.09.28</span></div>문체 프롬프트를 켜면 결과 분위기가 확 달라져요.</div>
+        <div class="rv"><div class="row"><b>★★★★☆ 가격 대비 만족</b><span class="k">구매자 · 2026.09.21</span></div>사건 연표 모듈이 조금 짧아서 직접 보강했어요.</div>
+      </section>
+    </div>
+
+    <aside class="col buy">
+      <section class="card">
+        <h2 class="h2">구성 선택</h2>
+        <span class="k">필요한 모듈만 골라 구매할 수 있어요.</span>
+        <sc-for list="{{mods}}" as="m">
+          <button class="{{m.cls}}" type="button" onClick="{{m.pick}}" aria-pressed="{{m.on}}">
+            <span class="cb">{{m.mark}}</span>
+            <span style="flex:1;display:flex;flex-direction:column;gap:3px"><b style="font-size:13px">{{m.name}}</b><span class="k">{{m.desc}}</span></span>
+            <b style="font-size:13px;white-space:nowrap">{{m.price}}</b>
+          </button>
+        </sc-for>
+        <div class="row"><button class="chip" type="button" onClick="{{pickAll}}">{{allLabel}}</button><span class="k">구매한 모듈은 다시 살 수 없어요</span></div>
+        <div class="sum"><div><span>선택 {{selN}}개</span><b>{{total}}토큰</b></div><div><span>내 토큰</span><b>{{bal}}토큰</b></div></div>
+        <button class="btn" type="button" disabled="{{noSel}}" onClick="{{addCart}}">장바구니 담기</button>
+        <button class="btn p" type="button" disabled="{{noSel}}" onClick="{{askBuy}}">바로 구매하기</button>
+        <span class="k">구매 즉시 내 스튜디오 파일 탐색기에 `구매함 · 다크 판타지 유니버스 팩` 폴더가 만들어지고, 문체 프롬프트는 AI 코워커의 시스템 설정 목록에 추가돼요. 에셋 환불 기준은 정해지면 이곳에 안내해요.</span>
+      </section>
+    </aside>
+  </main>
+
+  <sc-if value="{{dlgBuy}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeDlg}}"></div>
+    <div class="dlg" role="dialog" aria-label="바로 구매">
+      <b style="font-size:18px">바로 구매할까요?</b>
+      <div class="sum"><sc-for list="{{sel}}" as="s"><div><span>{{s.name}}</span><b>{{s.price}}</b></div></sc-for><div style="border-top:1px solid #d4d4d8;padding-top:6px"><span>합계</span><b>{{total}}토큰</b></div><div><span>구매 후 잔액</span><b>{{after}}토큰</b></div></div>
+      <button class="btn p" type="button" onClick="{{confirmBuy}}">{{total}}토큰으로 구매</button>
+      <button class="btn" type="button" onClick="{{closeDlg}}">취소</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2600); };
+    const view = st.view || 'none';
+    const base = { m1: view === 'part', m2: false, m3: false, m4: false, m5: false };
+    const bought = Object.assign({}, base, st.bought || {});
+    const picked = st.picked || {};
+    const defs = [
+      { id: 'm1', name: '[세계관] 황혼 제국 기본 설정', desc: '설정 문서 12개 · 등장 회차 기준 포함', price: 5 },
+      { id: 'm2', name: '[인물] 제국 암살자 템플릿', desc: '인물 템플릿 + 작성 예시 데이터', price: 5 },
+      { id: 'm3', name: '[장소] 암흑 성채', desc: '장소 설정 7곳', price: 5 },
+      { id: 'm4', name: '[사건] 황혼 전쟁 연표', desc: '사건 템플릿 + 연표 예시', price: 6 },
+      { id: 'm5', name: '[문체] 어두운 서사 프롬프트', desc: '시스템 프롬프트 1종 · 사용법 안내', price: 8 }
+    ];
+    const mods = defs.map((m) => {
+      const own = !!bought[m.id], on = !own && !!picked[m.id];
+      return { name: m.name, desc: own ? '구매함 · 스튜디오에 추가돼 있어요' : m.desc, price: own ? '구매함' : m.price + '토큰', on: on, mark: (on || own) ? '✓' : '',
+        cls: own ? 'mod own' : (on ? 'mod on' : 'mod'), pick: () => { if (own) return; const n = Object.assign({}, picked); n[m.id] = !n[m.id]; this.setState({ picked: n }); } };
+    });
+    const avail = defs.filter((m) => !bought[m.id]);
+    const sel = defs.filter((m) => !bought[m.id] && picked[m.id]);
+    const sub = sel.reduce((a, m) => a + m.price, 0);
+    const total = sub;
+    const bal = st.bal == null ? 1500 : st.bal;
+    const cartN = 2 + (st.cart || 0);
+    const hasOwn = Object.keys(bought).some((k) => bought[k]);
+    const allOn = avail.length > 0 && sel.length === avail.length;
+    return {
+      accent: this.props.accent ?? '#4f46e5', cartN: cartN, bal: bal.toLocaleString('ko-KR'),
+      views: [['none', '미구매'], ['part', '일부 구매함']].map((v) => ({ label: v[1], cls: view === v[0] ? 'chip on' : 'chip', pick: () => this.setState({ view: v[0], picked: {}, bought: {}, bal: 1500 }) })),
+      mods: mods, selN: sel.length, total: total, noSel: sel.length === 0, after: (bal - total).toLocaleString('ko-KR'),
+      allLabel: allOn ? '전체 선택 해제' : '구매 가능한 모듈 전체 선택',
+      pickAll: () => { const n = {}; if (!allOn) avail.forEach((m) => { n[m.id] = true; }); this.setState({ picked: n }); },
+      sel: sel.map((m) => ({ name: m.name, price: m.price + '토큰' })),
+      canReview: hasOwn, cannotReview: !hasOwn,
+      writeRv: () => say('리뷰 작성은 별점과 한 줄 평으로 남겨요(폼 생략).'),
+      addCart: () => { this.setState({ cart: (st.cart || 0) + sel.length, picked: {} }); say(sel.length + '개 모듈을 장바구니에 담았어요.'); },
+      askBuy: () => this.setState({ dlg: true }),
+      dlgBuy: !!st.dlg, closeDlg: () => this.setState({ dlg: false }),
+      confirmBuy: () => { const nb = Object.assign({}, st.bought || {}); sel.forEach((m) => { nb[m.id] = true; });
+        this.setState({ bought: nb, picked: {}, dlg: false, bal: bal - total }); say('구매했어요. 스튜디오에 `구매함 · 다크 판타지 유니버스 팩` 폴더가 만들어졌어요.'); },
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -305,6 +305,42 @@
       "title": "35. 구독 플랜·결제 내역 (영수증·환불)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "StoreMain.dc.html": {
+      "x": 0,
+      "y": 27100,
+      "w": 1280,
+      "h": 1500,
+      "title": "36. 에셋 스토어 메인 (추천 모음·필터·에셋 그리드)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AssetDetail.dc.html": {
+      "x": 1400,
+      "y": 27100,
+      "w": 1280,
+      "h": 1900,
+      "title": "37. 에셋 상세 (무료 소개·AI 출력 미리보기·모듈 선택 구매·리뷰)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "StoreCart.dc.html": {
+      "x": 0,
+      "y": 29300,
+      "w": 1280,
+      "h": 900,
+      "title": "38. 장바구니 패널·일괄 결제·구매 완료",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "StoreSeller.dc.html": {
+      "x": 1400,
+      "y": 29300,
+      "w": 1280,
+      "h": 1500,
+      "title": "39. 에셋 판매자 대시보드 (내 에셋·패키징·수익 분석)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -342,7 +378,11 @@
     "AdminReviews.dc.html",
     "AdminSanctions.dc.html",
     "WorkMobileTopBar.dc.html",
-    "Subscription.dc.html"
+    "Subscription.dc.html",
+    "StoreMain.dc.html",
+    "AssetDetail.dc.html",
+    "StoreCart.dc.html",
+    "StoreSeller.dc.html"
   ],
   "notes": {
     "t1": {
@@ -427,6 +467,13 @@
       "text": "스토어 영역 — 구독·결제",
       "kind": "title1",
       "maxW": 1280
+    },
+    "t12": {
+      "x": 0,
+      "y": 26830,
+      "text": "스토어 영역 — 에셋 스토어",
+      "kind": "title1",
+      "maxW": 2680
     }
   },
   "designSystems": []
