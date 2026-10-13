@@ -8,7 +8,7 @@ import { listChapters } from '@/lib/chapters/actions';
 import { buildTree, groupChaptersByFolder } from '@/lib/kb/tree';
 import { KbTree } from '@/components/studio/kb-tree';
 import { CreateRootFolderButton } from '@/components/studio/kb-node-dialogs';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { StudioPanelProvider, StudioSidebar } from '@/components/studio/studio-panel-shell';
 import { Separator } from '@/components/ui/separator';
 
 export default async function WorkLayout({
@@ -72,6 +72,7 @@ export default async function WorkLayout({
   );
 
   return (
+    <StudioPanelProvider>
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* 모바일: 문서 트리를 접이식 패널로 위에 두고, md 이상에서는 왼쪽 고정 사이드바 */}
       <details className="group border-b bg-secondary md:hidden">
@@ -82,10 +83,9 @@ export default async function WorkLayout({
         </summary>
         {sidebar}
       </details>
-      <ScrollArea className="hidden w-64 shrink-0 border-r bg-secondary md:block">
-        {sidebar}
-      </ScrollArea>
+      <StudioSidebar>{sidebar}</StudioSidebar>
       <main className="min-w-0 flex-1 p-4 md:p-8">{children}</main>
     </div>
+    </StudioPanelProvider>
   );
 }
