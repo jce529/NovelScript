@@ -85,7 +85,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | AIDOC-01~04 | 코드 완료(Phase 15), 활성화 보류·브라우저 UAT 대기 |
 | STUDIO-01~04 (BYOK 요약·설정 문서 AI·파일 업로드·모바일) | 코드 완료(Phase 16, GSD 밖 구현), Jev·브라우저·모바일 실사용 검증 대기. Phase 16 재개: STUDIO-04는 청사진 모바일 하단 탭·통합 설정 허브와 16-CONTEXT 결정이 충돌 |
 | BUGFIX-01~05 | 미구현 — Phase 17 계획 전(`17-CONTEXT.md`만 존재) |
-| WTREE-01~08, 10 (세계수: 연표·가지 치기·세계수 보기·연결 공개·크기 산식·삭제 규칙) | 미구현 — Phase 18 (설계 확정 2026-10-12, `UI-SPEC` 작성 전). 근거: `.planning/design/WORLD-TREE.md` |
+| WTREE-01~08, 10 (세계수: 연표·가지 치기·세계수 보기·발행 기반 공개·부러진 가지·크기 산식·삭제 규칙) | 미구현 — Phase 18 (설계 확정 2026-10-12, `UI-SPEC` 작성 전). 근거: `.planning/design/WORLD-TREE.md` |
 | WTREE-09, 11~13 (스포일러 잠금 가지 확장·스토어 편입·환불·운영 검토) | 유예 — WTREE-09는 READ-06 Lore 위키 phase, 11~13은 스토어 보류 해제 후 |
 | LEGAL-01~04 (변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지) | 미착수 — 로드맵 "Launch Gate", phase 아님. 공개 출시 전 조건 |
 
