@@ -9,11 +9,10 @@ const OWNER = '11111111-1111-4111-8111-111111111111';
 const OTHER = '22222222-2222-4222-8222-222222222222';
 const WORK = '33333333-3333-4333-8333-333333333333';
 const COLLISION = '이미 같은 이름의 템플릿이 있어요. 다른 이름을 사용해주세요.';
-const LOCKED = '기본 템플릿은 수정·이름 변경·삭제·이동할 수 없어요. 사본을 만들어 수정해주세요.';
+const RESERVED = '기본 템플릿 이름은 사용할 수 없어요. 다른 이름을 사용해주세요.';
 const row = (overrides: Partial<Row> = {}): Row => ({ id: 'source', owner_id: OWNER, work_id: WORK, scope: 'work', parent_id: 'person', name: '인물', category: 'template', node_type: 'file', is_locked: true, content: '# <% tp.file.title %>\r\n원문', deleted_at: null, ...overrides });
 const root = row({ id: 'root', parent_id: null, name: 'template', node_type: 'folder', content: null });
 const person = row({ id: 'person', parent_id: 'root', name: '인물', node_type: 'folder', content: null });
-const place = row({ id: 'place', parent_id: 'root', name: '장소', node_type: 'folder', content: null });
 
 // Query-boundary contract double: applies filters and captures writes, but implements no DB triggers.
 function mockClient(initial: Row[], config: { reason?: string; mutationError?: DbError; readError?: DbError } = {}) {
@@ -86,6 +85,17 @@ describe('copyTemplateFile (query-boundary contracts; no DB trigger simulation)'
     expect(await actions.copyTemplateFile(mock.client, input)).toEqual({ ok: false, error: COLLISION });
     expect(mock.writes()).toHaveLength(1);
     expect(mock.rows).toHaveLength(3);
+  });
+  it('maps the reserved default-name DB guard to a friendly message', async () => {
+    const mock = mockClient([row(), person, root], { mutationError: { code: 'P0001', message: 'template_name_reserved' } });
+    expect(await actions.copyTemplateFile(mock.client, { ...input, name: '인물' })).toEqual({ ok: false, error: RESERVED });
+  });
+  it('maps unexpected insert errors without leaking the raw DB message', async () => {
+    const mock = mockClient([row(), person, root], { mutationError: { code: 'XX000', message: 'raw internal detail' } });
+    const result = await actions.copyTemplateFile(mock.client, input);
+    expect(result.ok).toBe(false);
+    expect(result.error).not.toContain('raw internal detail');
+    expect(result.nodeId).toBeUndefined();
   });
   it.each([
     { owner_id: OTHER }, { deleted_at: 'deleted' }, { category: '인물' }, { node_type: 'folder' },
