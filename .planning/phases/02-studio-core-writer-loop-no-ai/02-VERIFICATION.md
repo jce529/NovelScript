@@ -177,3 +177,31 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 *Verified: 2026-08-28*
 *Verifier: Claude (gsd-verifier)*
+
+
+---
+
+# Reopen 보완 검증 (2026-10-12 정책, plan 02-07~02-13)
+
+> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PARTIAL - Unit 통과, DB/브라우저 PENDING**.
+
+| # | 신규 truth | 증거 | 상태 |
+|---|-----------|------|------|
+| R1 | 기본 템플릿 5종 읽기 전용, 서버 guard가 우회 차단 | unit: template-policy, template-seeding, template-migration-source(SQL source 계약). 실DB guard 동작 미확인 | Unit 통과 / DB PENDING |
+| R2 | 기존 수정 내용이 `내 템플릿` 사본으로 보존되고 기본 5종 원문 복원 | 0022/0023 실적용·재실행 미수행 | PENDING (no disposable DB) |
+| R3 | 템플릿 이름 중복 불가, 사본/새 문서/템플릿 만들기 | unit: template-copy, template-dialogs, template-action-wrappers. 동시 중복 생성 실DB 미확인 | Unit 통과 / DB PENDING |
+| R4 | 우클릭·long press 메뉴, 템플릿 섹션, 폴더 접기 | unit: kb-node-menu, sidebar-sections, template-tree-ui. 실제 터치 입력 미확인 | Unit 통과 / 브라우저 PENDING |
+| R5 | 좌·우 패널 접기에서 editor/AiPanel 유지(mount·selection·대화) | unit: studio-panel-shell(컨트롤러+정적 소스 검사). 실제 mount count 증명 아님 | Unit 통과 / 브라우저 PENDING |
+| R6 | 저장 상태 칩(저장됨/저장 중/저장 안 됨/저장 실패+재시도) | unit: editor-state, kb-editor-state, chapter-editor-state | Unit 통과 / 브라우저 PENDING |
+| R7 | 기존 draft·고정 가격 발행·발행 후 수정·발행 취소 회귀 없음 | chapter-editor-state unit만. DB 회귀(draft/publish/edit-unpublish) 미실행 | PENDING |
+
+## 실행한 자동 검증 (02-13 Task 1)
+`npx vitest run --project unit` (14 files: template-migration-source, template-seeding, template-policy, template-copy, template-action-wrappers, template-dialogs, sidebar-sections, kb-node-menu, template-tree-ui, editor-state, studio-panel-shell, kb-editor-state, chapter-editor-state, client-bundle-fs-free): **14 files / 214 tests passed**.
+
+## 미완 게이트 (PENDING - failed 아님)
+- **02-13 Task 2 (실DB)**: PENDING. 사유: no disposable DB. 구성된 유일한 DB는 공유 프로젝트이며 계획상 이관/마이그레이션 suite 실행 금지.
+- **02-13 Task 3 (브라우저)**: PENDING. 사유: browser gate not run (DB 게이트 선행 필요).
+- 두 게이트가 승인되기 전까지 Phase 02 보완은 완료로 표기하지 않으며 ROADMAP/STATE/REQUIREMENTS는 변경하지 않는다.
+
+## Phase 18 의존 계약
+기본 template은 readonly+copy만 제공한다. 세계관 공개 정책은 포함되지 않는다.

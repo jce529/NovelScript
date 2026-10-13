@@ -3,7 +3,7 @@ phase: 2
 slug: studio-core-writer-loop-no-ai
 status: draft
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-08-25
 ---
 
@@ -19,7 +19,7 @@ created: 2026-08-25
 |----------|-------|
 | **Framework** | Vitest (installed in Phase 1 Wave 0 — reuse, do not reinstall) |
 | **Config file** | `vitest.config.ts` (created in Phase 1 Wave 0) |
-| **Quick run command** | `npx vitest run tests/kb/` or `npx vitest run tests/chapters/` (scoped to touched files) |
+| **Quick run command** | `npx vitest run --project unit tests/kb tests/studio` (unit, DB 불필요); DB suite는 `--project db` |
 | **Full suite command** | `npx vitest run` |
 | **Estimated runtime** | ~30-60 seconds (integration tests hit real Postgres via Supabase test project) |
 
@@ -77,6 +77,31 @@ created: 2026-08-25
 | Drag-and-drop feel/responsiveness for chapter reorder | CONT-01 (D-17) | Pointer/touch interaction quality is not meaningfully assertable via integration tests | Open `/studio/[workId]/chapters`, drag a chapter to a new position, confirm smooth visual feedback and persisted order after reload |
 | Locked-folder visual cues in the tree (D-15 "cannot delete/rename" signaling) | KB-02 | Visual/UX judgment, not a functional assertion | Open Studio tree, confirm the 6 fixed folders visually differ from user-created folders and show no rename/delete affordance |
 | Full Studio walkthrough: tree create/rename/delete → KB doc create-from-template → chapter draft → publish → edit → unpublish | KB-01, KB-02, CONT-01, CONT-02, CONT-03 | End-to-end UX coherence across the whole writer loop | Follow the full writer flow in the actual UI before `/gsd:verify-work`, per the phase's UI hint |
+
+---
+
+## Reopen 보완 검증 맵 (2026-10-12, plan 02-07~02-13)
+
+> Wave 0 파일과 위 표의 "W0/TBD"는 구현 완료로 갱신됐다(원 표는 역사 기록으로 둔다). 보완 정책(기본 템플릿 읽기 전용+사본, 이름 중복 불가, 메뉴·섹션·패널 접기·저장 칩)의 test map은 아래이며 게이트는 unit / DB / 브라우저로 분리한다.
+
+### Unit (DB 불필요) — 02-13 Task 1 실행: 14 files / 214 passed
+| Plan | 대상 | 파일 |
+|------|------|------|
+| 02-07 | 이관 SQL source 계약, 잠금 seed | tests/kb/template-migration-source.test.ts, tests/kb/template-seeding.test.ts |
+| 02-08 | 서버 policy/사본/이름 충돌 | tests/kb/template-policy.test.ts, tests/kb/template-copy.test.ts |
+| 02-09 | 액션 wrapper, 다이얼로그 submit | tests/kb/template-action-wrappers.test.ts, tests/kb/template-dialogs.test.ts |
+| 02-10 | 사이드바 섹션, 행 메뉴, 트리 UI | tests/kb/sidebar-sections.test.ts, tests/kb/kb-node-menu.test.ts, tests/kb/template-tree-ui.test.ts |
+| 02-11 | 저장 상태 reducer, 패널 shell | tests/studio/editor-state.test.ts, tests/studio/studio-panel-shell.test.ts |
+| 02-12 | KB/회차 에디터 상태, client bundle | tests/studio/kb-editor-state.test.ts, tests/studio/chapter-editor-state.test.ts, tests/studio/client-bundle-fs-free.test.ts |
+
+### DB 체크포인트 (02-13 Task 2) — PENDING
+사유: no disposable DB. 구성된 DB는 공유 프로젝트이며 계획상 이관/마이그레이션 suite 실행 금지. 실행 시 `--project db`: template-policy-migration(0022->0023->재실행, `TEMPLATE_MIGRATION_DISPOSABLE_PROJECT_REF` opt-in), template-options, template-tree-mutations, document-crud, locked-folder-guard, ownership-guard, schema-smoke, chapters draft/publish/edit-unpublish. mock 통과를 실DB 통과로 간주하지 않는다.
+
+### 브라우저 체크포인트 (02-13 Task 3) — PENDING
+사유: browser gate not run (DB 게이트가 선행되어야 검증 프로젝트가 생김). 대상: 사본/새 문서/메뉴·long press/패널 접기(mount count·selection·AI 대화 유지)/저장 칩/유료 30토큰 발행->취소 보존. 모바일 하단 탭은 Phase 16이라 제외.
+
+### Sign-off 상태
+Unit 회귀 통과. DB·브라우저 게이트는 verified/failed가 아닌 PENDING이며, 아래 Validation Sign-Off 체크박스는 두 게이트 승인 전까지 채우지 않는다.
 
 ---
 
