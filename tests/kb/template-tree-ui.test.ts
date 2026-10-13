@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 import type { TreeNode } from '@/lib/kb/tree';
 import { KbTree } from '@/components/studio/kb-tree';
 import { CreateNodeDialog, MoveTemplateFileDialog } from '@/components/studio/kb-node-dialogs';
+import { folderPresentation, toggleCollapsed } from '@/lib/kb/kb-node-menu-controller';
+import { readFileSync } from 'node:fs';
 
 const mock = vi.hoisted(() => ({ listOptions: vi.fn(), selectedValue: '', templateOptions: null as unknown[] | null, skipEffects: false }));
 
@@ -55,6 +57,7 @@ beforeEach(() => { mock.listOptions.mockReset(); mock.selectedValue = ''; mock.t
 
 describe('template tree UI', () => {
   it('shows file creation only on category folders and hides folder creation throughout the template tree', () => {
+    mock.skipEffects = true; // row menu effects touch window; server rendering never runs them
     const html = renderToStaticMarkup(createElement(KbTree, { nodes: [root], chaptersByFolderId: {}, workId: 'work' }));
     const rootRow = html.split('data-node-id="root"')[1].split('data-node-id="category"')[0];
     const categoryRow = html.split('data-node-id="category"')[1].split('data-node-id="file"')[0];
@@ -99,5 +102,46 @@ describe('template tree UI', () => {
     expect(html).toContain('인물');
     expect(html).toContain('장소');
     expect(html).not.toContain('>category<');
+  });
+
+  it('renders folder toggles with aria-expanded and nothing hidden by default', () => {
+    mock.skipEffects = true;
+    const html = renderToStaticMarkup(createElement(KbTree, { nodes: [root], chaptersByFolderId: {}, workId: 'work' }));
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).not.toMatch(/<ul hidden/);
+  });
+
+  it('folder toggle flips visibility and aria-expanded together without touching children', () => {
+    const children = root.children;
+    const ids = children.map((c) => c.id);
+    const open = new Set<string>();
+    expect(folderPresentation(open, root.id)).toEqual({ visible: true, ariaExpanded: 'true' });
+    const closed = toggleCollapsed(open, root.id);
+    expect(folderPresentation(closed, root.id)).toEqual({ visible: false, ariaExpanded: 'false' });
+    expect(folderPresentation(closed, 'other').visible).toBe(true);
+    const reopened = toggleCollapsed(closed, root.id);
+    expect(folderPresentation(reopened, root.id)).toEqual({ visible: true, ariaExpanded: 'true' });
+    expect(open.size).toBe(0);
+    expect(root.children).toBe(children);
+    expect(root.children.map((c) => c.id)).toEqual(ids);
+  });
+
+  it('wires sections, menu and entry in source (real open is a 02-13 browser check)', () => {
+    const layout = readFileSync('app/studio/[workId]/layout.tsx', 'utf8');
+    expect(layout).toContain('partitionStudioSidebar(workTree, accountTree)');
+    expect(layout).toContain('<TemplateSidebarEntry');
+    expect(layout).toContain('<KbTemplateSection');
+    const order = ['<KbTemplateSection', 'nodes={sections.myFolders}', 'nodes={sections.sharedFolders}', 'nodes={sections.chapterRoots}'].map((m) => layout.indexOf(m));
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(layout).not.toContain('useState');
+    const entry = readFileSync('components/studio/template-sidebar-entry.tsx', 'utf8');
+    for (const part of ["'use client'", 'CreateTemplateDialog', 'CreateNodeDialog', '새 문서 (템플릿에서)']) expect(entry).toContain(part);
+    const menu = readFileSync('components/studio/kb-node-menu.tsx', 'utf8');
+    for (const part of ['onContextMenu', 'onPointerDown', 'onPointerCancel', 'onKeyDown', 'RenameNodeDialog', 'consumeClickBlock', 'dispose']) {
+      expect(menu).toContain(part);
+    }
+    const tree = readFileSync('components/studio/kb-tree.tsx', 'utf8');
+    expect(tree).toContain('aria-expanded');
+    expect(tree).toContain('<KbNodeMenu');
   });
 });

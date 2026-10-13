@@ -1,13 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Folder, FileText, Lock, BookOpen } from 'lucide-react';
+import { Folder, FileText, Lock, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { KbTreeActions } from '@/components/studio/kb-node-dialogs';
+import { KbNodeMenu } from '@/components/studio/kb-node-menu';
 import type { TreeNode, ChapterLeaf } from '@/lib/kb/tree';
 import { isTemplateRoot, templateCategoryOf } from '@/lib/kb/template-tree';
+import { folderPresentation, toggleCollapsed } from '@/lib/kb/kb-node-menu-controller';
+import { KB_CATEGORIES } from '@/lib/kb/categories';
+import type { TemplateEntry } from '@/lib/kb/sidebar-sections';
 
 export function KbTree({
   nodes, chaptersByFolderId, workId,
@@ -34,16 +39,39 @@ function TreeRow({
   const isChapterRootFolder = node.category === '회차' && node.parent_id === null;
   const chapterLeaves = node.category === '회차' ? (chaptersByFolderId[node.id] ?? []) : [];
   const hasNoChapterContent = isChapterRootFolder && node.children.length === 0 && chapterLeaves.length === 0;
+  const hasContent = node.children.length > 0 || chapterLeaves.length > 0;
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  const presentation = folderPresentation(collapsed, node.id);
+  const parentTemplateCategory = node.category === 'template' && node.node_type === 'file'
+    ? (categoryFolders.find((folder) => folder.id === node.parent_id)?.name ?? null)
+    : null;
 
   return (
     <li>
-      <div
-        className="group flex items-center gap-1 h-8 px-2 text-sm"
-        style={{ paddingLeft: 8 + depth * 16 }}
-        data-node-id={node.id}
-        data-node-type={node.node_type}
-        data-locked={node.is_locked}
+      <KbNodeMenu
+        workId={workId}
+        node={node}
+        categoryFolders={categoryFolders}
+        templateCategory={parentTemplateCategory}
+        rowProps={{
+          className: 'group flex items-center gap-1 h-8 px-2 text-sm',
+          style: { paddingLeft: 8 + depth * 16 },
+          'data-node-id': node.id,
+          'data-node-type': node.node_type,
+          'data-locked': node.is_locked,
+        }}
       >
+        {node.node_type === 'folder' && hasContent ? (
+          <button
+            type="button"
+            aria-expanded={presentation.ariaExpanded === 'true'}
+            aria-label={`${node.name} ${presentation.visible ? '접기' : '펼치기'}`}
+            className="flex h-5 w-5 items-center justify-center rounded hover:bg-accent"
+            onClick={() => setCollapsed((current) => toggleCollapsed(current, node.id))}
+          >
+            {presentation.visible ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+        ) : null}
         {node.node_type === 'folder' ? (
           <Folder size={16} className={isActive ? 'text-primary' : undefined} />
         ) : (
@@ -84,9 +112,9 @@ function TreeRow({
         <span className="ml-auto opacity-0 group-hover:opacity-100">
           <KbTreeActions workId={workId} node={node} isTemplateCategoryFolder={isTemplateCategoryFolder} categoryFolders={categoryFolders} />
         </span>
-      </div>
-      {(node.children.length > 0 || chapterLeaves.length > 0) && (
-        <ul>
+      </KbNodeMenu>
+      {hasContent && (
+        <ul hidden={!presentation.visible}>
           {node.children.map((child) => (
             <TreeRow key={child.id} node={child} depth={depth + 1} chaptersByFolderId={chaptersByFolderId} workId={workId} templateRoot={currentTemplateRoot} />
           ))}
@@ -127,6 +155,91 @@ function ChapterLeafRow({ chapter, depth, workId }: { chapter: ChapterLeaf; dept
           {chapter.title}
         </Link>
       </div>
+    </li>
+  );
+}
+
+const NO_CATEGORY = '미분류';
+
+/** 기본 5종 + 내 템플릿 section. Template category folders are flattened for display only (the DB tree is
+ * untouched); 내 템플릿 groups are collapsible with the same aria-expanded contract as folder rows. */
+export function KbTemplateSection({
+  defaults, mine, workId,
+}: { defaults: TemplateEntry[]; mine: TemplateEntry[]; workId: string }) {
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  const groups = [...KB_CATEGORIES, NO_CATEGORY]
+    .map((name) => ({ name, entries: mine.filter((entry) => (entry.category ?? NO_CATEGORY) === name) }))
+    .filter((group) => group.entries.length > 0);
+
+  return (
+    <div className="flex flex-col" data-section="templates">
+      <div className="px-4 pt-2 text-xs font-medium text-muted-foreground">기본 템플릿</div>
+      <ul>
+        {defaults.map((entry) => <TemplateEntryRow key={entry.node.id} entry={entry} workId={workId} depth={0} />)}
+      </ul>
+      <div className="px-4 pt-3 text-xs font-medium text-muted-foreground">내 템플릿</div>
+      {groups.length === 0 && <p className="px-4 py-2 text-xs text-muted-foreground">아직 만든 템플릿이 없어요.</p>}
+      {groups.map((group) => {
+        const presentation = folderPresentation(collapsed, group.name);
+        return (
+          <div key={group.name} data-template-group={group.name}>
+            <button
+              type="button"
+              aria-expanded={presentation.ariaExpanded === 'true'}
+              className="flex h-8 w-full items-center gap-1 px-4 text-sm hover:bg-accent"
+              onClick={() => setCollapsed((current) => toggleCollapsed(current, group.name))}
+            >
+              {presentation.visible ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              <Folder size={16} />
+              <span className="truncate">{group.name}</span>
+            </button>
+            <ul hidden={!presentation.visible}>
+              {group.entries.map((entry) => <TemplateEntryRow key={entry.node.id} entry={entry} workId={workId} depth={1} />)}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TemplateEntryRow({ entry, workId, depth }: { entry: TemplateEntry; workId: string; depth: number }) {
+  const params = useParams<{ nodeId?: string }>();
+  const { node } = entry;
+  const isActive = params?.nodeId === node.id;
+  return (
+    <li>
+      <KbNodeMenu
+        workId={workId}
+        node={node}
+        categoryFolders={entry.categoryFolders}
+        templateCategory={entry.category}
+        rowProps={{
+          className: 'group flex items-center gap-1 h-8 px-2 text-sm',
+          style: { paddingLeft: 8 + (depth + 1) * 16 },
+          'data-node-id': node.id,
+          'data-node-type': node.node_type,
+          'data-locked': node.is_locked,
+        }}
+      >
+        <FileText size={16} className={isActive ? 'text-primary' : undefined} />
+        <Link
+          href={`/studio/${workId}/kb/${node.id}`}
+          className={`truncate ${isActive ? 'text-primary font-medium border-l-2 border-primary pl-1' : ''}`}
+        >
+          {node.name}
+        </Link>
+        {node.is_locked ? (
+          <Lock size={12} className="text-muted-foreground" aria-label="기본 템플릿은 수정할 수 없어요" />
+        ) : (
+          <Badge variant={node.scope === 'work' ? 'secondary' : 'outline'} className="text-xs">
+            {node.scope === 'work' ? '이 작품' : '계정'}
+          </Badge>
+        )}
+        <span className="ml-auto opacity-0 group-hover:opacity-100">
+          <KbTreeActions workId={workId} node={node} categoryFolders={entry.categoryFolders} />
+        </span>
+      </KbNodeMenu>
     </li>
   );
 }
