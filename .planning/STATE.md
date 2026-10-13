@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Phase 17 context gathered
-last_updated: "2026-10-07T23:59:23.611Z"
-last_activity: 2026-10-10 -- Phase 11 코드 완료 (11-01~07), 11-VERIFICATION human_needed(브라우저 UAT 6건 대기)
+stopped_at: Completed 02-07-PLAN.md (DB gate pending 02-13)
+last_updated: "2026-10-13T06:40:01.372Z"
+last_activity: 2026-10-13 -- Phase 02 보완 02-07 완료 (템플릿 보존 이관·DB 잠금, 실DB 게이트는 02-13)
 progress:
   total_phases: 19
   completed_phases: 5
-  total_plans: 84
-  completed_plans: 78
-  percent: 93
+  total_plans: 145
+  completed_plans: 81
 ---
 
 # Project State
@@ -116,6 +115,7 @@ Recent decisions affecting current work:
 - [Phase 07]: 07-04: blind precedence over free/entitled in SQL; entitlement reported separately; purchases raise content_blinded before debit
 - [Phase 07]: Warning notices use session client + own-row RLS; AccountNotices loads after hydration so failures never block render/login
 - [Phase 07]: purchaseChapterAction rechecks access state: blinded refused before order, owned retry returns ok without charge
+- [Phase 02]: Plan 02-07: 기본 템플릿 5종 읽기 전용 — 0022(수정본 '{카테고리} 사본' 보존·원본 복원·잠금, private catalog/provenance)·0023(영역 owner+work btrim(name) 유일, 잠금 해제·위장 seed·예약 이름·영역 위장 차단 trigger guard); canonical seed는 CR 제거·BOM 유지. 실DB 적용·integration은 02-13 게이트
 
 ### Roadmap Evolution
 
@@ -161,13 +161,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-02T02:34:57.142Z
-Stopped at: Phase 17 context gathered
+Last session: 2026-10-13T06:40:01.358Z
+Stopped at: Completed 02-07-PLAN.md (DB gate pending 02-13)
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
-Resume file: .planning/phases/17-bugfix-consolidation/17-CONTEXT.md
+Resume file: None
 
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.
