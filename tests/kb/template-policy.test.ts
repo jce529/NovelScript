@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import * as actions from '../../lib/kb/actions';
+import { buildSeedContent, readCanonicalSeed } from '../../lib/kb/templates';
 
 type Row = { id: string; owner_id: string; work_id: string | null; scope: string; parent_id: string | null; name: string; category: string; node_type: string; is_locked: boolean; content: string | null; deleted_at: string | null };
 type DbError = { code: string; message: string };
@@ -104,5 +105,110 @@ describe('read-only default template actions (query-boundary contracts)', () => 
     const mock = mockClient([row({ category: '인물', is_locked: false })]);
     expect(await mutations[name](mock.client)).toEqual({ ok: true, nodeId: 'source' });
     expect(mock.writes()).toHaveLength(1);
+  });
+});
+
+// ---- Task 2: default selection policy + template name collisions (mock units; DB suites run in 02-13) ----
+const RESERVED = '기본 템플릿 이름은 사용할 수 없어요. 다른 이름을 사용해주세요.';
+const CUSTOM = '# 내 양식: <% tp.file.title %>';
+const folder = (overrides: Partial<Row>) => row({ node_type: 'folder', content: null, is_locked: true, ...overrides });
+const accountArea = { scope: 'account_template', work_id: null } as const;
+const optionFixture = (): Row[] => [
+  // A spoofed root for the same work id owned by someone else must never be read.
+  folder({ id: 'spoof-root', owner_id: OTHER, parent_id: null, name: 'template' }),
+  folder({ id: 'spoof-person', owner_id: OTHER, parent_id: 'spoof-root', name: '인물' }),
+  row({ id: 'spoof-file', owner_id: OTHER, parent_id: 'spoof-person', name: '남의 양식', is_locked: false }),
+  root, person, place,
+  row({ id: 'work-default', parent_id: 'person', name: '인물', is_locked: true }),
+  row({ id: 'work-custom', parent_id: 'person', name: '내캐릭터양식', is_locked: false, content: CUSTOM }),
+  row({ id: 'work-copy', parent_id: 'person', name: '인물 사본', is_locked: false, content: '# 작품 사본' }),
+  row({ id: 'work-place', parent_id: 'place', name: '장소 양식', is_locked: false }),
+  folder({ id: 'acct-root', parent_id: null, name: 'template', ...accountArea }),
+  folder({ id: 'acct-person', parent_id: 'acct-root', name: '인물', ...accountArea }),
+  folder({ id: 'acct-place', parent_id: 'acct-root', name: '장소', ...accountArea }),
+  row({ id: 'acct-default', parent_id: 'acct-person', name: '인물', is_locked: true, ...accountArea }),
+  row({ id: 'acct-copy', parent_id: 'acct-person', name: '인물 사본', is_locked: false, content: '# 계정 사본', ...accountArea }),
+  folder({ id: 'other-root', parent_id: null, name: 'template', work_id: 'other-work' }),
+  folder({ id: 'other-place', parent_id: 'other-root', name: '장소', work_id: 'other-work' }),
+  folder({ id: 'doc-folder', parent_id: null, name: '인물', category: '인물' }),
+];
+
+describe('default template selection (Reopen D-10, mock units)', () => {
+  it('lists one canonical default and only unlocked, owner-scoped custom templates', async () => {
+    const mock = mockClient(optionFixture());
+    const options = await actions.listTemplateOptions(mock.client, { ownerId: OWNER, workId: WORK, category: '인물' });
+    expect(options.filter(o => o.isDefault)).toEqual([
+      { id: null, name: '기본 인물 템플릿', scope: 'canonical', content: await readCanonicalSeed('인물'), isDefault: true },
+    ]);
+    expect(options.filter(o => !o.isDefault).map(o => [o.scope, o.id, o.name, o.content])).toEqual([
+      ['work', 'work-custom', '내캐릭터양식', CUSTOM],
+      ['work', 'work-copy', '인물 사본', '# 작품 사본'],
+      ['account_template', 'acct-copy', '인물 사본', '# 계정 사본'],
+    ]);
+    for (const call of mock.calls.filter(c => c.op === 'read')) expect(call.filters).toEqual(expect.arrayContaining([['owner_id', OWNER]]));
+  });
+
+  it('keeps the Phase 15 null contract: validateTargetTemplate(null) is the canonical default', async () => {
+    const mock = mockClient(optionFixture());
+    const resolved = await actions.validateTargetTemplate(mock.client, { ownerId: OWNER, workId: WORK, category: '인물', templateId: null });
+    expect(resolved).toMatchObject({ ok: true, template: { id: null, scope: 'canonical', isDefault: true } });
+    for (const id of ['work-default', 'acct-default', 'spoof-file', 'work-place']) {
+      expect(await actions.validateTargetTemplate(mock.client, { ownerId: OWNER, workId: WORK, category: '인물', templateId: id })).toEqual({ ok: false });
+    }
+    expect(await actions.validateTargetTemplate(mock.client, { ownerId: OWNER, workId: WORK, category: '인물', templateId: 'acct-copy' }))
+      .toMatchObject({ ok: true, template: { id: 'acct-copy', scope: 'account_template' } });
+  });
+
+  it('auto default uses the canonical seed even when an unlocked category-named file exists', async () => {
+    const legacy = row({ id: 'legacy-edit', parent_id: 'person', name: '인물', is_locked: false, content: '# 예전 편집본' });
+    const mock = mockClient([...optionFixture().filter(r => r.id !== 'work-default'), legacy]);
+    const result = await actions.createNode(mock.client, { ownerId: OWNER, workId: WORK, parentId: 'doc-folder', category: '인물', nodeType: 'file', name: '아서' });
+    expect(result).toEqual({ ok: true, nodeId: 'copy-id' });
+    expect(mock.writes()[0].payload?.content).toBe(await buildSeedContent('인물', '아서', null));
+  });
+
+  it('explicit custom selection seeds the picked raw content with the title substituted', async () => {
+    const mock = mockClient(optionFixture());
+    await actions.createNode(mock.client, { ownerId: OWNER, workId: WORK, parentId: 'doc-folder', category: '인물', nodeType: 'file', name: '아서', templateOverrideContent: CUSTOM });
+    expect(mock.writes()[0].payload?.content).toBe('# 내 양식: 아서');
+  });
+});
+
+describe('template name collisions (0023 area unique index, mock units)', () => {
+  it.each([
+    ['23505', 'duplicate key value violates unique constraint "kb_nodes_template_area_name_unique"', COLLISION],
+    ['P0001', 'template_name_reserved', RESERVED],
+  ])('createNode template %s maps to friendly copy without nodeId', async (code, message, expected) => {
+    const mock = mockClient(optionFixture(), { mutationError: { code, message } });
+    const result = await actions.createNode(mock.client, { ownerId: OWNER, workId: WORK, parentId: 'place', category: 'template', nodeType: 'file', name: '인물 사본' });
+    expect(result).toEqual({ ok: false, error: expected });
+  });
+  it('renameNode of a custom template maps 23505 to the template collision copy', async () => {
+    const mock = mockClient(optionFixture(), { mutationError: { code: '23505', message: 'raw unique detail' } });
+    const result = await actions.renameNode(mock.client, { ownerId: OWNER, nodeId: 'work-custom', name: '인물 사본' });
+    expect(result).toEqual({ ok: false, error: COLLISION });
+  });
+  it('renameNode of an ordinary document keeps the generic collision copy', async () => {
+    const mock = mockClient([row({ category: '인물', is_locked: false })], { mutationError: { code: '23505', message: 'raw' } });
+    expect(await mutations.rename(mock.client)).toEqual({ ok: false, error: '이미 같은 이름의 파일/폴더가 있어요. 다른 이름을 사용해주세요.' });
+  });
+});
+
+describe('custom template move (mock units)', () => {
+  it('moves within the same area and preserves id and raw content', async () => {
+    const mock = mockClient(optionFixture());
+    expect(await actions.moveTemplateFile(mock.client, { ownerId: OWNER, nodeId: 'work-custom', targetCategoryFolderId: 'place' }))
+      .toEqual({ ok: true, nodeId: 'work-custom' });
+    expect(mock.rows.find(r => r.id === 'work-custom')).toMatchObject({ parent_id: 'place', content: CUSTOM });
+  });
+  it.each([
+    ['other work', OWNER, 'other-place'],
+    ['account area', OWNER, 'acct-place'],
+    ['other owner', OTHER, 'place'],
+  ])('rejects a move into %s without writing', async (_label, ownerId, target) => {
+    const mock = mockClient(optionFixture());
+    expect((await actions.moveTemplateFile(mock.client, { ownerId, nodeId: 'work-custom', targetCategoryFolderId: target })).ok).toBe(false);
+    expect(mock.writes()).toEqual([]);
+    expect(mock.rows.find(r => r.id === 'work-custom')).toMatchObject({ parent_id: 'person', content: CUSTOM });
   });
 });
