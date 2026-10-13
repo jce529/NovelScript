@@ -84,41 +84,27 @@ async function readMutationSource(
   return { ok: true, source: data as MutationSource };
 }
 
-async function findTemplateCategoryFolder(supabase: SupabaseClient, rootId: string, category: KbCategory): Promise<string | null> {
+async function findTemplateCategoryFolder(
+  supabase: SupabaseClient, ownerId: string, rootId: string, category: KbCategory,
+): Promise<string | null> {
   const { data } = await supabase.from('kb_nodes').select('id')
-    .eq('parent_id', rootId).eq('name', category).eq('category', 'template')
+    .eq('owner_id', ownerId).eq('parent_id', rootId).eq('name', category).eq('category', 'template')
     .eq('node_type', 'folder').is('deleted_at', null).maybeSingle();
   return data?.id ?? null;
 }
 
-async function resolveTemplateOverride(
-  supabase: SupabaseClient,
-  { ownerId, workId, category }: { ownerId: string; workId: string; category: KbCategory }
-): Promise<string | null> {
-  // Pattern 3: work-local override > account-level override > canonical (null = canonical)
-  const { data: workTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
-  if (workTemplateFolder) {
-    const categoryFolderId = await findTemplateCategoryFolder(supabase, workTemplateFolder.id, category);
-    if (categoryFolderId) {
-      const { data: workOverride } = await supabase
-        .from('kb_nodes').select('content').eq('parent_id', categoryFolderId).eq('name', category).eq('node_type', 'file').is('deleted_at', null).maybeSingle();
-      if (workOverride?.content) return workOverride.content;
-    }
-  }
-
-  const { data: accountTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
-  if (accountTemplateFolder) {
-    const categoryFolderId = await findTemplateCategoryFolder(supabase, accountTemplateFolder.id, category);
-    if (categoryFolderId) {
-      const { data: accountOverride } = await supabase
-        .from('kb_nodes').select('content').eq('parent_id', categoryFolderId).eq('name', category).eq('node_type', 'file').is('deleted_at', null).maybeSingle();
-      if (accountOverride?.content) return accountOverride.content;
-    }
-  }
-
-  return null;
+/** Unlocked (user-owned) template files directly under the owner's category folder of one area.
+ * Locked rows are the read-only defaults — they are the canonical seed already, so listing them
+ * again would show the default once per area. */
+async function listCustomTemplateFiles(
+  supabase: SupabaseClient, ownerId: string, rootId: string, category: KbCategory,
+): Promise<{ id: string; name: string; content: string | null }[]> {
+  const categoryFolderId = await findTemplateCategoryFolder(supabase, ownerId, rootId, category);
+  if (!categoryFolderId) return [];
+  const { data } = await supabase.from('kb_nodes').select('id, name, content, is_locked')
+    .eq('owner_id', ownerId).eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
+  return ((data ?? []) as { id: string; name: string; content: string | null; is_locked: boolean }[])
+    .filter((file) => file.is_locked !== true);
 }
 
 export interface TemplateOption {
@@ -129,13 +115,14 @@ export interface TemplateOption {
   isDefault: boolean;
 }
 
-/** D-10: full create-time template picker. Lists files directly under the requested
- * category folder in each scope, plus the canonical docs/Template seed. An
- * arbitrarily-named custom template (e.g. "내캐릭터양식") is fully listed and
- * selectable here, closing the gap where only an exact category-name match had
- * any effect. The category-name-matched file is flagged isDefault (work-level
- * match wins over account-level match wins over canonical), matching Pattern 3's
- * priority order for the case where the writer doesn't explicitly pick one. */
+/** D-10 as revised by the Reopen decision (2026-10-12): the create-time template picker.
+ * The default is always exactly one option — the read-only canonical docs/Template seed
+ * (id null, isDefault). The locked per-area copies of that default are not listed again.
+ * The writer's own unlocked templates (`내 템플릿`, e.g. "내캐릭터양식" or "인물 사본") are
+ * listed per area (work vs account, distinguished by `scope` and id) for explicit selection;
+ * a category-named file no longer overrides the default. Every read is owner-scoped, so
+ * another owner's tree can never become selectable. Phase 15 consumers rely on
+ * validateTargetTemplate(null) resolving to this canonical option. */
 export async function listTemplateOptions(
   supabase: SupabaseClient,
   { ownerId, workId, category }: { ownerId: string; workId: string; category: KbCategory }
@@ -143,28 +130,19 @@ export async function listTemplateOptions(
   const options: TemplateOption[] = [];
 
   const { data: workTemplateFolder } = await supabase
-    .from('kb_nodes').select('id').eq('work_id', workId).eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
+    .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('work_id', workId).eq('scope', 'work')
+    .eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (workTemplateFolder) {
-    const categoryFolderId = await findTemplateCategoryFolder(supabase, workTemplateFolder.id, category);
-    if (categoryFolderId) {
-      const { data: workFiles } = await supabase
-        .from('kb_nodes').select('id, name, content').eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
-      for (const file of workFiles ?? []) {
-        options.push({ id: file.id, name: file.name, scope: 'work', content: file.content ?? '', isDefault: false });
-      }
+    for (const file of await listCustomTemplateFiles(supabase, ownerId, workTemplateFolder.id, category)) {
+      options.push({ id: file.id, name: file.name, scope: 'work', content: file.content ?? '', isDefault: false });
     }
   }
 
   const { data: accountTemplateFolder } = await supabase
     .from('kb_nodes').select('id').eq('owner_id', ownerId).eq('scope', 'account_template').eq('category', 'template').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null).maybeSingle();
   if (accountTemplateFolder) {
-    const categoryFolderId = await findTemplateCategoryFolder(supabase, accountTemplateFolder.id, category);
-    if (categoryFolderId) {
-      const { data: accountFiles } = await supabase
-        .from('kb_nodes').select('id, name, content').eq('parent_id', categoryFolderId).eq('node_type', 'file').is('deleted_at', null);
-      for (const file of accountFiles ?? []) {
-        options.push({ id: file.id, name: file.name, scope: 'account_template', content: file.content ?? '', isDefault: false });
-      }
+    for (const file of await listCustomTemplateFiles(supabase, ownerId, accountTemplateFolder.id, category)) {
+      options.push({ id: file.id, name: file.name, scope: 'account_template', content: file.content ?? '', isDefault: false });
     }
   }
 
@@ -173,13 +151,8 @@ export async function listTemplateOptions(
     name: `기본 ${category} 템플릿`,
     scope: 'canonical',
     content: await readCanonicalSeed(category),
-    isDefault: false,
+    isDefault: true,
   });
-
-  const workMatch = options.find((o) => o.scope === 'work' && o.name === category);
-  const accountMatch = options.find((o) => o.scope === 'account_template' && o.name === category);
-  const defaultOption = workMatch ?? accountMatch ?? options[options.length - 1];
-  defaultOption.isDefault = true;
 
   return options;
 }
@@ -310,10 +283,10 @@ export async function createNode(
     category: string;
     nodeType: 'folder' | 'file';
     name: string;
-    /** D-10: explicit create-time template selection (from listTemplateOptions).
-     * `undefined` (not passed) = auto-resolve via Pattern 3 (resolveTemplateOverride),
-     * preserving prior behavior. A defined value (including `null`, meaning the
-     * writer explicitly picked the canonical option) BYPASSES auto-resolution. */
+    /** D-10 (Reopen 2026-10-12): explicit create-time template selection (from
+     * listTemplateOptions). A string is the picked `내 템플릿` raw content; `null` or
+     * `undefined` both mean the canonical default — a category-named file no longer
+     * overrides it automatically. */
     templateOverrideContent?: string | null;
     /** Persist generated content directly in the single node insert. */
     initialContent?: string;
@@ -353,11 +326,7 @@ export async function createNode(
   } else if (input.initialContent !== undefined) {
     content = input.initialContent;
   } else if (input.nodeType === 'file' && input.category !== 'template') {
-    const category = input.category as KbCategory;
-    const override = input.templateOverrideContent !== undefined
-      ? input.templateOverrideContent
-      : await resolveTemplateOverride(supabase, { ownerId: input.ownerId, workId: input.workId, category });
-    content = await buildSeedContent(category, name, override);
+    content = await buildSeedContent(input.category as KbCategory, name, input.templateOverrideContent ?? null);
   }
 
   const { data, error } = await supabase
@@ -377,6 +346,10 @@ export async function createNode(
     .single();
 
   if (error) {
+    if (templateCategory) {
+      const friendly = templateNameError(error);
+      if (friendly) return { ok: false, error: friendly };
+    }
     if (error.code === '23505') return { ok: false, error: FRIENDLY_NAME_COLLISION };
     return { ok: false, error: error.message };
   }
