@@ -26,6 +26,9 @@ button{font-family:inherit;cursor:pointer}
 .lbl{font-size:11px;font-weight:700;color:#71717a;margin-bottom:2px}
 .fruit{position:absolute;border-radius:999px;border:2px solid rgba(255,255,255,0.9);padding:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.18)}
 .fruit.sel{outline:3px solid #4f46e5;outline-offset:2px}
+.fruit.ghost{border:2px dashed #a1a1aa;color:#a1a1aa;box-shadow:none;font-size:13px}
+.chip.warn{background:#fef3c7;color:#854d0e}
+.brk{position:absolute;transform:translateX(-50%)}
 .seg2{position:absolute;border:0;padding:0;border-radius:999px;transform-origin:0 50%}
 .era{position:absolute;bottom:8px;font-size:10px;color:#71717a;font-weight:600;transform:translateX(-50%);white-space:nowrap}
 .tick{position:absolute;bottom:26px;width:1px;height:8px;background:#d4d4d8}
@@ -51,8 +54,9 @@ button{font-family:inherit;cursor:pointer}
   <div style="flex:none;position:relative;height:{{areaH}}px;background:linear-gradient(180deg,#fcfcfd,#f5f7ff);border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7">
     <div style="position:absolute;left:0;right:0;top:0;bottom:0;overflow-x:auto;overflow-y:hidden">
       <div style="position:relative;width:640px;height:100%">
-        <sc-for list="{{segs}}" as="s"><button class="seg2" type="button" aria-label="{{s.name}}" onClick="{{s.pick}}" style="left:{{s.x}}px;top:{{s.y}}px;width:{{s.w}}px;height:{{s.th}}px;transform:rotate({{s.ang}}deg);background:{{s.bg}};outline:{{s.ol}}"></button></sc-for>
+        <sc-for list="{{segs}}" as="s"><button class="seg2" type="button" aria-label="{{s.name}}" onClick="{{s.pick}}" style="left:{{s.x}}px;top:{{s.y}}px;width:{{s.w}}px;height:{{s.th}}px;transform:rotate({{s.ang}}deg);background:{{s.bg}};outline:{{s.ol}};border-top:{{s.bd}}"></button></sc-for>
         <sc-for list="{{fruits}}" as="f"><button class="{{f.cls}}" type="button" aria-label="{{f.title}}" onClick="{{f.pick}}" style="left:{{f.x}}px;top:{{f.y}}px;width:{{f.d}}px;height:{{f.d}}px;background:{{f.bg}}">{{f.n}}</button></sc-for>
+        <sc-for list="{{breaks}}" as="b"><span class="brk chip warn" style="left:{{b.x}}px;top:{{b.y}}px;font-size:10px">{{b.label}}</span></sc-for>
         <sc-for list="{{ticks}}" as="t"><span class="tick" style="left:{{t.x}}px"></span><span class="era" style="left:{{t.x}}px">{{t.label}}</span></sc-for>
       </div>
     </div>
@@ -60,8 +64,8 @@ button{font-family:inherit;cursor:pointer}
   </div>
   <p class="sub" style="padding:6px 12px;flex:none">굵기 = 본가지와의 근접도 · 열매 크기 = 인기 · 초록 = 확장 가지 · 산식은 임시안</p>
 
-  <sc-if value="{{hiddenNote}}" hint-placeholder-val="{{false}}">
-    <div style="margin:0 12px;background:#fef3c7;color:#854d0e;border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.5;flex:none">작가가 `연결 공개`를 꺼서 잔가지는 안 보이고 본가지 작품만 보여요.</div>
+  <sc-if value="{{noteText}}" hint-placeholder-val="{{false}}">
+    <div style="margin:0 12px;background:#fef3c7;color:#854d0e;border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.5;flex:none">{{noteText}}</div>
   </sc-if>
 
   <section aria-label="선택한 항목" style="flex-grow:1;min-height:0;overflow-y:auto;border-top:1px solid #e4e4e7;background:#fff;border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,0.06);padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px">
@@ -70,6 +74,7 @@ button{font-family:inherit;cursor:pointer}
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
       <sc-for list="{{sel.facts}}" as="f"><div class="fact"><div class="lbl">{{f.k}}</div><div style="font-size:14px;font-weight:700">{{f.v}}</div></div></sc-for>
     </div>
+    <sc-if value="{{sel.desc}}" hint-placeholder-val="{{false}}"><p class="sub">{{sel.desc}}</p></sc-if>
     <sc-if value="{{sel.isBranch}}" hint-placeholder-val="{{false}}">
       <p class="sub">분기 시점 스냅샷으로 고정돼요. 원작 설정이 바뀌어도 이 가지에는 반영되지 않아요. 분기 이전 설정은 본가지 진도, 이 가지만의 설정은 이 가지 진도만큼 열려요.</p>
     </sc-if>
@@ -83,9 +88,8 @@ button{font-family:inherit;cursor:pointer}
 class Component extends DCLogic {
   renderVals() {
     const st = this.state || {};
-    const open = st.open !== false;
+    const priv = st.priv === true;
     const sel = st.sel || 'f2';
-    const hide = !open;
     const TY = 250, SX = 0.58, SY = 0.78, OY = 6;
     const trunk = { id: 'trunk', x1: 60, y1: TY, x2: 1060, y2: TY, th: 12, name: '본가지(달빛 서고 세계관)' };
     const branches = [
@@ -106,27 +110,31 @@ class Component extends DCLogic {
       { id: 'f8', br: 'bC', x: 920, y: 392, up: 1, title: '북쪽 항구 연대기', era: '3기 · 다른 지역', pop: 55, tag: '확장 가지', color: '#0d9488', n: '북' },
       { id: 'f7', br: 'bB', x: 520, y: 410, up: 1, title: '열람증이 없었다면', era: '2기 · If', pop: 20, tag: '셀프 가지', color: '#7c3aed', n: 'If' }
     ];
-    const vis = (id) => !hide || id === 'trunk';
-    const segs = defs.filter((s) => vis(s.id)).map((s) => {
+    const vis = () => true;
+    const drawDefs = priv ? [Object.assign({}, trunk, { x2: 1000 }), { id: 'trunk', name: '부러진 가지', x1: 1000, y1: TY, x2: 1060, y2: TY, th: 3, dashed: true }].concat(branches) : defs;
+    const segs = drawDefs.filter((s) => vis(s.id)).map((s) => {
       const X1 = s.x1 * SX, X2 = s.x2 * SX, Y1 = s.y1 * SY + OY, Y2 = s.y2 * SY + OY;
       const dx = X2 - X1, dy = Y2 - Y1, len = Math.sqrt(dx * dx + dy * dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
-      return { name: s.name, x: X1, y: Y1 - s.th / 2, w: len, th: s.th, ang: ang.toFixed(2), bg: palette[s.id], ol: sel === s.id ? '3px solid #4f46e5' : 'none', pick: () => this.setState({ sel: s.id }) };
+      return { name: s.name, x: X1, y: Y1 - s.th / 2, w: len, th: s.th, ang: ang.toFixed(2), bg: s.dashed ? 'transparent' : palette[s.id], bd: s.dashed ? '3px dashed #a8a29e' : 'none', ol: (sel === s.id && !s.dashed) ? '3px solid #4f46e5' : 'none', pick: () => this.setState({ sel: s.id }) };
     });
     const fruits = fr.filter((f) => vis(f.br)).map((f) => {
-      const d = 20 + Math.round(f.pop * 0.3);
-      return { title: f.title, n: f.n, d: d, x: f.x * SX - d / 2, y: f.y * SY + OY + f.up * (d / 2 + 9) - d / 2, bg: f.color, cls: sel === f.id ? 'fruit sel' : 'fruit', pick: () => this.setState({ sel: f.id }) };
+      const ghost = priv && f.id === 'f2';
+      const d = ghost ? 34 : 20 + Math.round(f.pop * 0.3);
+      return { title: ghost ? '비공개된 작품 자리' : f.title, n: ghost ? '?' : f.n, d: d, x: f.x * SX - d / 2, y: f.y * SY + OY + f.up * (d / 2 + 9) - d / 2, bg: ghost ? '#fafafa' : f.color, cls: 'fruit' + (sel === f.id ? ' sel' : '') + (ghost ? ' ghost' : ''), pick: () => this.setState({ sel: f.id }) };
     });
     const ticks = [{ x: 80, label: '1기' }, { x: 200, label: '2기' }, { x: 350, label: '3기' }, { x: 470, label: '4기' }];
     const f = fr.find((x) => x.id === sel), b = defs.find((x) => x.id === sel);
     let info;
     if (f) info = { kind: '열매 · 작품', title: f.title, chip: f.tag, chipCls: f.br === 'trunk' ? '' : 'g', facts: [{ k: '세계관 내 시점', v: f.era }, { k: '인기(임시 지수)', v: String(f.pop) }, { k: '속한 가지', v: f.br === 'trunk' ? '본가지' : '잔가지' }, { k: '연재 상태', v: f.id === 'f4' ? '연재 중' : '완결' }], isBranch: false, isFruit: true };
     else info = { kind: sel === 'trunk' ? '본가지' : (b.expand ? '잔가지 · 확장(다른 지역)' : '잔가지 · If 스토리'), title: b.name, chip: sel === 'trunk' ? '원작' : (b.expand ? '확장 가지' : '스냅샷 고정'), chipCls: sel === 'trunk' ? 'ok' : 'g', facts: sel === 'trunk' ? [{ k: '열매(작품)', v: '4편' }, { k: '잔가지', v: '4개' }] : [{ k: '근접도', v: b.near }, { k: '변경한 설정', v: b.docs + '개' }, { k: '인기', v: b.pop }, { k: '굵기', v: b.size }], isBranch: sel !== 'trunk', isFruit: false };
+    if (priv && sel === 'f2') info = { kind: '비공개된 작품 자리', title: '비공개된 가지', chip: '비공개', chipCls: 'g', desc: '원래 본작이 있었던 자리예요. 이어진 작품은 계속 볼 수 있어요.', facts: [], isBranch: false, isFruit: false };
+    const breaks = priv ? [{ x: 1030 * SX, y: TY * SY + OY - 30, label: '부러진 가지' }, { x: 380 * SX, y: TY * SY + OY + 54, label: '비공개된 본작 자리' }] : [];
     return {
       accent: this.props.accent ?? '#4f46e5',
-      segs: segs, fruits: fruits, ticks: ticks, sel: info,
-      areaH: 340, hiddenNote: hide,
-      openLabel: open ? '연결 공개: 켜짐' : '연결 공개: 꺼짐',
-      toggleOpen: () => this.setState({ open: !open, sel: 'f2' })
+      segs: segs, fruits: fruits, ticks: ticks, sel: info, breaks: breaks,
+      areaH: 340, noteText: priv ? '원작이 비공개 상태예요. 작품 정보는 숨겨지고 이어진 가지는 그대로 보여요. 다시 발행하면 가지가 이어져요.' : '',
+      openLabel: priv ? '미리보기: 원작 비공개' : '미리보기: 원작 발행 중',
+      toggleOpen: () => this.setState({ priv: !priv, sel: 'f2' })
     };
   }
 }

@@ -31,7 +31,7 @@
 |---|---|---|---|---|
 | Phase 15 `BUG-04-regenerate-changes-document-name.md` | 템플릿 재생성 시 문서 이름이 바뀌어 저장됨 | medium | BUGFIX-02 | **수정 방향 확정(C안)** — 바로 실행 가능 |
 | Phase 15 `BUG-03-template-list-not-filtered-by-category.md` | 템플릿 카테고리 폴더 구조 — 남은 브라우저 UAT(전 항목 재생성, AI 추천, 미분류 표시 등) | — | BUGFIX-02 | 구조·마이그레이션은 완료, UAT만 남음 |
-| Phase 8 `BUG-04-thinking-tokens-not-debited.md` | thinking 토큰이 `maxOutputTokens` 예산을 잠식해 본문이 잘림 | low | BUGFIX-01 | **보류 중 — 정책 미결.** G1이 이 문서의 "관찰 항목"에 실사용 근거를 추가함 (아래) |
+| Phase 8 `BUG-04-thinking-tokens-not-debited.md` | thinking 토큰이 `maxOutputTokens` 예산을 잠식해 본문이 잘림 | low | BUGFIX-01 | **정책 결정 완료(2026-10-08) — 구현만 남음.** G1이 이 문서의 "관찰 항목"에 실사용 근거를 추가함 (아래) |
 
 ### C. 테스트·린트 기준선 (Phase 8 `bugs/README.md` "기존 기록" + Phase 16 `16-VERIFICATION.md`)
 
@@ -56,7 +56,7 @@ Phase 8 BUG-04는 "실사용에서 `wasCapped` 발생 빈도"와 "thinking 예�
 
 - 설정 문서 AI 패널에서 **"이 인물의 성격을 한 문장으로 제안해줘."** 같은 짧은 요청의 응답이, 잔액 10954·서비스 키 Gemini 3.5 Flash 조건에서 `max_tokens`로 끝나 "토큰이 모두 소진됐어요 / 남은 토큰 범위까지만 응답했어요."가 표시됐다 (원장 차감 -4, 응답 본문은 일부만 생성).
 - 즉 정상 사용에서도 요청당 상한(2048)이 thinking 토큰과 본문을 함께 소진할 수 있고, 현재 UI는 이를 잔액 소진으로 **오표시**한다.
-- 이 근거는 BUG-04의 "보류" 조건(실사용 빈도 확인)을 부분적으로 충족하지만, 단일 관찰이라 대표성은 낮다. 정책(사고 예산 제한 / 상한 상향 / 현행 유지)은 사용자 결정이 필요하다.
+- 이 근거는 BUG-04의 "보류" 조건(실사용 빈도 확인)을 부분적으로 충족하지만, 단일 관찰이라 대표성은 낮다. 정책(사고 예산 제한 / 상한 상향 / 현행 유지)은 2026-10-08 사용자 결정으로 확정됐다(단계 A 문구 정정+상한 상향, 단계 B 후보 4 Gemini만·BYOK 제외·`T` 기본값은 관측 후).
 </evidence>
 
 <decisions>

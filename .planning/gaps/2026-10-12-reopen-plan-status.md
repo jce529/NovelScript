@@ -1,6 +1,6 @@
 # 재개 phase 보완 plan 진행 현황 (2026-10-12)
 
-planner = Codex `gpt-6.1-sol`(medium), researcher = Haiku, checker = Sonnet. 마이그레이션 예약: P2 0022–23 / P3 0024–25 / P4 0026 / P5 0027–28 / P7 0029 / P11 0030 / P16 0031 / P18 0032–35 / P10 0036 (현재 마지막 0021). 커밋은 하지 않았다.
+planner = Codex `gpt-6.1-sol`(medium), researcher = Haiku, checker = Sonnet. 마이그레이션 예약: P2 0022–23 / P3 0024–25 / P4 0026 / P5 0027–28 / P7 0029 / P11 0030 / P16 0031 / P18 0032–36 (0033=18-14 자격 평가, 구 번호 한 칸씩 이동) / P10 마이그레이션 없음 (현재 마지막 0021). 커밋은 하지 않았다.
 
 | Phase | plan | Sonnet 판정 | 비고 |
 |---|---|---|---|
@@ -18,7 +18,7 @@ planner = Codex `gpt-6.1-sol`(medium), researcher = Haiku, checker = Sonnet. 마
 1. Phase 3·18 planner를 `gpt-6.1-sol`로 재실행(프롬프트는 이전 세션 scratchpad의 p03/p18 — 없으면 재작성).
 2. 11·16 PLAN 완결 여부 확인 후 필요하면 마무리.
 3. 파일 소유권 정리(단일 소유자 결정): `chat.ts`/`chat.test.ts`(P4 vs P11), `ai-panel-model.test.ts`(P4 04-10 vs P10 10-09), `AiPanel.tsx`(P4 04-10/11 vs P11-06). 권장: AiPanel·피커 연결은 Phase 4가 소유, chat.ts 계약 변경은 Phase 11이 소유하고 04-09는 11-05에 의존.
-4. 전체 Sonnet 재검증, 열린 결정(P3 5건, P18 3건) 사용자 확인.
+4. 전체 Sonnet 재검증, 열린 결정(P3 5건, P18 3건) 사용자 확인 — 완료(2026-10-13 확정).
 
 ## 갱신 (2026-10-13) — 전 phase plan 작성·검증 완료
 Codex 한도 해제 후 Phase 3·18 planner 실행, 11·16 마무리, 2·4·5·7·10 수정 패스와 소유권 정리를 마쳤고 9개 phase를 Sonnet으로 재검증했다. 커밋은 하지 않았다.
@@ -36,4 +36,4 @@ Codex 한도 해제 후 Phase 3·18 planner 실행, 11·16 마무리, 2·4·5·7
 | 18 | 18-01~12 | PASSED (차단 2건 해소) |
 
 실행 순서 핵심: 11-10 → 11-11 → 04-09 → 04-10 → 04-11 → 11-13 → 11-12, Phase 3 03-08(4탭 셸) → Phase 18, Phase 2 02-11(슬롯) → Phase 16, 05-05 → 03-17/18.
-사용자 확인이 필요한 열린 결정: Phase 3 문서 충돌 5건(설정 저장 cookie, 세피아 제거, 뷰어 바, 랭킹 배지, 더보기·루키), Phase 18 3건(연결 공개 토글 단위, 숨긴 가지의 하위 가지, 숨긴 가지 작품의 피드·URL).
+열린 결정은 2026-10-13 모두 확정됐다 — Phase 3 문서 충돌 5건은 plan 기본안대로(`03-CONTEXT.md`), Phase 18 3건은 연결 공개 토글 폐지·부러진 가지·일반 노출 규칙으로(`18-CONTEXT.md` "Open Decisions 결정"). 두 PLAN의 "사용자 확인 필요" 표기는 해소된 것으로 본다.

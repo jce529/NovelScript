@@ -464,7 +464,7 @@ Plans:
 **Plans**: TBD (`/gsd:plan-phase 17`로 분할)
 **UI hint**: yes
 **Source**: Phase 16 UAT 갭 4건 (`.planning/phases/16-studio-workflow-upload/16-UAT.md`) + Phase 8 BUG-04, Phase 15 BUG-03·04, Phase 8 기록의 eslint·테스트 기준선 이슈
-**Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. 수정 전 Phase 8 BUG-04(thinking 토큰 정책)는 사용자 결정이 필요하다.
+**Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. Phase 8 BUG-04(thinking 토큰 정책)는 2026-10-08 결정 완료(단계 A 먼저, 후보 4는 관측 후).
 
 ### Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)
 **Goal**: 작가가 자기 작품의 세계관(설정집)을 복제해 If 가지·확장 가지 작품을 연재하고, 세계관 연표에 작품을 배치하며, 독자가 작품 상세의 `세계관` 탭에서 세계수(본가지·잔가지·열매)를 본다. 첫 버전은 **셀프 가지만** 다루고 스토어 구매 연동(WTREE-11~13)은 스토어 보류 해제 후로 미룬다.

@@ -6,7 +6,7 @@ severity: low (품질 체감 문제, 빈도 미확인)
 found: 2026-09-18
 found_during: 08-09 실제 Gemini 보정 측정
 origin_phase: 08 (08-02 설계 결정)
-phase8_regression: 해당 없음 — 계획대로 동작, 정책 미결
+phase8_regression: 해당 없음 — 계획대로 동작, 정책 결정 완료(2026-10-08)
 files:
   - lib/ai/providers/gemini.ts
   - lib/ai/chat.ts
@@ -22,7 +22,7 @@ related_fixed: .planning/fixed/08-04 사고 토큰 차감 누락 수정.md
 
 ## 정책 정리 (2026-10-04) — 결정 상태 한눈에 보기
 
-이 문서·`17-CONTEXT.md`·`11-CONTEXT.md`에 흩어진 BUG-04 관련 결정을 한곳에 모았다. 새 결정은 없다. **단계 B(정책)는 사용자 결정 대기다.**
+이 문서·`17-CONTEXT.md`·`11-CONTEXT.md`에 흩어진 BUG-04 관련 결정을 한곳에 모았다. 새 결정은 없다. **단계 B(정책)는 2026-10-08 결정이 끝났다(아래 "사용자 결정이 필요한 것" 참조). 남은 것은 관측 데이터가 필요한 구현뿐이다.**
 
 ### 문제 두 겹
 1. **표시 오류(확정·수정 대상):** `wasCapped = (finishReason === 'max_tokens')`가 잔액 캡 / 요청당 상한 / thinking 소진을 구분하지 못해, 잔액이 충분해도 "토큰이 모두 소진됐어요"가 뜬다 (`lib/ai/chat.ts`, `lib/ai/document-plan.ts`). 2026-10-02 UAT 근거: 잔액 10954·Gemini 3.5 Flash에서 짧은 요청이 `max_tokens`로 끝남(원장 -4). 이 근거는 단일 관찰이라 빈도 판단에는 약하다.

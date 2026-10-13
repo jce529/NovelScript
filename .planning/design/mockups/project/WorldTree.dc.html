@@ -27,6 +27,10 @@ button{font-family:inherit;cursor:pointer}
 .lbl{font-size:12px;font-weight:700;color:#52525b;margin-bottom:4px}
 .fruit{position:absolute;border-radius:999px;border:2px solid rgba(255,255,255,0.9);padding:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
 .fruit.sel{outline:3px solid #4f46e5;outline-offset:2px}
+.fruit.ghost{border:2px dashed #a1a1aa;color:#a1a1aa;box-shadow:none;font-size:14px}
+.fruit.priv{border:2px dashed #fff;outline:2px dashed #dc2626;outline-offset:2px}
+.chip.warn{background:#fef3c7;color:#854d0e}
+.brk{position:absolute;transform:translateX(-50%)}
 .seg2{position:absolute;border:0;padding:0;border-radius:999px;transform-origin:0 50%}
 .era{position:absolute;bottom:14px;font-size:11px;color:#71717a;font-weight:600;transform:translateX(-50%);white-space:nowrap}
 .tick{position:absolute;bottom:34px;width:1px;height:10px;background:#d4d4d8}
@@ -41,18 +45,19 @@ button{font-family:inherit;cursor:pointer}
 
     <div class="card" style="position:relative;overflow:hidden;background:linear-gradient(180deg,#fcfcfd,#f5f7ff)">
       <div style="position:absolute;left:18px;top:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:18px;font-weight:700">달빛 서고 세계수</span><span class="sub">가지 = 설정 흐름 · 열매 = 작품 · 오른쪽 끝일수록 세계관 내 최신 · 같은 시점에 함께 벌어진 작품은 가지 위·아래에 나란히 매달림</span></div>
-      <div style="position:absolute;right:18px;top:16px;display:flex;gap:8px;align-items:center"><button class="sg" type="button">연표 편집</button><button class="sg" type="button" style="background:{{accent}};border-color:{{accent}};color:#fff">이 세계관에서 가지 치기</button></div>
+      <div style="position:absolute;right:18px;top:16px;display:flex;gap:8px;align-items:center"><sc-if value="{{isAuthor}}" hint-placeholder-val="{{true}}"><span class="chip ok">가지 치기 조건 충족 · 발행 62화 · 설정 문서 24개</span></sc-if><button class="sg" type="button">연표 편집</button><button class="sg" type="button" style="background:{{accent}};border-color:{{accent}};color:#fff">이 세계관에서 가지 치기</button></div>
 
       <div style="position:absolute;left:0;top:70px;width:100%;height:500px">
-        <sc-for list="{{segs}}" as="s"><button class="seg2" type="button" aria-label="{{s.name}}" onClick="{{s.pick}}" style="left:{{s.x}}px;top:{{s.y}}px;width:{{s.w}}px;height:{{s.th}}px;transform:rotate({{s.ang}}deg);background:{{s.bg}};opacity:{{s.op}};outline:{{s.ol}}"></button></sc-for>
+        <sc-for list="{{segs}}" as="s"><button class="seg2" type="button" aria-label="{{s.name}}" onClick="{{s.pick}}" style="left:{{s.x}}px;top:{{s.y}}px;width:{{s.w}}px;height:{{s.th}}px;transform:rotate({{s.ang}}deg);background:{{s.bg}};opacity:{{s.op}};outline:{{s.ol}};border-top:{{s.bd}}"></button></sc-for>
         <sc-for list="{{fruits}}" as="f"><button class="{{f.cls}}" type="button" aria-label="{{f.title}}" onClick="{{f.pick}}" style="left:{{f.x}}px;top:{{f.y}}px;width:{{f.d}}px;height:{{f.d}}px;background:{{f.bg}}">{{f.n}}</button></sc-for>
+        <sc-for list="{{breaks}}" as="b"><span class="brk chip warn" style="left:{{b.x}}px;top:{{b.y}}px">{{b.label}}</span></sc-for>
         <sc-for list="{{ticks}}" as="t"><span class="tick" style="left:{{t.x}}px"></span><span class="era" style="left:{{t.x}}px">{{t.label}}</span></sc-for>
         <span class="era" style="left:50px;bottom:52px;color:#a1a1aa">뿌리 (세계관 과거)</span>
         <span class="era" style="left:860px;bottom:52px;color:#a1a1aa;transform:translateX(-100%)">가지 끝 (최신) →</span>
       </div>
 
-      <sc-if value="{{hiddenNote}}" hint-placeholder-val="{{false}}">
-        <div style="position:absolute;left:18px;bottom:14px;right:18px;background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55">독자 화면 미리보기예요. 작가가 `연결 공개`를 껐기 때문에 잔가지는 보이지 않고 본가지의 작품만 보여요. (작가 본인과 관리자에게는 모두 보여요.)</div>
+      <sc-if value="{{noteText}}" hint-placeholder-val="{{false}}">
+        <div style="position:absolute;left:18px;bottom:14px;right:18px;background:{{noteBg}};color:{{noteFg}};border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.55">{{noteText}}</div>
       </sc-if>
       <div style="position:absolute;left:18px;bottom:{{legendBottom}}px;right:18px;display:flex;gap:18px;align-items:center;font-size:12px;color:#52525b"><span>가지 굵기 = 본가지와의 근접도 · 파생 규모 (초록 = 확장 가지)</span><span>열매 크기 = 작품 인기</span><span class="chip g">산식은 임시안</span></div>
     </div>
@@ -80,9 +85,9 @@ class Component extends DCLogic {
   renderVals() {
     const st = this.state || {};
     const viewer = st.viewer || 'author';
-    const open = st.open !== false;
+    const priv = st.priv === true;
     const sel = st.sel || 'f2';
-    const hideBranches = viewer === 'reader' && !open;
+    const ghostOn = viewer === 'reader' && priv;
     // geometry (canvas 1280-340-... ~ 860 wide; use 1100 coordinate space scaled by css width)
     const TY = 250;
     const trunk = { id: 'trunk', x1: 60, y1: TY, x2: 1060, y2: TY, th: 16, kind: 'trunk', name: '본가지(달빛 서고 세계관)' };
@@ -104,26 +109,33 @@ class Component extends DCLogic {
       { id: 'f8', branch: 'bC', x: 920, y: 392, up: 1, title: '북쪽 항구 연대기', era: '3기 · 다른 지역', pop: 55, tag: '확장 가지', color: '#0d9488', n: '북' },
       { id: 'f7', branch: 'bB', x: 520, y: 410, up: 1, title: '열람증이 없었다면', era: '2기 · If', pop: 20, tag: '셀프 가지', color: '#7c3aed', n: 'If' }
     ];
-    const visible = (id) => !hideBranches || id === 'trunk';
-    const segs = segDefs.filter((s) => visible(s.id)).map((s) => {
+    const visible = () => true;
+    const drawDefs = ghostOn ? [Object.assign({}, trunk, { x2: 1000 }), { id: 'trunk', name: '부러진 가지', x1: 1000, y1: TY, x2: 1060, y2: TY, th: 4, dashed: true }].concat(branches) : segDefs;
+    const segs = drawDefs.filter((s) => visible(s.id)).map((s) => {
       const K = 0.8; const X1 = s.x1 * K, X2 = s.x2 * K; const dx = X2 - X1, dy = s.y2 - s.y1; const len = Math.sqrt(dx * dx + dy * dy); const ang = Math.atan2(dy, dx) * 180 / Math.PI;
       const isSel = sel === s.id;
-      return { name: s.name, x: X1, y: s.y1 - s.th / 2, w: len, th: s.th, ang: ang.toFixed(2), bg: palette[s.id], op: 1, ol: isSel ? '3px solid #4f46e5' : 'none', pick: () => this.setState({ sel: s.id }) };
+      return { name: s.name, x: X1, y: s.y1 - s.th / 2, w: len, th: s.th, ang: ang.toFixed(2), bg: s.dashed ? 'transparent' : palette[s.id], bd: s.dashed ? '4px dashed #a8a29e' : 'none', op: 1, ol: (isSel && !s.dashed) ? '3px solid #4f46e5' : 'none', pick: () => this.setState({ sel: s.id }) };
     });
     const fruits = fruitsAll.filter((f) => visible(f.branch)).map((f) => {
-      const d = 22 + Math.round(f.pop * 0.5);
-      return { title: f.title, n: f.n, d: d, x: f.x * 0.8 - d / 2, y: f.y + f.up * (d / 2 + 14) - d / 2, bg: f.color, cls: sel === f.id ? 'fruit sel' : 'fruit', pick: () => this.setState({ sel: f.id }) };
+      const ghost = ghostOn && f.id === 'f2';
+      const d = ghost ? 44 : 22 + Math.round(f.pop * 0.5);
+      return { title: ghost ? '비공개된 작품 자리' : f.title, n: ghost ? '?' : f.n, d: d, x: f.x * 0.8 - d / 2, y: f.y + f.up * (d / 2 + 14) - d / 2, bg: ghost ? '#fafafa' : f.color, cls: 'fruit' + (sel === f.id ? ' sel' : '') + (ghost ? ' ghost' : (priv && f.id === 'f2' ? ' priv' : '')), pick: () => this.setState({ sel: f.id }) };
     });
     const ticks = [{ x: 136, label: '1기 · 서고 이전' }, { x: 344, label: '2기 · 서고 시대' }, { x: 608, label: '3기 · 서고 이후' }, { x: 770, label: '4기' }];
     let selInfo;
     const fr = fruitsAll.find((f) => f.id === sel); const br = segDefs.find((s) => s.id === sel);
     if (fr) selInfo = { kind: '열매 · 작품', title: fr.title, chip: fr.tag, chipCls: fr.branch === 'trunk' ? '' : 'g', desc: '세계관 내 시점: ' + fr.era + '. 인기는 독자 지표(독자 수·완독률) 중심으로 열매 크기에 반영돼요.', facts: [{ k: '세계관 내 시점', v: fr.era }, { k: '인기(임시 지수)', v: String(fr.pop) }, { k: '속한 가지', v: fr.branch === 'trunk' ? '본가지' : '잔가지' }, { k: '연재 상태', v: fr.id === 'f4' ? '연재 중' : '완결' }], isBranch: false, isFruit: true, changes: [] };
-    else selInfo = { kind: sel === 'trunk' ? '본가지' : (br.expand ? '잔가지(확장: 같은 세계관의 다른 지역)' : '잔가지(If 스토리)'), title: br.name, chip: sel === 'trunk' ? '원작·작가 기반' : (br.expand ? '확장 가지 · 스냅샷 고정' : '스냅샷 고정'), chipCls: sel === 'trunk' ? 'ok' : 'g', desc: sel === 'trunk' ? '세계관의 기본 설정 흐름이에요. 작가가 판매 여부를 선택할 수 있고, 시점이 늦은 작품일수록 가지 끝에 열려요.' : '설정을 바꿔서 갈라진 If 스토리예요. 굵기는 본가지와의 근접도와 파생 규모를 나타내요.', facts: sel === 'trunk' ? [{ k: '열매(작품)', v: '4편' }, { k: '잔가지', v: '4개' }] : [{ k: '본가지와의 근접도', v: br.near }, { k: '변경한 설정 문서', v: br.docs + '개' }, { k: '인기', v: br.pop }, { k: '굵기', v: br.size }], isBranch: sel !== 'trunk', isFruit: false, changes: sel === 'bC' ? ['기존 설정은 그대로 유지', '새 인물 3명·새 장소 1곳 추가(같은 세계관의 북쪽 지역)'] : sel === 'bA' ? ['소연: 서고를 떠난 인물로 변경', '잿빛 항구: 거점으로 추가'] : sel === 'bA2' ? ['5개 문서 변경(가지 A 이후)'] : ['열람증: 삭제', '서고 규칙 외 5개 문서 변경'] };
+    else selInfo = { kind: sel === 'trunk' ? '본가지' : (br.expand ? '잔가지(확장: 같은 세계관의 다른 지역)' : '잔가지(If 스토리)'), title: br.name, chip: sel === 'trunk' ? '원작·작가 기반' : (br.expand ? '확장 가지 · 스냅샷 고정' : '스냅샷 고정'), chipCls: sel === 'trunk' ? 'ok' : 'g', desc: sel === 'trunk' ? '세계관의 기본 설정 흐름이에요. 작가가 판매 여부를 선택할 수 있고, 시점이 늦은 작품일수록 가지 끝에 열려요.' : '설정을 바꿔서 갈라진 If 스토리예요. 굵기는 본가지와의 근접도와 파생 규모를 나타내요.', facts: sel === 'trunk' ? [{ k: '열매(작품)', v: ghostOn ? '3편 공개' : '4편' }, { k: '잔가지', v: '4개' }] : [{ k: '본가지와의 근접도', v: br.near }, { k: '변경한 설정 문서', v: br.docs + '개' }, { k: '인기', v: br.pop }, { k: '굵기', v: br.size }], isBranch: sel !== 'trunk', isFruit: false, changes: sel === 'bC' ? ['기존 설정은 그대로 유지', '새 인물 3명·새 장소 1곳 추가(같은 세계관의 북쪽 지역)'] : sel === 'bA' ? ['소연: 서고를 떠난 인물로 변경', '잿빛 항구: 거점으로 추가'] : sel === 'bA2' ? ['5개 문서 변경(가지 A 이후)'] : ['열람증: 삭제', '서고 규칙 외 5개 문서 변경'] };
+    if (ghostOn && sel === 'f2') selInfo = { kind: '비공개된 작품 자리', title: '비공개된 가지', chip: '비공개', chipCls: 'g', desc: '원래 본작이 있었던 자리예요. 이어진 작품은 계속 볼 수 있어요.', facts: [], isBranch: false, isFruit: false, changes: [] };
+    else if (priv && fr && sel === 'f2') { selInfo.chip = '비공개'; selInfo.chipCls = 'warn'; selInfo.desc = '독자에게는 이 자리가 ‘부러진 가지’로 보여요. 다시 발행하면 가지가 이어져요.'; }
+    else if (priv && br && sel !== 'trunk') selInfo.desc += ' 원작이 비공개여도 이 가지의 세계관은 자기 스냅샷으로 이어져요.';
+    const breaks = ghostOn ? [{ x: 1030 * 0.8, y: TY - 44, label: '부러진 가지' }, { x: 380 * 0.8, y: TY + 68, label: '비공개된 본작 자리' }] : [];
+    const noteText = !priv ? '' : (ghostOn ? '작가 전용 안내 · 독자 화면 미리보기예요. 원작 ‘달빛 서고’가 비공개라서 작품 정보는 숨겨지고, 이어진 가지는 그대로 보여요. 다시 발행하면 가지가 이어져요.' : '원작이 비공개 상태예요. 작가 본인과 관리자에게는 전체가 보이고, 독자에게는 이 자리가 ‘부러진 가지’로 보여요.');
     return {
       accent: this.props.accent ?? '#4f46e5',
-      viewers: [['author', '작가 보기'], ['reader', '독자 보기']].map((v) => ({ label: v[1], cls: viewer === v[0] ? 'sg on' : 'sg', pick: () => this.setState({ viewer: v[0] }) })).concat(viewer === 'reader' ? [{ label: open ? '연결 공개: 켜짐' : '연결 공개: 꺼짐', cls: 'sg', pick: () => this.setState({ open: !open }) }] : []),
+      viewers:[['author', '작가 보기'], ['reader', '독자 보기']].map((v) => ({ label: v[1], cls: viewer === v[0] ? 'sg on' : 'sg', pick: () => this.setState({ viewer: v[0] }) })).concat([{ label: priv ? '미리보기: 원작 비공개' : '미리보기: 원작 발행 중', cls: 'sg', pick: () => this.setState({ priv: !priv, sel: 'f2' }) }]),
       segs: segs, fruits: fruits, ticks: ticks, sel: selInfo,
-      hiddenNote: hideBranches, legendBottom: hideBranches ? 64 : 14
+      isAuthor: viewer === 'author', breaks: breaks, noteText: noteText, noteBg: ghostOn ? '#fef3c7' : '#e0e7ff', noteFg: ghostOn ? '#854d0e' : '#3730a3', legendBottom: noteText ? 64 : 14
     };
   }
 }

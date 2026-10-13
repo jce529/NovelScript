@@ -33,8 +33,6 @@
   },
   "model_overrides": {
     "gsd-planner": "gpt-6-sol",
-    "gsd-phase-researcher": "gpt-6-luna",
-    "gsd-executor": "gpt-6-luna",
     "gsd-plan-checker": "sonnet"
   },
   "agent_skills": {},
