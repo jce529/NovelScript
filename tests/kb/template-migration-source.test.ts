@@ -131,3 +131,41 @@ describe('0023_template_policy_guards.sql name uniqueness and DB guards', () => 
     expect(sql).not.toMatch(/grant\s/i);
   });
 });
+
+describe('DB fixture split (static evidence; the suites themselves run in plan 02-13)', () => {
+  const smoke = stripCr(read('tests/studio/schema-smoke.test.ts'));
+  const policy = stripCr(read('tests/kb/template-policy-migration.test.ts'));
+
+  it('schema-smoke no longer replays historical migrations against the current schema', () => {
+    expect(smoke).not.toMatch(/0012_template_category_folders\.sql|0004_kb_custom_folders\.sql/);
+    expect(smoke).not.toMatch(/applyMigration|\.unsafe\(/);
+  });
+
+  it('schema-smoke seed check expects locked defaults with canonical content', () => {
+    expect(smoke).toMatch(/expect\(file\.is_locked\)\.toBe\(true\)/);
+    expect(smoke).toMatch(/expect\(file\.content\)\.toBe\(await readCanonicalSeed\(file\.name\)\)/);
+  });
+
+  it('the migration suite is opt-in for a disposable project and owns the historical replays', () => {
+    expect(policy).toMatch(/describe\.skipIf\(!optInRef\)/);
+    expect(policy).toMatch(/TEMPLATE_MIGRATION_DISPOSABLE_PROJECT_REF/);
+    expect(policy).toMatch(/optInRef !== projectRef/);
+    expect(policy).toContain("migration('0012_template_category_folders.sql')");
+    expect(policy).toContain("migration('0004_kb_custom_folders.sql')");
+    // historical replays happen before 0022/0023 are (re)applied, and the final state is checked
+    const historical = policy.indexOf("migration('0004_kb_custom_folders.sql')");
+    const forward = policy.indexOf("migration('0022_template_readonly_backfill.sql')");
+    expect(historical).toBeGreaterThan(-1);
+    expect(forward).toBeGreaterThan(historical);
+    expect(policy).toMatch(/for \(const sqlText of \[backfill, backfill, guards, guards, backfill\]\)/);
+    expect(policy).toMatch(/the latest policy is in force at the end/);
+  });
+
+  it('the migration suite covers bypass attempts, concurrency and regressions', () => {
+    for (const marker of ['locked_template_immutable', 'locked_node_immutable', 'template_name_reserved',
+      'invalid_template_seed', 'template_parent_invalid', "toBe('23505')", 'general doc', "'장소 사본 2'",
+      "'세력 (2)'", "'메모 (2)'"]) {
+      expect(policy).toContain(marker);
+    }
+  });
+});
