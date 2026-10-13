@@ -6,7 +6,9 @@ import { getWork } from '@/lib/works/actions';
 import { getWorkKbNodes, getAccountSharedNodes } from '@/lib/kb/actions';
 import { listChapters } from '@/lib/chapters/actions';
 import { buildTree, groupChaptersByFolder } from '@/lib/kb/tree';
-import { KbTree } from '@/components/studio/kb-tree';
+import { KbTree, KbTemplateSection } from '@/components/studio/kb-tree';
+import { TemplateSidebarEntry } from '@/components/studio/template-sidebar-entry';
+import { partitionStudioSidebar } from '@/lib/kb/sidebar-sections';
 import { CreateRootFolderButton } from '@/components/studio/kb-node-dialogs';
 import { StudioPanelProvider, StudioSidebar } from '@/components/studio/studio-panel-shell';
 import { Separator } from '@/components/ui/separator';
@@ -34,12 +36,14 @@ export default async function WorkLayout({
 
   const workTree = buildTree(workNodes);
   const accountTree = buildTree(accountNodes);
-  const chapterRoot = workTree.find((n) => n.category === '회차' && n.parent_id === null);
+  const sections = partitionStudioSidebar(workTree, accountTree);
+  const chapterRoot = sections.chapterRoots[0];
   const chaptersByFolderId = groupChaptersByFolder(
     chapters.map((c) => ({ id: c.id, title: c.title, isPublished: c.is_published, folderId: c.folder_id })),
     chapterRoot?.id ?? null
   );
-  const hasCustomSharedFolders = accountTree.some((n) => n.category !== 'template');
+  const hasCustomSharedFolders = sections.sharedFolders.length > 0;
+  const templateAreas = sections.templateRoots.map((root) => ({ scope: root.scope, folders: root.folders }));
 
   const sidebar = (
     <>
@@ -49,13 +53,22 @@ export default async function WorkLayout({
       >
         <ArrowLeft size={12} /> 작품 목록
       </Link>
-      <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
+      <div className="flex h-10 items-center px-4 font-medium text-sm">
         <span className="truncate">{work.title}</span>
+      </div>
+
+      <TemplateSidebarEntry workId={workId} areas={templateAreas} />
+      <KbTemplateSection defaults={sections.defaultTemplates} mine={sections.myTemplates} workId={workId} />
+
+      <Separator className="my-4" />
+
+      <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
+        <span>내 폴더</span>
         <CreateRootFolderButton workId={workId} scope="work" />
       </div>
-      <KbTree nodes={workTree} chaptersByFolderId={chaptersByFolderId} workId={workId} />
+      <KbTree nodes={sections.myFolders} chaptersByFolderId={{}} workId={workId} />
 
-      <Separator className="my-6" />
+      <Separator className="my-4" />
 
       <div className="flex h-10 items-center justify-between px-4 font-medium text-sm">
         <span>계정 공유 폴더</span>
@@ -67,9 +80,15 @@ export default async function WorkLayout({
           <p className="text-xs text-muted-foreground">여러 작품에서 함께 쓸 폴더를 만들어보세요.</p>
         </div>
       )}
-      <KbTree nodes={accountTree} chaptersByFolderId={{}} workId={workId} />
+      <KbTree nodes={sections.sharedFolders} chaptersByFolderId={{}} workId={workId} />
+
+      <Separator className="my-4" />
+
+      <div className="flex h-10 items-center px-4 font-medium text-sm">회차</div>
+      <KbTree nodes={sections.chapterRoots} chaptersByFolderId={chaptersByFolderId} workId={workId} />
     </>
   );
+
 
   return (
     <StudioPanelProvider>
