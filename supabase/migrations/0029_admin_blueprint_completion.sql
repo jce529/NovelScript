@@ -172,5 +172,129 @@ grant execute on function
   get_user_sanction_history(uuid, integer, integer)
   to service_role;
 
+-- ---------------------------------------------------------------------------
+-- 3. Early lift and duration change of the current sanction
+-- ---------------------------------------------------------------------------
+-- History is never edited and profiles is never updated directly. refresh_sanction_cache
+-- keeps its rule (after the last lift, permanent dominates, otherwise max(ends_at)), so a
+-- shorter duration cannot be appended on top of a longer one. Instead:
+--   lift            -> user_sanction_lift audit + apply_user_sanction(..., 'lift', ...)
+--   change_duration -> the same lift, then user_suspend audit + apply_user_sanction(...,
+--                      'suspension', new ends_at) in the same transaction. The new suspension
+--                      is the only row after the lift, so the cache becomes exactly new ends_at.
+-- Warnings are untouched by both. Permanent -> timed is an explicit change_duration.
+--
+-- The first audit row (always user_sanction_lift) carries the idempotency key and the whole
+-- request payload; it is the returned actionId. The second row (change_duration only) has no
+-- key and links back through metadata.change_id / lift_action_id.
+--
+-- Lock order (same as moderate_report_group's sanction branch, so a report-driven suspension
+-- and an adjustment serialize on the profile row):
+--   advisory xact lock (actor, key) -> admin_users (actor, FOR SHARE) -> profiles (FOR UPDATE)
+create function adjust_user_sanction(
+  p_actor_id uuid,
+  p_idempotency_key uuid,
+  p_user_id uuid,
+  p_expected_seq bigint,
+  p_operation text,
+  p_reason text,
+  p_public_reason text,
+  p_ends_at timestamptz
+) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare
+  v_reason text := nullif(trim(coalesce(p_reason, '')), '');
+  v_public text := nullif(trim(coalesce(p_public_reason, '')), '');
+  v_existing admin_actions%rowtype;
+  v_profile profiles%rowtype;
+  v_current_kind text;
+  v_current_until timestamptz;
+  v_max_seq bigint;
+  v_change uuid := gen_random_uuid();
+  v_lift uuid;
+  v_suspend uuid;
+  v_meta jsonb;
+begin
+  if p_idempotency_key is null or p_user_id is null or p_expected_seq is null then
+    raise exception 'invalid_arguments';
+  end if;
+  if p_operation is null or p_operation not in ('lift', 'change_duration') then
+    raise exception 'invalid_action';
+  end if;
+  if v_reason is null or v_public is null then raise exception 'reason_required'; end if;
+  if (p_operation = 'change_duration') <> (p_ends_at is not null) then
+    raise exception 'invalid_sanction_expiry';
+  end if;
+  if p_actor_id is not distinct from p_user_id then raise exception 'self_sanction_forbidden'; end if;
+
+  perform pg_advisory_xact_lock(hashtextextended(coalesce(p_actor_id::text, '') || ':' || p_idempotency_key::text, 0));
+  perform moderation_lock_actor(p_actor_id);
+
+  -- Retry check precedes every state check (stale seq, expiry vs now()): a retry of a
+  -- committed adjustment returns the original action even though the seq has moved on.
+  select * into v_existing from admin_actions
+    where actor_id = p_actor_id and idempotency_key = p_idempotency_key;
+  if found then
+    if v_existing.action_type = 'user_sanction_lift'
+      and v_existing.target_user_id = p_user_id
+      and v_existing.metadata->>'operation' = p_operation
+      and v_existing.metadata->>'expected_seq' = p_expected_seq::text
+      and v_existing.reason = v_reason
+      and v_existing.public_reason = v_public
+      and (v_existing.metadata->>'requested_ends_at')::timestamptz is not distinct from p_ends_at
+    then
+      return v_existing.id;
+    end if;
+    raise exception 'idempotency_conflict';
+  end if;
+
+  select * into v_profile from profiles where id = p_user_id and deleted_at is null for update;
+  if not found then raise exception 'profile_not_found'; end if;
+
+  select coalesce(max(seq), 0) into v_max_seq from user_sanctions where user_id = p_user_id;
+  if v_max_seq <> p_expected_seq then raise exception 'stale_target'; end if;
+
+  v_current_kind := sanction_effective_kind(v_profile.sanction_kind, v_profile.sanctioned_until);
+  v_current_until := case when v_current_kind = 'suspension' then v_profile.sanctioned_until end;
+  if v_current_kind = 'none' then raise exception 'no_active_sanction'; end if;
+  if p_operation = 'change_duration' then
+    if p_ends_at <= now() then raise exception 'invalid_sanction_expiry'; end if;
+    if v_current_kind = 'suspension' and p_ends_at = v_current_until then
+      raise exception 'sanction_unchanged';
+    end if;
+  end if;
+
+  v_meta := jsonb_build_object(
+    'operation', p_operation,
+    'change_id', v_change,
+    'expected_seq', p_expected_seq::text,
+    'requested_ends_at', p_ends_at,
+    'previous_kind', v_current_kind,
+    'previous_ends_at', v_current_until,
+    'new_kind', case when p_operation = 'lift' then 'none' else 'suspension' end,
+    'new_ends_at', p_ends_at);
+
+  insert into admin_actions(actor_id, action_type, target_user_id, reason, public_reason, metadata, idempotency_key)
+    values (p_actor_id, 'user_sanction_lift', p_user_id, v_reason, v_public, v_meta, p_idempotency_key)
+    returning id into v_lift;
+  perform apply_user_sanction(p_actor_id, p_user_id, 'lift', v_public, v_reason, null, v_lift);
+
+  if p_operation = 'change_duration' then
+    insert into admin_actions(actor_id, action_type, target_user_id, reason, public_reason, metadata)
+      values (p_actor_id, 'user_suspend', p_user_id, v_reason, v_public,
+        v_meta || jsonb_build_object('lift_action_id', v_lift, 'ends_at', p_ends_at))
+      returning id into v_suspend;
+    perform apply_user_sanction(p_actor_id, p_user_id, 'suspension', v_public, v_reason, p_ends_at, v_suspend);
+  end if;
+
+  return v_lift;
+end;
+$$;
+
+revoke all on function adjust_user_sanction(uuid, uuid, uuid, bigint, text, text, text, timestamptz)
+  from public, anon, authenticated, service_role;
+grant execute on function adjust_user_sanction(uuid, uuid, uuid, bigint, text, text, text, timestamptz)
+  to service_role;
+
 notify pgrst, 'reload schema';
 commit;
