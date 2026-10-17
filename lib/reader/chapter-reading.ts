@@ -46,7 +46,7 @@ export class ChapterReadingError extends Error {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const INT4_MAX = 2_147_483_647;
 
-const isUuid = (v: unknown): v is string => typeof v === 'string' && UUID.test(v);
+export const isUuid = (v: unknown): v is string => typeof v === 'string' && UUID.test(v);
 const isRatio = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
 const isNonNegativeSafeInt = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>

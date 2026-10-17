@@ -9,13 +9,22 @@ import {
 import { incrementChapterView } from '@/lib/reader/views';
 import { upsertReadingProgress } from '@/lib/reader/progress';
 import { submitReport } from '@/lib/reader/reports';
+import { isUuid, openChapterReading, type ChapterReadingState } from '@/lib/reader/chapter-reading';
 
 /** D-09: increments unconditionally, regardless of login state or lock status —
  * "opened the viewer" is the trigger, not "successfully read content".
  * READ-04/D-14: reading progress is ONLY recorded for a chapter the reader could
  * actually read (Claude's discretion — a locked/paid chapter's D-06 message is not
- * "reading", so it must not become the reader's 이어보기 resume point). */
-export async function trackChapterOpenAction(workId: string, chapterId: string, locked: boolean): Promise<void> {
+ * "reading", so it must not become the reader's 이어보기 resume point).
+ *
+ * 03-13: with a per-visit `sessionId` (crypto.randomUUID on the client) the open goes through
+ * `open_chapter_reading`, which rechecks readability and moves the 이어보기 pointer and the
+ * reading-state row in one transaction, and returns the snapshot the progress hook bootstraps
+ * from. Guest, locked, suspended, unreadable or any failure returns null and never blocks the
+ * read. Without `sessionId` the legacy chapter-level upsert is kept for older callers. */
+export async function trackChapterOpenAction(
+  workId: string, chapterId: string, locked: boolean, sessionId?: string,
+): Promise<ChapterReadingState | null> {
   // Bookkeeping must never break reading (D-07/07-06): every failure is swallowed.
   try {
     const supabase = await createClient();
@@ -24,11 +33,20 @@ export async function trackChapterOpenAction(workId: string, chapterId: string, 
     try {
       await incrementChapterView(supabase, { chapterId, userId: user?.id ?? null });
     } catch { /* view count is best effort */ }
-    // The client flag is only a hint; permission is rechecked server-side (blind-aware can_view).
-    if (!locked && user && await canView(supabase, workId, chapterId)) {
-      await upsertReadingProgress(supabase, { userId: user.id, workId, chapterId });
+    if (sessionId === undefined) {
+      // The client flag is only a hint; permission is rechecked server-side (blind-aware can_view).
+      if (!locked && user && await canView(supabase, workId, chapterId)) {
+        await upsertReadingProgress(supabase, { userId: user.id, workId, chapterId });
+      }
+      return null;
     }
-  } catch { /* progress is best effort */ }
+    // A locked hint only skips the call. A forged `false` is refused by the RPC's own
+    // readable/blind/sanction check (no fallback write here).
+    if (locked || !user || !isUuid(sessionId)) return null;
+    return await openChapterReading(supabase, { workId, chapterId, sessionId });
+  } catch {
+    return null;
+  }
 }
 
 export async function purchaseChapterAction(chapterId: string, idempotencyKey: string): Promise<PurchaseResult> {

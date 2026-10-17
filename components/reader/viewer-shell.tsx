@@ -152,7 +152,8 @@ export function ViewerShell({
         theme={theme} onThemeChange={setTheme}
         workId={workId} chapterId={chapter.id} loggedIn={loggedIn} onSubmitReport={onSubmitReport}
       />
-      <ViewTracker onOpen={() => trackChapterOpenAction(workId, chapter.id, lock.kind !== 'content')} />
+      {/* Legacy 3-arg open until the progress hook (03-15/03-16) passes a visit session id. */}
+      <ViewTracker onOpen={async () => { await trackChapterOpenAction(workId, chapter.id, lock.kind !== 'content'); }} />
     </div>
   );
 }
