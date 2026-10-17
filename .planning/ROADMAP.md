@@ -88,6 +88,12 @@ Plans:
 - [x] 02-05-PLAN.md — KB tree UI + document editor + create/rename/delete dialogs
 - [x] 02-06-PLAN.md — Chapter list (drag-reorder) + chapter editor/publish UI
 - [x] 02-07-PLAN.md — (보완) 수정된 기본 템플릿 보존 이관(0022)과 DB 잠금·이름 유일성(0023); 실DB 적용·integration은 02-13
+- [x] 02-08-PLAN.md — (보완) 템플릿 사본·불변성·중복 이름 서버 계약
+- [x] 02-09-PLAN.md — (보완) 템플릿 열기·사본 이름 입력·새 문서 연결 계약
+- [x] 02-10-PLAN.md — (보완) 템플릿 섹션·접이식 트리·우클릭과 길게 누르기
+- [x] 02-11-PLAN.md — (보완) 공유 패널 접기와 저장 상태 컴포넌트
+- [x] 02-12-PLAN.md — (보완) 설정 문서·회차 편집기에 읽기 전용·패널·저장 칩 연결
+- [ ] 02-13-PLAN.md — (보완) 결정 문구 정합(Task 1 완료)과 실DB·브라우저 최종 게이트(pending, 전용 검증 DB 필요)
 **UI hint**: yes
 
 ### Phase 3: Reader Core (Reading Loop, No Payment)
@@ -521,7 +527,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
-| 2. Studio Core (Writer Loop, No AI) | 7/13 | Reopened — 보완 plan 실행 중(02-07 완료, 실DB 게이트 02-13 대기) (이전: Complete) | 2026-08-29 (최초) |
+| 2. Studio Core (Writer Loop, No AI) | 12/13 | Reopened — 02-07~12 완료, 02-13 Task 1 완료·실DB/브라우저 게이트 pending(전용 검증 DB 필요) (이전: Complete) | 2026-08-29 (최초) |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Reopened — 청사진 갭(독자 화면 구조·완독 데이터); discuss→research→plan (이전: Complete) | 2026-08-30 (최초) |
 | 4. AI Gateway (Mention-Based Generation) | 6/6 | Reopened (부분) — EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치); plan / ⚙ 모달·게이지 discuss (이전: Complete (live-key UAT pending)) | 2026-08-30 (최초) |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
