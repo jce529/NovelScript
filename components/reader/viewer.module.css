@@ -1,0 +1,37 @@
+/* Viewer-scoped styles. Applied to the viewer root only; never touches body/html or global theme. */
+.viewer {
+  --viewer-size: 19px;
+  --viewer-lh: 1.9;
+  --viewer-pad: 24px;
+  --viewer-bg: #ffffff;
+  --viewer-fg: #1a1a1a;
+  --viewer-font: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  background: var(--viewer-bg);
+  color: var(--viewer-fg);
+  font-family: var(--viewer-font);
+  font-size: var(--viewer-size);
+  line-height: var(--viewer-lh);
+  padding-inline: var(--viewer-pad);
+}
+
+.viewer[data-viewer-font='serif'] {
+  /* OS font stack only: no webfont download. */
+  --viewer-font: 'Nanum Myeongjo', 'Noto Serif KR', 'Batang', 'AppleMyungjo', 'Noto Serif', serif;
+}
+
+.viewer[data-viewer-theme='dark'] {
+  --viewer-bg: #121212;
+  --viewer-fg: #e6e6e6;
+}
+
+.viewer[data-viewer-theme='light'] {
+  --viewer-bg: #ffffff;
+  --viewer-fg: #1a1a1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .viewer[data-viewer-theme='system'] {
+    --viewer-bg: #121212;
+    --viewer-fg: #e6e6e6;
+  }
+}
