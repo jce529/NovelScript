@@ -41,9 +41,9 @@ function fnHeader(name: string): string {
 function sqlMinimumReadingMs(chars: number, floor: number, ratio: number, cpm: number): number {
   // ratio is a decimal literal like 0.5 -> scale it to an integer fraction.
   const scale = 10_000;
-  const num = BigInt(Math.max(chars, 0)) * 60_000n * BigInt(Math.round(ratio * scale));
+  const num = BigInt(Math.max(chars, 0)) * BigInt(60_000) * BigInt(Math.round(ratio * scale));
   const den = BigInt(cpm) * BigInt(scale);
-  const ceil = (num + den - 1n) / den;
+  const ceil = (num + den - BigInt(1)) / den;
   return Math.max(floor, Number(ceil));
 }
 
