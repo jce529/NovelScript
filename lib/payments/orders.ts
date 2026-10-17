@@ -1,10 +1,13 @@
 import 'server-only';
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateOrderId, getTopupTier, type TopupTierId } from './tiers';
+import { getTopupTier } from './catalog';
+import { generateOrderId, type TopupTierId } from './tiers';
 
 export async function createTopupOrder(userId: string, tierId: TopupTierId, returnPath: string) {
-  const tier = getTopupTier(tierId);
+  // Price and tokens come only from the server-side DB lookup; the snapshot is
+  // stored on the order so later catalog edits never rewrite it.
+  const tier = await getTopupTier(tierId);
   if (!tier) throw new Error('Invalid top-up tier');
 
   const orderId = generateOrderId();
