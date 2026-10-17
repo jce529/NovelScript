@@ -14,8 +14,8 @@ export const BASELINE_SYSTEM_PROMPT = `당신은 한국어 웹소설 작가와 �
  * the SAME chat-driven generation, differing ONLY in this baseline instruction
  * text (never a different UI/interaction mode — see AiPanel, single chat, no
  * separate "생성하기" button). 초보자 = fully AI-decided, 중급자 = standard +
- * some latitude, 자유형 = no fixed instruction at all — defers entirely to
- * whatever the live chat conversation asks for. */
+ * some latitude, 자유형 = defers to the live chat conversation plus the
+ * author's optional customInstruction (see composeSystemInstruction). */
 export const PRESET_INSTRUCTIONS: Record<PresetLevel, string> = {
   beginner: '작가가 별도의 지시를 주지 않았다면, 앞선 본문과 KB 설정을 참고해 다음 전개로 자연스럽게 이어지는 내용을 AI가 스스로 판단해 제시하세요.',
   intermediate: '표준적인 전개 지시를 따르되, 세부 표현과 전개 방향에는 어느 정도 재량을 발휘해 자연스럽게 이어 쓰세요.',
@@ -90,6 +90,11 @@ export interface ComposeSystemInstructionInput {
   genre: string;
 
   documentPlan?: DocumentGenerationPlanInfo;
+  /** 자유형 입력 지시. freeform 프리셋에서만, 공백 제거 후 비어 있지 않을 때
+   * PRESET_INSTRUCTIONS.freeform 대신 프리셋 지시로 쓰인다. */
+  customInstruction?: string | null;
+  /** 작품 단위 추가 지시. 초보자형에서는 적용하지 않으며, 그 외에는 기본 지시 바로 뒤에 붙는다. */
+  workSystemInstruction?: string | null;
 }
 
 export interface DocumentGenerationPlanInfo {
@@ -115,17 +120,23 @@ export function composeDocumentPlanDirective(plan: DocumentGenerationPlanInfo): 
 템플릿:
 ${plan.templateContent}`;
 }
-/** Assembles the full Gemini `systemInstruction` string: baseline (always) +
- * genre (always) + 문체 프리셋 (always) + AI-지시 프리셋 instruction (varies) +
- * the REPLY/DRAFT/DOCUMENT response protocol (always). The per-turn user
- * message and prior conversation live in `contents` (assembleUserContent),
- * not here — this string is otherwise static for the whole chat session. */
-export function composeSystemInstruction({ presetLevel, styleId, genre, documentPlan }: ComposeSystemInstructionInput): string {
+/** Assembles the full Gemini `systemInstruction` string, in order: baseline
+ * (always first, never replaced) + 작품 추가 지시 (intermediate/freeform only)
+ * + genre + 문체 프리셋 + AI-지시 프리셋 instruction (freeform uses the
+ * author's customInstruction when non-blank) + optional documentPlan + the
+ * REPLY/DRAFT/DOCUMENT response protocol (always last, not author-editable).
+ * The per-turn user message and prior conversation live in `contents`
+ * (assembleUserContent). Without the two optional fields the output is
+ * identical to the legacy composition. */
+export function composeSystemInstruction({ presetLevel, styleId, genre, documentPlan, customInstruction, workSystemInstruction }: ComposeSystemInstructionInput): string {
   const genreInstruction = `이 작품의 장르는 '${genre}'입니다. 장르 관습과 독자 기대에 맞게 작성하세요.`;
   const styleInstruction = STYLE_PRESETS[styleId].instruction;
-  const presetInstruction = PRESET_INSTRUCTIONS[presetLevel];
+  const custom = presetLevel === 'freeform' ? customInstruction?.trim() : undefined;
+  const presetInstruction = custom ? custom : PRESET_INSTRUCTIONS[presetLevel];
+  const work = presetLevel === 'beginner' ? undefined : workSystemInstruction?.trim();
+  const workBlock = work ? [`작품 추가 지시:\n${work}`] : [];
 
-  return [BASELINE_SYSTEM_PROMPT, genreInstruction, styleInstruction, presetInstruction, ...(documentPlan ? [composeDocumentPlanDirective(documentPlan)] : []), RESPONSE_PROTOCOL_INSTRUCTIONS].join('\n\n');
+  return [BASELINE_SYSTEM_PROMPT, ...workBlock, genreInstruction, styleInstruction, presetInstruction, ...(documentPlan ? [composeDocumentPlanDirective(documentPlan)] : []), RESPONSE_PROTOCOL_INSTRUCTIONS].join('\n\n');
 }
 
 /** One turn of the unified AI 패널 chat — browser-session-only (never
