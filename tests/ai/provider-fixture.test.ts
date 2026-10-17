@@ -66,9 +66,45 @@ describe('createPlatformProvider with fixture', () => {
     expect((caught as ProviderCallError).info.kind).toBe('config');
   });
 
-  it('returns fixture provider in development without key', () => {
-    const p = createPlatformProvider('gemini', { NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'unavailable' });
-    expect(p.provider).toBe('gemini');
+  it.each(PROVIDER_FIXTURE_MODES)('rejects missing service key before the %s fixture in development (BUG-03)', (mode) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      for (const providerId of ['gemini', 'openai', 'anthropic'] as const) {
+        let caught: unknown;
+        try {
+          createPlatformProvider(providerId, { NODE_ENV: 'development', AI_PROVIDER_FIXTURE: mode });
+        } catch (err) {
+          caught = err;
+        }
+        expect(caught).toBeInstanceOf(ProviderCallError);
+        expect((caught as ProviderCallError).info).toEqual({ provider: providerId, status: null, kind: 'config', providerErrorCode: 'API_KEY_MISSING' });
+      }
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('rejects a whitespace-only key even with an active fixture', () => {
+    expect(() => createPlatformProvider('openai', { NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'slow', OPENAI_API_KEY: '  ' })).toThrow(ProviderCallError);
+  });
+
+  it('rejects when only another provider has a key', () => {
+    expect(() => createPlatformProvider('anthropic', { NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'slow', OPENAI_API_KEY: 'test-openai-key' })).toThrow(ProviderCallError);
+  });
+
+  it('returns the fixture provider in development only when the real service key exists', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const p = createPlatformProvider('gemini', { NODE_ENV: 'development', AI_PROVIDER_FIXTURE: 'unavailable', GEMINI_API_KEY: 'test-gemini-key' });
+      expect(p.provider).toBe('gemini');
+      const err = await p.generateContent(PARAMS).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(ProviderCallError);
+      expect((err as ProviderCallError).info.kind).toBe('unavailable');
+      expect(warn.mock.calls.flat().join(' ')).not.toContain('test-gemini-key');
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
 
@@ -150,6 +186,8 @@ describe('chatAction drop-response hook', () => {
   it('throws once per key in development, then returns result', async () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('AI_PROVIDER_FIXTURE', 'drop-response');
+    // 10-07: fixture never bypasses the service-key rule, so the drop-response flow needs an explicit test key.
+    vi.stubEnv('GEMINI_API_KEY', 'test-key');
     const result = { ok: true, status: 'completed' };
     h.chat.mockResolvedValue(result);
     await expect(chatAction(input(KEY))).rejects.toThrow();
