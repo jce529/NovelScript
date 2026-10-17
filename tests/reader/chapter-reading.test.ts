@@ -9,6 +9,7 @@ import {
   parseProgressRequest,
   PROGRESS_BODY_LIMIT_BYTES,
   saveChapterReading,
+  type ProgressRequest,
 } from '../../lib/reader/chapter-reading';
 
 const WORK = '11111111-1111-4111-8111-111111111111';
@@ -25,7 +26,7 @@ function rpcClient(result: { data: unknown; error: unknown }) {
   return { client: { rpc } as unknown as SupabaseClient, rpc };
 }
 
-const validBody = {
+const validBody: ProgressRequest = {
   operation: 'save', workId: WORK, chapterId: CHAPTER, sessionId: SESSION,
   sequence: 4, scrollRatio: 0.6, sessionActiveMs: 5000, endVisibleMs: 0,
 };
@@ -80,7 +81,8 @@ describe('parseProgressRequest (DTO validator)', () => {
   it('rejects non-objects and missing fields', () => {
     expect(parseProgressRequest(null)).toEqual({ ok: false });
     expect(parseProgressRequest([validBody])).toEqual({ ok: false });
-    const { sequence: _s, ...missing } = validBody;
+    const missing: Partial<ProgressRequest> = { ...validBody };
+    delete missing.sequence;
     expect(parseProgressRequest(missing)).toEqual({ ok: false });
   });
 
