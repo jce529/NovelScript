@@ -183,25 +183,41 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 # Reopen 보완 검증 (2026-10-12 정책, plan 02-07~02-13)
 
-> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PARTIAL - Unit 통과, DB/브라우저 PENDING**.
+> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PARTIAL - Unit·실DB 통과, 브라우저 부분 통과(터치·fault injection·AI 대화 PENDING)**. 2026-10-17 갱신.
 
 | # | 신규 truth | 증거 | 상태 |
 |---|-----------|------|------|
-| R1 | 기본 템플릿 5종 읽기 전용, 서버 guard가 우회 차단 | unit: template-policy, template-seeding, template-migration-source(SQL source 계약). 실DB guard 동작 미확인 | Unit 통과 / DB PENDING |
-| R2 | 기존 수정 내용이 `내 템플릿` 사본으로 보존되고 기본 5종 원문 복원 | 0022/0023 실적용·재실행 미수행 | PENDING (no disposable DB) |
-| R3 | 템플릿 이름 중복 불가, 사본/새 문서/템플릿 만들기 | unit: template-copy, template-dialogs, template-action-wrappers. 동시 중복 생성 실DB 미확인 | Unit 통과 / DB PENDING |
-| R4 | 우클릭·long press 메뉴, 템플릿 섹션, 폴더 접기 | unit: kb-node-menu, sidebar-sections, template-tree-ui. 실제 터치 입력 미확인 | Unit 통과 / 브라우저 PENDING |
-| R5 | 좌·우 패널 접기에서 editor/AiPanel 유지(mount·selection·대화) | unit: studio-panel-shell(컨트롤러+정적 소스 검사). 실제 mount count 증명 아님 | Unit 통과 / 브라우저 PENDING |
-| R6 | 저장 상태 칩(저장됨/저장 중/저장 안 됨/저장 실패+재시도) | unit: editor-state, kb-editor-state, chapter-editor-state | Unit 통과 / 브라우저 PENDING |
-| R7 | 기존 draft·고정 가격 발행·발행 후 수정·발행 취소 회귀 없음 | chapter-editor-state unit만. DB 회귀(draft/publish/edit-unpublish) 미실행 | PENDING |
+| R1 | 기본 템플릿 5종 읽기 전용, 서버 guard가 우회 차단 | unit: template-policy, template-seeding, template-migration-source. 실DB(`--project db`): template-policy-migration·locked-folder-guard·schema-smoke 통과. 브라우저: 기본 템플릿 textarea `readOnly`, "읽기 전용" 칩, 저장/AI 삽입 버튼 없음, 우클릭 메뉴는 사본 만들기만 | **통과** (실DB + 브라우저) |
+| R2 | 기존 수정 내용이 `내 템플릿` 사본으로 보존되고 기본 5종 원문 복원 | 1회용 DB에서 0022→0023→재실행 통과(template-policy-migration 10/10, 최신 policy 복원 확인) | **통과** (실DB) |
+| R3 | 템플릿 이름 중복 불가, 사본/새 문서/템플릿 만들기 | unit 통과. 실DB template-options·template-tree-mutations 통과. 브라우저: 기본 이름 "인물"로 사본 생성 시 "기본 템플릿 이름은 사용할 수 없어요"로 거부+입력 유지, 다른 이름은 생성, 새 문서에서 `<% tp.file.title %>` 치환 확인 | **부분 통과** — 이름 바꾸기(rename) 중복 거부, 작품/계정 scope별 확인은 브라우저 미실행 |
+| R4 | 우클릭·long press 메뉴, 템플릿 섹션, 폴더 접기 | unit 통과. 브라우저: 일반 문서 우클릭=이름 바꾸기/삭제, 기본 템플릿 우클릭=사본 만들기만, 템플릿 섹션 구성 확인 | **부분 통과** — touch long press(탭 이동·long press 중 scroll 취소), 폴더 접기 브라우저 PENDING |
+| R5 | 좌·우 패널 접기에서 editor/AiPanel 유지(mount·selection·대화) | unit 통과. 브라우저(1440px): 좌/우/동시 접기 3회 반복 후 textarea·AiPanel DOM 노드 동일, MutationObserver 제거 0건(mount 증가 없음), selectionStart/End 유지, 본문 폭 705→925(좌)→1273(동시)→705 복원 | **부분 통과** — AI 대화 메시지·진행 중 AI 요청 유지는 AI 키 없이 미검증(DOM 유지만 확인). React DevTools 기반 mount count 미사용 |
+| R6 | 저장 상태 칩(저장됨/저장 중/저장 안 됨/저장 실패+재시도) | unit 통과. 브라우저: KB 문서·회차 모두 저장됨→저장 안 됨→저장 중→저장됨 전이 확인, 편집 중 textarea DOM 동일 | **부분 통과** — 저장 실패→본문 유지·재시도, 저장 중 추가 입력은 fault injection 훅 없이 미검증 |
+| R7 | 기존 draft·고정 가격 발행·발행 후 수정·발행 취소 회귀 없음 | 실DB tests/chapters(draft·publish·edit-unpublish·reorder 등) 통과. 브라우저: 유료 30토큰 발행(`is_published=true`, `price_tier=30`) → 발행 취소(`is_published=false`, `unpublished_at` 기록, 본문·price_tier 보존) | **통과** |
 
 ## 실행한 자동 검증 (02-13 Task 1)
 `npx vitest run --project unit` (14 files: template-migration-source, template-seeding, template-policy, template-copy, template-action-wrappers, template-dialogs, sidebar-sections, kb-node-menu, template-tree-ui, editor-state, studio-panel-shell, kb-editor-state, chapter-editor-state, client-bundle-fs-free): **14 files / 214 tests passed**.
 
-## 미완 게이트 (PENDING - failed 아님)
-- **02-13 Task 2 (실DB)**: PENDING. 사유: no disposable DB. 구성된 유일한 DB는 공유 프로젝트이며 계획상 이관/마이그레이션 suite 실행 금지.
-- **02-13 Task 3 (브라우저)**: PENDING. 사유: browser gate not run (DB 게이트 선행 필요).
-- 두 게이트가 승인되기 전까지 Phase 02 보완은 완료로 표기하지 않으며 ROADMAP/STATE/REQUIREMENTS는 변경하지 않는다.
+## 실행한 실DB 검증 (02-13 Task 2, 2026-10-17)
+1회용 Supabase 프로젝트(전용 `.env.disposable`, 공유 프로젝트와 분리)에 0001~0021을 적용하고(0011은 파일 선두 BOM 때문에 BOM 제거 후 적용) `npx vitest run --project db`로 실행: template-policy-migration, template-options, template-tree-mutations, document-crud, locked-folder-guard, ownership-guard, schema-smoke, tests/chapters/*. 브랜치 `phase2/db-browser-gate`(c34cb97) 기준 **14 files / 66 tests passed**(분기 전 작업 트리에서도 이관 10 tests + 나머지 13 files 56 tests 통과).
+
+> **실행 안전 규칙:** vitest는 `--mode disposable`만으로는 공유 `.env.local` 값이 섞여 들어와 공유 프로젝트를 가리킬 수 있었다(이관 테스트의 ref 가드가 차단했고 DB 변경은 없었다). DB suite는 반드시 `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run --project db ...`처럼 프로세스 환경변수를 1회용 값으로 고정해 실행하고, URL·DB URL·두 키의 ref가 1회용 프로젝트와 일치하는지 먼저 확인한다. `next dev`는 `--env-file`을 NODE_OPTIONS로 넘기다 실패하므로 셸에서 export 후 실행한다.
+
+## 실행한 브라우저 검증 (02-13 Task 3, 2026-10-17, 부분)
+1회용 DB + `next dev -p 3100`(1회용 env만 주입, 별도 worktree). 테스트 작가 계정은 서비스 롤로 생성한 세션 쿠키로 로그인(앱 로그인은 OAuth 전용). 위 R1·R3~R7의 브라우저 증거 참조.
+
+## 미완 항목 (PENDING - failed 아님)
+- **브라우저 gate(02-13 Task 3)는 승인하지 않는다.** 아래가 남아 있다.
+  - touch long press→이름 바꾸기, 일반 tap 이동, long press 중 scroll 취소 (실제 touch 기기/touch 브라우저 필요 — 사용자 확인)
+  - 저장 실패→본문 유지+저장 실패 표시→재시도, 저장 중 추가 입력→저장 안 됨 (개발 검증용 fault injection 필요)
+  - AI 대화 메시지·진행 중 AI 요청이 접기 후에도 같은 대화에 붙는지 (AI 키 필요), React DevTools/외부 wrapper 기반 mount count
+  - 이름 바꾸기(rename) 중복 거부, 작품/계정 scope별 사본·중복 확인, 폴더 접기
+  - 사용자 최종 UX 확인(approved 또는 구체적 실패 입력)
+- 위가 승인되기 전까지 Phase 02 보완은 완료로 표기하지 않으며 ROADMAP/STATE/REQUIREMENTS는 변경하지 않는다.
+
+## 발견 사항 (비차단)
+- 기본 템플릿 본문과 이를 복사한 새 문서 본문이 BOM(`U+FEFF`)으로 시작한다.
+- `supabase/migrations/0011_ai_doc_planning.sql`이 BOM으로 시작해 `scripts/apply-migration.mjs`로 그대로 적용하면 구문 오류가 난다.
 
 ## Phase 18 의존 계약
 기본 template은 readonly+copy만 제공한다. 세계관 공개 정책은 포함되지 않는다.

@@ -23,7 +23,7 @@ metrics:
 
 # Phase 2 Plan 13: Decision wording alignment and final gates (PARTIAL)
 
-**Task 1 complete; Tasks 2 (real-DB) and 3 (browser) are PENDING, so this plan is NOT complete.**
+**Task 1 and Task 2 (real-DB) complete; Task 3 (browser) is PARTIAL with remaining items PENDING, so this plan is NOT complete.** (updated 2026-10-17)
 
 ## Task 1 (done)
 
@@ -32,12 +32,24 @@ metrics:
 - VERIFICATION: 2026-08-28 results preserved; appended a Reopen section (R1-R7) recording unit evidence and PENDING for DB/browser.
 - Automated verify (plan command, `--project unit`, 14 files): **14 passed files, 214 passed tests**.
 
+## Task 2 (done, 2026-10-17)
+
+- Disposable Supabase project created; migrations 0001-0021 applied (0011 needed its leading BOM stripped), then `--project db` suites run with process env pinned via `node --env-file=.env.disposable`: **14 files / 66 tests passed** on branch `phase2/db-browser-gate` (c34cb97). The migration suite (0022 -> 0023 -> rerun) passed 10/10.
+- Safety finding: `vitest --mode disposable` alone still resolved the shared `NEXT_PUBLIC_SUPABASE_URL`/`SUPABASE_DB_URL` inside the test process (the migration suite's ref guard aborted the first attempt with no DB change). All later runs pinned env at process level and verified refs first. Details in 02-VERIFICATION.md.
+
+## Task 3 (partial, 2026-10-17)
+
+Passed in the browser against the disposable DB: default templates read-only + copy-only menu, duplicate-name rejection on copy, title substitution in new docs, right-click menus, left/right/both panel collapse (same textarea/AiPanel DOM node, selection kept, no mount increase), save-status chip transitions in KB and chapter editors, paid 30-token publish -> unpublish with content kept.
+
 ## Pending (not verified, not failed)
 
-| Task | Gate | Status | Reason |
-|------|------|--------|--------|
-| 2 | Real DB: 0022/0023 apply and rerun, content preservation, direct-SQL/RLS bypass, concurrent duplicates, chapters regression (`--project db` suite) | PENDING | no disposable DB (only the shared project is configured; running the migration suite there is forbidden by the plan) |
-| 3 | Browser: copy/new doc/menu/long press/panel collapse mount retention/save chip/paid 30-token publish-unpublish | PENDING | browser gate not run (requires the DB gate's verification project) |
+| Item | Status | Reason |
+|------|--------|--------|
+| touch long press -> rename, tap navigation, scroll cancel | PENDING | needs a real touch device / touch browser (user check) |
+| save failure -> body kept + retry, edit-while-saving | PENDING | needs dev-only fault injection |
+| in-flight AI request / conversation retained across collapse, mount count via React DevTools | PENDING | no AI key on the disposable project; only DOM-node identity was checked |
+| rename duplicate rejection, work vs account scope, folder collapse | PENDING | not run |
+| final user UX approval (`approved` / concrete failures) | PENDING | user step |
 
 ## Deviations from Plan
 
