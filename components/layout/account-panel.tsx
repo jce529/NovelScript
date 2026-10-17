@@ -5,6 +5,7 @@ import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 import { Settings, X, Coins } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { signOutAction } from '@/lib/auth/actions';
+import { AdminMenuLink } from '@/components/layout/admin-menu-link';
 
 export function AccountPanel({
   displayName, isWriter, balance,
@@ -55,6 +56,8 @@ export function AccountPanel({
         >
           {isWriter ? '작품 관리하기' : '작가 시작하기'}
         </Link>
+
+        <AdminMenuLink />
 
         <form action={signOutAction}>
           <button type="submit" className="w-full text-center text-xs text-muted-foreground hover:underline">

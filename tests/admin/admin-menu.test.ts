@@ -4,6 +4,9 @@ vi.mock('server-only', () => ({}));
 const checkAdmin = vi.fn();
 vi.mock('@/lib/admin/auth', () => ({ checkAdmin: (...a: unknown[]) => checkAdmin(...a) }));
 
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { AdminMenuItem } from '../../components/layout/admin-menu-link';
 import { getAdminMenuEligibilityAction } from '../../app/admin/menu-actions';
 
 describe('getAdminMenuEligibilityAction', () => {
@@ -34,5 +37,18 @@ describe('getAdminMenuEligibilityAction', () => {
     expect(getAdminMenuEligibilityAction.length).toBe(0);
     await getAdminMenuEligibilityAction();
     expect(checkAdmin).toHaveBeenCalledWith();
+  });
+});
+
+describe('AdminMenuItem', () => {
+  it('renders the /admin link only when allowed', () => {
+    const html = renderToStaticMarkup(createElement(AdminMenuItem, { allowed: true }));
+    expect(html).toContain('href="/admin"');
+    expect(html).toContain('관리자');
+    expect(html).toContain('min-h-11');
+  });
+
+  it('renders nothing for false / pending state', () => {
+    expect(renderToStaticMarkup(createElement(AdminMenuItem, { allowed: false }))).toBe('');
   });
 });
