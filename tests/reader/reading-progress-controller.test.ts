@@ -157,7 +157,8 @@ describe('createReadingProgressController', () => {
 
     const h2 = harness({ results: [{ ok: false, status: 0 }] });
     h2.c.bootstrap(snapshot());
-    h2.c.setVisible(false); // freezes active time
+    h2.c.setRatio(0.5);
+    h2.c.setVisible(false); // freezes active time, flushes seq 1
     await h2.flushMicro();
     // hidden flush dispatched seq 1 and failed
     expect(h2.calls).toHaveLength(1);
@@ -169,6 +170,7 @@ describe('createReadingProgressController', () => {
   it('stops retrying after the maximum attempts and never throws into the reader', async () => {
     const h = harness({ results: Array.from({ length: 10 }, () => ({ ok: false as const, status: 503 })) });
     h.c.bootstrap(snapshot());
+    h.c.setRatio(0.5);
     h.c.setVisible(false);
     await h.flushMicro();
     await h.advance(60_000);
