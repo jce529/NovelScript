@@ -50,6 +50,85 @@ describe('lib/ai/prompt.ts — composeSystemInstruction (this session: unified c
   });
 });
 
+// 04-07 (Reopen 2026-10-12): 04-03/04-05 SUMMARY and 04-VERIFICATION claimed the 자유형
+// instruction was reflected in the composed prompt, but composeSystemInstruction had no
+// customInstruction/workSystemInstruction input at all. These cases reproduce that gap.
+describe('lib/ai/prompt.ts — 자유형 customInstruction / workSystemInstruction (04-07 gap closure)', () => {
+  const base = { styleId: DEFAULT_STYLE_PRESET, genre: '판타지' } as const;
+  const levels = ['beginner', 'intermediate', 'freeform'] as const;
+  const countOf = (s: string, sub: string) => s.split(sub).length - 1;
+
+  it('freeform + customInstruction puts the literal instruction into the composed prompt', () => {
+    const result = composeSystemInstruction({ ...base, presetLevel: 'freeform', customInstruction: '용을 등장시켜줘' });
+    expect(result).toContain('용을 등장시켜줘');
+  });
+
+  it('freeform with null/undefined/blank customInstruction keeps PRESET_INSTRUCTIONS.freeform', () => {
+    for (const customInstruction of [null, undefined, '', '   \n ']) {
+      const result = composeSystemInstruction({ ...base, presetLevel: 'freeform', customInstruction });
+      expect(result).toContain(PRESET_INSTRUCTIONS.freeform);
+    }
+  });
+
+  it('customInstruction is not applied for beginner/intermediate', () => {
+    for (const presetLevel of ['beginner', 'intermediate'] as const) {
+      const result = composeSystemInstruction({ ...base, presetLevel, customInstruction: '용을 등장시켜줘' });
+      expect(result).not.toContain('용을 등장시켜줘');
+      expect(result).toContain(PRESET_INSTRUCTIONS[presetLevel]);
+    }
+  });
+
+  it('workSystemInstruction sits right after the baseline for intermediate/freeform', () => {
+    for (const presetLevel of ['intermediate', 'freeform'] as const) {
+      const result = composeSystemInstruction({ ...base, presetLevel, workSystemInstruction: '주인공은 항상 존댓말을 쓴다.' });
+      expect(result.startsWith(`${BASELINE_SYSTEM_PROMPT}\n\n`)).toBe(true);
+      const rest = result.slice(BASELINE_SYSTEM_PROMPT.length + 2);
+      expect(rest).toContain('작품 추가 지시');
+      expect(rest.indexOf('주인공은 항상 존댓말을 쓴다.')).toBeGreaterThan(-1);
+      expect(rest.indexOf('주인공은 항상 존댓말을 쓴다.')).toBeLessThan(rest.indexOf('장르는'));
+    }
+  });
+
+  it('workSystemInstruction is not applied for beginner, and plan/protocol are kept', () => {
+    const documentPlan = { category: '인물' as const, folderPath: '인물', templateName: 't', templateContent: '# 이름', purpose: 'p' };
+    const result = composeSystemInstruction({ ...base, presetLevel: 'beginner', workSystemInstruction: '주인공은 항상 존댓말을 쓴다.', documentPlan });
+    expect(result).not.toContain('주인공은 항상 존댓말을 쓴다.');
+    expect(result).toContain('작업: 설정 문서 생성');
+    expect(result).toContain(RESPONSE_PROTOCOL_INSTRUCTIONS);
+  });
+
+  it('every preset starts with the baseline and carries baseline/protocol exactly once, with plan/style/genre', () => {
+    const documentPlan = { category: '인물' as const, folderPath: '인물', templateName: 't', templateContent: '# 이름', purpose: 'p' };
+    for (const presetLevel of levels) {
+      const result = composeSystemInstruction({
+        presetLevel, styleId: 'lyrical-kimhoon', genre: '로맨스', documentPlan,
+        customInstruction: '용을 등장시켜줘', workSystemInstruction: '작품 지시 본문',
+      });
+      expect(result.startsWith(BASELINE_SYSTEM_PROMPT)).toBe(true);
+      expect(countOf(result, BASELINE_SYSTEM_PROMPT)).toBe(1);
+      expect(countOf(result, RESPONSE_PROTOCOL_INSTRUCTIONS)).toBe(1);
+      expect(result).toContain(STYLE_PRESETS['lyrical-kimhoon'].instruction);
+      expect(result).toContain('로맨스');
+      expect(result).toContain('작업: 설정 문서 생성');
+      expect(result.endsWith(RESPONSE_PROTOCOL_INSTRUCTIONS)).toBe(true);
+    }
+  });
+
+  it('without the new fields the output is byte-for-byte the legacy composition', () => {
+    for (const presetLevel of levels) {
+      const legacy = [
+        BASELINE_SYSTEM_PROMPT,
+        `이 작품의 장르는 '판타지'입니다. 장르 관습과 독자 기대에 맞게 작성하세요.`,
+        STYLE_PRESETS[DEFAULT_STYLE_PRESET].instruction,
+        PRESET_INSTRUCTIONS[presetLevel],
+        RESPONSE_PROTOCOL_INSTRUCTIONS,
+      ].join('\n\n');
+      expect(composeSystemInstruction({ ...base, presetLevel })).toBe(legacy);
+      expect(composeSystemInstruction({ ...base, presetLevel, customInstruction: null, workSystemInstruction: null })).toBe(legacy);
+    }
+  });
+});
+
 describe('lib/ai/prompt.ts — assembleUserContent', () => {
   it('includes mentioned document names/content and the preceding text', () => {
     const result = assembleUserContent({
