@@ -30,6 +30,9 @@ function setup(opts: FakeLedgerOptions) {
   adminState.client = admin.client;
   return admin;
 }
+const SETTLE = 'settle_service_ai_generation';
+const settleCalls = (admin: ReturnType<typeof createFakeLedgerAdmin>) => admin.rpc.mock.calls.filter(c => c[0] === SETTLE);
+const rpcNames = (admin: ReturnType<typeof createFakeLedgerAdmin>) => admin.rpc.mock.calls.map(([name]) => name);
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -51,8 +54,11 @@ describe('paid generation lifecycle', () => {
     expect(settled.kind).toBe('completed');
     expect(admin.from.mock.calls.map(([table]) => table)).not.toContain('wallets');
     expect(admin.from.mock.calls.map(([table]) => table)).not.toContain('ledger_entries');
-    expect(admin.rpc.mock.calls.map(([name]) => name)).not.toContain('apply_wallet_delta');
+    expect(rpcNames(admin)).not.toContain('apply_wallet_delta');
+    expect(rpcNames(admin)).not.toContain(SETTLE);
+    expect(rpcNames(admin)).not.toContain('acquire_ai_generation_lock');
     expect(admin.state.ledger).toHaveLength(0);
+    expect(admin.state.balances[OWNER]).toBe(0);
   });
 
   it('returns replacement-required as terminal before any provider call', async () => {
@@ -63,37 +69,46 @@ describe('paid generation lifecycle', () => {
     expect(admin.from).not.toHaveBeenCalled();
   });
 
-  it('records normalized completed usage before service settlement and excludes prompt/client fields', async () => {
+  it('sends normalized usage to the atomic settlement RPC and excludes prompt/client fields', async () => {
     const admin = setup({ balances: { [OWNER]: 100000 } });
-    usageState.record.mockRejectedValueOnce(new Error('private response body'));
     const pre = await preflightPaidGeneration(session(), identity);
     if (!pre.ok || pre.ctx.route.keySource !== 'service') throw new Error('preflight failed');
     const client = createMockProvider();
-    await settlePaidGeneration(client, pre.ctx, { ...identity, workId: 'work-1', chapterId: 'chapter-1', ledgerReason: 'test' }, async () => okResult('private prompt echo', 12, 8, 3));
-    expect(usageState.record).toHaveBeenCalledTimes(1);
-    expect(usageState.record.mock.calls[0][1]).toEqual({
-      ownerId: OWNER, provider: 'gemini', model: 'gemini-3.5-flash', keySource: 'service', status: 'completed',
-      idempotencyKey: KEY, usage: { inputTokens: 12, outputTokens: 8, thoughtsTokens: 3, reported: { input: true, output: true } }, workId: 'work-1', chapterId: 'chapter-1',
+    const settled = await settlePaidGeneration(client, pre.ctx, { ...identity, workId: 'work-1', chapterId: 'chapter-1', ledgerReason: 'test' }, async () => okResult('private prompt echo', 12, 8, 3));
+    expect(settled.kind).toBe('completed');
+    // COST-02 reopen: the service path no longer writes best-effort telemetry before settlement.
+    expect(usageState.record).not.toHaveBeenCalled();
+    expect(settleCalls(admin)).toHaveLength(1);
+    const params = settleCalls(admin)[0][1] as Record<string, unknown>;
+    expect(params).toMatchObject({ p_owner_id: OWNER, p_idempotency_key: KEY, p_ledger_reason: 'test' });
+    expect(params.p_usage).toEqual({
+      provider: 'gemini', model: 'gemini-3.5-flash', status: 'completed', input_tokens: 12, output_tokens: 8, thoughts_tokens: 3,
+      input_reported: true, output_reported: true, work_id: 'work-1', chapter_id: 'chapter-1',
     });
-    expect(JSON.stringify(usageState.record.mock.calls[0][1])).not.toMatch(/prompt|contents|text|client|secret/i);
-    expect(admin.rpc.mock.calls.some(([name]) => name === 'apply_wallet_delta')).toBe(true);
+    expect(JSON.stringify(params)).not.toMatch(/private|prompt|contents|text|client|secret/i);
+    expect(rpcNames(admin)).not.toContain('apply_wallet_delta');
   });
 
-  it('records reported refusals but skips refusals without reported usage', async () => {
+  it('settles reported refusals once and leaves unreported refusals with no usage or ledger', async () => {
     const admin = setup({ balances: { [OWNER]: 100000 } });
     const pre = await preflightPaidGeneration(session(), identity);
     if (!pre.ok || pre.ctx.route.keySource !== 'service') throw new Error('preflight failed');
     const refusal = { ...okResult(), refusal: { stage: 'input' as const, reasonCode: 'SAFETY' as const }, finishReason: 'refusal' as const };
     await settlePaidGeneration(createMockProvider(), pre.ctx, { ...identity, ledgerReason: 'test' }, async () => refusal);
-    expect(usageState.record.mock.calls[0][1].status).toBe('refused');
-    expect(admin.rpc.mock.calls.some(([name]) => name === 'apply_wallet_delta')).toBe(true);
+    expect((settleCalls(admin)[0][1] as { p_usage: { status: string } }).p_usage.status).toBe('refused');
+    expect(admin.state.usage.filter(r => r.idempotency_key === KEY && r.service_settled_at !== null)).toHaveLength(1);
 
-    usageState.record.mockClear();
-    const noUsage = await preflightPaidGeneration(session(), { ...identity, idempotencyKey: '60000000-0000-4000-8000-000000000002' });
+    const KEY2 = '60000000-0000-4000-8000-000000000002';
+    const noUsage = await preflightPaidGeneration(session(), { ...identity, idempotencyKey: KEY2 });
     if (!noUsage.ok) throw new Error('preflight failed');
-    await settlePaidGeneration(createMockProvider(), noUsage.ctx, { ...identity, idempotencyKey: '60000000-0000-4000-8000-000000000002', ledgerReason: 'test' }, async () => ({ ...refusal, usage: { ...refusal.usage, reported: { input: false, output: false } } }));
-    expect(usageState.record.mock.calls[0][1].status).toBe('refused');
-    expect(admin.state.ledger).toHaveLength(2);
+    const settled = await settlePaidGeneration(createMockProvider(), noUsage.ctx, { ...identity, idempotencyKey: KEY2, ledgerReason: 'test' }, async () => ({ ...refusal, usage: { ...refusal.usage, reported: { input: false, output: false } } }));
+    expect(settled).toMatchObject({ kind: 'terminal', chatResult: { status: 'refused', refusal: { debitAmount: 0 } } });
+    expect(settleCalls(admin)).toHaveLength(1);
+    expect(usageState.record).not.toHaveBeenCalled();
+    expect(admin.state.usage.filter(r => r.idempotency_key === KEY2)).toHaveLength(0);
+    expect(admin.state.ledger.filter(r => r.reference_id === KEY2)).toHaveLength(0);
+    // D-12: no marker, so the same key may be retried manually.
+    expect((await preflightPaidGeneration(session(), { ...identity, idempotencyKey: KEY2 })).ok).toBe(true);
   });
 
   it('records BYOK success without wallet semantics and ignores usage insert failure', async () => {
@@ -110,7 +125,8 @@ describe('paid generation lifecycle', () => {
     expect(settled).not.toHaveProperty('debitAmount');
     expect(admin.from.mock.calls.map(([table]) => table)).not.toContain('wallets');
     expect(admin.from.mock.calls.map(([table]) => table)).not.toContain('ledger_entries');
-    expect(admin.rpc.mock.calls.map(([name]) => name)).not.toContain('apply_wallet_delta');
+    expect(rpcNames(admin)).not.toContain('apply_wallet_delta');
+    expect(rpcNames(admin)).not.toContain(SETTLE);
   });
 
   it.each([
@@ -163,7 +179,9 @@ describe('paid generation lifecycle', () => {
       throw new ProviderCallError({ provider: 'gemini', status: 429, kind: 'rate_limited', providerErrorCode: 'RESOURCE_EXHAUSTED' });
     });
     expect(settled).toMatchObject({ kind: 'terminal', chatResult: { failureKind: 'rate_limited' } });
-    expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(0);
+    expect(settleCalls(admin)).toHaveLength(0);
+    expect(admin.state.usage).toHaveLength(0);
+    expect((await preflightPaidGeneration(session(), identity)).ok).toBe(true);
   });
 
   it('does not debit a GenerationRejectedError and leaves the key reusable (BUG-06)', async () => {
@@ -175,7 +193,8 @@ describe('paid generation lifecycle', () => {
       throw new GenerationRejectedError('rejected copy', 'structure');
     });
     expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'rejected_output', error: 'rejected copy' } });
-    expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(0);
+    expect(settleCalls(admin)).toHaveLength(0);
+    expect(admin.state.usage).toHaveLength(0);
     expect(admin.state.locks).toEqual({});
     // 같은 키로 다시 preflight해도 already_processed가 아니다
     const again = await preflightPaidGeneration(session(), identity);
@@ -189,9 +208,10 @@ describe('paid generation lifecycle', () => {
     const result = okResult('body', 10, 10);
     const settled = await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, pre.ctx, { ...identity, ledgerReason: 'document:1' }, async () => result);
     expect(settled).toMatchObject({ kind: 'completed', result });
-    expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toEqual([['apply_wallet_delta', expect.objectContaining({
-      p_reference_type: 'ai_generation', p_reference_id: KEY, p_reason: 'document:1',
+    expect(settleCalls(admin)).toEqual([[SETTLE, expect.objectContaining({
+      p_owner_id: OWNER, p_idempotency_key: KEY, p_ledger_reason: 'document:1',
     })]]);
+    expect(admin.state.ledger).toEqual([{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY, delta: -(settled as { debitAmount: number }).debitAmount }]);
   });
 
   it('does not debit when the post-generation write check is denied', async () => {
@@ -199,8 +219,9 @@ describe('paid generation lifecycle', () => {
     const ctx = { route: { keySource: 'service' as const, providerId: 'gemini' as const, model: 'model' }, admin: admin.client, walletBalance: 100, model: 'model', pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], maxOutputTokens: 1 };
     const settled = await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, ctx, { ...identity, ledgerReason: 'test' }, async () => okResult());
     expect(settled).toMatchObject({ kind: 'terminal', chatResult: { failureKind: 'write_denied' } });
+    // Observation-only telemetry may remain, but it is never a completion marker.
     expect(usageState.record).toHaveBeenCalledTimes(1);
-    expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(0);
+    expect(settleCalls(admin)).toHaveLength(0);
   });
 
   it('debits a structured refusal and returns it as terminal', async () => {
@@ -210,7 +231,7 @@ describe('paid generation lifecycle', () => {
     const refusal = { ...okResult(), refusal: { stage: 'input' as const, reasonCode: 'SAFETY' as const }, finishReason: 'refusal' as const };
     const settled = await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, pre.ctx, { ...identity, ledgerReason: 'test' }, async () => refusal);
     expect(settled).toMatchObject({ kind: 'terminal', chatResult: { status: 'refused', refusal: { reasonCode: 'SAFETY' } } });
-    expect(admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta')).toHaveLength(1);
+    expect(settleCalls(admin)).toHaveLength(1);
   });
   it.each([
     ['openai', 'gpt-4o-mini', 0.15, 0.60],
@@ -300,5 +321,192 @@ describe('wallet generation lease (BUG-06)', () => {
     expect(settled.kind).toBe('terminal');
     expect(usageState.record).not.toHaveBeenCalled();
     expect(admin.state.locks).toEqual({});
+  });
+});
+
+describe('service completion marker in ai_usage (COST-02 reopen, 11-10)', () => {
+  const OTHER = '10000000-0000-4000-8000-000000000002';
+  const settledRow = (owner = OWNER, key = KEY) => ({ owner_id: owner, idempotency_key: key, key_source: 'service' as const, status: 'completed' as const, service_settled_at: '2026-10-17T00:00:00Z' });
+  const pendingRow = (owner = OWNER, key = KEY) => ({ owner_id: owner, idempotency_key: key, key_source: 'service' as const, status: 'completed' as const, service_settled_at: null });
+  const zero = () => ({ ...okResult('body', 0, 0), usage: { inputTokens: 0, outputTokens: 0, thoughtsTokens: null, reported: { input: false, output: false } } });
+
+  async function run(admin: ReturnType<typeof createFakeLedgerAdmin>, generate: () => Promise<ReturnType<typeof okResult>>, id: typeof identity = identity) {
+    const pre = await preflightPaidGeneration(session(), id);
+    if (!pre.ok) return { pre };
+    const settled = await settlePaidGeneration(createMockProvider(), pre.ctx, { ...id, ledgerReason: 'test' }, generate);
+    return { pre, settled };
+  }
+
+  it('zero-usage success: one settled usage row, no ledger row, balance unchanged, replay blocked', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    const { settled } = await run(admin, async () => zero());
+    expect(settled).toMatchObject({ kind: 'completed', debitAmount: 0, remainingBalance: 1000 });
+    expect(admin.state.usage).toEqual([expect.objectContaining({ owner_id: OWNER, idempotency_key: KEY, key_source: 'service', status: 'completed', service_settled_at: expect.any(String) })]);
+    expect(admin.state.ledger).toHaveLength(0);
+    expect(admin.state.balances[OWNER]).toBe(1000);
+    const replay = await preflightPaidGeneration(session(), identity);
+    expect(replay).toEqual({ ok: false, chatResult: { ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 1000 } });
+    expect(admin.state.locks).toEqual({});
+  });
+
+  it('a settled usage row blocks the key before the lease', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, usage: [settledRow()] });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { status: 'already_processed', remainingBalance: 1000 } });
+    expect(rpcNames(admin)).not.toContain('acquire_ai_generation_lock');
+  });
+
+  it('a completed usage row with service_settled_at NULL is NOT a completion (unconfirmed telemetry)', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, usage: [pendingRow()] });
+    const { settled } = await run(admin, async () => okResult('body', 1000, 1000));
+    expect(settled).toMatchObject({ kind: 'completed' });
+    expect(admin.state.usage).toHaveLength(1);
+    expect(admin.state.usage[0].service_settled_at).not.toBeNull();
+    expect(admin.state.ledger).toHaveLength(1);
+  });
+
+  it('a BYOK usage row for the same logical key counts as consumed', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, usage: [{ ...pendingRow(), key_source: 'byok' }] });
+    await expect(preflightPaidGeneration(session(), identity)).resolves.toMatchObject({ ok: false, chatResult: { status: 'already_processed' } });
+    expect(rpcNames(admin)).not.toContain(SETTLE);
+  });
+
+  it('a legacy zero-delta ai_generation ledger row still blocks replay', async () => {
+    setup({ balances: { [OWNER]: 1000 }, ledger: [{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY, delta: 0 }] });
+    await expect(preflightPaidGeneration(session(), identity)).resolves.toMatchObject({ ok: false, chatResult: { status: 'already_processed' } });
+  });
+
+  it('the same key under another owner is independent', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000, [OTHER]: 1000 }, usage: [settledRow(OTHER)] });
+    const { settled } = await run(admin, async () => okResult('body', 1000, 1000));
+    expect(settled).toMatchObject({ kind: 'completed' });
+    expect(admin.state.usage.filter(r => r.owner_id === OWNER && r.service_settled_at !== null)).toHaveLength(1);
+  });
+
+  it('a usage lookup error fails closed before the lease and the provider', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, usageLookupError: true });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toEqual({ ok: false, chatResult: { ok: false, status: 'failed', failureKind: 'unavailable', error: CHAT_COPY.unavailable } });
+    expect(rpcNames(admin)).not.toContain('acquire_ai_generation_lock');
+    expect(JSON.stringify(pre)).not.toContain('DB-SENTINEL');
+  });
+
+  it('re-checks after taking the lease: a request that finished in between is already_processed', async () => {
+    const admin = setup({
+      balances: { [OWNER]: 1000 },
+      beforeAcquire: (s) => { s.usage.push(settledRow()); },
+    });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { status: 'already_processed' } });
+    expect(admin.state.locks).toEqual({});
+  });
+
+  it('a lookup error after taking the lease releases it and fails closed', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, usageLookupError: [2] });
+    const pre = await preflightPaidGeneration(session(), identity);
+    expect(pre).toMatchObject({ ok: false, chatResult: { failureKind: 'unavailable' } });
+    expect(admin.state.locks).toEqual({});
+  });
+
+  it('its own unsettled telemetry row is never mistaken for already_processed', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    // Simulate a writer of best-effort telemetry under the same key (e.g. an earlier revoked run).
+    usageState.record.mockImplementation(async (client: SupabaseClient, input: { ownerId: string; idempotencyKey: string }) => {
+      await client.from('ai_usage').insert({ owner_id: input.ownerId, idempotency_key: input.idempotencyKey, key_source: 'service', status: 'completed' });
+      return { ok: true, recorded: true };
+    });
+    const { settled } = await run(admin, async () => okResult('body', 1000, 1000));
+    expect(settled).toMatchObject({ kind: 'completed' });
+    expect(settleCalls(admin)).toHaveLength(1);
+    expect(admin.state.ledger).toHaveLength(1);
+  });
+
+  it('a positive cost is debited once, inside the settlement RPC', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    const { settled } = await run(admin, async () => okResult('body', 10000, 10000));
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
+    expect(settled).toMatchObject({ kind: 'completed', debitAmount: debit, remainingBalance: 1000 - debit });
+    expect((settleCalls(admin)[0][1] as { p_debit_amount: number }).p_debit_amount).toBe(debit);
+    expect(admin.state.ledger).toEqual([{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY, delta: -debit }]);
+  });
+
+  it.each(['rpc', 'throw'] as const)('settlement fails before commit (%s): no body, no marker, same key retries', async (mode) => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const admin = setup({ balances: { [OWNER]: 1000 }, settleError: mode });
+    const { settled } = await run(admin, async () => okResult('SECRET-BODY', 1000, 1000));
+    expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement } });
+    expect(JSON.stringify(settled)).not.toContain('SECRET-BODY');
+    expect(admin.state.usage).toHaveLength(0);
+    expect(admin.state.ledger).toHaveLength(0);
+    expect(admin.state.locks).toEqual({});
+    expect(errorSpy).toHaveBeenCalledWith('[ai] wallet settlement failed', { provider: 'gemini', stage: 'settlement', idempotencyKey: KEY });
+    expect(rpcNames(admin).filter(n => n === SETTLE)).toHaveLength(1); // no automatic RPC retry
+    expect((await preflightPaidGeneration(session(), identity)).ok).toBe(true);
+  });
+
+  it.each(['rpc', 'throw'] as const)('settlement commits but the response is lost (%s): re-read says already_processed, no extra debit', async (mode) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const admin = setup({ balances: { [OWNER]: 1000 }, settleLostResponse: mode });
+    const { settled } = await run(admin, async () => okResult('SECRET-BODY', 10000, 10000));
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10000, candidatesTokenCount: 10000 });
+    expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 1000 - debit } });
+    expect(JSON.stringify(settled)).not.toContain('SECRET-BODY');
+    expect(admin.state.ledger).toHaveLength(1);
+    expect(rpcNames(admin).filter(n => n === SETTLE)).toHaveLength(1);
+  });
+
+  it('a malformed settlement payload is re-read like an error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const admin = setup({ balances: { [OWNER]: 1000 }, settleMalformed: true });
+    const { settled } = await run(admin, async () => okResult('body', 10, 10));
+    expect(settled).toMatchObject({ kind: 'terminal', chatResult: { status: 'already_processed' } });
+    expect(admin.state.usage).toHaveLength(1);
+  });
+
+  it('lost response whose re-read also fails is a settlement failure', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const admin = setup({ balances: { [OWNER]: 1000 }, settleLostResponse: 'rpc', usageLookupError: [3] });
+    const { settled } = await run(admin, async () => okResult('body', 10, 10));
+    expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement } });
+  });
+
+  it('a racing settlement of the same key makes the RPC answer already_processed without a second debit', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, beforeSettlement: (s) => { s.usage.push(settledRow()); } });
+    const { settled } = await run(admin, async () => okResult('SECRET-BODY', 10000, 10000));
+    expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 1000 } });
+    expect(admin.state.ledger).toHaveLength(0);
+  });
+
+  it('a reported refusal with zero tokens is settled with usage1/ledger0 and blocks replay', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    const refusal = { ...okResult('', 0, 0), finishReason: 'refusal' as const, refusal: { stage: 'input' as const, reasonCode: 'SAFETY' as const } };
+    const { settled } = await run(admin, async () => refusal);
+    expect(settled).toEqual({ kind: 'terminal', chatResult: { ok: false, status: 'refused', error: CHAT_COPY.refusedTitle, remainingBalance: 1000, refusal: { stage: 'input', reasonCode: 'SAFETY', debitAmount: 0 } } });
+    expect(admin.state.usage).toEqual([expect.objectContaining({ status: 'refused', service_settled_at: expect.any(String) })]);
+    expect(admin.state.ledger).toHaveLength(0);
+    await expect(preflightPaidGeneration(session(), identity)).resolves.toMatchObject({ ok: false, chatResult: { status: 'already_processed' } });
+  });
+
+  it('a wallet drained to 0 by this key answers a resend with already_processed (no insufficient_balance)', async () => {
+    const admin = setup({ balances: { [OWNER]: 1 } });
+    const { settled } = await run(admin, async () => okResult('body', 100000, 100000));
+    expect(settled).toMatchObject({ kind: 'completed', debitAmount: 1, remainingBalance: 0 });
+    const replay = await preflightPaidGeneration(session(), identity);
+    expect(replay).toMatchObject({ ok: false, chatResult: { status: 'already_processed', remainingBalance: 0 } });
+    expect(admin.state.ledger).toHaveLength(1);
+  });
+
+  it('BYOK at balance 0 succeeds without any wallet, lease, ledger or settlement RPC', async () => {
+    const admin = setup({ balances: { [OWNER]: 0 } });
+    const client = { ...createMockProvider(), provider: 'openai' as const };
+    const route = { kind: 'byok' as const, selection: { providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const }, keyId: 'key-current', client };
+    const id = { ownerId: OWNER, idempotencyKey: KEY, providerId: 'openai' as const, model: 'gpt-4o-mini' };
+    const pre = await preflightPaidGeneration(session(), id, route);
+    if (!pre.ok) throw new Error('BYOK preflight failed');
+    const settled = await settlePaidGeneration(client, pre.ctx, { ...id, ledgerReason: 'test' }, async () => okResult());
+    expect(settled.kind).toBe('completed');
+    expect(usageState.record).toHaveBeenCalledTimes(1);
+    expect(rpcNames(admin).filter(n => n !== 'get_write_access')).toEqual([]);
+    expect(admin.from.mock.calls.map(([t]) => t)).toEqual([]);
   });
 });
