@@ -41,9 +41,9 @@ metrics:
 
 Passed in the browser against the disposable DB: default templates read-only + copy-only menu, duplicate-name rejection on copy/rename/create (same scope) with different scopes allowed, title substitution in new docs, right-click menus, folder collapse, left/right/both panel collapse (same textarea/AiPanel DOM node, selection kept, no mount increase), collapse while an AI request is in flight (conversation and input node kept; result attached to the same conversation), save-status chips in KB and chapter editors including save failure -> retry and edit-while-saving (fault injection via an external `window.fetch` wrapper, no app code changed), paid 30-token publish -> unpublish with content kept, and touch long-press logic via synthetic `pointerType: touch` events (500ms opens the menu; short tap, scroll and move cancel it).
 
-## Issues found (block approval)
+## Issues found and fixed
 
-User-reported layout failures, investigated 2026-10-19 and documented, not yet fixed: `bugs/BUG-02-template-toolbar-overflow.md` (editor toolbar overflows on narrow widths) and `bugs/BUG-03-kb-tree-row-name-squeezed.md` (sidebar rows: invisible action buttons keep their width and squeeze names). Task 3 stays unapproved until both are fixed and re-verified in the browser.
+User-reported layout failures (2026-10-19) were fixed and re-verified in the browser: `fixed/02-02` (template editor toolbar, now two tiers) and `fixed/02-03` (sidebar rows keep their names; row buttons show only for the hovered row on pointer devices and the tapped/active row on touch-only devices; root cause of every row showing buttons on mobile was the drawer's unnamed `details.group`). They no longer block approval.
 
 ## Pending (not verified, not failed)
 
