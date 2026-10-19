@@ -227,7 +227,7 @@ describe('qualifying document filter', () => {
     expect(one(doc('인물', { name: '아린', content: `${substituted}\n아린은 북부 출신이다.` })).total).toBe(1);
     // Provenance is the seed catalog, not the document name.
     expect(one(doc('인물', { name: '인물 템플릿', content: BODY_200 })).total).toBe(1);
-    // Seed of another category does not exclude a 장소 doc that happens to equal it? It does not match 장소 seed.
+    // Provenance is per category: the 인물 seed text does not exclude a 장소 document.
     expect(one(doc('장소', { name: '아린', content: substituted })).total).toBe(1);
   });
 
