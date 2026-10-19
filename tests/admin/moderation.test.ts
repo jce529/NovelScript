@@ -15,7 +15,7 @@ import {
   getUserSanctionHistory,
   ADMIN_PAGE_SIZE,
 } from '../../lib/admin/queries';
-import { moderateReportGroup, resolveReviewRequest, unblindTarget } from '../../lib/admin/actions';
+import { adjustUserSanction, moderateReportGroup, resolveReviewRequest, unblindTarget } from '../../lib/admin/actions';
 
 const adminId = '10000000-0000-4000-8000-000000000003';
 const writerId = '10000000-0000-4000-8000-000000000001';
@@ -84,6 +84,8 @@ describe('every exported admin operation authorizes independently', () => {
     ['unblindTarget', (d) => unblindTarget({ idempotencyKey: key, workId, chapterId, targetVersion: 'v', reason: 'r' }, d)],
     ['resolveReviewRequest', (d) => resolveReviewRequest(
       { idempotencyKey: key, requestId, outcome: 'maintained', targetVersion: 'v', reason: 'r' }, d)],
+    ['adjustUserSanction', (d) => adjustUserSanction(
+      { idempotencyKey: key, userId: writerId, expectedSeq: '1', operation: 'lift', reason: 'r', publicReason: 'p', endsAt: null }, d)],
   ];
 
   it('covers every exported function', () => {
