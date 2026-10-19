@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AccountNotices } from "@/components/moderation/account-notices";
+import { TokenTopupProvider } from "@/components/payment/token-topup-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +29,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {/* D-09: loads after hydration; failures never block rendering, login or logout. */}
         <AccountNotices />
-        {children}
+        {/* 03-17: single Phase 5 top-up provider (and its one dialog) for header, viewer and mobile detail. */}
+        <TokenTopupProvider>{children}</TokenTopupProvider>
         <Toaster />
       </body>
     </html>
