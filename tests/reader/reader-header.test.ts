@@ -21,6 +21,13 @@ vi.mock('@/components/layout/account-panel', () => ({
     React.createElement('div', { 'data-account': p.displayName, 'data-bal': p.balance }),
 }));
 
+vi.mock('@/components/payment/header-token-balance', () => ({
+  HeaderTokenBalance: (p: { balance: number; loggedIn: boolean }) =>
+    p.loggedIn
+      ? React.createElement('div', { 'data-balance': '1' }, p.balance.toLocaleString('ko-KR'), React.createElement('button', { 'aria-label': '토큰 충전하기' }))
+      : null,
+}));
+
 import { SiteHeader } from '@/components/layout/site-header';
 import { ReaderHeaderFrame } from '@/components/reader/reader-header-frame';
 
@@ -39,7 +46,7 @@ describe('SiteHeader reader frame', () => {
     expect(html).toContain('전체');
     expect(html).toMatch(/<button[^>]*disabled[^>]*aria-label="검색 \(준비 중\)"|<button[^>]*aria-label="검색 \(준비 중\)"[^>]*disabled/);
     expect(html).toContain('1,234');
-    expect(html).toMatch(/<button[^>]*disabled[^>]*>충전/);
+    expect(html).toContain('aria-label="토큰 충전하기"');
     expect(html).toContain('data-account="reader"');
     expect(html.match(/sticky/g)?.length).toBe(1);
   });

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ReaderHeaderFrame } from '@/components/reader/reader-header-frame';
+import { HeaderTokenBalance } from '@/components/payment/header-token-balance';
 import { AccountPanel } from '@/components/layout/account-panel';
 
 export async function SiteHeader() {
@@ -33,6 +34,7 @@ export async function SiteHeader() {
       }
       loggedIn={Boolean(user)}
       balance={balance}
+      balanceSlot={<HeaderTokenBalance balance={balance} loggedIn={Boolean(user)} />}
     />
   );
 }
