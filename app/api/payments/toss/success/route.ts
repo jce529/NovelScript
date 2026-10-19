@@ -36,6 +36,7 @@ function appRedirect(request: Request, returnPath: string | null | undefined, ma
   }
   if (destination.origin !== origin) destination = new URL('/', origin);
   destination.hash = '';
+  destination.searchParams.delete(marker === 'topup' ? 'topupFail' : 'topup');
   destination.searchParams.set(marker, value);
   return NextResponse.redirect(destination);
 }
