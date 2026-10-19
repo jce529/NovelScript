@@ -296,5 +296,110 @@ revoke all on function adjust_user_sanction(uuid, uuid, uuid, bigint, text, text
 grant execute on function adjust_user_sanction(uuid, uuid, uuid, bigint, text, text, text, timestamptz)
   to service_role;
 
+-- ---------------------------------------------------------------------------
+-- 4. Publication notice to bookmark readers when a blind is lifted
+-- ---------------------------------------------------------------------------
+-- Blueprint: readers are never told about a blind; when hidden content becomes public again
+-- they get a 'publication' notice only (UI-DESIGN-BACKLOG "숨긴 회차", "관리자 탭 구조";
+-- 07-CONTEXT Reopen 2026-10-12 "해제 시 선호작 독자 공개 알림").
+--   * "해제" here means a blind lift: work_unblind, chapter_unblind (direct) and review_unblind
+--     (re-review outcome 'unblinded'). review_maintain and account sanction lifts are not.
+--   * Recipients are work_bookmarks (선호작) holders at that moment, never work_subscriptions;
+--     deleted accounts and the work owner are skipped.
+--   * This is a persistent in-app notice for blind lifts only, not a general new-chapter feed.
+-- The notice is created by an AFTER INSERT trigger on admin_actions: both unblind functions
+-- (0007) clear the flag first and then insert the audit row, so every call path is covered
+-- and a trigger failure rolls back the unblind with it.
+create table publication_notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id),
+  work_id uuid not null references works(id),
+  chapter_id uuid,
+  admin_action_id uuid not null references admin_actions(id),
+  title text not null check (char_length(trim(title)) > 0),
+  kind text not null default 'publication' check (kind = 'publication'),
+  created_at timestamptz not null default now(),
+  acknowledged_at timestamptz,
+  foreign key (chapter_id, work_id) references chapters(id, work_id),
+  unique (user_id, admin_action_id)
+);
+create index publication_notifications_user_idx on publication_notifications(user_id, created_at desc);
+
+alter table publication_notifications enable row level security;
+revoke all on publication_notifications from public, anon, authenticated, service_role;
+create policy publication_notifications_read_own on publication_notifications for select
+  using (user_id = auth.uid());
+-- Recipient columns: public wording and safe target only (no audit link, reason, reporter,
+-- operator or body). Writes happen only through the trigger and the acknowledge RPC.
+grant select (id, user_id, work_id, chapter_id, title, kind, created_at, acknowledged_at)
+  on publication_notifications to authenticated;
+grant select on publication_notifications to service_role;
+
+create function notify_publication_on_unblind() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  v_work works%rowtype;
+  v_chapter chapters%rowtype;
+  v_title text;
+begin
+  select * into v_work from works where id = new.target_work_id;
+  if not found or v_work.deleted_at is not null or v_work.admin_blinded then
+    return null;
+  end if;
+
+  if new.target_chapter_id is null then
+    -- Work-level lift: one work notice, only when some chapter is actually public. A chapter
+    -- that is still separately blinded does not count and is not announced.
+    if not exists (
+      select 1 from chapters c
+      where c.work_id = v_work.id and c.is_published and c.deleted_at is null and not c.admin_blinded
+    ) then
+      return null;
+    end if;
+    v_title := v_work.title;
+  else
+    select * into v_chapter from chapters where id = new.target_chapter_id and work_id = v_work.id;
+    if not found or not v_chapter.is_published or v_chapter.deleted_at is not null or v_chapter.admin_blinded then
+      return null;
+    end if;
+    v_title := v_work.title || ' · ' || coalesce(nullif(trim(v_chapter.title), ''), '회차');
+  end if;
+
+  insert into publication_notifications(user_id, work_id, chapter_id, admin_action_id, title)
+    select b.user_id, v_work.id, new.target_chapter_id, new.id, v_title
+    from work_bookmarks b
+    join profiles p on p.id = b.user_id
+    where b.work_id = v_work.id and p.deleted_at is null and b.user_id <> v_work.owner_id
+  on conflict (user_id, admin_action_id) do nothing;
+  return null;
+end;
+$$;
+
+create trigger admin_actions_publication_notice after insert on admin_actions
+  for each row
+  when (new.action_type in ('work_unblind', 'chapter_unblind', 'review_unblind'))
+  execute function notify_publication_on_unblind();
+
+-- Recipient-only acknowledgement. Allowed during suspension (narrow account-control exception
+-- like acknowledge_warning, 0006/0008): it only stamps the caller's own notice.
+create function acknowledge_publication_notification(p_notification_id uuid) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare
+  v_user uuid := auth.uid();
+begin
+  perform 1 from profiles where id = v_user and deleted_at is null;
+  if not found then raise exception 'authentication_required'; end if;
+  update publication_notifications
+    set acknowledged_at = coalesce(acknowledged_at, now())
+    where id = p_notification_id and user_id = v_user;
+  if not found then raise exception 'notification_not_found'; end if;
+  return true;
+end;
+$$;
+
+revoke all on function notify_publication_on_unblind(), acknowledge_publication_notification(uuid)
+  from public, anon, authenticated, service_role;
+grant execute on function acknowledge_publication_notification(uuid) to authenticated;
+
 notify pgrst, 'reload schema';
 commit;
