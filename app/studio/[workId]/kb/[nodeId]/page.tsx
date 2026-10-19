@@ -160,27 +160,31 @@ export default function KbNodeEditorPage({
     </Button>
   );
 
+  const statusChip = <SaveStatusChip state={editor} readOnly={readOnly} />;
+
+  // Templates render the chip inside the toolbar's actions tier (BUG-02); documents keep the single row.
   const toolbar = current?.status === 'ok' ? (
-    <div className="flex items-center gap-2">
-      <div className="min-w-0 flex-1">
-        {current.mode === 'document' ? (
+    current.mode === 'document' ? (
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 border-b px-3 py-2">
-            <span className="truncate text-sm font-medium">{current.name}</span>
-            <div className="ml-auto flex items-center gap-2">{saveButton}</div>
+            <span className="min-w-0 truncate text-sm font-medium">{current.name}</span>
+            <div className="ml-auto flex shrink-0 items-center gap-2">{saveButton}</div>
           </div>
-        ) : (
-          <TemplateEditorToolbar
-            workId={workId}
-            nodeId={nodeId}
-            name={current.name}
-            mode={current.mode}
-            templateCategory={current.templateCategory}
-            saveSlot={saveButton}
-          />
-        )}
+        </div>
+        {statusChip}
       </div>
-      <SaveStatusChip state={editor} readOnly={readOnly} />
-    </div>
+    ) : (
+      <TemplateEditorToolbar
+        workId={workId}
+        nodeId={nodeId}
+        name={current.name}
+        mode={current.mode}
+        templateCategory={current.templateCategory}
+        saveSlot={saveButton}
+        statusSlot={statusChip}
+      />
+    )
   ) : null;
 
   return (

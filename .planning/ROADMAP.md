@@ -19,7 +19,7 @@ v1.1은 새 제품이 아니라 기존 `lib/ai/` 모듈의 증축 마일스톤�
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it (completed 2026-08-29)
-- [ ] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29) — **재개(청사진 갭, 2026-10-12): 기본 템플릿 정책·우클릭·패널 접기**
+- [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29) — 재개(청사진 갭, 2026-10-12: 기본 템플릿 정책·우클릭·패널 접기) 보완 완료 2026-10-19
 - [ ] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30) — **재개(청사진 갭, 2026-10-12): 독자 화면 구조·완독 데이터·뷰어 chrome**
 - [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md) — **재개(청사진 갭, 2026-10-12): EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치)·⚙ 모달**
 - [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
@@ -68,6 +68,8 @@ Plans:
 ### Phase 2: Studio Core (Writer Loop, No AI)
 
 > **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: 기본 템플릿 정책·우클릭·패널 접기. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 2 절.
+>
+> **보완 완료 (2026-10-19)** — 02-07~13 완료. 1회용 Supabase 프로젝트에서 실DB 게이트(14 files / 66 tests)와 브라우저 게이트를 통과했고(사용자 지시로 승인), 게이트 중 발견된 레이아웃 버그 2건은 `fixed/02-02`·`fixed/02-03`으로 수정됐다. 실제 touch 기기·실제 AI 응답은 에이전트가 독립 검증하지 못한 잔여 항목이다(`02-VERIFICATION.md`).
 
 **Goal**: Writers can build a knowledge base and draft/publish chapters, independent of AI assistance.
 **Depends on**: Phase 1
@@ -93,7 +95,7 @@ Plans:
 - [x] 02-10-PLAN.md — (보완) 템플릿 섹션·접이식 트리·우클릭과 길게 누르기
 - [x] 02-11-PLAN.md — (보완) 공유 패널 접기와 저장 상태 컴포넌트
 - [x] 02-12-PLAN.md — (보완) 설정 문서·회차 편집기에 읽기 전용·패널·저장 칩 연결
-- [ ] 02-13-PLAN.md — (보완) 결정 문구 정합(Task 1 완료)과 실DB·브라우저 최종 게이트(pending, 전용 검증 DB 필요)
+- [x] 02-13-PLAN.md — (보완) 결정 문구 정합과 실DB·브라우저 최종 게이트(완료 2026-10-19: 1회용 DB 14 files/66 tests, 브라우저 승인)
 **UI hint**: yes
 
 ### Phase 3: Reader Core (Reading Loop, No Payment)
@@ -527,7 +529,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
-| 2. Studio Core (Writer Loop, No AI) | 12/13 | Reopened — 02-07~12 완료, 02-13 Task 1 완료·실DB/브라우저 게이트 pending(전용 검증 DB 필요) (이전: Complete) | 2026-08-29 (최초) |
+| 2. Studio Core (Writer Loop, No AI) | 13/13 | Complete (재개 보완 02-07~13 완료) | 2026-10-19 (보완), 2026-08-29 (최초) |
 | 3. Reader Core (Reading Loop, No Payment) | 7/7 | Reopened — 청사진 갭(독자 화면 구조·완독 데이터); discuss→research→plan (이전: Complete) | 2026-08-30 (최초) |
 | 4. AI Gateway (Mention-Based Generation) | 6/6 | Reopened (부분) — EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치); plan / ⚙ 모달·게이지 discuss (이전: Complete (live-key UAT pending)) | 2026-08-30 (최초) |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
