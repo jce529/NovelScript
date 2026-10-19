@@ -266,7 +266,16 @@ export function WorldSettings({ ownerState, ownerTreeSlot, resumeDraft = null, t
         </section>
       ) : null}
 
-      {/* Author / reader view */}
+      {/* Author / reader view. An injected tree view (18-11 WorldTreeView) owns its own
+          author/reader switch and server reader preview, so only one switch is shown. */}
+      {ownerTreeSlot ? (
+        <section aria-labelledby="world-preview" className="space-y-3">
+          <h2 id="world-preview" className="text-sm font-semibold">
+            세계수 보기
+          </h2>
+          {ownerTreeSlot}
+        </section>
+      ) : (
       <section aria-labelledby="world-preview" className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <h2 id="world-preview" className="text-sm font-semibold">
@@ -281,8 +290,9 @@ export function WorldSettings({ ownerState, ownerTreeSlot, resumeDraft = null, t
             </Button>
           </div>
         </div>
-        {view === 'owner' ? <OwnerView state={ownerState} slot={ownerTreeSlot} /> : <ReaderPreview preview={preview} onRetry={() => void showReaderPreview()} />}
+        {view === 'owner' ? <OwnerView state={ownerState} /> : <ReaderPreview preview={preview} onRetry={() => void showReaderPreview()} />}
       </section>
+      )}
 
       {/* Delete restriction (WTREE-10) */}
       {showDelete ? (
