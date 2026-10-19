@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { IF_TITLE, ROOT_TITLE, ids, ownerTree, readerNormalTree, readerPrivateRootTree, readerRepublishedTree } from './fixtures';
+import { draftFromTimeline } from '@/lib/world-tree/timeline';
+import {
+  IF_TITLE, ROOT_TITLE, blindParentSummary, draftBranch, eligibleSummary, ids, ifBranch, ownerTree, placements, readerNormalTree,
+  readerPrivateRootTree, readerRepublishedTree, rootBranch, trunkEras,
+} from './fixtures';
 
 // 18-11: reader lore slot, standalone world-tree page and studio entry points.
 // Real browser 4-tab DOM integration and live RPCs are verified in 18-12.
@@ -11,6 +15,10 @@ const m = vi.hoisted(() => ({
   getWorldTree: vi.fn(),
   loadPopularity: vi.fn(),
   work: vi.fn(),
+  getWork: vi.fn(),
+  getState: vi.fn(),
+  getOwnedBranch: vi.fn(),
+  reviewState: vi.fn(),
   refresh: vi.fn(),
   notFound: vi.fn(() => {
     throw new Error('NEXT_NOT_FOUND');
@@ -50,7 +58,7 @@ vi.mock('@/lib/world-tree/metric-adapter', async (orig) => ({
   loadWorldTreePopularity: m.loadPopularity,
 }));
 // Work detail page dependencies (03-08 shell), same doubles as tests/reader/work-detail-shell.
-vi.mock('@/lib/works/actions', () => ({ getPublicWork: m.work, getWork: vi.fn() }));
+vi.mock('@/lib/works/actions', () => ({ getPublicWork: m.work, getWork: m.getWork }));
 vi.mock('@/lib/chapters/actions', () => ({ listPublicChapters: async () => [] }));
 vi.mock('@/lib/reader/subscriptions', () => ({ getSubscriptionState: async () => false }));
 vi.mock('@/lib/reader/bookmarks', () => ({ getBookmarkState: async () => false }));
@@ -79,10 +87,22 @@ vi.mock('@/app/studio/[workId]/world/actions', () => ({
   markBranchNoticeReadAction: vi.fn(),
 }));
 
+vi.mock('@/lib/world-tree/owner', async (orig) => ({
+  ...(await orig<typeof import('@/lib/world-tree/owner')>()),
+  getWorldTreeOwnerState: m.getState,
+  getOwnedBranch: m.getOwnedBranch,
+}));
+vi.mock('@/lib/moderation/actions', () => ({ getReviewPanelStateAction: m.reviewState }));
+vi.mock('@/components/moderation/review-request', () => ({ ReviewRequestPanel: () => React.createElement('div', { 'data-review-panel': '1' }) }));
+
 import WorkDetailPage from '@/app/works/[workId]/page';
 import { TabsContent } from '@/components/ui/tabs';
 import WorldTreePage from '@/app/works/[workId]/world-tree/page';
 import { WorldTreeTab, loadReaderWorldTree } from '@/components/world-tree/world-tree-tab';
+import StudioWorldPage from '@/app/studio/[workId]/world/page';
+import WorkHomePage from '@/app/studio/[workId]/page';
+import { WorldSettings } from '@/components/world-tree/world-settings';
+import { ensureWorldTreeAction } from '@/app/studio/[workId]/world/actions';
 
 type El = { type?: unknown; props?: Record<string, unknown> } | null | undefined;
 
@@ -274,5 +294,173 @@ describe('/works/[workId]/world-tree standalone page', () => {
     m.getWorldTree.mockResolvedValue({ ok: false, code: 'rpc_failed', retryable: true, error: 'x' });
     const html = renderToStaticMarkup(await page());
     expect(html).toContain('다시 불러오기');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task 2: studio world settings page and work home entry links
+// ---------------------------------------------------------------------------
+
+const SID = ids.rootWork;
+const owned = (b: typeof rootBranch) => ({ ...b, requestId: b.status === 'draft' ? ids.requestId : null, createdAt: '2026-10-01T00:00:00.000Z' });
+
+function ownerState(over: Record<string, unknown> = {}) {
+  return {
+    ok: true as const,
+    state: {
+      work: { id: SID, title: ROOT_TITLE },
+      branch: owned(rootBranch),
+      draft: null,
+      timeline: {
+        draft: draftFromTimeline(rootBranch, trunkEras, placements),
+        baseline: { eras: trunkEras, placements: placements.filter((p) => p.branchId === rootBranch.id), forkEraIds: [] },
+      },
+      deletion: { canDelete: false, reason: 'has_children' as const, message: '하위 가지를 먼저 정리해 주세요.' },
+      notices: [],
+      eligibility: { status: 'ok' as const, summary: eligibleSummary },
+      tree: { status: 'ok' as const, mode: 'owner' as const, projection: ownerTree },
+      ...over,
+    },
+  };
+}
+
+const studio = (workId = SID, query: Record<string, string | string[]> = {}) =>
+  StudioWorldPage({ params: Promise.resolve({ workId }), searchParams: Promise.resolve(query) });
+
+describe('/studio/[workId]/world settings page', () => {
+  beforeEach(() => {
+    m.getUser.mockResolvedValue({ data: { user: { id: ids.owner } }, error: null });
+    m.getState.mockResolvedValue(ownerState());
+    m.getOwnedBranch.mockImplementation(async (_s: unknown, input: { workId?: string; branchId?: string }) => {
+      if (input.workId === ids.draftWork) return { ok: true, branch: owned(draftBranch) };
+      if (input.workId === ids.ifWork) return { ok: true, branch: owned(ifBranch) };
+      if (input.branchId === ids.rootBranch) return { ok: true, branch: owned(rootBranch) };
+      return { ok: true, branch: null };
+    });
+  });
+
+  it('redirects anonymous visitors to login', async () => {
+    m.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    await expect(studio()).rejects.toThrow('NEXT_REDIRECT:/login');
+    expect(m.getState).not.toHaveBeenCalled();
+  });
+
+  it("someone else's work cannot enter the settings page and is never initialised", async () => {
+    m.getState.mockResolvedValue({ ok: false, code: 'forbidden', error: 'x', retryable: false });
+    await expect(studio()).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(m.getState).toHaveBeenCalledWith(expect.anything(), { ownerId: ids.owner, workId: SID });
+    expect(ensureWorldTreeAction).not.toHaveBeenCalled();
+  });
+
+  it('an invalid work id is notFound before any lookup', async () => {
+    await expect(studio('nope')).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(m.getState).not.toHaveBeenCalled();
+  });
+
+  it('assembles WorldSettings with the owner WorldTreeView, timeline link and owner-keyed scores', async () => {
+    m.loadPopularity.mockResolvedValue(scored({ [ids.rootWork]: 10, [ids.ifWork]: 70 }));
+    const tree = await studio();
+    const settings = findType(tree, WorldSettings);
+    expect(settings?.props?.timelineHref).toBe(`/studio/${SID}/world/timeline`);
+    expect(settings?.props?.resumeDraft).toBeNull();
+    expect(m.loadPopularity).toHaveBeenCalledWith(expect.anything(), [
+      { nodeType: 'work', nodeKey: ids.rootWork, metrics: ownerTree.branches[0].metrics },
+      { nodeType: 'work', nodeKey: ids.ifWork, metrics: ownerTree.branches[1].metrics },
+    ]);
+    const html = renderToStaticMarkup(tree);
+    expect(html).toContain(`${ROOT_TITLE} 세계관 설정`);
+    expect(html).toContain('작가 보기');
+    expect(html).toContain(`href="/studio/${SID}/world/timeline"`);
+    expect(html).toContain(`href="/studio/${SID}/world#world-branching"`);
+    // One author/reader switch only (the injected tree view owns it).
+    expect(html.match(/>독자 보기</g)).toHaveLength(1);
+    expect(html).not.toContain('data-part="ensure-world-tree"');
+  });
+
+  it('rendering never initialises a tree; revisits do not call ensure', async () => {
+    await studio();
+    await studio();
+    expect(ensureWorldTreeAction).not.toHaveBeenCalled();
+  });
+
+  it('a work with no tree yet gets the owner-only creation entry', async () => {
+    m.getState.mockResolvedValue(ownerState({ branch: null, timeline: null, tree: { status: 'unavailable' } }));
+    const html = renderToStaticMarkup(await studio());
+    expect(html).toContain('data-part="ensure-world-tree"');
+    expect(html).toContain('세계수 만들기');
+    expect(ensureWorldTreeAction).not.toHaveBeenCalled();
+  });
+
+  it('passes the server eligibility summary through: a blinded published parent blocks the start', async () => {
+    m.getState.mockResolvedValue(ownerState({ eligibility: { status: 'ok', summary: blindParentSummary } }));
+    const tree = await studio();
+    const settings = findType(tree, WorldSettings) as { props: { ownerState: { eligibility: unknown } } };
+    expect(settings.props.ownerState.eligibility).toEqual({ status: 'ok', summary: blindParentSummary });
+    const html = renderToStaticMarkup(tree);
+    expect(html).toContain('이 작품은 지금 독자에게 보이지 않아서 가지를 칠 수 없어요.');
+    expect(html).toContain('부모 작품이 독자에게 공개된 상태에서만 가지를 칠 수 있어요.');
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>이 세계관에서 가지 치기<\/button>/);
+  });
+
+  it('a failed eligibility lookup is never treated as eligible', async () => {
+    m.getState.mockResolvedValue(ownerState({ eligibility: { status: 'unavailable', error: 'x', retryable: true } }));
+    const html = renderToStaticMarkup(await studio());
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>이 세계관에서 가지 치기<\/button>/);
+  });
+
+  it('rejects an invalid ?draft= value', async () => {
+    await expect(studio(SID, { draft: 'abc' })).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('rejects a draft the user does not own', async () => {
+    await expect(studio(SID, { draft: '00000000-0000-4000-8000-0000000000ff' })).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('rejects a confirmed branch passed as a draft', async () => {
+    await expect(studio(SID, { draft: ids.ifWork })).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('rejects an owned draft of another source work', async () => {
+    m.getState.mockResolvedValue(ownerState({ work: { id: ids.ifWork, title: IF_TITLE } }));
+    await expect(studio(ids.ifWork, { draft: ids.draftWork })).rejects.toThrow('NEXT_NOT_FOUND');
+  });
+
+  it('resumes an owned draft of this world: the wizard opens on the editing step', async () => {
+    const tree = await studio(SID, { draft: ids.draftWork });
+    const settings = findType(tree, WorldSettings);
+    expect(settings?.props?.resumeDraft).toEqual({ draftWorkId: ids.draftWork, kind: 'if', requestId: ids.requestId });
+    expect(m.getOwnedBranch).toHaveBeenCalledWith(expect.anything(), { ownerId: ids.owner, workId: ids.draftWork });
+    const html = renderToStaticMarkup(tree);
+    expect(html).toContain('id="branch-step-editing"');
+  });
+
+  it('a publish change is re-read on the next request (no cached projection)', async () => {
+    m.getWorldTree.mockResolvedValueOnce(ok('reader', readerPrivateRootTree)).mockResolvedValueOnce(ok('reader', readerRepublishedTree));
+    expect(await tabHtml()).toContain('비공개된 본작 자리');
+    expect(await tabHtml()).toContain(ROOT_TITLE);
+  });
+});
+
+describe('/studio/[workId] work home entry links', () => {
+  beforeEach(() => {
+    m.getUser.mockResolvedValue({ data: { user: { id: ids.owner } }, error: null });
+    m.getWork.mockResolvedValue({ id: SID, title: ROOT_TITLE, synopsis: '소개' });
+    m.reviewState.mockResolvedValue({ status: 'none' });
+  });
+
+  it('keeps the existing home and adds world settings / branch links', async () => {
+    const html = renderToStaticMarkup(await WorkHomePage({ params: Promise.resolve({ workId: SID }) }));
+    expect(html).toContain('data-review-panel');
+    expect(html).toContain(`href="/studio/${SID}/chapters"`);
+    expect(html).toContain(`href="/studio/${SID}/world"`);
+    expect(html).toContain('세계관 설정');
+    expect(html).toContain(`href="/studio/${SID}/world#world-branching"`);
+    expect(html).toContain('이 세계관에서 가지 치기');
+  });
+
+  it('shows no world links for a work the user does not own', async () => {
+    m.getWork.mockResolvedValue(null);
+    const html = renderToStaticMarkup(await WorkHomePage({ params: Promise.resolve({ workId: SID }) }));
+    expect(html).not.toContain('/world');
   });
 });
