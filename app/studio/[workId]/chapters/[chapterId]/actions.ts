@@ -26,6 +26,7 @@ import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decis
 import { DecisionCallError } from '@/lib/ai/decision/errors';
 import { regenerateDocumentWithTemplate, type RegenerateResult } from '@/lib/ai/document-regenerate';
 import { regenerateSchema } from '@/lib/ai/regenerate-contract';
+import { getWorkSystemInstruction, WORK_INSTRUCTION_MAX_LENGTH } from '@/lib/ai/work-instructions';
 import { planCategoryOnly, planFolderAndTemplate } from '@/lib/ai/decision/plan';
 import { recordDocumentSaveDecision, runShadowPlan } from '@/lib/ai/decision/shadow';
 import { MAX_ATTACHMENTS, MAX_ATTACHMENT_CHARS, MAX_IMPORT_FILES, MAX_IMPORT_CHARS, documentNameFromFile } from '@/lib/ai/attachments';
@@ -127,11 +128,36 @@ export interface ChatActionInput {
   chatHistory: ChatTurn[];
   /** D-01: generated once per writer send in AiPanel; resent unchanged on retry. */
   idempotencyKey: string;
+  /** 04-09: freeform-only custom instruction (<= 4000 chars). Never stored. The work instruction is
+   * NOT an input: the server reads it with getWorkSystemInstruction after the ownership check. */
+  customInstruction?: string | null;
 }
 
 // Not exported: 'use server' modules may only export async functions.
+const customInstructionSchema = z.string().max(WORK_INSTRUCTION_MAX_LENGTH).nullable().optional();
+
+/** 04-09: the two instructions for chat()/regenerate, built only from validated input and the
+ * server-read work instruction. Beginner applies neither (no lookup). A lookup error fails closed
+ * before any route resolution, provider call or debit. */
+async function resolveInstructions(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  args: { ownerId: string; workId: string; presetLevel: unknown; customInstruction: string | null | undefined },
+): Promise<{ ok: true; customInstruction: string | null; workSystemInstruction: string } | { ok: false }> {
+  if (args.presetLevel !== 'intermediate' && args.presetLevel !== 'freeform') {
+    return { ok: true, customInstruction: null, workSystemInstruction: '' };
+  }
+  const stored = await getWorkSystemInstruction(supabase, { ownerId: args.ownerId, workId: args.workId });
+  if (!stored.ok) return { ok: false };
+  return {
+    ok: true,
+    customInstruction: args.presetLevel === 'freeform' ? args.customInstruction ?? null : null,
+    workSystemInstruction: stored.instruction,
+  };
+}
+
 const chatActionSchema = z.object({
   idempotencyKey: z.string().uuid(),
+  customInstruction: customInstructionSchema,
   providerId: z.enum(['gemini', 'openai', 'anthropic']),
   model: z.string(),
   keySource: z.enum(['service', 'byok']).optional().default('service'),
@@ -175,7 +201,7 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
 
   const parsed = chatActionSchema.safeParse(input);
   if (!parsed.success) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
-  const work = await supabase.from('works').select('id').eq('id', input.workId).eq('owner_id', user.id).maybeSingle();
+  const work = await supabase.from('works').select('id').eq('id', input.workId).eq('owner_id', user.id).is('deleted_at', null).maybeSingle();
   if (work.error || !work.data) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
   if (parsed.data.chapterId) {
     const chapter = await supabase.from('chapters').select('id').eq('id', parsed.data.chapterId).eq('work_id', input.workId).maybeSingle();
@@ -184,6 +210,11 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     const node = await supabase.from('kb_nodes').select('id').eq('id', parsed.data.nodeId).eq('owner_id', user.id).eq('work_id', input.workId).is('deleted_at', null).maybeSingle();
     if (node.error || !node.data) return { ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
   }
+
+  const instructions = await resolveInstructions(supabase, {
+    ownerId: user.id, workId: input.workId, presetLevel: input.presetLevel, customInstruction: parsed.data.customInstruction,
+  });
+  if (!instructions.ok) return { ok: false, status: 'failed', failureKind: 'unknown', error: CHAT_COPY.unknown };
 
   let route: GenerationRoute;
   try {
@@ -223,6 +254,8 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     chatHistory: input.chatHistory,
     idempotencyKey: parsed.data.idempotencyKey,
     ownerId: user.id,
+    customInstruction: instructions.customInstruction,
+    workSystemInstruction: instructions.workSystemInstruction,
     planning: resolvedPlanning.planning,
     route,
   });
