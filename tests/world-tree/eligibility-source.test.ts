@@ -237,6 +237,40 @@ describe('0033 world-tree eligibility migration (static contract)', () => {
     });
   });
 
+  describe('generated helpers stay internal', () => {
+    it('also closes service_role on the generated policy functions', () => {
+      const sql = outsideGenerated(source());
+      for (const sig of ['world_tree_eligibility_thresholds()', 'world_tree_eligibility_body(text)',
+        'world_tree_eligibility_is_untouched_seed(text, text, text)']) {
+        expect(sql).toContain(`revoke all on function ${sig} from service_role;`);
+        expect(source()).not.toContain(`grant execute on function ${sig}`);
+      }
+    });
+  });
+
+  describe('DB suite presence (run by 18-12, not here)', () => {
+    const DB_SUITE = 'tests/world-tree/eligibility.database.test.ts';
+
+    it('exists as an opt-in suite that applies 0032 and 0033 in an isolated schema', () => {
+      expect(existsSync(DB_SUITE)).toBe(true);
+      const suite = readFileSync(DB_SUITE, 'utf8');
+      // Split literal: vitest.config.ts routes any file containing the env name to the db project.
+      expect(suite).toContain(`describe.skipIf(!process.env.${'SUPABASE_'}DB_URL)`);
+      expect(suite).toContain("'0032_world_tree_schema.sql'");
+      expect(suite).toContain("'0033_world_tree_eligibility.sql'");
+      expect(suite).toMatch(/exec\('rollback'\)/);
+    });
+
+    it('covers the blinded-parent rejection, assert DETAIL, unblind recovery and owner-only access', () => {
+      const suite = readFileSync(DB_SUITE, 'utf8');
+      for (const needle of ["unmetReasons: ['parent_not_visible']", "'branch_ineligible'", 'blindWork(work, null)',
+        "'world_tree_forbidden'", "'writer_required'", "'permission denied'", 'kb_template_seed_catalog',
+        'get_world_branch_eligibility($1, 0)']) {
+        expect(suite).toContain(needle);
+      }
+    });
+  });
+
   describe('scope boundary', () => {
     it('defines no branch RPC, KB trigger or reader projection (0034/0036 own them)', () => {
       const sql = stripComments(outsideGenerated(source()));
