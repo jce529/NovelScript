@@ -30,6 +30,7 @@ import {
   type OwnedBranch,
   type OwnerErrorCode,
 } from '@/lib/world-tree/owner';
+import { loadWorldTreePopularity, type WorldTreePopularityResult } from '@/lib/world-tree/metric-adapter';
 import type { BranchEligibilitySummary, ChildBranchKind, EligibilityUnmetReason } from '@/lib/world-tree/types';
 
 /**
@@ -210,6 +211,28 @@ export async function getReaderPreviewAction(workId: string): Promise<ReaderPrev
   if (result.status === 'unavailable') return result;
   if (result.mode !== 'reader') return failure('invalid_response', WORLD_TREE_QUERY_COPY.invalidResponse);
   return result;
+}
+
+export type ReaderPreviewWithMetricsActionResult =
+  | (Extract<ReaderPreviewActionResult, { mode: 'reader' }> & { metricResult: WorldTreePopularityResult | null })
+  | Exclude<ReaderPreviewActionResult, { mode: 'reader' }>;
+
+/**
+ * 18-11: the reader preview plus the WTREE-08 fruit scores for that same reader projection
+ * (keyed by reader nodeKey). A metric failure keeps the projection with `metricResult: null`.
+ */
+export async function getReaderPreviewWithMetricsAction(workId: string): Promise<ReaderPreviewWithMetricsActionResult> {
+  const result = await getReaderPreviewAction(workId);
+  if (!result.ok || result.status === 'unavailable') return result;
+  if (result.mode !== 'reader') return failure('invalid_response', WORLD_TREE_QUERY_COPY.invalidResponse);
+  let metricResult: WorldTreePopularityResult | null = null;
+  try {
+    const supabase = (await createClient()) as unknown as SupabaseClient;
+    metricResult = await loadWorldTreePopularity(supabase, result.projection.nodes);
+  } catch {
+    metricResult = null;
+  }
+  return { ...result, metricResult };
 }
 
 // ---------------------------------------------------------------------------

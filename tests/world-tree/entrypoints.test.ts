@@ -69,6 +69,7 @@ vi.mock('@/components/reader/report-dialog', () => ({ ReportDialog: () => React.
 vi.mock('@/components/reader/work-chapter-list', () => ({ WorkChapterList: () => null }));
 vi.mock('@/app/studio/[workId]/world/actions', () => ({
   getReaderPreviewAction: vi.fn(),
+  getReaderPreviewWithMetricsAction: vi.fn(),
   ensureWorldTreeAction: vi.fn(),
   getBranchEligibilityAction: vi.fn(),
   beginBranchAction: vi.fn(),
@@ -79,6 +80,7 @@ vi.mock('@/app/studio/[workId]/world/actions', () => ({
 }));
 
 import WorkDetailPage from '@/app/works/[workId]/page';
+import { TabsContent } from '@/components/ui/tabs';
 import WorldTreePage from '@/app/works/[workId]/world-tree/page';
 import { WorldTreeTab, loadReaderWorldTree } from '@/components/world-tree/world-tree-tab';
 
@@ -97,7 +99,7 @@ function walk(node: unknown, visit: (el: NonNullable<El>) => boolean): NonNullab
   if (visit(el)) return el;
   return walk(el.props?.children, visit);
 }
-const findValue = (tree: unknown, value: string) => walk(tree, (el) => el.props?.value === value);
+const findValue = (tree: unknown, value: string) => walk(tree, (el) => el.type === TabsContent && el.props?.value === value);
 const findType = (tree: unknown, type: unknown) => walk(tree, (el) => el.type === type);
 
 const ok = <P,>(mode: 'reader' | 'owner' | 'admin', projection: P) => ({ ok: true as const, status: 'ok' as const, mode, projection });

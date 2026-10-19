@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, BookOpen, EyeOff, Search, Settings2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, EyeOff, Search } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getPublicWork } from '@/lib/works/actions';
 import { listPublicChapters } from '@/lib/chapters/actions';
@@ -17,6 +18,7 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { WorkChapterList } from '@/components/reader/work-chapter-list';
 import { getWorkReadingStats, getWorkViewCount, resolveResumeChapter } from '@/lib/reader/work-detail';
 import { BLINDED_VIEWER_TITLE, BLINDED_WORK_NOTE } from '@/lib/moderation/user-actions';
+import { WorldTreeTab } from '@/components/world-tree/world-tree-tab';
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ workId: string }> }) {
   const { workId } = await params;
@@ -121,11 +123,11 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
             <WorkChapterList workId={workId} chapters={chapters} />
           </TabsContent>
 
-          {/* Phase 18 fills the lore slot; keep the value stable. */}
-          <TabsContent value="lore" className="flex flex-col items-center gap-2 py-16 text-center">
-            <Settings2 className="size-6 text-muted-foreground" />
-            <h3 className="text-xl font-semibold">세계관 준비 중</h3>
-            <p className="text-muted-foreground">곧 작품의 세계관을 만나보실 수 있어요.</p>
+          {/* Phase 18 (18-11) fills the lore slot with the reader world tree; keep the value stable. */}
+          <TabsContent value="lore" className="flex flex-col gap-4 pt-4">
+            <Suspense fallback={<div role="status" aria-label="세계수를 불러오는 중" className="h-[340px] animate-pulse rounded-xl bg-muted" />}>
+              <WorldTreeTab workId={workId} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="reviews" className="flex flex-col items-center gap-2 py-16 text-center">
