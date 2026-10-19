@@ -2,18 +2,18 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useReducer, useRef, useState, useTransition, type CSSProperties } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ArrowLeft, EyeOff, List, Settings, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PublicChapter, PublicChapterListItem } from '@/lib/chapters/actions';
+import { ChapterPurchaseEntry } from '@/components/reader/chapter-purchase-entry';
 import { TocSheet } from '@/components/reader/toc-sheet';
 import { ViewerSettingsPopover } from '@/components/reader/viewer-settings-sheet';
 import { ViewTracker, chapterVisitKey } from '@/components/reader/view-tracker';
 import { useReadingProgress } from '@/components/reader/use-reading-progress';
 import styles from '@/components/reader/viewer.module.css';
-import { purchaseChapterAction, trackChapterOpenAction } from '@/app/works/[workId]/chapters/[chapterId]/actions';
+import { trackChapterOpenAction } from '@/app/works/[workId]/chapters/[chapterId]/actions';
 import { toggleSubscriptionAction } from '@/app/works/[workId]/actions';
 import { UNAVAILABLE_CONTENT_MESSAGE } from '@/lib/access/actions';
 import { viewerLockModel } from '@/lib/moderation/user-actions';
@@ -50,18 +50,14 @@ export function ViewerShell({
 }) {
   const [chrome, dispatch] = useReducer(chromeReducer, INITIAL_CHROME);
   const [preferences, setPreferences] = useState(initialPreferences);
-  const [purchasing, startPurchase] = useTransition();
-  const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [subscribing, startSubscribe] = useTransition();
   // undefined = open snapshot not back yet; null = opened without a snapshot.
   const [openState, setOpenState] = useState<ChapterReadingState | null | undefined>(undefined);
-  const purchaseKey = useRef<{ chapterId: string; key: string } | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const interacted = useRef(false);
-  const router = useRouter();
   // D-13: blind wins over entitlement and payment; only purchase_required may show a purchase CTA.
   const lock = viewerLockModel(chapter);
   const readable = lock.kind === 'content';
@@ -126,23 +122,6 @@ export function ViewerShell({
       if (timer !== null) window.clearTimeout(timer);
     };
   }, [showEnd, chapter.id]);
-
-  function purchase() {
-    if (!purchaseKey.current || purchaseKey.current.chapterId !== chapter.id) {
-      purchaseKey.current = { chapterId: chapter.id, key: crypto.randomUUID() };
-    }
-    const key = purchaseKey.current.key;
-    startPurchase(async () => {
-      setPurchaseError(null);
-      try {
-        const result = await purchaseChapterAction(chapter.id, key);
-        if (result.ok) router.refresh();
-        else setPurchaseError(result.error ?? '구매를 완료하지 못했어요.');
-      } catch {
-        setPurchaseError('연결을 확인하고 다시 시도해주세요.');
-      }
-    });
-  }
 
   function onBodyPointerDown(e: React.PointerEvent) {
     pointerStart.current = { x: e.clientX, y: e.clientY };
@@ -276,9 +255,8 @@ export function ViewerShell({
               <h3 className="text-xl font-semibold">유료 회차</h3>
               <p className="text-muted-foreground">{chapter.priceTier} 토큰으로 이 회차를 소장할 수 있어요.</p>
               {loggedIn ? (
-                <Button disabled={purchasing} onClick={purchase}>{purchasing ? '구매 처리 중…' : `${chapter.priceTier} 토큰으로 소장`}</Button>
+                <ChapterPurchaseEntry chapterId={chapter.id} priceTier={chapter.priceTier} source="viewer" />
               ) : <Link href="/login" className="underline">로그인하고 구매하기</Link>}
-              {purchaseError && <p role="alert" className="text-sm text-destructive">{purchaseError}</p>}
             </div>
           )}
         </div>

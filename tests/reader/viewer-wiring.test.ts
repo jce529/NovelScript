@@ -37,7 +37,8 @@ vi.mock('@/app/works/[workId]/chapters/[chapterId]/actions', () => ({
   trackChapterOpenAction: vi.fn(),
 }));
 vi.mock('@/app/works/[workId]/actions', () => ({ toggleSubscriptionAction: hoisted.toggle }));
-vi.mock('@/lib/access/actions', () => ({ UNAVAILABLE_CONTENT_MESSAGE: '볼 수 없는 회차예요.' }));
+vi.mock('@/components/payment/token-topup-provider', () => ({ useTokenTopup: () => ({ openTopup: () => {} }) }));
+vi.mock('@/lib/access/actions',() => ({ UNAVAILABLE_CONTENT_MESSAGE: '볼 수 없는 회차예요.' }));
 vi.mock('@/components/reader/use-reading-progress', () => ({
   useReadingProgress: (o: Record<string, unknown>) => {
     hoisted.progressOptions.push(o);

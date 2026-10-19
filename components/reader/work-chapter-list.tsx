@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ChapterPurchaseEntry } from '@/components/reader/chapter-purchase-entry';
 import { TocBadge } from '@/components/reader/toc-sheet';
 import { paginateChapters } from '@/lib/reader/work-detail';
 import type { PublicChapterListItem } from '@/lib/chapters/actions';
@@ -33,11 +34,14 @@ export function WorkChapterList({ workId, chapters }: { workId: string; chapters
     <div className="flex flex-col gap-3">
       <ul className="flex flex-col divide-y divide-border">
         {view.items.map((chapter) => (
-          <li key={chapter.id}>
-            <a href={`/works/${workId}/chapters/${chapter.id}`} className="flex h-11 items-center gap-2 px-1 text-sm">
+          <li key={chapter.id} id={`chapter-${chapter.id}`} className="flex flex-wrap items-center justify-between gap-2">
+            <a href={`/works/${workId}/chapters/${chapter.id}`} className="flex h-11 min-w-0 flex-1 items-center gap-2 px-1 text-sm">
               <span>{chapter.orderIndex + 1}화 {chapter.title}</span>
               <TocBadge chapter={chapter} />
             </a>
+            {chapter.state === 'purchase_required' && (
+              <ChapterPurchaseEntry chapterId={chapter.id} priceTier={chapter.priceTier} source="work-detail" compact />
+            )}
           </li>
         ))}
       </ul>
