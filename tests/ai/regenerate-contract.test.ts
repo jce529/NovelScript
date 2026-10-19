@@ -24,4 +24,31 @@ describe('document regeneration UI payload contract', () => {
     });
     expect(regenerateSchema.safeParse(payload).success).toBe(true);
   });
+
+  it.each([
+    ['text', 'CUSTOM: 현재형'],
+    ['4000 chars', 'a'.repeat(4000)],
+    ['null', null],
+  ])('04-09: preserves an optional customInstruction (%s)', (_label, customInstruction) => {
+    const payload = buildRegeneratePayload({ ...base, idempotencyKey: '22222222-2222-4222-8222-222222222222', presetLevel: 'freeform', customInstruction });
+    expect(payload.customInstruction).toBe(customInstruction);
+    const parsed = regenerateSchema.safeParse(payload);
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.customInstruction).toBe(customInstruction);
+  });
+
+  it.each([
+    ['4001 chars', 'a'.repeat(4001)],
+    ['number', 7],
+  ])('04-09: rejects customInstruction %s', (_label, customInstruction) => {
+    const payload = { ...base, idempotencyKey: '22222222-2222-4222-8222-222222222222', customInstruction };
+    expect(regenerateSchema.safeParse(payload).success).toBe(false);
+  });
+
+  it('04-09: strips a client-sent workSystemInstruction/ownerId', () => {
+    const parsed = regenerateSchema.safeParse({ ...base, idempotencyKey: '22222222-2222-4222-8222-222222222222', workSystemInstruction: 'FORGED', ownerId: 'attacker' });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data).not.toHaveProperty('workSystemInstruction');
+    expect(parsed.data).not.toHaveProperty('ownerId');
+  });
 });
