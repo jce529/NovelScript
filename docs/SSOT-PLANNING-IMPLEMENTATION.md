@@ -1,6 +1,6 @@
 # NovelScript 기획·구현 통합 SSOT
 
-최종 대조일: 2026-10-10 (최종 청사진 결정 절 추가; v1.1 절·Phase 11/16/17·LEGAL·마이그레이션 번호 갱신; v1 매트릭스는 2026-10-01 판정 유지)  
+최종 대조일: 2026-10-19 (재개 보완 plan 실행 결과 반영: Phase 2 검증 통과, 3·4·5·7·10·11·16·18 코드 완료·검증 대기, 마이그레이션 `0022`~`0036`; v1 매트릭스의 나머지 행은 2026-10-01 판정 유지)  
 Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 
 ## 문서의 역할
@@ -39,23 +39,23 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 인증 | AUTH-01 소셜 로그인 | 구현됨 | Supabase OAuth, `/login`, `/auth/callback`; Kakao scope 이슈 해결 기록 |
 | 인증 | AUTH-02 단일 계정의 독자/작가 역할 | 구현됨 | `/write/start`, writer upgrade action |
 | 인증 | AUTH-03 세션 유지 | 구현됨 | Supabase SSR와 `proxy.ts` 세션 갱신 |
-| KB | KB-01 5종 템플릿 문서 CRUD | 부분 구현 (청사진 갭 재개) | 청사진 갭: 기본 템플릿 읽기 전용·사본 규칙 불일치. 기존: 인물/장소/사건/세력/아이템 템플릿과 KB actions |
-| KB | KB-02 작품별 IDE형 트리 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 우클릭 이름 바꾸기·패널 접기 없음. 기존: Studio KB tree와 잠금 구조 폴더 |
+| KB | KB-01 5종 템플릿 문서 CRUD | 구현됨 | 2026-10-19 재개 보완(02-07~13): 기본 템플릿 5종 읽기 전용·사본 만들어 수정·영역 내 이름 유일성. 마이그레이션 `0022`·`0023`을 일회용 DB에서 이관·재실행 10/10, `--project db` 66개 통과, 브라우저 UAT 통과. 실제 터치 기기 길게 누르기는 수용(미검증) |
+| KB | KB-02 작품별 IDE형 트리 | 구현됨 | 2026-10-19 재개 보완: 템플릿 섹션·접이식 트리·우클릭/길게 누르기 메뉴·좌우 패널 접기·저장 상태 칩. 일회용 DB·브라우저 UAT 통과(BUG-02·03 수정). AI 응답 진행 중 접기는 키 없이 미검증 |
 | KB | KB-03 사용자 정의 폴더 | 구현됨 | migration `0004`, `createFolder`, 중첩 폴더 UI |
 | KB | KB-04 계정 공유 폴더 | 구현됨 | work/account scope 분리 및 교차 작품 멘션 |
 | KB | KB-05 회차 폴더 트리 | 구현됨 | 고정 회차 폴더, `chapters.folder_id`, 하위 폴더 |
 | AI | EDIT-01 `@` 멘션 검색 | 구현됨 | mention search/autocomplete/quick-add |
 | AI | EDIT-02 컨텍스트 문서 목록 | 구현됨 | AI panel chip list |
-| AI | EDIT-03 3단계 프리셋 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 자유형 지시 입력 없음. 기존: 초보자/중급자/자유형 및 자유 입력 |
+| AI | EDIT-03 3단계 프리셋 | 부분 구현 (코드 완료·검증 대기) | 자유형 지시 입력과 작품 시스템 지시를 서버가 읽어 프롬프트에 전달(04-09·04-10, `0026` 미적용). 실제 제공자 키·실DB·브라우저는 04-12에서 확인 |
 | AI | EDIT-04 Gemini 생성 후 캔버스 삽입 | 부분 구현 | 코드·mock 테스트·일부 실연동 근거는 있으나 현재 STATE는 실제 키 기반 전체 흐름 재검증을 요구 |
 | AI | EDIT-05 생성 전 비용 추정 | 부분 구현 | 추정 및 실제 사용량 차감 코드 존재; 실제 키/실잔액 정확도 검증 미완료. 같은 지갑의 유료 생성은 한 번에 하나(지갑별 lease `ai_generation_locks`, 0021)이며 공급자 호출 120초 상한·lease TTL 180초 |
 | 콘텐츠 | CONT-01 회차 초안 생성/저장 | 구현됨 | chapter actions와 편집 UI. 순번 부여는 `create_chapter_atomic` RPC(0020)로 원자화해 동시 생성도 연속 순번(2026-10-02) |
 | 콘텐츠 | CONT-02 무료/유료 발행 | 구현됨 | 발행 상태와 0/10/30/50/100 가격 tier |
 | 콘텐츠 | CONT-03 수정/발행 취소 | 구현됨 | ownership guard와 unpublish flow |
-| 독자 | READ-01 디스커버리 피드 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 랭킹 기준이 완독률·연독률이 아님. 기존: 조회·좋아요 중심 간소화 점수; 정밀 완독률은 제외 |
+| 독자 | READ-01 디스커버리 피드 | 부분 구현 (코드 완료·검증 대기) | 독자 헤더 2단·홈 4구역(03-09·03-10) 구현. 랭킹 기준(완독률·연독률)은 집계 중 표시이며 정밀 지표는 별도. 03-19 실DB·브라우저 대기 |
 | 독자 | READ-02 뷰어/이전·다음/목차 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 뷰어 chrome·경계 처리·댓글 버튼 없음. 기존: ViewerPage와 TOC |
 | 독자 | READ-03 글꼴/테마 설정 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 설정 5항목·저장 없음. 기존: viewer settings |
-| 독자 | READ-04 이어보기 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 스크롤 위치 진도·완독 판정 없음. 기존: reading progress와 recently-read |
+| 독자 | READ-04 이어보기 | 부분 구현 (코드 완료·검증 대기) | 스크롤 위치 진도·서버 완독 판정(`0024`·`0025`, 03-11~16) 구현, 두 마이그레이션 미적용. 03-19 실DB·브라우저 대기 |
 | 독자 | READ-05 작품/회차 신고 | 구현됨 | report dialog와 reports table |
 | 독자 | READ-07 새 회차 알림 구독 상태 | 구현됨 | 구독 toggle 저장(`toggle_work_subscriptions` RPC, 0019); 실제 알림 전달 채널은 미정 |
 | 독자 | READ-08 선호작 저장 | 구현됨 | bookmark toggle(`toggle_work_bookmarks` RPC, 0019); 좋아요와 별개. 좋아요·구독·북마크 토글은 DB에서 원자 반전하고 오류는 `ok: false`로 전달, 진행 중 버튼 비활성(브라우저 확인 대기) |
@@ -65,7 +65,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 결제 | PAY-03 webhook 검증 후에만 적립 | 미구현 | Phase 5 확정 흐름 미실행; 클라이언트 redirect 적립 금지 원칙 확정 |
 | 관리자 | ADMIN-01 신고 큐 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 탭 4개·`전체` 필터 없음. 기존: Phase 7 완료(2026-09-17), 실DB·브라우저 UAT 통과 |
 | 관리자 | ADMIN-02 회차 blind/unpublish | 부분 구현 (청사진 갭 재개) | 청사진 갭: 해제 공개 알림 없음. 기존: Phase 7, `0009_blind_access` 접근 차단 포함 |
-| 관리자 | ADMIN-03 경고/정지/차단과 이력 | 부분 구현 (청사진 갭 재개) | 청사진 갭: 프리셋·조기 해제·제재 이력 없음. 기존: Phase 7, 제재 집행 `0008_sanction_enforcement`. 경고 확인 유지·정지 사용자 화면 2건은 브라우저 재확인 필요 |
+| 관리자 | ADMIN-03 경고/정지/차단과 이력 | 부분 구현 (코드 완료·검증 대기) | 제재 이력 탭·1/7/30일 프리셋·조기 해제·기간 변경(`0029`, 07-08~11) 구현, 미적용. 07-15 실DB·브라우저 대기. 경고 확인 유지·정지 사용자 화면 2건은 브라우저 재확인 필요 |
 | 관리자 | ADMIN-04 신고 해결/기각 | 구현됨 | Phase 7 |
 
 집계: **구현됨 26 / 부분 구현 3 / 미구현 2 = v1 총 31개**.
@@ -77,7 +77,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 영역 | 상태 |
 | --- | --- |
 | PROV-01~04, 07 (어댑터·OpenAI·Anthropic·기본 제공자·단가) | 완료 (Phase 8~10). 라이브 호출·브라우저 UAT 통과 |
-| PROV-05 (피커는 호출 가능한 모델만) | 부분 구현 — Phase 10 재개(청사진 갭): 서비스 키 없는 모델이 피커에 노출(BUG-03), `failed` 키 하나가 BYOK 모델 목록 전체를 비우는 결함(`byok-models.ts`) |
+| PROV-05 (피커는 호출 가능한 모델만) | 부분 구현 (코드 완료·검증 대기) — Phase 10 재개 보완: 서비스 키 없는 모델은 피커에서 숨기지 않고 비활성 표시, 호출 경로도 서버 키 없으면 거부(10-07~09). `failed` 키 하나가 BYOK 목록 전체를 비우던 결함은 별도 확인. 10-10 UAT 대기 |
 | BYOK-01~04 (키 등록·검증·마스킹·삭제) | 완료 (Phase 10). Vault 보관, 계정 삭제 시 시크릿 정리(0015_byok_secret_cleanup) |
 | COST-01 | 완료 (Phase 8, 멱등 차감) |
 | PROV-06, BYOK-05~09, COST-02 | 부분 구현(COST-02는 서비스 경로 0원 원장 행으로 미충족, Phase 11 재개) — 코드 완료(Phase 11, 11-01~07, `0018_ai_usage`), `11-VERIFICATION` human_needed: 브라우저 UAT 6건·잔액 0 BYOK 실호출 확인 대기 |
@@ -85,7 +85,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | AIDOC-01~04 | 코드 완료(Phase 15), 활성화 보류·브라우저 UAT 대기 |
 | STUDIO-01~04 (BYOK 요약·설정 문서 AI·파일 업로드·모바일) | 코드 완료(Phase 16, GSD 밖 구현), Jev·브라우저·모바일 실사용 검증 대기. Phase 16 재개: STUDIO-04는 청사진 모바일 하단 탭·통합 설정 허브와 16-CONTEXT 결정이 충돌 |
 | BUGFIX-01~05 | 미구현 — Phase 17 계획 전(`17-CONTEXT.md`만 존재) |
-| WTREE-01~08, 10 (세계수: 연표·가지 치기·세계수 보기·발행 기반 공개·부러진 가지·크기 산식·삭제 규칙) | 미구현 — Phase 18 (설계 확정 2026-10-12, `UI-SPEC` 작성 전). 근거: `.planning/design/WORLD-TREE.md` |
+| WTREE-01~08, 10 (세계수: 연표·가지 치기·세계수 보기·발행 기반 공개·부러진 가지·크기 산식·삭제 규칙) | 부분 구현 (코드 완료·검증 대기) — Phase 18: 연표·가지 치기·세계수 보기·발행 기반 공개·부러진 가지·크기 산식·삭제 규칙을 18-01~11·13·14로 구현(`0032`~`0036` 미적용, 단위 테스트만 통과). 18-12 실DB·브라우저 대기. 근거: `.planning/design/WORLD-TREE.md` |
 | WTREE-09, 11~13 (스포일러 잠금 가지 확장·스토어 편입·환불·운영 검토) | 유예 — WTREE-09는 READ-06 Lore 위키 phase, 11~13은 스토어 보류 해제 후 |
 | LEGAL-01~04 (변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지) | 미착수 — 로드맵 "Launch Gate", phase 아님. 공개 출시 전 조건 |
 
@@ -151,7 +151,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
-- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다.
+- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다. 2026-10-19 기준 최신은 `0036_world_tree_reader_visibility`다. `0022`·`0023`(Phase 2 템플릿)은 일회용 DB에서 검증됐고, `0024`~`0027`·`0029`·`0030`·`0032`~`0036`은 파일만 있고 어떤 DB에도 적용·실행되지 않았다. `0028`·`0031`은 의도적 결번이다. 공유 프로젝트 적용 전에 일회용 DB에서 먼저 검증한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`

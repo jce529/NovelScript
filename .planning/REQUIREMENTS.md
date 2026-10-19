@@ -13,8 +13,8 @@
 
 ### Knowledge Base (KB)
 
-- [ ] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
-- [ ] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
+- [x] **KB-01**: Writer can create, edit, and delete KB documents across 5 templates (인물/장소/사건/세력/아이템)
+- [x] **KB-02**: Writer can browse their KB documents in an IDE-style folder/file tree, organized by template type (인물/장소/사건/세력/아이템), scoped per work (amended in Phase 2 discussion — see `.planning/phases/02-studio-core-writer-loop-no-ai/02-CONTEXT.md`; supersedes the original "flat, filterable list" framing)
 - [x] **KB-03**: Writer can create new folders (not just documents) at any point in the KB tree except the two root containers themselves (the work root and the account-shared root) — including brand-new user-defined top-level folders directly under a work or under the account-shared space, with no template auto-applied to user-defined folders (added in Phase 04.1 discussion — see `.planning/phases/04.1-kb/04.1-CONTEXT.md`)
 - [x] **KB-04**: The account-level KB space is a "계정 공유 폴더" root containing multiple top-level shared folders (the existing `template` folder plus any user-created shared folders, e.g. world-bible content meant to be reused across works); every document inside it is mentionable (`@`) from any of the writer's works, one-directionally (added in Phase 04.1 discussion)
 - [x] **KB-05**: 회차(chapters) appear as a fixed, locked "회차" folder inside each work's KB tree (alongside template/인물/장소/사건/세력/아이템), and writers can create sub-folders inside it to organize episodes (e.g. story arcs); individual chapter items keep all existing fields/behavior (title, draft/publish state, price tier, view count) unchanged — chapters remain a distinct, non-mentionable content type, not merged into generic KB documents (added in Phase 04.1 discussion)
@@ -216,33 +216,33 @@ Explicitly excluded. Documented to prevent scope creep.
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
-| KB-01 | Phase 2 | Reopened (청사진 갭: 기본 템플릿 읽기 전용·사본 규칙 불일치; 이전: Complete) |
-| KB-02 | Phase 2 | Reopened (청사진 갭: 우클릭 이름 바꾸기·패널 접기 없음; 이전: Complete) |
+| KB-01 | Phase 2 | Complete (Phase 2 재개 보완 02-07~13: 일회용 DB·브라우저 UAT 통과 2026-10-19) |
+| KB-02 | Phase 2 | Complete (Phase 2 재개 보완 02-07~13: 일회용 DB·브라우저 UAT 통과 2026-10-19) |
 | KB-03 | Phase 04.1 | Complete |
 | KB-04 | Phase 04.1 | Complete |
 | KB-05 | Phase 04.1 | Complete |
 | EDIT-01 | Phase 4 | Complete |
 | EDIT-02 | Phase 4 | Complete |
-| EDIT-03 | Phase 4 | Reopened (청사진 갭: 자유형 지시 입력 없음; 이전: Complete) |
+| EDIT-03 | Phase 4 | Code complete (04-12 실제 키·브라우저 pending; 자유형 지시 입력·서버 전달 구현 04-09·04-10) |
 | EDIT-04 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
 | EDIT-05 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
 | CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
 | CONT-03 | Phase 2 | Complete |
-| READ-01 | Phase 3 | Reopened (청사진 갭: 랭킹 기준이 완독률·연독률이 아님; 이전: Complete) |
-| READ-02 | Phase 3 | Reopened (청사진 갭: 뷰어 chrome·경계 처리·댓글 버튼 없음; 이전: Complete) |
-| READ-03 | Phase 3 | Reopened (청사진 갭: 설정 5항목·저장 없음; 이전: Complete) |
-| READ-04 | Phase 3 | Reopened (청사진 갭: 스크롤 위치 진도·완독 판정 없음; 이전: Complete) |
+| READ-01 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
+| READ-02 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
+| READ-03 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
+| READ-04 | Phase 3 | Code complete (0024·0025 미적용; 03-19 실DB·브라우저 pending) |
 | READ-05 | Phase 3 | Complete |
 | READ-07 | Phase 3 | Complete |
 | READ-08 | Phase 3 | Complete |
 | READ-09 | Phase 3 | Complete |
-| PAY-01 | Phase 5 | Mapped |
+| PAY-01 | Phase 5 | Code complete (05-07 Toss 샌드박스·실DB pending; 충전은 웹훅 전용) |
 | PAY-02 | Phase 6 | Reopened (청사진 갭: 대여·정주행·소장함 없음; 이전: Complete (DB tests passed 2026-10-01; browser E2E pending)) |
-| PAY-03 | Phase 5 | Mapped |
-| ADMIN-01 | Phase 7 | Reopened (청사진 갭: 탭 4개·`전체` 필터 없음; 이전: Complete) |
-| ADMIN-02 | Phase 7 | Reopened (청사진 갭: 해제 공개 알림 없음; 이전: Complete) |
-| ADMIN-03 | Phase 7 | Reopened (청사진 갭: 프리셋·조기 해제·제재 이력 없음; 이전: Complete) |
+| PAY-03 | Phase 5 | Code complete (05-07 Toss 샌드박스·실DB pending) |
+| ADMIN-01 | Phase 7 | Code complete (07-15 실DB·브라우저 pending) |
+| ADMIN-02 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
+| ADMIN-03 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
 | ADMIN-04 | Phase 7 | Complete |
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
@@ -253,7 +253,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | PROV-02 | Phase 9 | Complete |
 | PROV-03 | Phase 9 | Complete |
 | PROV-04 | Phase 9 | Complete |
-| PROV-05 | Phase 10 | Reopened (청사진 갭: 서비스 키 없는 모델 노출; 이전: Complete) |
+| PROV-05 | Phase 10 | Code complete (10-10 UAT pending; 서비스 키 없는 모델은 비활성 표시) |
 | PROV-06 | Phase 11 | Code complete (browser UAT pending) |
 | PROV-07 | Phase 9 | Complete |
 | BYOK-01 | Phase 10 | Complete |
@@ -266,7 +266,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-08 | Phase 11 | Code complete (browser UAT pending) |
 | BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
-| COST-02 | Phase 11 | Reopened (청사진 갭: 서비스 경로 0원 원장 행; 이전: Code complete (browser UAT pending)) |
+| COST-02 | Phase 11 | Code complete (0030 미적용; 11-12 실DB 회귀 pending) |
 | MCP-01 | Phase 12 | Mapped |
 | MCP-02 | Phase 13 | Mapped |
 | MCP-03 | Phase 13 | Mapped |
@@ -283,22 +283,22 @@ Explicitly excluded. Documented to prevent scope creep.
 | STUDIO-01 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-02 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-03 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
-| STUDIO-04 | Phase 16 | Reopened (청사진 갭: 청사진 모바일 하단 탭과 결정 충돌; 이전: Complete (live Jev/browser/mobile verification pending)) |
+| STUDIO-04 | Phase 16 | Code complete (16-03 브라우저 UAT pending; 계정·AI 설정 페이지 범위 충돌 미결) |
 | BUGFIX-01 | Phase 17 | Not started |
 | BUGFIX-02 | Phase 17 | Mostly fixed (fixed/15-03·15-04 2026-10-02; 잔여 검증·문서 갱신) |
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
-| WTREE-01 | Phase 18 | Not started |
-| WTREE-02 | Phase 18 | Not started |
-| WTREE-03 | Phase 18 | Not started |
-| WTREE-04 | Phase 18 | Not started |
-| WTREE-05 | Phase 18 | Not started |
-| WTREE-06 | Phase 18 | Not started |
-| WTREE-07 | Phase 18 | Not started |
-| WTREE-08 | Phase 18 | Not started |
+| WTREE-01 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-02 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-03 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-04 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-05 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-06 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-07 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-08 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
 | WTREE-09 | Deferred (READ-06 Lore 위키·스포일러 잠금 phase에서 함께) | Defined |
-| WTREE-10 | Phase 18 | Not started |
+| WTREE-10 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
 | WTREE-11 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-12 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-13 | Deferred (스토어 보류 해제 후) | Defined |
@@ -312,7 +312,7 @@ Explicitly excluded. Documented to prevent scope creep.
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
 - 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
-- Reopened(청사진 갭): KB-01·02, EDIT-03, READ-01~04, PAY-02, ADMIN-01~03, PROV-05, COST-02, STUDIO-04 (체크박스 해제, 구현·검증 기록은 유효)
+- Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
