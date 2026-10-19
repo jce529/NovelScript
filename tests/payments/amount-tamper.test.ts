@@ -124,7 +124,7 @@ describe('Toss success return amount validation', () => {
   });
 
   it('rejects malformed return parameters without looking anything up at Toss', async () => {
-    for (const params of [
+    for (const params of <Array<Record<string, string>>>[
       { orderId: 'ns_order_123', amount: '2850' },
       { paymentKey: 'pk_test', orderId: 'ns_order_123', amount: 'abc' },
       { paymentKey: 'pk_test', orderId: 'ns_order_123', amount: '2850.0' },
