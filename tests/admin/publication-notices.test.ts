@@ -176,3 +176,28 @@ describe('publication notices (07-12)', () => {
     expect(await acknowledgePublicationNotificationAction(N1)).toEqual({ ok: true });
   });
 });
+
+describe('publication notice item (07-12 UI)', () => {
+  it('renders safe copy and correct internal links without moderation wording', async () => {
+    const { createElement } = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { PublicationNoticeItem, publicationNoticeText, publicationNoticeHref } =
+      await import('../../components/moderation/account-notices');
+    const work = { id: N1, workId: WORK, chapterId: null, title: '<b>작품 A</b>', createdAt: '2026-10-01T00:00:00Z' };
+    const chapter = { id: N2, workId: WORK, chapterId: CHAPTER, title: '작품 A · 1화', createdAt: '' };
+
+    expect(publicationNoticeText(work)).toBe('<b>작품 A</b> 공개');
+    expect(publicationNoticeText(chapter)).toBe('작품 A · 1화 회차 공개');
+    expect(publicationNoticeHref(work)).toBe(`/works/${WORK}`);
+    expect(publicationNoticeHref(chapter)).toBe(`/works/${WORK}/chapters/${CHAPTER}`);
+
+    const html = renderToStaticMarkup(createElement(PublicationNoticeItem, { notice: work, onAcknowledged: () => {} }));
+    expect(html).toContain('&lt;b&gt;작품 A&lt;/b&gt; 공개');
+    expect(html).not.toContain('<b>');
+    expect(html).toContain(`href="/works/${WORK}"`);
+    expect(html).toContain('확인했습니다');
+    for (const forbidden of ['블라인드', '숨김', '사유', '신고', '메모']) expect(html).not.toContain(forbidden);
+    const chapterHtml = renderToStaticMarkup(createElement(PublicationNoticeItem, { notice: chapter, onAcknowledged: () => {} }));
+    expect(chapterHtml).toContain(`href="/works/${WORK}/chapters/${CHAPTER}"`);
+  });
+});
