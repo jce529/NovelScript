@@ -131,6 +131,24 @@ UAT 중 발견·수정한 결함:
 
 ---
 
+## Reopen 보완 검증 매핑 (10-07 ~ 10-10, BUG-03)
+
+위 2026-09-30 기록은 역사적 통과 증거로 보존한다. 아래는 Reopen 이후 현재 증거다.
+
+| Plan | 검증 | 자동 명령 (--project unit) | 상태 |
+|------|------|-----------------------------|------|
+| 10-07 | 순수 선택 계약·서버 키 가드·가용성 액션·registry 선거부 | `tests/ai/provider-selection.test.ts tests/ai/service-availability.test.ts tests/ai/model-availability-action.test.ts tests/ai/provider-fixture.test.ts` | 통과 (10-07-SUMMARY) |
+| 10-08 | ModelPicker 비활성 렌더·useServiceAvailability fail-closed | `tests/ai/model-picker.test.ts` | 통과 (10-08-SUMMARY) |
+| 10-09 | 실제 resolveGenerationRoute→createPlatformProvider 경계의 키 없는 service 거부(fixture off/on/slow), BYOK 비차단, 키 누출 없음 | `tests/ai/service-key-route.test.ts tests/ai/service-availability.test.ts tests/ai/model-picker.test.ts tests/ai/byok-generation.test.ts` | 통과 (7 files / 100 tests, 설정 UI·actions·provider-settings 포함) |
+| 10-10 | 패널 연결(04-10 선행)·UAT 10/11·실DB/Vault·전체 게이트 | `npm test`(실DB 포함), 브라우저 UAT | **미실행** |
+
+- fixture 케이스: 3사 x (fixture 없음 / `slow` / `off`) 빈 키 -> `API_KEY_MISSING`(config); 실제 키가 있는 development fixture는 고정 응답.
+- 서비스 키 없는 기본값: 모든 service 항목 비활성(fail closed). 키 없음 + BYOK 연결 시 BYOK 항목만 활성.
+- 기존 UAT 10(검증 실패 상태)·11(등록/피커 키보드)은 여전히 미확인이며 10-10 대상이다. skip은 검증이 아니다.
+- 실DB(byok-db) 회귀와 전체 `npm test`/tsc/lint는 이 plan에서 실행하지 않았다(10-10).
+
+---
+
 ## Manual-Only Verifications
 
 | Behavior | Requirement | Why Manual | Test Instructions |

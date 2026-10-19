@@ -2,7 +2,8 @@
 phase: 10-byok
 verified: 2026-09-30T00:00:00Z
 documented: 2026-10-04
-status: passed
+status: human_needed
+historical_status: "passed (2026-09-30, Reopen 이전)"
 score: 4/4 success criteria verified (코드 + 라이브 프로브 + 브라우저 UAT 1~9단계)
 residual:
   - item: "UAT 10단계 — 검증 실패 상태 화면"
@@ -18,6 +19,20 @@ source: "이 문서는 10-06-SUMMARY.md, 10-VALIDATION.md 실행 결과·UAT 기
 
 **목표:** 작가가 자신의 API 키를 플랫폼에 맡기고, 키 검증이 돌려준 모델 목록이 곧 피커가 보여주는 "실제 쓸 수 있는 모델"이 된다 — 누가 비용을 내는지가 선택 시점에 보인다.
 **상태:** passed (4/4 성공 기준 충족). 잔여 3건은 위 frontmatter 참조 — 기준 충족을 막는 갭은 아니다.
+
+## Reopen 보완 (2026-10, BUG-03 / 10-07 ~ 10-10)
+
+**현재 상태: human_needed.** 아래 `passed`/`VERIFIED` 기록은 2026-09-30 시점의 역사적 증거이며, Reopen 이후의 PROV-05 현재 증거와 분리한다. (코드 실패나 외부 연결 미완료가 확인되면 `gaps_found`로 바꾼다. 현재는 알려진 코드 실패 없음.)
+
+| 항목 | 현재 증거 | 상태 |
+|---|---|---|
+| 키 없는 service 호출 거부 (fixture 포함) | 10-07 registry 가드, 10-09 `tests/ai/service-key-route.test.ts` (실제 registry 경계, 100/100 관련 테스트 통과) | 코드 확인 |
+| 피커 비활성+안내 계약 | 10-07 `buildModelChoices`, 10-08 ModelPicker/hook 테스트 | 코드 확인 |
+| AiPanel 소비 (04-10/04-11) | 이 plan에서 확인하지 않음 | 미검증 -> 10-10 |
+| UAT 10 (검증 실패 상태), UAT 11 (등록/피커 키보드) | 실행 안 됨 | 미검증 -> 10-10 |
+| 실DB/Vault 회귀, 전체 npm test/tsc/lint | 실행 안 됨 (알려진 baseline: app/layout.tsx LayoutProps 타입, provider-fixture drop-response) | 미검증 -> 10-10 |
+
+PROV-05의 이전 VERIFIED 결론은 "서비스 키 없는 모델 노출"이라는 갭 때문에 Reopen되었다. 10-10의 UAT 전에는 Phase 10 완료를 주장하지 않는다. 서비스 키의 실제 계정 권한/쿼터는 여전히 실시간 검증하지 않는다. BUG-01 aa5ee95 수정은 역사로만 참조한다.
 
 ## 자동 검증 (2026-09-30, Plan 06 Task 1)
 | 게이트 | 결과 |
