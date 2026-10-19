@@ -6,6 +6,8 @@ import Link from 'next/link';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
+import { ModelPicker, PICKER_ERROR_MESSAGE, PICKER_LOADING_MESSAGE } from '@/components/ai/model-picker';
+import { useServiceAvailability, type ServiceAvailabilityStatus } from '@/lib/ai/providers/use-service-availability';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +20,7 @@ import {
 } from '@/lib/ai/prompt';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
-import { buildModelChoices, decodeSelection, encodeSelection, KEY_SOURCE_LABEL, type ByokModelMap, type KeySource } from '@/lib/ai/providers/selection';
+import { buildModelChoices, encodeSelection, KEY_SOURCE_LABEL, type ByokModelMap, type KeySource, type Selection } from '@/lib/ai/providers/selection';
 import { computeDebitAmount } from '@/lib/ai/cost';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
@@ -27,7 +29,7 @@ import {
   createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice, createReplacementAttempt,
   type ChatNotice, type SendAttempt,
 } from '@/lib/ai/chat-request';
-import type { ChatResult } from '@/lib/ai/chat-result';
+import { cappedPresentation, type CappedReason, type ChatResult } from '@/lib/ai/chat-result';
 import type { KbCategory } from '@/lib/kb/categories';
 import { chatAction } from '../actions';
 import { ChatMessageBubble } from './ChatMessageBubble';
@@ -81,6 +83,8 @@ interface ChatMessage {
   proposal?: DocumentProposal | null;
   savedNodeId?: string;
   wasCapped?: boolean;
+  /** 11-11 contract: why the reply stopped at the output limit (bubble copy); absent → balance copy. */
+  cappedReason?: CappedReason;
   /** 이 응답을 만든 provider·모델 — 모델 선택은 전송 후 기본값으로 돌아가므로 재생성에는 이 값을 쓴다. */
   providerId?: ProviderId;
   model?: string;
@@ -107,11 +111,31 @@ interface SendPayload {
   replacementSelection?: { providerId: ProviderId; model: string; keySource: 'service' };
 }
 
+/** The selection a send attempt will actually call: an explicit service-key replacement wins
+ * over the frozen original selection. Never the current UI selection. */
+export function attemptSelection(p: Pick<SendPayload, 'providerId' | 'model' | 'keySource' | 'replacementSelection'>): Selection {
+  return p.replacementSelection ?? { providerId: p.providerId, model: p.model, keySource: p.keySource };
+}
+
+export const SELECTION_UNAVAILABLE_MESSAGE = '선택한 모델의 서비스 키를 지금 쓸 수 없어요. 다른 모델을 고르거나 키 관리에서 확인해 주세요.';
+
+/** Why a selection cannot be sent right now (null = usable). BYOK never depends on service availability. */
+export function selectionBlockReason(status: ServiceAvailabilityStatus, usable: boolean): string | null {
+  if (usable) return null;
+  if (status === 'loading') return PICKER_LOADING_MESSAGE;
+  if (status === 'error') return PICKER_ERROR_MESSAGE;
+  return SELECTION_UNAVAILABLE_MESSAGE;
+}
+
 export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, defaultFallback, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [providerId, setProviderId] = useState<ProviderId>(defaultProviderId);
   const [model, setModel] = useState<string>(defaultModel);
   const [keySource, setKeySource] = useState<KeySource>(defaultKeySource);
-  const modelChoices = buildModelChoices(byokModels);
+  // 10-08 contract: service rows follow the real service-key availability; BYOK rows are independent.
+  const { availability, status: availabilityStatus, reload: reloadAvailability, canUseSelection } = useServiceAvailability();
+  const modelChoices = buildModelChoices(byokModels, availability ?? undefined);
+  // Set when a retry / explicit replacement was blocked because its ACTUAL selection is unusable.
+  const [attemptBlockedReason, setAttemptBlockedReason] = useState<string | null>(null);
   // 대체 동의·다른 모델 선택·배너 닫기 중 하나가 일어나면 해소된다(이번 패널 세션만, 계정 기본값은 그대로).
   const [fallbackResolved, setFallbackResolved] = useState(false);
   // 계정 기본값 박스는 대체된 값이 아니라 작가가 실제로 설정한 값을 보여 준다.
@@ -139,6 +163,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const settingsLinkRef = useRef<HTMLAnchorElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  const currentSelectionBlockReason = selectionBlockReason(availabilityStatus, canUseSelection({ providerId, model, keySource }));
+  const selectionBlockedMessage = currentSelectionBlockReason ?? attemptBlockedReason;
 
   const mentionedNodeIds = mentionedNodes.map((n) => n.id);
   const pricingTable = providerId === 'openai' ? OPENAI_PRICING_USD_PER_MILLION
@@ -181,9 +208,18 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
    * The lock is taken synchronously before any await so a double click or
    * Enter burst issues exactly one chatAction. */
   async function runAttempt(attempt: SendAttempt<SendPayload>) {
-    if (!lockRef.current.tryAcquire()) return;
-    setNotice(null);
     const p = attempt.payload;
+    // Guard the selection this attempt will really call (frozen snapshot or explicit replacement),
+    // before taking the lock. Blocked: keep the attempt/notice for a later retry, change nothing.
+    const actual = attemptSelection(p);
+    const blocked = selectionBlockReason(availabilityStatus, canUseSelection(actual));
+    if (blocked) {
+      setAttemptBlockedReason(blocked);
+      return;
+    }
+    if (!lockRef.current.tryAcquire()) return;
+    setAttemptBlockedReason(null);
+    setNotice(null);
     const base: ChatMessage[] = [...p.history, { id: p.userTurnId, role: 'user' as const, text: p.userMessage }];
     setMessages(base);
     setIsGenerating(true);
@@ -236,13 +272,13 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
+        cappedReason: result.wasCapped ? result.cappedReason : undefined,
         providerId: p.replacementSelection?.providerId ?? p.providerId,
         model: p.replacementSelection?.model ?? p.model,
         keySource: p.replacementSelection ? 'service' : p.keySource,
       }]);
-      if (result.wasCapped) {
-        toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
-      }
+      const capped = cappedPresentation(result);
+      if (capped) toast(capped.toast);
       if (outcome.refreshBalance) router.refresh();
       return;
     }
@@ -258,7 +294,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
 
   function handleSend() {
     const trimmed = chatInput.trim();
-    if (!trimmed || isGenerating || lockRef.current.locked || consentPending) return;
+    if (!trimmed || isGenerating || lockRef.current.locked || consentPending || currentSelectionBlockReason) return;
     const failed = failedAttemptRef.current;
     // A new message after a failure drops the failed user turn from history.
     const history = failed ? messages.filter((m) => m.id !== failed.payload.userTurnId) : messages;
@@ -283,6 +319,13 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     const action = notice?.notice.byokAction;
     const attempt = failedAttemptRef.current;
     if (!attempt || !action || action.kind !== 'replacement' || isGenerating || lockRef.current.locked) return;
+    // Explicit consent goes through the same actual-selection guard; while the replacement
+    // service is unusable neither the snapshot nor the visible model/cost owner changes.
+    const blocked = selectionBlockReason(availabilityStatus, canUseSelection(action.selection));
+    if (blocked) {
+      setAttemptBlockedReason(blocked);
+      return;
+    }
     const next = createReplacementAttempt(attempt, action.selection);
     setProviderId(action.selection.providerId);
     setModel(action.selection.model);
@@ -333,33 +376,18 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex w-full min-w-0 flex-col gap-1">
-            <label className="text-xs text-muted-foreground">AI 모델</label>
-            <Select value={encodeSelection({ providerId, model, keySource })} onValueChange={(value) => {
-              const selection = value ? decodeSelection(value) : null;
-              if (!selection || !modelChoices.some((choice) => choice.value === encodeSelection(selection))) return;
-              setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource); setFallbackResolved(true);
-            }}>
-              <SelectTrigger id="ai-model-select" className="w-full">
-                <SelectValue>
-                  {(value: string) => {
-                    const selection = decodeSelection(value);
-                    const choice = modelChoices.find((item) => item.value === value);
-                    return selection && choice ? <>{PROVIDER_LABELS[selection.providerId]} {'\u00B7'} {choice.displayName} <Badge variant={selection.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[selection.keySource]}</Badge></> : value;
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((pid, index) => {
-                  const choices = modelChoices.filter((choice) => choice.providerId === pid);
-                  return <div key={pid} role="group" aria-label={PROVIDER_LABELS[pid]} className={index ? 'border-t border-border mt-1' : ''}>
-                    <div className="flex justify-between bg-muted px-2 py-1 text-xs font-semibold"><span>{PROVIDER_LABELS[pid]}</span><span>{choices.length}개</span></div>
-                    {choices.map((choice) => <SelectItem key={choice.value} value={choice.value} aria-label={`${PROVIDER_LABELS[pid]} ${choice.displayName} ${choice.badge}`}>
-                      {choice.displayName} <Badge variant={choice.keySource === 'byok' ? 'secondary' : 'outline'}>{choice.badge}</Badge>
-                    </SelectItem>)}
-                  </div>;
-                })}
-              </SelectContent>
-            </Select>
+            <label htmlFor="ai-model-select" className="text-xs text-muted-foreground">AI 모델</label>
+            <ModelPicker
+              choices={modelChoices}
+              value={encodeSelection({ providerId, model, keySource })}
+              onSelection={(selection) => {
+                setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource); setFallbackResolved(true);
+                setAttemptBlockedReason(null);
+              }}
+              loading={availabilityStatus === 'loading'}
+              loadFailed={availabilityStatus === 'error'}
+              onRetry={reloadAvailability}
+            />
             <p className="text-xs text-muted-foreground">이 대화가 끝날 때까지 유지돼요</p>
             <div className="rounded-md border border-border p-2 text-xs text-muted-foreground">
               {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[accountDefault.providerId]} {'\u00B7'} {PROVIDER_MODELS[accountDefault.providerId].find((entry) => entry.id === accountDefault.model)?.displayName ?? accountDefault.model} <Badge variant={accountDefault.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[accountDefault.keySource]}</Badge>
@@ -482,6 +510,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
                 proposal={message.proposal ?? null}
                 savedNodeId={message.savedNodeId}
                 wasCapped={Boolean(message.wasCapped)}
+                cappedReason={message.cappedReason}
                 interactive={isLast}
                 isBusy={isGenerating}
                 onInsertDraft={() => message.draft && onInsertText(message.draft)}
@@ -559,10 +588,16 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           disabled={isGenerating || consentPending}
           className="flex-1"
         />
-        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || consentPending} onClick={handleSend}>
+        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || consentPending || Boolean(currentSelectionBlockReason)} onClick={handleSend}>
           보내기
         </Button>
       </div>
+      {selectionBlockedMessage && (
+        <p data-selection-blocked="" role="status" aria-live="polite" className="text-xs text-muted-foreground">
+          {selectionBlockedMessage}
+          {availabilityStatus !== 'loading' && <>{' '}<button type="button" className="underline" onClick={reloadAvailability}>다시 확인</button></>}
+        </p>
+      )}
     </aside>
   );
 }
