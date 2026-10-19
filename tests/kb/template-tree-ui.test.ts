@@ -207,11 +207,11 @@ describe('tree row layout (BUG-03)', () => {
     }
   });
 
-  it('rows use a NAMED group so the mobile drawer (`details.group`) cannot reveal every row at once', () => {
-    // Regression: unnamed group-hover/group-focus-within matched the drawer ancestor, so tapping a doc on a
-    // phone showed the action buttons on all rows. The drawer keeps its own unnamed `group` (group-open).
-    const layout = readFileSync('app/studio/[workId]/layout.tsx', 'utf8');
-    expect(layout).toMatch(/<details className="group /);
+  it('rows use a NAMED group so any ancestor `.group` (e.g. the old mobile drawer details) cannot reveal every row at once', () => {
+    // Regression: unnamed group-hover/group-focus-within matched the mobile drawer's `details.group`, so
+    // tapping a doc on a phone showed the action buttons on all rows. Layouts may still use an unnamed
+    // `group` for their own purposes (group-open), so the rows must not depend on it. Deliberately does not
+    // read layout.tsx: the drawer markup differs across branches (Phase 16 replaced it with mobile tabs).
     const html = templates();
     for (const id of ['d1', 'm1', 'm2']) {
       const row = rowOf(html, id);
