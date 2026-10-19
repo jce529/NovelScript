@@ -51,6 +51,15 @@ files:
 4. 버튼 그룹은 `ml-auto flex flex-wrap items-center justify-end gap-2`로 하고 각 버튼은 `whitespace-nowrap`. 좁은 폭에서는 그룹이 다음 줄로 내려가도록 `w-full sm:w-auto`를 고려한다.
 5. 페이지(`kb/[nodeId]/page.tsx`)가 주입하는 `saveSlot`도 같은 규칙(`flex-wrap`, 칩 `shrink-0`)을 따르는지 확인한다.
 
+## 적용한 수정 (2026-10-19)
+사용자 확정 방향: 툴바를 위/아래 2단으로 나눈다(위: 이름 + 그 옆 회색 종류 라벨, 아래: 버튼 줄).
+
+- `components/studio/template-editor-toolbar.tsx`: 루트를 `flex flex-col`로 바꾸고 `data-toolbar-tier="title"`(이름 `min-w-0 truncate` + 회색 `shrink-0 whitespace-nowrap` 라벨 `내 템플릿`/`기본 템플릿`, 기본 템플릿은 그 아래 읽기 전용 안내)과 `data-toolbar-tier="actions"`(`flex flex-wrap`, 버튼 `whitespace-nowrap`, 끝에 `statusSlot`)로 분리. `statusSlot` prop 추가.
+- `app/studio/[workId]/kb/[nodeId]/page.tsx`: 저장 상태 칩을 툴바 바깥 오른쪽이 아니라 템플릿 툴바의 `statusSlot`으로 전달(문서 모드는 기존 한 줄 구조 유지, 이름에 `min-w-0` 추가).
+- 테스트: `tests/kb/template-dialogs.test.ts`에 2단 구조 회귀 테스트 4건.
+
+실측(1회용 DB, 390px): 이름 폭 0 → 98px, 라벨 11×64 → 48×16(한 줄), 2단(이름 129–149 / 버튼 155–215), 겹침 0건, 툴바 밖 요소 0건, 가로 스크롤 없음. 저장 칩은 버튼 줄이 모자라면 아래로 내려가 오른쪽에 붙는다.
+
 ## 검증
 - 단위: `tests/kb/template-tree-ui.test.ts` 등 정적 소스 검사 스타일로 툴바 루트에 `flex-wrap`, 이름/칩/버튼의 shrink 규칙이 있는지 회귀 테스트를 추가한다(기존 UI suite 패턴을 따른다).
 - 브라우저(1회용 DB, `--env-file` 고정 실행): 390px / 768px / 1280px에서 템플릿 이름 폭 > 0, 칩이 가로 한 줄, 툴바 자식 사각형이 서로 겹치지 않고 모두 툴바 오른쪽 안쪽에 들어오는지 DOM 측정으로 확인한다. 기본 템플릿(읽기 전용)과 내 템플릿 둘 다 확인한다.

@@ -16,27 +16,35 @@ export interface TemplateEditorToolbarProps {
   templateCategory: string | null;
   /** Save controls owned by the editor page (02-12); shown for 내 템플릿 only. */
   saveSlot?: React.ReactNode;
+  /** Save-status chip owned by the editor page; rendered at the end of the actions tier for every mode. */
+  statusSlot?: React.ReactNode;
 }
 
-/** Toolbar above an open template. Takes metadata props only. A default template is read-only:
- * no save or rename, just 사본 만들어 수정. Every template can seed a new document. */
-export function TemplateEditorToolbar({ workId, nodeId, name, mode, templateCategory, saveSlot }: TemplateEditorToolbarProps) {
+/** Toolbar above an open template, split into two tiers so a narrow width can never squeeze the name
+ * or overlap the buttons (BUG-02): the title tier shows the name plus a gray kind label, the actions
+ * tier holds the buttons and the save-status chip and wraps when it runs out of room. Takes metadata
+ * props only. A default template is read-only: no save or rename, just 사본 만들어 수정. Every template
+ * can seed a new document. */
+export function TemplateEditorToolbar({ workId, nodeId, name, mode, templateCategory, saveSlot, statusSlot }: TemplateEditorToolbarProps) {
   const [dialog, setDialog] = useState<'copy' | 'create' | 'rename' | null>(null);
   const router = useRouter();
   const isDefault = mode === 'default_template';
 
   return (
-    <div className="flex items-center gap-2 border-b px-3 py-2" data-template-mode={mode}>
-      <span className="truncate text-sm font-medium">{name}</span>
-      {isDefault ? (
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Lock size={12} aria-hidden />
-          기본 템플릿은 읽기 전용이에요. 사본을 만들어 수정해보세요.
-        </span>
-      ) : (
-        <span className="text-xs text-muted-foreground">내 템플릿</span>
-      )}
-      <div className="ml-auto flex items-center gap-2">
+    <div className="flex flex-col gap-1.5 border-b px-3 py-2" data-template-mode={mode}>
+      <div className="flex min-w-0 flex-col gap-0.5" data-toolbar-tier="title">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className="min-w-0 truncate text-sm font-medium" title={name}>{name}</span>
+          <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">{isDefault ? '기본 템플릿' : '내 템플릿'}</span>
+        </div>
+        {isDefault && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock size={12} aria-hidden className="shrink-0" />
+            기본 템플릿은 읽기 전용이에요. 사본을 만들어 수정해보세요.
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 [&_button]:whitespace-nowrap" data-toolbar-tier="actions">
         {isDefault ? (
           <Button size="sm" onClick={() => setDialog('copy')}>사본 만들어 수정</Button>
         ) : (
@@ -48,6 +56,7 @@ export function TemplateEditorToolbar({ workId, nodeId, name, mode, templateCate
         {templateCategory && (
           <Button size="sm" variant={isDefault ? 'outline' : 'default'} onClick={() => setDialog('create')}>이 템플릿으로 새 문서</Button>
         )}
+        {statusSlot && <div className="ml-auto shrink-0">{statusSlot}</div>}
       </div>
       {dialog === 'copy' && (
         <CopyTemplateDialog

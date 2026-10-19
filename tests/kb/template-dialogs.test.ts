@@ -189,6 +189,55 @@ describe('TemplateEditorToolbar', () => {
     const html = renderToStaticMarkup(createElement(TemplateEditorToolbar, { ...base, templateCategory: null, mode: 'user_template' }));
     expect(html).not.toContain('이 템플릿으로 새 문서');
   });
+
+  // BUG-02: in one flex row the name collapsed to 0px, the label stacked vertically and the buttons overlapped.
+  describe('two-tier layout (BUG-02)', () => {
+    const render = (mode: 'default_template' | 'user_template') => renderToStaticMarkup(createElement(TemplateEditorToolbar, {
+      ...base, mode,
+      saveSlot: createElement('button', null, '문서 저장'),
+      statusSlot: createElement('span', { 'data-test': 'chip' }, '저장됨'),
+    }));
+    const openTag = (html: string, tier: 'title' | 'actions') => html.match(new RegExp(`<div[^>]*data-toolbar-tier="${tier}"[^>]*>`))?.[0] ?? '';
+    const split = (html: string) => {
+      const at = html.indexOf('data-toolbar-tier="actions"');
+      return { title: html.slice(0, at), actions: html.slice(at) };
+    };
+
+    it('stacks the title tier above the actions tier inside a column root', () => {
+      const html = render('user_template');
+      expect(html).toMatch(/<div[^>]*class="[^"]*flex-col[^"]*"[^>]*data-template-mode="user_template"|<div[^>]*data-template-mode="user_template"[^>]*class="[^"]*flex-col/);
+      expect(html.indexOf('data-toolbar-tier="title"')).toBeGreaterThan(-1);
+      expect(html.indexOf('data-toolbar-tier="title"')).toBeLessThan(html.indexOf('data-toolbar-tier="actions"'));
+    });
+
+    it('title tier: name truncates, gray 내 템플릿 label never shrinks or wraps, no buttons', () => {
+      const { title } = split(render('user_template'));
+      expect(title).toContain('인물');
+      expect(title).toMatch(/<span[^>]*class="[^"]*min-w-0[^"]*truncate[^"]*"[^>]*>인물<\/span>/);
+      const label = title.match(/<span[^>]*>내 템플릿<\/span>/)?.[0] ?? '';
+      expect(label).toContain('text-muted-foreground');
+      expect(label).toContain('shrink-0');
+      expect(label).toContain('whitespace-nowrap');
+      expect(title).not.toContain('<button');
+    });
+
+    it('actions tier holds every button and the status slot, and wraps instead of overflowing', () => {
+      const html = render('user_template');
+      const { actions } = split(html);
+      for (const text of ['이름 변경', '문서 저장', '이 템플릿으로 새 문서']) expect(actions).toContain(text);
+      expect(actions).toContain('data-test="chip"');
+      expect(openTag(html, 'actions')).toContain('flex-wrap');
+    });
+
+    it('default template: read-only notice in the title tier, copy CTA and status in the actions tier', () => {
+      const { title, actions } = split(render('default_template'));
+      expect(title).toContain('읽기 전용');
+      expect(title).not.toContain('사본 만들어 수정');
+      expect(actions).toContain('사본 만들어 수정');
+      expect(actions).toContain('data-test="chip"');
+      expect(actions).not.toContain('이름 변경');
+    });
+  });
 });
 
 describe('KbTreeActions template rows', () => {

@@ -57,6 +57,15 @@ files:
 
 공통: 이름 `min-w-0 flex-1 truncate`, 배지 `shrink-0 whitespace-nowrap`(또는 이름이 우선하도록 배지를 말줄임 대상으로), 잠금 아이콘 `shrink-0`. 같은 규칙을 `KbNodeRow`(일반 문서·폴더)와 `TemplateEntryRow`, 챕터 행에 일관되게 적용한다.
 
+## 적용한 수정 (2026-10-19)
+정한 방향: A안(행 위 오버레이) + 사용자 요구(동시에 한 행만 버튼 표시). 마우스가 있는 환경(태블릿·웹)은 마우스를 올린 행만, 터치 전용 환경은 탭해서 열린(선택된) 문서 행만 버튼을 보인다.
+
+- `components/studio/kb-tree.tsx`: 행에 `group/row relative`, 이름은 `min-w-0 flex-1 truncate`, 배지·잠금 아이콘·미분류 라벨은 `shrink-0 whitespace-nowrap`. 액션 묶음은 `RowActions`로 분리해 `absolute inset-y-0 right-1 hidden ... group-hover/row:flex group-focus-within/row:flex`(+ 활성 행이면 `[@media(hover:none)]:flex`)로 레이아웃 밖에 두었다.
+- **추가로 발견한 원인(중요):** 모바일 문서 목록 드로어가 `app/studio/[workId]/layout.tsx`의 `<details class="group ...">`이다. 이름 없는 `group-hover`/`group-focus-within`은 조상 중 아무 `.group`에 반응하므로, 드로어 안에서 문서를 탭해 포커스가 생기면 **모든 행의 버튼이 동시에 보였다**(사용자 스크린샷의 증상). 그래서 행 그룹을 `group/row`로 이름 붙이고 `group-hover/row`·`group-focus-within/row`만 사용한다. 레이아웃의 `group-open` 용도는 건드리지 않았다.
+- 테스트: `tests/kb/template-tree-ui.test.ts`에 이름 보존·shrink 규칙, 오버레이, 한 행만 표시(활성 행만 touch 가시), 이름 그룹 회귀(드로어 `group`에 반응하지 않음) 테스트 추가, `next/link` mock이 `className`을 전달하도록 수정.
+
+실측(1회용 DB): 800px에서 이름 폭 4~15px → 129~187px(가장 긴 이름만 말줄임), 기본 상태에서 보이는 액션 0개, 마우스를 올린 행 1개만 5개 버튼 표시(오버레이는 행 안). 모바일 프리셋(`hover: none`, `pointer: coarse`)에서 열린 문서 행 1개만 표시, 드로어를 열고 다른 문서를 탭하면 탭한 행으로만 이동(이전: 16개 행 전부 표시).
+
 ## 검증
 - 단위: `tests/kb/template-tree-ui.test.ts` 등 정적 소스 검사로 이름 `min-w-0`/`flex-1`, 액션 래퍼가 평소 폭을 차지하지 않는 클래스(A: `absolute`, B: `hidden`)인지, 배지 `shrink-0` 회귀 테스트를 추가한다.
 - 브라우저(1회용 DB, `--env-file` 고정 실행): 800px/1024px/1440px에서 위 표와 같은 측정을 반복해 모든 행의 이름 렌더 폭이 필요 폭 또는 행 폭 한도에 도달하는지, hover/포커스 시 액션이 보이고 클릭되는지, 사이드바에서 `scrollWidth`가 넘치지 않는지 확인한다.
