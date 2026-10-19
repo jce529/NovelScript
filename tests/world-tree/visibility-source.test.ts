@@ -251,6 +251,85 @@ describe('metrics baseline and notices', () => {
   });
 });
 
+describe('public read rules on the same predicate (Task 2)', () => {
+  const meta = body('world_work_public_meta_visible');
+
+  it('composes the 0033 helper with the existing blind-notice case only', () => {
+    order(meta, 'select world_work_reader_visible(p_work_id)', 'or coalesce((', 'w.admin_blinded',
+      'w.deleted_at is null', 'not w.is_branch_draft', 'c.is_published and c.deleted_at is null');
+    expect(meta).toContain('security definer set search_path = public');
+    expect(meta).not.toMatch(/parent_branch_id|world_branches|can_view|read_chapter_content/);
+    expect(flat).toContain('grant execute on function world_work_public_meta_visible(uuid) to anon, authenticated, service_role');
+  });
+
+  it('replaces only works_public_read and chapters_public_read', () => {
+    const dropped = [...flat.matchAll(/drop policy if exists "?(\w+)"? on (\w+)/g)].map((m) => `${m[2]}.${m[1]}`);
+    expect(dropped).toEqual(['works.works_public_read', 'chapters.chapters_public_read']);
+    expect(flat).toContain('create policy "works_public_read" on works for select using (world_work_public_meta_visible(id));');
+    expect(flat).toContain('create policy "chapters_public_read" on chapters for select using (is_published = true and deleted_at is null and world_work_public_meta_visible(work_id));');
+    expect(flat).not.toMatch(/owner_all|_write_access_|as restrictive/);
+  });
+
+  it('puts the predicate on can_view and keeps its blind precedence', () => {
+    const fn = body('can_view');
+    order(fn, 'w.deleted_at is null and not w.admin_blinded', 'world_work_reader_visible(w.id)',
+      'c.is_published and c.deleted_at is null and not c.admin_blinded', 'chapter_entitled(w.id, p_chapter_id)');
+  });
+
+  it('read_chapter_content is not redefined and its public path is can_view (0009)', () => {
+    expect(flat).not.toContain('function read_chapter_content(');
+    const v9 = load(`${DIR}/0009_blind_access.sql`);
+    expect(body('read_chapter_content', v9)).toContain('can_view(c.work_id, c.id) or (');
+  });
+
+  it('gates list_chapter_access and get_chapter_access_state on public metadata or the live owner', () => {
+    for (const name of ['list_chapter_access', 'get_chapter_access_state']) {
+      const fn = body(name);
+      order(fn, 'c.is_published and c.deleted_at is null and w.deleted_at is null', 'world_work_public_meta_visible(w.id)',
+        'or (auth.uid() is not null and w.owner_id = auth.uid()', 'p.deleted_at is null');
+    }
+    const state = body('get_chapter_access_state');
+    order(state, "when w.admin_blinded or c.admin_blinded then 'blinded'", "when can_view(w.id, c.id) then 'readable'");
+    expect(state).toContain("jsonb_build_object('state', 'unavailable'");
+    expect(flat).toContain('grant execute on function can_view(uuid, uuid), list_chapter_access(uuid), get_chapter_access_state(uuid, uuid) to anon, authenticated, service_role');
+  });
+
+  it('leaves the purchase / settlement bodies and existing entitlements alone', () => {
+    for (const fn of ['create_purchase_order', 'pay_purchase_order', 'apply_wallet_delta', 'chapter_entitled']) {
+      expect(flat).not.toContain(`function ${fn}(`);
+    }
+    expect(flat).not.toMatch(/\b(insert into|update|delete from) (entitlements|orders|order_items|wallets|ledger\w*)\b/);
+  });
+
+  it('adds no parent-state rule to any public path', () => {
+    for (const name of ['world_work_public_meta_visible', 'can_view', 'list_chapter_access', 'get_chapter_access_state',
+      'increment_chapter_view']) {
+      expect(body(name)).not.toMatch(/world_branches|parent_branch_id|root_work_id/);
+    }
+  });
+});
+
+describe('increment_chapter_view (author self-view exclusion)', () => {
+  const fn = body('increment_chapter_view');
+
+  it('keeps the 0008 suspended-session skip first', () => {
+    order(fn, 'v_uid uuid := auth.uid()', 'if v_uid is not null and not user_can_write(v_uid) then', 'return;', 'update chapters c');
+  });
+
+  it('counts only live published unblinded chapters of reader-visible works, never the owner', () => {
+    order(fn, 'set view_count = c.view_count + 1', 'c.is_published = true and c.deleted_at is null and not c.admin_blinded',
+      'world_work_reader_visible(w.id)', 'and (v_uid is null or w.owner_id <> v_uid)');
+  });
+
+  it('takes no client user id and never resets or lowers past counts', () => {
+    expect(flat).toContain('create or replace function increment_chapter_view(p_chapter_id uuid) returns void');
+    expect(fn).not.toMatch(/p_user_id|p_owner_id/);
+    expect(flat).not.toMatch(/view_count\s*=\s*0|view_count\s*-|set view_count = (?!c\.view_count \+ 1)/);
+    expect(flat).toContain('revoke all on function increment_chapter_view(uuid) from public');
+    expect(flat).toContain('grant execute on function increment_chapter_view(uuid) to anon, authenticated');
+  });
+});
+
 describe('WTREE-09 stays out of scope', () => {
   it('leaves only the progress note', () => {
     const raw = readFileSync(`${DIR}/${FILE}`, 'utf8');

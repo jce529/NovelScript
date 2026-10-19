@@ -387,4 +387,87 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('world-tree reader visibility (Pos
       expect(Number.isNaN(Date.parse(b.authorViewsExcludedSince))).toBe(false);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Task 2: works/chapters RLS and direct read RPCs on the same predicate
+  // -------------------------------------------------------------------------
+  describe('public read rules', () => {
+    async function selectAs(sub: string, role: Role, text: string, params: unknown[] = []) {
+      await as(sub, role);
+      const rows = await exec(text, params);
+      await asOwner();
+      return rows;
+    }
+    async function chapterOf(workId: string) {
+      return scalar<string>('select id from chapters where work_id = $1 order by order_index limit 1', [workId]);
+    }
+
+    it('hides unpublished and draft works and their chapter ids from readers, not from the owner', async () => {
+      await publish(W.leaf, false);
+      await publish(W.draft);
+      const draftChapter = await chapterOf(W.draft);
+      for (const [sub, role] of [['', 'anon'], [reader, 'authenticated'], [otherWriter, 'authenticated']] as const) {
+        expect(await selectAs(sub, role, 'select id from works where id in ($1, $2)', [W.leaf, W.draft])).toHaveLength(0);
+        expect(await selectAs(sub, role, 'select id from chapters where id = $1', [draftChapter])).toHaveLength(0);
+      }
+      expect(await selectAs(writer, 'authenticated', 'select id from works where id in ($1, $2)', [W.leaf, W.draft])).toHaveLength(2);
+    });
+
+    it('keeps a published child of a private parent readable on every general path', async () => {
+      await publish(W.mid);
+      const ch = await chapterOf(W.mid);
+      expect(await selectAs('', 'anon', 'select id from works where id = $1', [W.mid])).toHaveLength(1);
+      expect(await selectAs('', 'anon', 'select id from chapters where id = $1', [ch])).toHaveLength(1);
+      expect(await selectAs('', 'anon', 'select id from works where id = $1', [W.root])).toHaveLength(0);
+      await as('', 'anon');
+      expect(await scalar<boolean>('select can_view($1, $2)', [W.mid, ch])).toBe(true);
+      expect(await scalar<string>('select read_chapter_content($1)', [ch])).toBe('본문-1');
+      expect((await scalar<{ state: string }>('select get_chapter_access_state($1, $2)', [W.mid, ch])).state).toBe('readable');
+      expect(await exec('select * from list_chapter_access($1)', [W.mid])).toHaveLength(1);
+      await asOwner();
+    });
+
+    it('closes the direct RPCs for a draft work but keeps the owner correction path', async () => {
+      await publish(W.draft);
+      const ch = await chapterOf(W.draft);
+      await as('', 'anon');
+      expect(await scalar<boolean>('select can_view($1, $2)', [W.draft, ch])).toBe(false);
+      expect(await scalar<string | null>('select read_chapter_content($1)', [ch])).toBeNull();
+      expect(await scalar<{ state: string }>('select get_chapter_access_state($1, $2)', [W.draft, ch]))
+        .toEqual({ state: 'unavailable', blind_scope: null, blind_reason: null, entitled: false });
+      expect(await exec('select * from list_chapter_access($1)', [W.draft])).toHaveLength(0);
+      await as(writer);
+      expect(await scalar<string>('select read_chapter_content($1)', [ch])).toBe('본문-1');
+      expect((await scalar<{ state: string }>('select get_chapter_access_state($1, $2)', [W.draft, ch])).state).toBe('readable');
+      expect(await exec('select * from list_chapter_access($1)', [W.draft])).toHaveLength(1);
+      await asOwner();
+    });
+
+    it('keeps the existing blind contract: notice metadata stays, body and purchase stay closed', async () => {
+      await publish(W.solo);
+      const ch = await chapterOf(W.solo);
+      await exec("select moderation_set_blind($1, null, '공개 사유')", [W.solo]);
+      expect(await selectAs('', 'anon', 'select admin_blinded from works where id = $1', [W.solo])).toEqual([{ admin_blinded: true }]);
+      expect(await selectAs('', 'anon', 'select id from chapters where id = $1', [ch])).toHaveLength(1);
+      await as('', 'anon');
+      expect(await scalar<boolean>('select can_view($1, $2)', [W.solo, ch])).toBe(false);
+      expect(await scalar<{ state: string; blind_scope: string }>('select get_chapter_access_state($1, $2)', [W.solo, ch]))
+        .toMatchObject({ state: 'blinded', blind_scope: 'work' });
+      expect((await exec('select blinded from list_chapter_access($1)', [W.solo]))[0]).toEqual({ blinded: true });
+      await asOwner();
+    });
+
+    it('restores public reads after republishing and keeps paid chapters behind can_view', async () => {
+      await publish(W.root);
+      await unpublishAll(W.root);
+      expect(await selectAs('', 'anon', 'select id from works where id = $1', [W.root])).toHaveLength(0);
+      await exec('update chapters set is_published = true, price_tier = 100 where work_id = $1', [W.root]);
+      expect(await selectAs('', 'anon', 'select id from works where id = $1', [W.root])).toHaveLength(1);
+      const ch = await chapterOf(W.root);
+      await as(reader);
+      expect(await scalar<boolean>('select can_view($1, $2)', [W.root, ch])).toBe(false);
+      expect((await scalar<{ state: string }>('select get_chapter_access_state($1, $2)', [W.root, ch])).state).toBe('purchase_required');
+      await asOwner();
+    });
+  });
 });

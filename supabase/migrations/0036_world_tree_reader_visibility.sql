@@ -393,5 +393,150 @@ $$;
 revoke all on function mark_branch_notice_read(uuid) from public, anon, service_role;
 grant execute on function mark_branch_notice_read(uuid) to authenticated;
 
+-- ===========================================================================
+-- Task 2: general public read rules on the same predicate (work's own publish state)
+-- ===========================================================================
+-- 0008 / 0009 / 0017 are reference only; their files are not edited. The functions below are
+-- redefined here with the same signatures, grants and blind precedence. The purchase / settlement
+-- / ledger / idempotency bodies (create_purchase_order, pay_purchase_order, 0017) are NOT
+-- redefined and existing entitlements are untouched. No parent-state check and no "hidden
+-- connection" rule is added anywhere: a published child of a private parent is readable,
+-- listable, purchasable and counted like any other published work.
+
+-- ---------------------------------------------------------------------------
+-- 8. Public metadata visibility (normal reader visibility, or the existing blind notice)
+-- ---------------------------------------------------------------------------
+-- world_work_reader_visible is false for a work-wide blind. The existing blind contract (0009
+-- D-11..D-14) still shows a blinded published work's metadata/TOC with a blind notice and
+-- 'blinded' access states, so metadata paths accept exactly that extra case. Body rights
+-- (can_view) use world_work_reader_visible alone. Reads base columns only (no RLS recursion).
+create or replace function world_work_public_meta_visible(p_work_id uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select world_work_reader_visible(p_work_id)
+      or coalesce((
+        select w.admin_blinded
+           and w.deleted_at is null
+           and not w.is_branch_draft
+           and exists (select 1 from chapters c
+                        where c.work_id = w.id and c.is_published and c.deleted_at is null)
+          from works w
+         where w.id = p_work_id), false);
+$$;
+revoke all on function world_work_public_meta_visible(uuid) from public;
+-- Policy expressions run with the caller's privileges, so every API role needs EXECUTE.
+grant execute on function world_work_public_meta_visible(uuid) to anon, authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
+-- 9. works / chapters public-read RLS (owner_all and restrictive write policies untouched)
+-- ---------------------------------------------------------------------------
+drop policy if exists "works_public_read" on works;
+create policy "works_public_read" on works for select
+  using (world_work_public_meta_visible(id));
+
+drop policy if exists "chapters_public_read" on chapters;
+create policy "chapters_public_read" on chapters for select
+  using (is_published = true and deleted_at is null and world_work_public_meta_visible(work_id));
+
+-- ---------------------------------------------------------------------------
+-- 10. Direct read RPCs (0009 bodies + the same work predicate)
+-- ---------------------------------------------------------------------------
+-- can_view: body/entitlement right. Blind precedence is unchanged (a blind is never readable).
+-- read_chapter_content (0009) is not redefined: its public path is can_view(...) and its owner
+-- correction path is unchanged, so it inherits this predicate.
+create or replace function can_view(p_work_id uuid, p_chapter_id uuid default null) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from works w where w.id = p_work_id and w.deleted_at is null and not w.admin_blinded
+    and world_work_reader_visible(w.id)
+    and (p_chapter_id is null or exists (
+      select 1 from chapters c where c.id = p_chapter_id and c.work_id = w.id
+        and c.is_published and c.deleted_at is null and not c.admin_blinded
+    ))
+    and (
+      (p_chapter_id is not null and exists (
+        select 1 from chapters c where c.id = p_chapter_id and c.work_id = w.id and c.price_tier is null
+      ))
+      or chapter_entitled(w.id, p_chapter_id)
+    )
+  );
+$$;
+
+-- TOC access: public rows only for publicly visible works; the live owner keeps the rows of their
+-- own work (studio/owner preview of a draft), exactly like the 0009 owner correction path.
+create or replace function list_chapter_access(p_work_id uuid)
+returns table(chapter_id uuid, allowed boolean, entitled boolean, blinded boolean, blind_reason text)
+language sql stable security definer set search_path = public as $$
+  select c.id,
+    can_view(c.work_id, c.id),
+    chapter_entitled(c.work_id, c.id),
+    w.admin_blinded or c.admin_blinded,
+    case when w.admin_blinded then w.admin_blind_reason when c.admin_blinded then c.admin_blind_reason end
+  from chapters c join works w on w.id = c.work_id
+  where c.work_id = p_work_id and c.is_published and c.deleted_at is null and w.deleted_at is null
+    and (world_work_public_meta_visible(w.id)
+      or (auth.uid() is not null and w.owner_id = auth.uid()
+        and exists (select 1 from profiles p where p.id = auth.uid() and p.deleted_at is null)));
+$$;
+
+-- Viewer state: a draft / unpublished work's chapter is 'unavailable' for everyone but its live
+-- owner, the same answer as a missing or mismatched id.
+create or replace function get_chapter_access_state(p_work_id uuid, p_chapter_id uuid) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce((
+    select jsonb_build_object(
+      'state', case
+        when w.admin_blinded or c.admin_blinded then 'blinded'
+        when can_view(w.id, c.id) then 'readable'
+        when auth.uid() is not null and w.owner_id = auth.uid()
+          and exists(select 1 from profiles p where p.id = auth.uid() and p.deleted_at is null) then 'readable'
+        else 'purchase_required' end,
+      'blind_scope', case when w.admin_blinded then 'work' when c.admin_blinded then 'chapter' end,
+      'blind_reason', case when w.admin_blinded then w.admin_blind_reason
+        when c.admin_blinded then c.admin_blind_reason end,
+      'entitled', chapter_entitled(w.id, c.id))
+    from chapters c join works w on w.id = c.work_id
+    where c.id = p_chapter_id and w.id = p_work_id
+      and c.is_published and c.deleted_at is null and w.deleted_at is null
+      and (world_work_public_meta_visible(w.id)
+        or (auth.uid() is not null and w.owner_id = auth.uid()
+          and exists (select 1 from profiles p where p.id = auth.uid() and p.deleted_at is null)))
+  ), jsonb_build_object('state', 'unavailable', 'blind_scope', null, 'blind_reason', null, 'entitled', false));
+$$;
+
+revoke all on function can_view(uuid, uuid), list_chapter_access(uuid), get_chapter_access_state(uuid, uuid) from public;
+grant execute on function can_view(uuid, uuid), list_chapter_access(uuid), get_chapter_access_state(uuid, uuid)
+  to anon, authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
+-- 11. increment_chapter_view (0008 body + reader visibility + author self-view skip)
+-- ---------------------------------------------------------------------------
+-- anon: counted as before (an anonymous author cannot be identified; not claimed as solved).
+-- suspended/deleted signed-in user: skipped silently as in 0008.
+-- signed-in owner: skipped, decided by auth.uid() vs works.owner_id (never a client argument),
+--   from world_tree_author_view_cutoff() on. Existing view_count values are never reset or
+--   estimated down.
+-- Only a live, published, unblinded chapter of a reader-visible work counts; a parent's state
+-- never blocks a published child's count.
+create or replace function increment_chapter_view(p_chapter_id uuid) returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is not null and not user_can_write(v_uid) then
+    return;
+  end if;
+  update chapters c
+     set view_count = c.view_count + 1
+    from works w
+   where c.id = p_chapter_id and c.is_published = true and c.deleted_at is null and not c.admin_blinded
+     and w.id = c.work_id and world_work_reader_visible(w.id)
+     and (v_uid is null or w.owner_id <> v_uid);
+end;
+$$;
+revoke all on function increment_chapter_view(uuid) from public;
+grant execute on function increment_chapter_view(uuid) to anon, authenticated;
+
 notify pgrst, 'reload schema';
 commit;
