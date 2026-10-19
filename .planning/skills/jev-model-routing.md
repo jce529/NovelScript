@@ -31,6 +31,14 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 - **티어 배치는 이름·세대에서 추정한 가설이다** (Sol > Terra > Luna, 6.1 > 6 > 5.6). 실제 격차는 §9 로그로 보정한다.
 - **Codex 모델 ID를 추측하지 않는다.** `gpt-6-sol`, `gpt-6-luna`는 이 레포에서 쓰는 값이고, `6.1 Sol`·`5.6 Terra/Luna`의 정확한 ID는 최초 1회 `codex exec --help`/모델 목록으로 확인해 `.planning/model-routing/models.md`에 적어 둔다. 지원하지 않는 ID면 임의 대체하지 말고 사용자에게 묻는다(AGENTS.md "외부 AI 호출 시 모델 명시").
 - 호출 규칙은 AGENTS.md 그대로: Codex는 `-m`+`-c model_reasoning_effort`를 매번 명시하고 로그 첫머리 `model:` 줄을 확인, Agent 도구는 `model` 파라미터를 명시.
+- **Codex 호출 템플릿 (Windows, 2026-10-19 확인)**: `~/.codex/config.toml`에 `[windows] sandbox = "elevated"`가 있으면 비대화형 `codex exec`에서 쉘·`apply_patch`가 모두 `setup refresh had errors`로 실패한다. **호출마다 `-c 'windows.sandbox="unelevated"'`를 붙인다**(설정 파일은 고치지 않는다).
+  ```
+  codex exec -m <모델> -c model_reasoning_effort=<강도> -c 'windows.sandbox="unelevated"' \
+    -s workspace-write -C <작업 폴더> --skip-git-repo-check - < 프롬프트파일 > 출력파일 2>&1
+  ```
+  - unelevated는 폴더 경계 보호가 약하므로 `-C`로 작업 범위를 좁히고, 프롬프트에 "수정 허용 파일 목록"을 명시하고, 끝난 뒤 `git status`로 범위 밖 변경이 없는지 확인한다.
+  - 호출 후 출력에서 `setup refresh`/`Rejected` 건수가 0인지도 확인한다(0이 아니면 실패로 보고 Claude로 폴백).
+  - 읽기 전용 검증(`-s read-only`)도 같은 이유로 파일을 못 읽는다 — 검증자에게는 같은 플래그를 쓰거나 코드를 프롬프트에 직접 넣는다.
 
 ### 채널 선택 (같은 티어 안에서 Claude vs GPT)
 
@@ -84,8 +92,8 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 
 task마다 아래 명제를 만들어 한 번에 보낸다.
 
-- P1 "이 task는 현재 대화 문맥이나 사용자 결정을 모르면 수행할 수 없다."
-- P2 "이 task는 네트워크, 원격 DB, 브라우저, MCP 같은 샌드박스 밖 자원이 필요하다."
+- P1 (자족성) "이 task는 task 설명과 지정된 파일만 있으면, 다른 대화 맥락이나 사용자 결정 없이 완수할 수 있다." — **참일수록 GPT 친화**. (2026-10-19 개정: 이전 문구 "대화 문맥을 모르면 수행할 수 없다"는 단순한 task도 0.83으로 나와 채널이 거의 항상 Claude로 갔다.)
+- P2 "이 task를 완수하거나 완료 조건을 확인하려면 네트워크, 원격 DB, 브라우저, MCP 같은 샌드박스 밖 자원이 필요하다."
 - P3 "이 task의 완료 조건은 grep/테스트로 기계적으로 검증할 수 있다."
 - P4 "이 task는 완료 조건이 모호해 구현 중 설계 판단이 필요하다."
 
@@ -113,7 +121,7 @@ task마다 아래 명제를 만들어 한 번에 보낸다.
 3. P4(설계 판단 필요)가 참 → 최소 T3.
 4. P3가 참이고 위험도 `low` → −1 가능(단 T0 미만 불가, trivial은 이미 최저라 적용 안 함).
 
-**③ 채널 결정**: P1이 참이거나 P2가 참 → Claude. 아니면 GPT(Codex). 참/거짓이 불확실이면 Claude.
+**③ 채널 결정** (2026-10-19 개정, 문턱 완화): **P1(자족성) ≥ 0.5 그리고 P2 ≤ 0.3 → GPT(Codex).** 그 외(P2 > 0.3 이거나 P1 < 0.5) → Claude. 확률을 그대로 쓰며 "불확실" 구간에서 자동으로 Claude로 보내지 않는다. 경계(P1 0.4~0.6 또는 P2 0.25~0.4)는 로그 `비고`에 표시해 보정 대상으로 삼는다.
 
 **④ 모델 결정**: ①~③ 결과의 (티어, 채널)을 §1 표에서 찾는다. 해당 칸이 비어 있으면(Claude T2·T0) 같은 채널의 한 칸 위 티어를 쓴다.
 
