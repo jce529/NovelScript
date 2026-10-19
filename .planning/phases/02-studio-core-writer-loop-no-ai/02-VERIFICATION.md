@@ -215,6 +215,11 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
   - 사용자 최종 UX 확인(approved 또는 구체적 실패 입력)
 - 위가 승인되기 전까지 Phase 02 보완은 완료로 표기하지 않으며 ROADMAP/STATE/REQUIREMENTS는 변경하지 않는다.
 
+## 발견 사항 — 레이아웃 버그 (사용자 보고, 승인 차단)
+- [BUG-02](bugs/BUG-02-template-toolbar-overflow.md): 모바일 폭에서 템플릿 에디터 툴바가 깨진다(390px 측정: 이름 폭 0, 칩 11x64px, 버튼 38px 초과). open.
+- [BUG-03](bugs/BUG-03-kb-tree-row-name-squeezed.md): 800px 폭에서 KB 트리 행의 투명 액션 영역(52~136px)이 폭을 차지해 이름이 4~15px로 눌린다. open.
+- 02-13 Task 3은 "발견 이슈가 있으면 승인하지 않는다"이므로 두 버그가 수정·재검증되기 전에는 브라우저 게이트를 승인하지 않는다.
+
 ## 발견 사항 (비차단)
 - 기본 템플릿 본문과 이를 복사한 새 문서 본문이 BOM(`U+FEFF`)으로 시작한다.
 - `supabase/migrations/0011_ai_doc_planning.sql`이 BOM으로 시작해 `scripts/apply-migration.mjs`로 그대로 적용하면 구문 오류가 난다.
