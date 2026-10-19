@@ -32,6 +32,12 @@ import {
 import { cappedPresentation, type CappedReason, type ChatResult } from '@/lib/ai/chat-result';
 import type { KbCategory } from '@/lib/kb/categories';
 import { chatAction } from '../actions';
+import { loadAiWalletStatusAction } from '@/app/studio/ai-wallet-actions';
+import {
+  createWalletRefreshController, shouldRefreshWalletAfterChat,
+  type WalletRefreshController, type WalletRefreshTrigger, type WalletStatusState,
+} from '@/lib/ai/wallet-refresh';
+import { WalletBalanceGauge } from './WalletBalanceGauge';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { AiPanelNotice } from './AiPanelNotice';
 import { DefaultFallbackNotice } from './DefaultFallbackNotice';
@@ -163,6 +169,28 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const settingsLinkRef = useRef<HTMLAnchorElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  // 04-11: read-only wallet gauge state. The controller drops stale responses and goes inert on unmount/workId change.
+  const [walletStatus, setWalletStatus] = useState<WalletStatusState>({ kind: 'loading' });
+  const walletControllerRef = useRef<WalletRefreshController | null>(null);
+
+  function refreshWallet(trigger: WalletRefreshTrigger) {
+    if (!walletControllerRef.current || walletControllerRef.current.disposed) {
+      walletControllerRef.current = createWalletRefreshController({ load: loadAiWalletStatusAction, apply: setWalletStatus });
+    }
+    void walletControllerRef.current.refresh(trigger);
+  }
+
+  useEffect(() => {
+    refreshWallet('mount');
+    const onFocus = () => refreshWallet('focus');
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      walletControllerRef.current?.dispose();
+      walletControllerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workId]);
 
   const currentSelectionBlockReason = selectionBlockReason(availabilityStatus, canUseSelection({ providerId, model, keySource }));
   const selectionBlockedMessage = currentSelectionBlockReason ?? attemptBlockedReason;
@@ -251,6 +279,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     }
 
     if (result === null) {
+      // Response lost / settlement error: the debit may or may not have happened — re-read, never resend.
+      refreshWallet('settled');
       failedAttemptRef.current = attempt;
       if (p.keySource === 'byok') {
         const outcome = resolveChatOutcome({ ok: false, status: 'failed', failureKind: 'unavailable' }, p.providerId);
@@ -280,6 +310,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       const capped = cappedPresentation(result);
       if (capped) toast(capped.toast);
       if (outcome.refreshBalance) router.refresh();
+      if (shouldRefreshWalletAfterChat(outcome)) refreshWallet('settled');
       return;
     }
 
@@ -289,6 +320,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     failedAttemptRef.current = n.retryable || n.byokAction?.kind === 'replacement' ? attempt : null;
     if (n.byokAction?.kind === 'invalid_key') router.refresh();
     if (n.refreshBalance) router.refresh();
+    if (shouldRefreshWalletAfterChat(outcome)) refreshWallet('settled');
     showNotice(n);
   }
 
@@ -393,9 +425,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
               {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[accountDefault.providerId]} {'\u00B7'} {PROVIDER_MODELS[accountDefault.providerId].find((entry) => entry.id === accountDefault.model)?.displayName ?? accountDefault.model} <Badge variant={accountDefault.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[accountDefault.keySource]}</Badge>
               {' · '}<Link className="underline" href="/studio/settings/ai-providers">설정에서 변경</Link>
             </div>
-            {keySource === 'byok' ? (
-              <p role="status" aria-live="polite" className="text-xs text-muted-foreground">내 키로 호출해요 · 지갑 토큰은 차감되지 않아요</p>
-            ) : (
+            {keySource !== 'byok' && (
               <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
             )}
           </div>
@@ -546,6 +576,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           onOpenChange={(open) => { if (!open) setModalMessageId(null); }}
           proposal={modalMessage.proposal}
           generation={{ providerId: modalMessage.providerId ?? providerId, model: modalMessage.model ?? model, keySource: modalMessage.keySource ?? keySource, presetLevel, styleId, genre, customInstruction: customInstructionForPayload(presetLevel, customInstruction) }}
+          onWalletRefresh={() => refreshWallet('regenerate')}
           onSaved={(nodeId) => {
             const proposal = modalMessage.proposal!;
             setMessages((prev) => prev.map((message) => message.id === modalMessage.id ? { ...message, savedNodeId: nodeId } : message));
@@ -577,6 +608,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           />
         )}
       </div>
+
+      <WalletBalanceGauge keySource={keySource} status={walletStatus} onRetry={() => refreshWallet('retry')} />
 
       <div className="flex items-center gap-2">
         <Input

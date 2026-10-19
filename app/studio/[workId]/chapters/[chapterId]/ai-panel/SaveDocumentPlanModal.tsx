@@ -32,6 +32,8 @@ export interface SaveDocumentPlanModalProps {
   proposal: DocumentProposal;
   generation: GenerationSettings;
   onSaved: (nodeId: string, content: string) => void;
+  /** 04-11: called after a regeneration request returned or threw, so the wallet gauge re-reads (read-only). */
+  onWalletRefresh?: () => void;
 }
 
 const LOAD_FAILED = '저장 위치를 불러오지 못했어요. 다시 시도해주세요.';
@@ -43,7 +45,7 @@ const TEMPLATE_GROUPS = [
   { scope: 'canonical', label: '기본 템플릿' },
 ] as const;
 
-export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, generation, onSaved }: SaveDocumentPlanModalProps) {
+export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, generation, onSaved, onWalletRefresh }: SaveDocumentPlanModalProps) {
   const [recommended, setRecommended] = useState<SaveRecommendation | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [selectedFolderVersion, setSelectedFolderVersion] = useState<string | undefined>();
@@ -58,6 +60,8 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
   const [regenerated, setRegenerated] = useState<{ content: string; name: string; templateId: string | null } | null>(null);
   const [replacement, setReplacement] = useState<{ selection: { providerId: ProviderId; model: string; keySource: 'service' }; notice: ChatNotice } | null>(null);
   const regenKeyRef = useRef<{ templateId: string | null; key: string } | null>(null);
+  // Synchronous lock: a second click in the same event turn must not issue a second regeneration.
+  const regenLockRef = useRef(false);
   const requestKey = JSON.stringify([workId, proposal]);
   const loadState = loadedRequest?.key === requestKey ? loadedRequest.state : 'loading';
 
@@ -99,6 +103,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
       setFolders([]);
       setTemplates([]);
       setRegenerated(null);
+      setReplacement(null);
       regenKeyRef.current = null;
     }
     onOpenChange(nextOpen);
@@ -153,7 +158,8 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
   }
 
   async function handleRegenConfirm() {
-    if (!recommended) return;
+    if (!recommended || regenLockRef.current) return;
+    regenLockRef.current = true;
     const key = regenKeyRef.current?.templateId === selectedTemplateId
       ? regenKeyRef.current.key
       : crypto.randomUUID();
@@ -168,6 +174,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
         ...(replacement ? { replacementConsent: true as const, replacementSelection: replacement.selection } : {}),
         }),
       });
+      onWalletRefresh?.();
       setRegenConfirmOpen(false);
       if (!result.ok) {
         if (result.status === 'already_processed') regenKeyRef.current = null;
@@ -193,10 +200,13 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
       setRegenerated(value);
       await doSave(value);
     } catch {
+      // Response lost: the debit may have settled server-side — re-read the wallet, never resend.
+      onWalletRefresh?.();
       setRegenConfirmOpen(false);
       setBanner(REGENERATION_FAILED);
       setSelectedTemplateId(recommended.templateId);
     } finally {
+      regenLockRef.current = false;
       setRegenerating(false);
     }
   }
@@ -241,6 +251,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
                   if (!folder) return;
                   setSelectedFolderId(folder.id);
                   setSelectedFolderVersion(folder.version);
+                  setReplacement(null);
                   setBanner(null);
                 }}>
                   <SelectTrigger className="w-full"><SelectValue>{(value: string) => {
@@ -257,6 +268,7 @@ export function SaveDocumentPlanModal({ workId, open, onOpenChange, proposal, ge
                 <Select value={selectedTemplateId ?? CANONICAL_TEMPLATE_VALUE} onValueChange={(value) => {
                   const templateId = value === CANONICAL_TEMPLATE_VALUE ? null : value;
                   setSelectedTemplateId(templateId);
+                  setReplacement(null);
                   setBanner(null);
                   if (regenerated?.templateId !== templateId) setRegenerated(null);
                 }}>
