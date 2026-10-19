@@ -6,14 +6,10 @@ import Link from 'next/link';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel,
-  DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Paperclip, Settings2, X } from 'lucide-react';
+import { Paperclip, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { GENRES } from '@/lib/works/genres';
 import {
@@ -41,6 +37,7 @@ import type { DefaultFallback } from '@/lib/ai/providers/settings';
 import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
 import { UploadFilesDialog } from './UploadFilesDialog';
 import type { ChatAttachment } from '@/lib/ai/attachments';
+import { AiInstructionControls, customInstructionForPayload } from './AiInstructionControls';
 
 const PROVIDER_LABELS: Record<ProviderId, string> = { gemini: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
 
@@ -73,16 +70,6 @@ export interface AiPanelProps {
   onInsertText: (text: string) => void;
 }
 
-/** This session's redesign: all three levels are the SAME chat-driven
- * generation (no separate "생성하기" button, no separate UI for any level) —
- * they differ ONLY in which system-prompt instruction is active. */
-const PRESET_LEVEL_META: Record<PresetLevel, { label: string; description: string }> = {
-  beginner: { label: '초보자', description: 'AI가 알아서 다음 전개를 판단해요. 별다른 지시 없이 대화를 시작해보세요.' },
-  intermediate: { label: '중급자', description: '표준 지시에 약간의 재량을 더해 대화를 이어가요.' },
-  freeform: { label: '자유형', description: '정해진 지시 없이, 대화 내용을 최우선으로 반영해요.' },
-};
-
-const PRESET_LEVELS: PresetLevel[] = ['beginner', 'intermediate', 'freeform'];
 const STYLE_IDS = Object.keys(STYLE_PRESETS) as StylePresetId[];
 
 interface ChatMessage {
@@ -109,6 +96,8 @@ interface SendPayload {
   keySource: KeySource;
   genre: string;
   presetLevel: PresetLevel;
+  /** 04-10: freeform-only instruction captured at send time; retry replays it verbatim. */
+  customInstruction: string | null;
   styleId: StylePresetId;
   mentionedNodeIds: string[];
   precedingText: string;
@@ -129,6 +118,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const consentPending = Boolean(defaultFallback?.requiresConsent) && !fallbackResolved;
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
+  // Kept across preset switches; only freeform sends include it (customInstructionForPayload).
+  const [customInstruction, setCustomInstruction] = useState('');
+  const [systemInstructionOpen, setSystemInstructionOpen] = useState(false);
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
   const [isGenerating, setIsGenerating] = useState(false);
   const [modalMessageId, setModalMessageId] = useState<string | null>(null);
@@ -172,6 +164,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     return {
       userTurnId: crypto.randomUUID(),
       userMessage, history, providerId, model, keySource, genre, presetLevel, styleId, mentionedNodeIds,
+      customInstruction: customInstructionForPayload(presetLevel, customInstruction),
       precedingText: content,
       attachments,
     };
@@ -204,6 +197,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         keySource: p.keySource,
         mentionedNodeIds: [...p.mentionedNodeIds],
         presetLevel: p.presetLevel,
+        customInstruction: p.customInstruction,
         styleId: p.styleId,
         genre: p.genre,
         precedingText: p.precedingText,
@@ -385,35 +379,20 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
               </SelectContent>
             </Select>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  type="button" variant="outline" size="icon"
-                  aria-label="AI 지시 프리셋 설정"
-                  title={`AI 지시 프리셋: ${PRESET_LEVEL_META[presetLevel].label}`}
-                  className="size-8 shrink-0"
-                >
-                  <Settings2 className="size-4" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>AI 지시 프리셋</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={presetLevel} onValueChange={(value) => setPresetLevel(value as PresetLevel)}>
-                  {PRESET_LEVELS.map((level) => (
-                    <DropdownMenuRadioItem key={level} value={level} className="flex-col items-start gap-0.5">
-                      <span className="font-medium">{PRESET_LEVEL_META[level].label}</span>
-                      <span className="text-xs text-muted-foreground">{PRESET_LEVEL_META[level].description}</span>
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+
+        <AiInstructionControls
+          presetLevel={presetLevel}
+          onPresetChange={(level) => {
+            setPresetLevel(level);
+            // Beginner never edits the work instruction: an open modal closes (its pending
+            // load/save is invalidated by the modal controller); the stored value is kept.
+            if (level === 'beginner') setSystemInstructionOpen(false);
+          }}
+          customInstruction={customInstruction}
+          onCustomInstructionChange={setCustomInstruction}
+          onOpenSystemInstruction={() => { if (presetLevel !== 'beginner') setSystemInstructionOpen(true); }}
+        />
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">문체 프리셋</label>
