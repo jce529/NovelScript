@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
+
+const PANEL_DIR = 'app/studio/[workId]/chapters/[chapterId]/ai-panel';
 
 vi.mock('@/components/ui/select', () => ({
   Select: ({ children, value }: { children: ReactNode; value: string }) => createElement('div', { 'data-preset-select': value }, children),
@@ -63,6 +66,22 @@ describe('AiInstructionControls (04-10 Task 1)', () => {
       expect(gearTag(html)).not.toMatch(/\sdisabled=""/);
       expect(html).not.toContain(SYSTEM_INSTRUCTION_BEGINNER_HINT);
     }
+  });
+
+  it('the real modal uses the tested controller and the shared work instruction actions (04-10 Task 2)', () => {
+    const source = readFileSync(`${PANEL_DIR}/SystemInstructionModal.tsx`, 'utf8');
+    expect(source).toContain('createSystemInstructionController');
+    expect(source).toContain('loadWorkSystemInstructionAction');
+    expect(source).toContain('saveWorkSystemInstructionAction');
+    expect(source).toContain('BASELINE_SYSTEM_PROMPT');
+    expect(source).toMatch(/readOnly/);
+    expect(source).toContain('작품 시스템 지시');
+    const panel = readFileSync(`${PANEL_DIR}/AiPanel.tsx`, 'utf8');
+    expect(panel).toMatch(/<SystemInstructionModal[\s\S]*disabled=\{presetLevel === 'beginner'\}/);
+    // document regeneration receives the same freeform snapshot rule as chat sends
+    expect(panel).toMatch(/generation=\{\{[^}]*customInstruction: customInstructionForPayload\(presetLevel, customInstruction\)/);
+    const modal = readFileSync(`${PANEL_DIR}/SaveDocumentPlanModal.tsx`, 'utf8');
+    expect(modal).toMatch(/customInstruction\?: string \| null/);
   });
 
   it('customInstructionForPayload sends the value only for a non-blank freeform input', () => {
