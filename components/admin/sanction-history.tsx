@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LocalTime } from '@/components/admin/report-queue';
+import { SanctionChangeForm } from '@/components/admin/sanction-change-form';
 import { queueHref, type AdminQueueState } from '@/lib/admin/queue-params';
 import type {
   AdminPage,
@@ -217,11 +218,9 @@ export interface SanctionHistoryProps {
   users: AdminPage<AdminSanctionUserSummary>;
   /** Loaded only when state.userId is on the current user list page. */
   history: AdminPage<AdminSanctionHistoryEntry> | null;
-  /** Renders the adjust control inside the current-sanction row (07-11 task 2). */
-  renderAdjust?: (user: AdminSanctionUserSummary) => React.ReactNode;
 }
 
-export function SanctionHistory({ state, users, history, renderAdjust }: SanctionHistoryProps) {
+export function SanctionHistory({ state, users, history }: SanctionHistoryProps) {
   const selected = state.userId
     ? users.items.find((user) => user.userId.toLowerCase() === state.userId)
     : undefined;
@@ -283,7 +282,15 @@ export function SanctionHistory({ state, users, history, renderAdjust }: Sanctio
               <span className="text-sm font-medium text-muted-foreground">현재 제재</span>
               <CurrentSanctionLabel sanction={selected.effectiveSanction} />
             </div>
-            {selected.effectiveSanction.kind !== 'none' && renderAdjust ? renderAdjust(selected) : null}
+            {/* Adjustment lives only on the current active sanction row; warnings/expired have none. */}
+            {selected.effectiveSanction.kind !== 'none' ? (
+              <SanctionChangeForm
+                userId={selected.userId}
+                userName={sanctionUserName(selected)}
+                current={selected.effectiveSanction}
+                expectedSeq={selected.expectedSeq}
+              />
+            ) : null}
           </div>
           {history ? (
             <>

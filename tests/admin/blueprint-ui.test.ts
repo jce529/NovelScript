@@ -5,6 +5,12 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: () => {}, refresh: () => {} }),
 }));
+vi.mock('@/app/admin/actions', () => ({
+  adjustUserSanctionAction: vi.fn(),
+  moderateReportGroupAction: vi.fn(),
+  resolveReviewRequestAction: vi.fn(),
+  unblindTargetAction: vi.fn(),
+}));
 
 import { QueueTabs, ReportQueue } from '@/components/admin/report-queue';
 import {
@@ -13,6 +19,15 @@ import {
   groupSanctionTimeline,
   sanctionUserName,
 } from '@/components/admin/sanction-history';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { DurationPresetPicker } from '@/components/admin/moderation-form';
+import {
+  SanctionChangeForm,
+  buildSanctionAdjustInput,
+  validateSanctionChange,
+} from '@/components/admin/sanction-change-form';
+import { suspensionPresetEndsAt } from '@/lib/admin/sanction-presets';
 import { parseQueueParams } from '@/lib/admin/queue-params';
 import type {
   AdminPage,
@@ -236,5 +251,103 @@ describe('sanction history tab', () => {
     expect(items[0].type).toBe('duration_change');
     // a plain lift (no duration change metadata) stays a lift
     expect(groupSanctionTimeline([entry({ kind: 'lift', metadata: { operation: 'lift' } })])[0].type).toBe('entry');
+  });
+});
+
+describe('current-row adjustment controls', () => {
+  const active = user({ effectiveSanction: { kind: 'suspension', sanctionedUntil: '2026-12-01T00:00:00.000Z' } });
+  const state = (id: string) => parseQueueParams({ tab: 'sanctions', user: id });
+  const buttons = (html: string) => html.match(/<button[^>]*>[^<]*(?:<[^b][^>]*>[^<]*)*<\/button>/g)?.join('') ?? '';
+
+  it('shows lift and duration-change buttons only for an active sanction', () => {
+    const html = render(
+      createElement(SanctionHistory, { state: state(U1), users: pageOf([active]), history: pageOf([entry()]) })
+    );
+    expect(buttons(html)).toContain('제재 해제');
+    expect(buttons(html)).toContain('기간 변경');
+    expect(html).toContain('data-current-sanction="suspension"');
+  });
+
+  it('shows permanent suspensions as adjustable too', () => {
+    const permanent = user({ effectiveSanction: { kind: 'permanent_suspension', sanctionedUntil: null } });
+    const html = render(
+      createElement(SanctionHistory, { state: state(U1), users: pageOf([permanent]), history: pageOf([entry()]) })
+    );
+    expect(buttons(html)).toContain('제재 해제');
+  });
+
+  it('renders no adjust buttons for warning-only or expired users (effective none)', () => {
+    const html = render(
+      createElement(SanctionHistory, {
+        state: state(U1),
+        users: pageOf([user()]),
+        history: pageOf([entry({ kind: 'warning' }), entry({ id: 'x', kind: 'suspension', endsAt: '2026-01-01T00:00:00.000Z' })]),
+      })
+    );
+    expect(html).toContain('data-current-sanction="none"');
+    expect(buttons(html)).not.toContain('제재 해제');
+    expect(buttons(html)).not.toContain('기간 변경');
+    expect(
+      render(createElement(SanctionChangeForm, { userId: U1, userName: 'x', current: { kind: 'none', sanctionedUntil: null }, expectedSeq: '1' }))
+    ).toBe('');
+  });
+
+  it('validates two reasons and, for a duration change, a future preset', () => {
+    const now = Date.parse('2026-10-19T00:00:00.000Z');
+    expect(validateSanctionChange({ mode: 'lift', endsAt: null, reason: ' ', publicReason: '', now })).toEqual({
+      reason: expect.any(String),
+      publicReason: expect.any(String),
+    });
+    expect(validateSanctionChange({ mode: 'lift', endsAt: null, reason: 'a', publicReason: 'b', now })).toEqual({});
+    expect(validateSanctionChange({ mode: 'change_duration', endsAt: null, reason: 'a', publicReason: 'b', now }).endsAt).toBeTruthy();
+    const past = suspensionPresetEndsAt(1, now - 3 * 86_400_000);
+    expect(validateSanctionChange({ mode: 'change_duration', endsAt: past, reason: 'a', publicReason: 'b', now }).endsAt).toContain('다시 선택');
+    const ok = suspensionPresetEndsAt(7, now);
+    expect(validateSanctionChange({ mode: 'change_duration', endsAt: ok, reason: 'a', publicReason: 'b', now })).toEqual({});
+  });
+
+  it('builds the action input: lift sends null, change sends the preset, expectedSeq passes through', () => {
+    const ids = { userId: U1, expectedSeq: '9223372036854775807' };
+    const endsAt = suspensionPresetEndsAt(30, Date.parse('2026-10-19T00:00:00.000Z'));
+    expect(endsAt).toBe('2026-11-18T00:00:00.000Z');
+    const lift = buildSanctionAdjustInput(ids, { mode: 'lift', endsAt, reason: ' 내부 ', publicReason: ' 공개 ' }, 'k1');
+    expect(lift).toEqual({
+      idempotencyKey: 'k1',
+      userId: U1,
+      expectedSeq: '9223372036854775807',
+      operation: 'lift',
+      reason: '내부',
+      publicReason: '공개',
+      endsAt: null,
+    });
+    const change = buildSanctionAdjustInput(ids, { mode: 'change_duration', endsAt, reason: 'a', publicReason: 'b' }, 'k2');
+    expect(change).toMatchObject({ operation: 'change_duration', endsAt });
+  });
+
+  it('preset picker offers 1/7/30 days with no preselection and a UTC preview', () => {
+    const empty = render(
+      createElement(DurationPresetPicker, { id: 'p', selected: null, baseTime: null, disabled: false, onSelect: () => {} })
+    );
+    for (const label of ['1일', '7일', '30일']) expect(empty).toContain(label);
+    expect(empty).not.toContain('aria-pressed="true"');
+    expect(empty).toContain('기간을 선택하면 종료 시각이 표시됩니다.');
+    const base = Date.parse('2026-10-19T00:00:00.000Z');
+    const picked = render(
+      createElement(DurationPresetPicker, { id: 'p', selected: 7, baseTime: base, disabled: false, onSelect: () => {} })
+    );
+    expect(picked).toContain('aria-pressed="true"');
+    expect(picked).toContain('2026-10-26T00:00:00.000Z');
+  });
+
+  it('keeps the sanction user id out of the report moderation form and off report detail pages', () => {
+    const read = (p: string) => readFileSync(path.resolve(__dirname, '../..', p), 'utf8');
+    const form = read('components/admin/moderation-form.tsx');
+    expect(form).not.toMatch(/userId/);
+    expect(form).not.toContain('datetime-local');
+    expect(form).toContain('DurationPresetPicker');
+    expect(form).not.toContain('adjustUserSanctionAction');
+    for (const detail of ['app/admin/reports/[reportId]/page.tsx', 'app/admin/reviews/[requestId]/page.tsx']) {
+      expect(read(detail)).not.toContain('sanction-change-form');
+    }
   });
 });

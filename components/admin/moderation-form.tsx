@@ -22,6 +22,12 @@ import {
   unblindTargetAction,
 } from '@/app/admin/actions';
 import type { AdminResult, ModerationAction, ReviewOutcome } from '@/lib/admin/types';
+import { LocalTime } from '@/components/admin/report-queue';
+import {
+  SANCTION_DURATION_DAYS,
+  suspensionPresetEndsAt,
+  type SanctionDurationDays,
+} from '@/lib/admin/sanction-presets';
 
 /*
  * Admin action forms (ADMIN-02..04, D-18, D-19). Each form submits the exact reviewed
@@ -64,21 +70,6 @@ function newKey(): string {
   return crypto.randomUUID();
 }
 
-/** Converts a datetime-local value (browser local time) to an ISO instant. */
-export function localInputToIso(value: string): string | null {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
-}
-
-function localTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  } catch {
-    return 'local';
-  }
-}
-
 export function describeFailure(result: Extract<AdminResult<unknown>, { ok: false }>): Status {
   switch (result.error) {
     case 'stale_target':
@@ -104,6 +95,65 @@ function mapFieldErrors(fieldErrors: Record<string, string> | undefined): FieldE
     if (message) out[field] = FIELD_MESSAGES[message] ?? '입력 내용을 확인해 주세요.';
   }
   return out;
+}
+
+export const PAST_EXPIRY_MESSAGE = '선택한 종료 시각이 이미 지났습니다. 기간을 다시 선택해 주세요.';
+
+/**
+ * 1/7/30-day preset picker shared by the initial suspension and the duration change.
+ * The caller captures baseTime once when a preset is chosen, so the preview shown here and
+ * the endsAt it later submits come from the same instant. No preset is preselected.
+ */
+export function DurationPresetPicker({
+  id,
+  selected,
+  baseTime,
+  disabled,
+  error,
+  onSelect,
+}: {
+  id: string;
+  selected: SanctionDurationDays | null;
+  baseTime: number | null;
+  disabled: boolean;
+  error?: string;
+  onSelect: (days: SanctionDurationDays) => void;
+}) {
+  const endsAt = selected !== null && baseTime !== null ? suspensionPresetEndsAt(selected, baseTime) : null;
+  const errorId = `${id}-error`;
+  return (
+    <div className="flex flex-col gap-2">
+      <span id={`${id}-label`} className="text-sm font-medium">
+        정지 기간<span className="text-destructive"> (필수)</span>
+      </span>
+      <div role="group" aria-labelledby={`${id}-label`} aria-describedby={error ? errorId : `${id}-preview`} className="flex flex-wrap gap-2">
+        {SANCTION_DURATION_DAYS.map((days, index) => (
+          <Button
+            key={days}
+            id={index === 0 ? id : undefined}
+            type="button"
+            variant={selected === days ? 'default' : 'outline'}
+            aria-pressed={selected === days}
+            disabled={disabled}
+            className="min-h-11"
+            onClick={() => onSelect(days)}
+          >
+            {days}일
+          </Button>
+        ))}
+      </div>
+      <p id={`${id}-preview`} className="text-sm text-muted-foreground" suppressHydrationWarning>
+        {endsAt ? (
+          <>
+            종료 예정: <LocalTime value={endsAt} withZone /> ({endsAt})
+          </>
+        ) : (
+          '기간을 선택하면 종료 시각이 표시됩니다.'
+        )}
+      </p>
+      <FieldError id={errorId} message={error} />
+    </div>
+  );
 }
 
 /** Shared submit plumbing: pending lock, retry key, field focus, stale refresh. */
@@ -338,20 +388,23 @@ export function ReportModerationForm({
   const [action, setAction] = useState<ModerationAction>('resolve');
   const [reason, setReason] = useState('');
   const [publicReason, setPublicReason] = useState('');
-  const [endsAtLocal, setEndsAtLocal] = useState('');
+  const [days, setDays] = useState<SanctionDurationDays | null>(null);
+  const [baseTime, setBaseTime] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const operative = OPERATIVE.has(action);
   const option = ACTION_OPTIONS.find((o) => o.value === action)!;
   const isSanction = action === 'warn' || action === 'suspend' || action === 'permanent_suspend';
+
+  // Preview and submitted endsAt both derive from the one captured baseTime.
+  const presetEndsAt = days !== null && baseTime !== null ? suspensionPresetEndsAt(days, baseTime) : null;
 
   const validate = (): boolean => {
     const next: FieldErrors = {};
     if (operative && !reason.trim()) next.reason = REASON_REQUIRED;
     if (operative && !publicReason.trim()) next.publicReason = REASON_REQUIRED;
     if (action === 'suspend') {
-      const iso = localInputToIso(endsAtLocal);
-      if (!iso) next.endsAt = FIELD_MESSAGES.expiry_required;
-      else if (Date.parse(iso) <= Date.now()) next.endsAt = FIELD_MESSAGES.expiry_in_past;
+      if (!presetEndsAt) next.endsAt = FIELD_MESSAGES.expiry_required;
+      else if (Date.parse(presetEndsAt) <= Date.now()) next.endsAt = PAST_EXPIRY_MESSAGE;
     }
     cmd.setErrors(next);
     return Object.keys(next).length === 0;
@@ -371,13 +424,14 @@ export function ReportModerationForm({
           action,
           reason: reason.trim() || null,
           publicReason: operative ? publicReason.trim() || null : null,
-          endsAt: action === 'suspend' ? localInputToIso(endsAtLocal) : null,
+          endsAt: action === 'suspend' ? presetEndsAt : null,
         }),
       `${option.submit}되었습니다.`,
       () => {
         setReason('');
         setPublicReason('');
-        setEndsAtLocal('');
+        setDays(null);
+        setBaseTime(null);
       }
     );
   };
@@ -447,25 +501,19 @@ export function ReportModerationForm({
       ) : null}
 
       {action === 'suspend' ? (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="moderation-ends-at">
-            정지 종료 시각<span className="text-destructive"> (필수)</span>
-          </Label>
-          <p id="moderation-ends-at-zone" className="text-sm text-muted-foreground" suppressHydrationWarning>
-            시간대: {localTimeZone()}
-          </p>
-          <input
-            id="moderation-ends-at"
-            type="datetime-local"
-            value={endsAtLocal}
-            disabled={cmd.pending}
-            aria-invalid={cmd.errors.endsAt ? true : undefined}
-            aria-describedby={cmd.errors.endsAt ? 'moderation-ends-at-zone moderation-ends-at-error' : 'moderation-ends-at-zone'}
-            onChange={(event) => edit(setEndsAtLocal)(event.target.value)}
-            className="h-11 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30"
-          />
-          <FieldError id="moderation-ends-at-error" message={cmd.errors.endsAt} />
-        </div>
+        <DurationPresetPicker
+          id="moderation-ends-at"
+          selected={days}
+          baseTime={baseTime}
+          disabled={cmd.pending}
+          error={cmd.errors.endsAt}
+          onSelect={(next) => {
+            cmd.touched();
+            cmd.setErrors({});
+            setDays(next);
+            setBaseTime(Date.now());
+          }}
+        />
       ) : null}
 
       {action === 'permanent_suspend' ? (
