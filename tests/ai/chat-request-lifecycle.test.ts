@@ -11,6 +11,7 @@ import {
 } from '@/lib/ai/chat-request';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
 import type { RefusalReasonCode } from '@/lib/ai/providers/types';
+import { customInstructionForPayload } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/AiInstructionControls';
 
 const generated: ChatNotice[] = [];
 function notice(result: ChatResult): ChatNotice {
@@ -63,6 +64,33 @@ describe('createSendAttempt', () => {
       replacementSelection: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' },
     });
     expect(Object.isFrozen(replacement.payload)).toBe(true);
+  });
+});
+
+describe('customInstruction snapshot (04-10 Task 1)', () => {
+  it('retry keeps the frozen custom instruction while a new attempt uses the current input', () => {
+    let current = '1인칭으로 써줘';
+    const build = () => ({ userMessage: '이어줘', presetLevel: 'freeform' as const, customInstruction: customInstructionForPayload('freeform', current) });
+    const first = createSendAttempt(build(), () => 'K1');
+    current = '3인칭으로 바꿔줘';
+    // retry reuses the same attempt object verbatim
+    expect(first.payload.customInstruction).toBe('1인칭으로 써줘');
+    expect(Object.isFrozen(first.payload)).toBe(true);
+    const next = createSendAttempt(build(), () => 'K2');
+    expect(next.payload.customInstruction).toBe('3인칭으로 바꿔줘');
+  });
+
+  it('explicit replacement keeps the frozen custom instruction', () => {
+    const attempt = createSendAttempt({
+      providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const, customInstruction: '짧게',
+    }, () => 'same');
+    const replacement = createReplacementAttempt(attempt, { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' });
+    expect(replacement.payload.customInstruction).toBe('짧게');
+  });
+
+  it('non-freeform presets snapshot no custom instruction even with a kept input', () => {
+    const attempt = createSendAttempt({ presetLevel: 'intermediate', customInstruction: customInstructionForPayload('intermediate', '보존된 입력') });
+    expect(attempt.payload.customInstruction).toBeNull();
   });
 });
 
