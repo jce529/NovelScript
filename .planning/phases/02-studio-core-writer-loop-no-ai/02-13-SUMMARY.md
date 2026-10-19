@@ -2,9 +2,10 @@
 phase: 02-studio-core-writer-loop-no-ai
 plan: "13"
 subsystem: validation-docs
-tags: [gap-closure, docs, partial, pending-gates]
+tags: [gap-closure, docs, real-db-gate, browser-gate]
 gap_closure: true
-status: partial
+status: complete
+completed: 2026-10-19
 requirements: [KB-01, KB-02, CONT-01, CONT-02, CONT-03]
 dependency_graph:
   requires: [02-07, 02-08, 02-09, 02-10, 02-11, 02-12]
@@ -17,13 +18,13 @@ key_files:
     - .planning/phases/02-studio-core-writer-loop-no-ai/02-VALIDATION.md
     - .planning/phases/02-studio-core-writer-loop-no-ai/02-VERIFICATION.md
 metrics:
-  tasks_complete: 1
+  tasks_complete: 3
   tasks_total: 3
 ---
 
-# Phase 2 Plan 13: Decision wording alignment and final gates (PARTIAL)
+# Phase 2 Plan 13: Decision wording alignment and final gates (COMPLETE)
 
-**Task 1 and Task 2 (real-DB) complete; Task 3 (browser) automated checks pass, but real-touch, real-AI-response and user approval remain PENDING, so this plan is NOT complete.** (updated 2026-10-19)
+**All three tasks complete (2026-10-19).** Task 1 (wording), Task 2 (real DB, disposable project) and Task 3 (browser gate, approved by the user's go-ahead on 2026-10-19) are done; the residual items listed under "Residual unverified items" were not independently verified and are recorded as such.
 
 ## Task 1 (done)
 
@@ -45,13 +46,24 @@ Passed in the browser against the disposable DB: default templates read-only + c
 
 User-reported layout failures (2026-10-19) were fixed and re-verified in the browser: `fixed/02-02` (template editor toolbar, now two tiers) and `fixed/02-03` (sidebar rows keep their names; row buttons show only for the hovered row on pointer devices and the tapped/active row on touch-only devices; root cause of every row showing buttons on mobile was the drawer's unnamed `details.group`). They no longer block approval.
 
-## Pending (not verified, not failed)
+## Approval
+
+The user was shown the two layout failures they reported (fixed as `fixed/02-02`, `fixed/02-03`), was asked whether to proceed to `/bug-complete` or check on a phone first, and answered "전부 진행해줘" and said they are about to bring the changes to `master`. That instruction is recorded as the browser-gate approval. It is not a separate phone test result.
+
+## Residual unverified items (accepted, not failed)
 
 | Item | Status | Reason |
 |------|--------|--------|
-| long press -> rename, tap navigation, scroll cancel on a real touch device | PENDING | needs a real touch device / touch browser (user check); only synthetic events were exercised |
-| real AI response in flight across collapse, mount count via React DevTools | PENDING | no AI key on the disposable project (error response used); DOM-node removal observer used instead of DevTools |
-| final user UX approval (`approved` / concrete failures) | PENDING | user step |
+| long press -> rename, tap navigation, scroll cancel on a real touch device | not independently verified | only synthetic `pointerType: touch` events and the browser's mobile emulation (`hover: none`, `pointer: coarse`) were exercised by the agent |
+| real AI response in flight across panel collapse, mount count via React DevTools | not independently verified | no AI key on the disposable project (error response used); DOM-node removal observer used instead of DevTools |
+| Validation Sign-Off checkboxes / `nyquist_compliant` | not set | a separate audit (`/gsd:validate-phase`), not part of this gate |
+
+## Closing steps (2026-10-19)
+
+- `gsd-tools roadmap update-plan-progress 02` -> `{"updated": true, "plan_count": 13, "summary_count": 13, "status": "Complete"}`. It only flipped the 02-13 checkbox; the phase checkbox, the reopen banner, the 02-13 description and the Progress row (13/13, Complete, 2026-10-19) were aligned by hand.
+- `graphify update .` -> 5344 nodes, 9503 edges, 540 communities (graph reflects this branch's base `c34cb97` plus this plan's changes, not the newer `master`).
+- `scripts/graph-link-requirements.py` (run right after) -> 53 requirement nodes, 585 edges. The script only covers the v1.1 IDs; the v1.0 IDs of this plan (KB-01, KB-02, CONT-01..03) exist only as UI-SPEC heading nodes (degree 1), so no code/test links are expected from it. Warnings about missing `tests/world-tree/*` files are expected on this branch (those files only exist on `master`).
+- STATE.md, REQUIREMENTS.md, the SSOT and other phases' docs were not modified (outside this plan's scope); run `traceability-sync` after the merge to master.
 
 ## Deviations from Plan
 

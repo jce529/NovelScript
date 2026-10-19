@@ -183,7 +183,7 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 # Reopen 보완 검증 (2026-10-12 정책, plan 02-07~02-13)
 
-> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PARTIAL - Unit·실DB 통과, 브라우저 자동 검증 통과(실제 touch 기기·실제 AI 응답·사용자 UX 승인 PENDING)**. 2026-10-19 갱신.
+> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PASSED - Unit·실DB·브라우저 게이트 통과, 브라우저 게이트는 사용자 지시로 승인(2026-10-19). 실제 touch 기기·실제 AI 응답은 에이전트가 독립 검증하지 못한 잔여 항목**.
 
 | # | 신규 truth | 증거 | 상태 |
 |---|-----------|------|------|
@@ -208,12 +208,10 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 > **검증 방법 주의:** fault injection과 요청 지연은 앱 코드가 아니라 페이지의 `window.fetch`를 감싸 서버 액션(`next-action` 헤더 POST)만 실패/지연시키는 개발 검증용 외부 wrapper다. dev 서버가 파일 변경으로 Fast Refresh되면 클라이언트 상태(예: AI 채팅 입력)가 꼬여 입력이 반영되지 않을 수 있으므로, 검증 중에는 worktree 파일을 건드리지 말고 이상하면 페이지를 새로 불러온다. 창 폭을 에뮬레이션해도 레이아웃(lg 이상) 반영에 재적용이 필요할 수 있다.
 
-## 미완 항목 (PENDING - failed 아님)
-- **브라우저 gate(02-13 Task 3)는 승인하지 않는다.** 자동으로 확인 가능한 항목은 모두 통과했고 아래만 남았다.
-  - **실제 touch 기기 또는 touch 브라우저**에서 long press→이름 바꾸기, 일반 tap 이동, long press 중 scroll 취소 (합성 이벤트 에뮬레이션은 통과했으나 실제 터치 입력은 미확인 — 사용자 확인)
-  - 실제 AI 응답이 진행 중일 때 접기 후에도 같은 대화에 붙는지 (이 프로젝트에 AI 키가 없어 오류 응답으로만 확인), React DevTools 기반 mount count
-  - 사용자 최종 UX 확인(approved 또는 구체적 실패 입력)
-- 위가 승인되기 전까지 Phase 02 보완은 완료로 표기하지 않으며 ROADMAP/STATE/REQUIREMENTS는 변경하지 않는다.
+## 승인과 잔여 항목
+- **브라우저 gate(02-13 Task 3)는 2026-10-19 사용자의 "전부 진행해줘" 지시로 승인됐다.** 사용자가 보고한 레이아웃 이슈 2건은 수정·재검증됐다. 별도의 폰 테스트 결과가 아니라 지시를 승인 근거로 기록한다.
+- 에이전트가 독립 검증하지 못한 잔여 항목(failed 아님): 실제 touch 기기에서의 long press→이름 바꾸기·일반 tap 이동·long press 중 scroll 취소(합성 이벤트·모바일 에뮬레이션만 확인), 실제 AI 응답이 진행 중일 때의 대화 유지(이 프로젝트에 AI 키가 없어 오류 응답으로만 확인)·React DevTools mount count.
+- ROADMAP은 `gsd-tools roadmap update-plan-progress 02`로 동기화한다. STATE/REQUIREMENTS·타 phase 문서는 이 plan 범위가 아니다.
 
 ## 발견 사항 — 레이아웃 버그 (사용자 보고, 수정 완료)
 - BUG-02 → [fixed/02-02](../../fixed/02-02%20%ED%85%9C%ED%94%8C%EB%A6%BF%20%ED%88%B4%EB%B0%94%20%EC%A2%81%EC%9D%80%20%ED%8F%AD%20%EA%B9%A8%EC%A7%90%20%EC%88%98%EC%A0%95.md): 템플릿 툴바를 위/아래 2단으로 분리(390px 실측 이름 폭 0 → 98px, 겹침 0).
