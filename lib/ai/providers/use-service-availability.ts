@@ -39,9 +39,8 @@ export function useServiceAvailability(): UseServiceAvailabilityResult {
   const requestId = useRef(0);
   const mounted = useRef(true);
 
-  const reload = useCallback(() => {
+  const load = useCallback(() => {
     const id = ++requestId.current;
-    setStatus('loading');
     startTransition(async () => {
       let parsed: ServiceAvailability | null = null;
       try {
@@ -56,11 +55,16 @@ export function useServiceAvailability(): UseServiceAvailabilityResult {
     });
   }, []);
 
+  const reload = useCallback(() => {
+    setStatus('loading');
+    load();
+  }, [load]);
+
   useEffect(() => {
     mounted.current = true;
-    reload();
+    load(); // initial status is already 'loading'
     return () => { mounted.current = false; };
-  }, [reload]);
+  }, [load]);
 
   const canUseSelection = useCallback(
     (selection: Selection) => (status === 'ready' ? canUseSelectionWith(availability, selection) : selection.keySource === 'byok'),

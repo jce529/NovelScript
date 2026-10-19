@@ -2,13 +2,14 @@
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(), profile: vi.fn(), register: vi.fn(), recheck: vi.fn(), remove: vi.fn(),
-  save: vi.fn(), loadModels: vi.fn(), revalidate: vi.fn(), redirect: vi.fn((url: string) => { throw new Error(`REDIRECT:${url}`); }),
+  availability: vi.fn(), save: vi.fn(), loadModels: vi.fn(), revalidate: vi.fn(), redirect: vi.fn((url: string) => { throw new Error(`REDIRECT:${url}`); }),
 }));
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }) }) }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: vi.fn(() => ({ rpc: vi.fn() })) }));
 vi.mock('@/lib/ai/providers/byok', () => ({ registerByokKey: mocks.register, recheckByokKey: mocks.recheck, deleteByokKey: mocks.remove }));
 vi.mock('@/lib/ai/providers/byok-models', () => ({ loadConnectedByokModels: mocks.loadModels }));
 vi.mock('@/lib/ai/providers/settings', () => ({ setDefaultProviderModel: mocks.save }));
+vi.mock('@/lib/ai/providers/service-availability', () => ({ getServiceAvailability: mocks.availability }));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidate }));
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }));
 
@@ -27,6 +28,27 @@ describe('BYOK settings server actions', () => {
     mocks.remove.mockResolvedValue({ ok: true, message: 'Deleted', surprise: 'hidden' });
     mocks.loadModels.mockResolvedValue({ openai: ['gpt-4o-mini'] });
     mocks.save.mockResolvedValue({ ok: true });
+    mocks.availability.mockReturnValue({ gemini: true, openai: true, anthropic: true });
+  });
+  it('rejectsForgedServiceDefaultWithoutKey', async () => {
+    mocks.availability.mockReturnValue({ gemini: true, openai: false, anthropic: true });
+    for (const value of ['openai:gpt-4o-mini:service', 'openai:gpt-4o-mini']) {
+      await saveDefaultAction(fd({ providerModel: value })).catch(() => undefined);
+    }
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.redirect).toHaveBeenLastCalledWith('/studio/settings/ai-providers?error=1');
+  });
+  it('rejectsServiceDefaultWhenKeyDisappearsBeforeSave', async () => {
+    mocks.availability.mockReturnValueOnce({ gemini: false, openai: false, anthropic: false });
+    await saveDefaultAction(fd({ providerModel: 'gemini:gemini-3.5-flash:service' })).catch(() => undefined);
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.redirect).toHaveBeenLastCalledWith('/studio/settings/ai-providers?error=1');
+  });
+  it('stillSavesConnectedByokWithoutServiceKey', async () => {
+    mocks.availability.mockReturnValue({ gemini: false, openai: false, anthropic: false });
+    await saveDefaultAction(fd({ providerModel: 'openai:gpt-4o-mini:byok' })).catch(() => undefined);
+    expect(mocks.save).toHaveBeenCalledWith(expect.anything(), owner, { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' }, { openai: ['gpt-4o-mini'] });
+    expect(mocks.redirect).toHaveBeenLastCalledWith('/studio/settings/ai-providers?saved=1');
   });
   it('rejectsUnauthenticatedRegistration', async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null } });

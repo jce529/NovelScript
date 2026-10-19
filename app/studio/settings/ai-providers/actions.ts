@@ -7,6 +7,7 @@ import { BYOK_COPY } from '@/lib/ai/providers/byok-copy';
 import { deleteByokKey, recheckByokKey, registerByokKey } from '@/lib/ai/providers/byok';
 import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
 import { decodeSelection } from '@/lib/ai/providers/selection';
+import { getServiceAvailability } from '@/lib/ai/providers/service-availability';
 import { setDefaultProviderModel } from '@/lib/ai/providers/settings';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { isAccountActive } from '@/lib/auth/account';
@@ -76,6 +77,8 @@ export async function saveDefaultAction(formData: FormData): Promise<never> {
   if (typeof raw !== 'string') redirect(`${settingsPath}?error=1`);
   const selection = decodeSelection(raw);
   if (!selection) redirect(`${settingsPath}?error=1`);
+  // Re-check the service key at save time: a forged or stale service option must not become the new default.
+  if (selection.keySource === 'service' && getServiceAvailability()[selection.providerId] !== true) redirect(`${settingsPath}?error=1`);
   const connectedModels = await loadConnectedByokModels(supabase, ownerId);
   const result = await setDefaultProviderModel(supabase, ownerId, selection, connectedModels);
   if (!result.ok) redirect(`${settingsPath}?error=1`);

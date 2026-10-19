@@ -5,6 +5,7 @@ import { listByokKeys } from '@/lib/ai/providers/byok';
 import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
 import { buildModelChoices, encodeSelection, resolveDeleteReplacement } from '@/lib/ai/providers/selection';
 import { getDefaultProviderModel } from '@/lib/ai/providers/settings';
+import { getServiceAvailability } from '@/lib/ai/providers/service-availability';
 import { loadMonthlyByokUsage } from '@/lib/ai/usage';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { createClient } from '@/lib/supabase/server';
@@ -31,7 +32,9 @@ export default async function AiProvidersSettingsPage({
     loadMonthlyByokUsage(supabase, user.id),
   ]);
   const current = await getDefaultProviderModel(supabase, user.id, connectedModels);
-  const choices = buildModelChoices(connectedModels);
+  const serviceAvailability = getServiceAvailability();
+  const choices = buildModelChoices(connectedModels, serviceAvailability);
+  const unavailableProviders = (Object.keys(PROVIDER_MODELS) as ProviderId[]).filter((providerId) => !serviceAvailability[providerId]);
   const cards = (['openai', 'anthropic', 'gemini'] as ProviderId[]).map((providerId) => {
     const key = keys.find((item) => item.provider === providerId);
     const replacement = resolveDeleteReplacement(current, providerId);
@@ -84,13 +87,20 @@ export default async function AiProvidersSettingsPage({
               {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((providerId) => (
                 <optgroup key={providerId} label={`${PROVIDER_LABEL[providerId]} · ${PROVIDER_MODELS[providerId].length}개`}>
                   {choices.filter((choice) => choice.providerId === providerId).map((choice) => (
-                    <option key={choice.value} value={choice.value}>
-                      {choice.displayName} [{choice.badge}] · {choice.description}
+                    <option key={choice.value} value={choice.value} disabled={choice.disabled || undefined}>
+                      {choice.displayName} [{choice.badge}] · {choice.description}{choice.disabled ? ` · 사용할 수 없어요 (${choice.unavailableReason})` : ''}
                     </option>
                   ))}
                 </optgroup>
               ))}
             </select>
+            {unavailableProviders.length > 0 && (
+              <ul className="flex flex-col gap-1 text-xs text-muted-foreground" aria-label="사용할 수 없는 서비스 키 모델">
+                {unavailableProviders.map((providerId) => (
+                  <li key={providerId}>{PROVIDER_LABEL[providerId]} [서비스 키] 모델은 선택할 수 없어요. 아래에서 내 API 키를 등록하면 [BYOK] 모델로 사용할 수 있어요.</li>
+                ))}
+              </ul>
+            )}
             <button type="submit" className="self-start rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground">
               기본값 저장
             </button>
