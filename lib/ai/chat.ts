@@ -5,7 +5,7 @@ import {
   composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal,
 } from '@/lib/ai/prompt';
 import type { ProviderId, ProviderClient } from '@/lib/ai/providers/types';
-import type { ChatResult } from '@/lib/ai/chat-result';
+import { cappedCompletionFields, type ChatResult } from '@/lib/ai/chat-result';
 import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
 import type { DecisionClient } from '@/lib/ai/decision/types';
@@ -132,7 +132,7 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
       reply,
       draft,
       proposal,
-      wasCapped: settled.result.finishReason === 'max_tokens',
+      ...cappedCompletionFields({ maxOutputTokens: pre.ctx.maxOutputTokens, finishReason: settled.result.finishReason, usage: settled.result.usage }),
       ...('remainingBalance' in settled ? { remainingBalance: settled.remainingBalance } : {}),
     };
   } finally {
