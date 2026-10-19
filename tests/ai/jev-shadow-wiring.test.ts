@@ -3,7 +3,7 @@ const h = vi.hoisted(() => ({ user: { id: 'owner' }, mode: 'shadow' as 'shadow'|
 vi.mock('server-only', () => ({}));
 vi.mock('next/server', () => ({ after: (fn: () => unknown) => { h.callbacks.push(fn); } }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
-vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) }, from: (table: string) => { const q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: table === 'works' ? (h.ownershipReads++ === 0 || h.owns ? { id: 'w' } : null) : { id: 'chapter' } }) }; return q; } }) }));
+vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) }, from: (table: string) => { const q = { select: () => q, eq: () => q, is: () => q, maybeSingle: async () => ({ data: table === 'works' ? (h.ownershipReads++ === 0 || h.owns ? { id: 'w' } : null) : { id: 'chapter' } }) }; return q; } }) }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({}) }));
 vi.mock('@/lib/ai/chat', () => ({ chat: h.chat }));
 vi.mock('@/lib/ai/providers/registry', () => ({ createPlatformProvider: () => ({ provider: 'gemini' }) }));

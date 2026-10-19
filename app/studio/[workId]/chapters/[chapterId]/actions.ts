@@ -25,8 +25,8 @@ import { createJevClient } from '@/lib/ai/decision/jev';
 import { readDecisionFixture, createFixtureDecisionClient } from '@/lib/ai/decision/fixture';
 import { DecisionCallError } from '@/lib/ai/decision/errors';
 import { regenerateDocumentWithTemplate, type RegenerateResult } from '@/lib/ai/document-regenerate';
-import { regenerateSchema } from '@/lib/ai/regenerate-contract';
-import { getWorkSystemInstruction, WORK_INSTRUCTION_MAX_LENGTH } from '@/lib/ai/work-instructions';
+import { regenerateSchema, CUSTOM_INSTRUCTION_MAX_LENGTH } from '@/lib/ai/regenerate-contract';
+import { getWorkSystemInstruction } from '@/lib/ai/work-instructions';
 import { planCategoryOnly, planFolderAndTemplate } from '@/lib/ai/decision/plan';
 import { recordDocumentSaveDecision, runShadowPlan } from '@/lib/ai/decision/shadow';
 import { MAX_ATTACHMENTS, MAX_ATTACHMENT_CHARS, MAX_IMPORT_FILES, MAX_IMPORT_CHARS, documentNameFromFile } from '@/lib/ai/attachments';
@@ -134,7 +134,7 @@ export interface ChatActionInput {
 }
 
 // Not exported: 'use server' modules may only export async functions.
-const customInstructionSchema = z.string().max(WORK_INSTRUCTION_MAX_LENGTH).nullable().optional();
+const customInstructionSchema = z.string().max(CUSTOM_INSTRUCTION_MAX_LENGTH).nullable().optional();
 
 /** 04-09: the two instructions for chat()/regenerate, built only from validated input and the
  * server-read work instruction. Beginner applies neither (no lookup). A lookup error fails closed
@@ -391,8 +391,12 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
   if (!parsed.success || !isKnownModel(parsed.data.providerId, parsed.data.model)) {
     return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
   }
-  const work = await supabase.from('works').select('id').eq('id', parsed.data.workId).eq('owner_id', user.id).maybeSingle();
+  const work = await supabase.from('works').select('id').eq('id', parsed.data.workId).eq('owner_id', user.id).is('deleted_at', null).maybeSingle();
   if (work.error || !work.data) return { ok: false, failureKind: 'invalid_input', error: CHAT_COPY.invalid_input };
+  const instructions = await resolveInstructions(supabase, {
+    ownerId: user.id, workId: parsed.data.workId, presetLevel: parsed.data.presetLevel, customInstruction: parsed.data.customInstruction,
+  });
+  if (!instructions.ok) return { ok: false, failureKind: 'unknown', error: CHAT_COPY.unknown };
   let route: GenerationRoute;
   try {
     route = await resolveGenerationRoute({ supabase, admin: createAdminClient() as never, ownerId: user.id,
@@ -407,7 +411,11 @@ export async function regenerateDocumentWithTemplateAction(raw: unknown): Promis
   }
   if (route.kind === 'replacement_required') return { kind: 'replacement_required', ok: false, status: 'failed', failureKind: 'unavailable',
     replacement: route.replacement, original: { providerId: parsed.data.providerId, model: parsed.data.model }, error: CHAT_COPY.byokPending };
-  return regenerateDocumentWithTemplate(supabase, route.client, { ...parsed.data, ownerId: user.id, route });
+  // Server values go after the spread so neither ownerId nor the instructions can be forged.
+  return regenerateDocumentWithTemplate(supabase, route.client, {
+    ...parsed.data, ownerId: user.id, route,
+    customInstruction: instructions.customInstruction, workSystemInstruction: instructions.workSystemInstruction,
+  });
 }
 
 /** 설정 문서 편집기의 AI 패널이 필요로 하는 값: 기본 모델·BYOK 모델·작품 장르. */

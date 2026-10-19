@@ -47,7 +47,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 vi.mock('@/lib/ai/chat', () => ({ chat: h.chat }));
 vi.mock('@/lib/ai/document-regenerate', () => ({ regenerateDocumentWithTemplate: h.regenerate }));
-vi.mock('@/lib/ai/work-instructions', () => ({ getWorkSystemInstruction: h.getWorkInstruction, WORK_INSTRUCTION_MAX_LENGTH: 4000 }));
+vi.mock('@/lib/ai/work-instructions', () => ({ getWorkSystemInstruction: h.getWorkInstruction }));
 vi.mock('@/lib/ai/providers/byok', () => ({ resolveGenerationRoute: h.resolveRoute }));
 vi.mock('@/lib/access/actions', () => ({ readChapterContent: vi.fn() }));
 vi.mock('@/lib/chapters/actions', () => ({ saveChapterContent: vi.fn(), publishChapter: vi.fn(), unpublishChapter: vi.fn() }));
