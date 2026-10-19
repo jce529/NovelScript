@@ -102,20 +102,20 @@ const session = {
 const result = (finishReason: GenerateResult['finishReason'], outputTokens: number, thoughtsTokens: number | null): GenerateResult =>
   ({ ...okResult('[REPLY]\n잘린 응답', 10, outputTokens, thoughtsTokens), finishReason });
 
-function useBalance(balance: number) {
+function withBalance(balance: number) {
   const admin = createFakeLedgerAdmin({ balances: { [OWNER]: balance } });
   adminState.client = admin.client;
 }
 
 async function runService(balance: number, gen: GenerateResult) {
-  useBalance(balance);
+  withBalance(balance);
   const provider = createMockProvider({ generateContent: async () => gen });
   const res = await chat(session, provider as unknown as ProviderClient, { ...base, idempotencyKey: crypto.randomUUID() });
   return { res, max: provider.generateContent.mock.calls[0]?.[0].maxOutputTokens as number };
 }
 
 async function runByok(gen: GenerateResult) {
-  useBalance(0);
+  withBalance(0);
   const platform = createMockProvider();
   const byokClient = createMockProvider({ generateContent: async () => gen });
   const route: GenerationRoute = {

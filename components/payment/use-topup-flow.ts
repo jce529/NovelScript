@@ -134,9 +134,12 @@ export function useTopupFlow() {
   const [pollOrderId, setPollOrderId] = useState<string | null>(null);
   const [awaitingTokens, setAwaitingTokens] = useState<number | null>(null);
   const contextRef = useRef<OpenTopupInput | null>(null);
-  contextRef.current = context;
   const selectedRef = useRef<string | null>(null);
-  selectedRef.current = selectedId;
+  // Refs are only read from event handlers and effects, so syncing them after commit is enough.
+  useEffect(() => {
+    contextRef.current = context;
+    selectedRef.current = selectedId;
+  }, [context, selectedId]);
 
   const dispatch = useCallback((event: TopupEvent) => {
     setState((prev) => nextTopupState(prev, event));
@@ -179,6 +182,9 @@ export function useTopupFlow() {
       stripReturnMarker(window.location.pathname, window.location.search, key) + window.location.hash,
     );
     if (marker.kind === 'topup') {
+      // 05-UI-SPEC "Detection: mount effect": the marker lives only in window.location (no
+      // router search hook), so it is read after mount to keep SSR and hydration identical.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPollOrderId(marker.orderId);
       setState('awaiting-credit');
     } else {
