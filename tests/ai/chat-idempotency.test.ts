@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// COST-01 offline evidence (08-03): the debit is keyed by the caller's idempotencyKey and a
-// recorded key is never charged or generated twice.
+// COST-01 offline evidence (08-03), COST-02 reopen (11-10): a service send is settled once by
+// settle_service_ai_generation (0030), which writes the ai_usage completion marker
+// (service_settled_at) and any positive debit (ledger reference_id = idempotencyKey) together.
+// A completed key is never charged or generated twice; zero cost leaves no ledger row.
 
 const adminState = vi.hoisted(() => ({ client: null as unknown }));
 const mentionsMock = vi.hoisted(() => ({ fail: false }));
@@ -44,8 +46,13 @@ function setup(opts: FakeLedgerOptions) {
   return admin;
 }
 const asClient = (p: ReturnType<typeof createMockProvider>) => p as unknown as ProviderClient;
+/** Settlement RPC calls (the service path no longer calls apply_wallet_delta directly). */
 const debitCalls = (admin: ReturnType<typeof createFakeLedgerAdmin>) =>
-  admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta');
+  admin.rpc.mock.calls.filter(c => c[0] === 'settle_service_ai_generation');
+const settleArgs = (admin: ReturnType<typeof createFakeLedgerAdmin>, n = 0) =>
+  debitCalls(admin)[n][1] as { p_owner_id: string; p_idempotency_key: string; p_debit_amount: number; p_ledger_reason: string; p_usage: Record<string, unknown> };
+const usageRows = (admin: ReturnType<typeof createFakeLedgerAdmin>, owner = OWNER) =>
+  admin.state.usage.filter(r => r.owner_id === owner && r.idempotency_key === KEY);
 const keyRows = (admin: ReturnType<typeof createFakeLedgerAdmin>, wallet = OWNER) =>
   admin.state.ledger.filter(r => r.wallet_id === wallet && r.reference_type === 'ai_generation' && r.reference_id === KEY);
 
@@ -58,9 +65,12 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const result = await chat(session, asClient(provider), input);
     expect(result).toMatchObject({ ok: true, status: 'completed' });
     const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10, candidatesTokenCount: 10 });
-    expect(debitCalls(admin)).toEqual([['apply_wallet_delta', {
-      p_wallet_id: OWNER, p_delta: -debit, p_reference_type: 'ai_generation', p_reference_id: KEY, p_reason: `chapter:${chapterId}`,
-    }]]);
+    expect(debitCalls(admin)).toHaveLength(1);
+    expect(settleArgs(admin)).toMatchObject({ p_owner_id: OWNER, p_idempotency_key: KEY, p_debit_amount: debit, p_ledger_reason: `chapter:${chapterId}` });
+    expect(admin.rpc.mock.calls.some(c => c[0] === 'apply_wallet_delta')).toBe(false);
+    expect(keyRows(admin)).toEqual([{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY, delta: -debit }]);
+    expect(usageRows(admin)).toHaveLength(1);
+    expect(usageRows(admin)[0].service_settled_at).not.toBeNull();
   });
 
   it('BUG-04: folds reported thinking tokens into the debit at the output rate', async () => {
@@ -71,9 +81,9 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 1000, candidatesTokenCount: 2000, thoughtsTokenCount: 3000 });
     const debitWithoutThoughts = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 1000, candidatesTokenCount: 2000 });
     expect(debit).toBeGreaterThan(debitWithoutThoughts);
-    expect(debitCalls(admin)).toEqual([['apply_wallet_delta', {
-      p_wallet_id: OWNER, p_delta: -debit, p_reference_type: 'ai_generation', p_reference_id: KEY, p_reason: `chapter:${chapterId}`,
-    }]]);
+    expect(settleArgs(admin).p_debit_amount).toBe(debit);
+    expect(settleArgs(admin).p_usage).toMatchObject({ thoughts_tokens: 3000 });
+    expect(keyRows(admin)[0].delta).toBe(-debit);
   });
 
   it('blocks a replay of a recorded key before the cap and the provider call', async () => {
@@ -156,28 +166,115 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     expect(result).toMatchObject({ ok: true, status: 'completed', reply: '응답 본문', remainingBalance: 0 });
     expect(admin.state.balances[OWNER]).toBe(0);
     expect(keyRows(admin)).toHaveLength(1);
-    expect((debitCalls(admin)[0][1] as { p_delta: number }).p_delta).toBe(-1);
+    expect(settleArgs(admin).p_debit_amount).toBe(1);
+    expect(keyRows(admin)[0].delta).toBe(-1);
   });
 
-  it('debit error but another request already recorded the key → already_processed', async () => {
-    setup({
-      balances: { [OWNER]: 700 }, debitError: 'rpc',
-      beforeDebit: s => { s.ledger.push({ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY }); },
+  it('another request settled the key just before our settlement → already_processed, no extra debit', async () => {
+    const admin = setup({
+      balances: { [OWNER]: 700 },
+      beforeSettlement: s => { s.usage.push({ owner_id: OWNER, idempotency_key: KEY, key_source: 'service', service_settled_at: '2026-10-01T00:00:00Z' }); },
     });
     const result = await chat(session, asClient(createMockProvider()), input);
     expect(result).toEqual({ ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 700 });
+    expect(keyRows(admin)).toHaveLength(0);
+    expect(admin.state.balances[OWNER]).toBe(700);
   });
 
-  it('a thrown debit is treated like a debit error', async () => {
-    setup({ balances: { [OWNER]: 700 }, debitError: 'throw' });
-    const result = await chat(session, asClient(createMockProvider()), input);
+  it.each(['rpc', 'throw'] as const)('settlement failure before commit (%s): no body, nothing recorded, same key retries once', async (settleError) => {
+    const admin = setup({ balances: { [OWNER]: 700 }, settleError });
+    const provider = createMockProvider();
+    const result = await chat(session, asClient(provider), input);
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement });
+    expect(debitCalls(admin)).toHaveLength(1);
+    expect(usageRows(admin)).toHaveLength(0);
+    expect(keyRows(admin)).toHaveLength(0);
+    expect(admin.state.balances[OWNER]).toBe(700);
+    // Manual retry with the same key (no automatic RPC retry happened above).
+    const fresh = setup({ balances: { ...admin.state.balances }, ledger: admin.state.ledger, usage: admin.state.usage });
+    const retry = await chat(session, asClient(provider), input);
+    expect(retry.status).toBe('completed');
+    expect(provider.generateContent).toHaveBeenCalledTimes(2);
+    expect(debitCalls(fresh)).toHaveLength(1);
+  });
+
+  it.each(['rpc', 'throw'] as const)('commit then lost response (%s): re-read finds the marker → already_processed, one debit', async (settleLostResponse) => {
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 10, candidatesTokenCount: 10 });
+    const admin = setup({ balances: { [OWNER]: 700 }, settleLostResponse });
+    const provider = createMockProvider();
+    const result = await chat(session, asClient(provider), input);
+    expect(result).toEqual({ ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 700 - debit });
+    expect(keyRows(admin)).toHaveLength(1);
+    expect(debitCalls(admin)).toHaveLength(1);
+    const replay = await chat(session, asClient(provider), input);
+    expect(replay.status).toBe('already_processed');
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+    expect(admin.state.balances[OWNER]).toBe(700 - debit);
   });
 
   it('settlement re-read that also errors → settlement failure', async () => {
-    setup({ balances: { [OWNER]: 700 }, debitError: 'rpc', ledgerLookupError: [3] });
+    // usage lookups: 1 preflight, 2 under the lease, 3 settlement re-read.
+    setup({ balances: { [OWNER]: 700 }, settleLostResponse: 'rpc', usageLookupError: [3] });
     const result = await chat(session, asClient(createMockProvider()), input);
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement });
+  });
+
+  it('fails closed when the usage completion lookup errors', async () => {
+    setup({ balances: { [OWNER]: 1000 }, usageLookupError: true });
+    const provider = createMockProvider();
+    const result = await chat(session, asClient(provider), input);
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'unavailable', error: CHAT_COPY.unavailable });
+    expect(provider.generateContent).not.toHaveBeenCalled();
+    expect(JSON.stringify(result)).not.toContain('DB-SENTINEL');
+  });
+
+  it('unsettled service telemetry (service_settled_at NULL) is not a completion', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, usage: [{ owner_id: OWNER, idempotency_key: KEY, key_source: 'service', service_settled_at: null }] });
+    const provider = createMockProvider();
+    const result = await chat(session, asClient(provider), input);
+    expect(result.status).toBe('completed');
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+    expect(usageRows(admin)).toHaveLength(1);
+    expect(usageRows(admin)[0].service_settled_at).not.toBeNull();
+  });
+
+  it('the same key settled by another owner does not block this owner', async () => {
+    const admin = setup({
+      balances: { [OWNER]: 1000, [OTHER_WALLET]: 1000 },
+      usage: [{ owner_id: OTHER_WALLET, idempotency_key: KEY, key_source: 'service', service_settled_at: '2026-10-01T00:00:00Z' }],
+    });
+    const provider = createMockProvider();
+    const result = await chat(session, asClient(provider), input);
+    expect(result.status).toBe('completed');
+    expect(usageRows(admin)).toHaveLength(1);
+    expect(usageRows(admin, OTHER_WALLET)).toHaveLength(1);
+  });
+
+  it('a key that drained the balance to 0 is replayed as already_processed (not insufficient_balance)', async () => {
+    const admin = setup({ balances: { [OWNER]: 1 } });
+    const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\n응답', 100000, 100000) });
+    expect((await chat(session, asClient(provider), input)).status).toBe('completed');
+    expect(admin.state.balances[OWNER]).toBe(0);
+    const replay = await chat(session, asClient(provider), input);
+    expect(replay).toEqual({ ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 0 });
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+  });
+
+  it('a provider failure leaves no marker so the same key completes once on manual retry', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    let calls = 0;
+    const provider = createMockProvider({ generateContent: async () => {
+      calls += 1;
+      if (calls === 1) throw new ProviderCallError({ provider: 'gemini', status: 503, kind: 'unavailable', providerErrorCode: 'UNAVAILABLE' });
+      return okResult('[REPLY]\n응답', 10, 10);
+    } });
+    const first = await chat(session, asClient(provider), input);
+    expect(first.status).toBe('failed');
+    expect(usageRows(admin)).toHaveLength(0);
+    const retry = await chat(session, asClient(provider), input);
+    expect(retry.status).toBe('completed');
+    expect(debitCalls(admin)).toHaveLength(1);
+    expect(keyRows(admin)).toHaveLength(1);
   });
 
   // BUG-06: same-wallet generations are serialized by a lease, so a concurrent same-key request
@@ -241,7 +338,7 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
       ['success', {}, async () => okResult('[REPLY]\n응답', 10, 10)],
       ['provider failure', {}, async () => { throw new ProviderCallError({ provider: 'gemini', status: 503, kind: 'unavailable', providerErrorCode: 'UNAVAILABLE' }); }],
       ['refusal', {}, async () => ({ ...okResult('', 10, 0), finishReason: 'refusal' as const, refusal: { stage: 'output' as const, reasonCode: 'SAFETY' as const } })],
-      ['settlement failure', { debitError: 'rpc' as const }, async () => okResult('[REPLY]\n응답', 10, 10)],
+      ['settlement failure', { settleError: 'rpc' as const }, async () => okResult('[REPLY]\n응답', 10, 10)],
       ['write access revoked', { access: 'suspended' as const }, async () => okResult('[REPLY]\n응답', 10, 10)],
     ])('%s: the next request can generate', async (_name, extra, generate) => {
       const admin = setup({ balances: { [OWNER]: 1000 }, ...extra });
@@ -288,23 +385,43 @@ describe('chat() idempotent debit (COST-01, D-02/D-03)', () => {
     expect(admin.state.locks).toEqual({});
   });
 
-  it('zero usage debits +0 (never -0) and still records the key', async () => {
+  // COST-02 reopen: formerly "zero usage debits +0 (never -0) and still records the key" (a delta-0
+  // ledger row). Zero cost now writes the completed usage marker only.
+  it('zero usage writes a completed usage marker (no ledger row, balance unchanged) and blocks replay', async () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
     const zero = { ...okResult('[REPLY]\n응답', 0, 0), usage: { inputTokens: 0, outputTokens: 0, thoughtsTokens: null, reported: { input: false, output: false } } };
     const provider = createMockProvider({ generateContent: async () => zero });
-    await chat(session, asClient(provider), input);
-    const p = debitCalls(admin)[0][1] as { p_delta: number };
-    expect(p.p_delta).toBe(0);
-    expect(Object.is(p.p_delta, -0)).toBe(false);
+    const first = await chat(session, asClient(provider), input);
+    expect(first).toMatchObject({ ok: true, status: 'completed', remainingBalance: 1000 });
+    const p = settleArgs(admin);
+    expect(p.p_debit_amount).toBe(0);
+    expect(Object.is(p.p_debit_amount, -0)).toBe(false);
+    expect(usageRows(admin)).toHaveLength(1);
+    expect(usageRows(admin)[0]).toMatchObject({ key_source: 'service', status: 'completed' });
+    expect(usageRows(admin)[0].service_settled_at).not.toBeNull();
+    expect(admin.state.ledger).toHaveLength(0);
+    expect(admin.state.balances[OWNER]).toBe(1000);
+    const replay = await chat(session, asClient(provider), input);
+    expect(replay).toEqual({ ok: false, status: 'already_processed', error: CHAT_COPY.processedTitle, remainingBalance: 1000 });
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+    expect(debitCalls(admin)).toHaveLength(1);
+  });
+
+  it('a legacy delta-0 ledger row still blocks replay (migration compatibility)', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 }, ledger: [{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY, delta: 0 }] });
+    const provider = createMockProvider();
     const replay = await chat(session, asClient(provider), input);
     expect(replay.status).toBe('already_processed');
+    expect(provider.generateContent).not.toHaveBeenCalled();
+    expect(debitCalls(admin)).toHaveLength(0);
   });
 
   it('debits actual provider-reported usage', async () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
     const provider = createMockProvider({ generateContent: async () => okResult('[REPLY]\nx', 12345, 6789) });
     await chat(session, asClient(provider), input);
-    const p = debitCalls(admin)[0][1] as { p_delta: number };
-    expect(p.p_delta).toBe(-computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 12345, candidatesTokenCount: 6789 }));
+    const debit = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 12345, candidatesTokenCount: 6789 });
+    expect(settleArgs(admin).p_debit_amount).toBe(debit);
+    expect(keyRows(admin)[0].delta).toBe(-computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 12345, candidatesTokenCount: 6789 }));
   });
 });

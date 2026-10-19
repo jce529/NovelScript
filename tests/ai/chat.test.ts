@@ -261,7 +261,10 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
       }
     });
 
-    it('zero-usage completion writes a delta-0 row that blocks replay', async () => {
+    // COST-02 reopen (11-09/11-10): formerly "writes a delta-0 row". Zero cost now leaves a completed
+    // ai_usage marker (service_settled_at set by settle_service_ai_generation) and no ledger row.
+    // Live-DB run is pending until 11-12 Task 1 (--project db, migration 0030 applied).
+    it('zero-usage completion writes a completed usage marker (no ledger row) that blocks replay', async () => {
       const user = await grantedUser();
       try {
         const KEY = crypto.randomUUID();
@@ -269,14 +272,43 @@ describe('lib/ai/chat.ts — chat() (this session: unified chat, D-13 wallet lif
 
         const first = await chat(admin, client, input(user.id, KEY));
         expect(first.status).toBe('completed');
-        const ledger = await ledgerRows(user.id, KEY);
-        expect(ledger.count).toBe(1);
-        expect(Number(ledger.rows[0].delta)).toBe(0);
+        expect(first.remainingBalance).toBe(1000);
+        expect((await ledgerRows(user.id, KEY)).count).toBe(0);
+        const { data: usage, error: usageError } = await admin
+          .from('ai_usage')
+          .select('key_source, status, service_settled_at')
+          .eq('owner_id', user.id)
+          .eq('idempotency_key', KEY);
+        expect(usageError).toBeNull();
+        expect(usage).toHaveLength(1);
+        expect(usage![0]).toMatchObject({ key_source: 'service', status: 'completed' });
+        expect(usage![0].service_settled_at).not.toBeNull();
+        expect(await balanceOf(user.id)).toBe(1000);
 
         const replay = await chat(admin, client, input(user.id, KEY));
         expect(replay.status).toBe('already_processed');
         expect(client.generateContent).toHaveBeenCalledTimes(1);
         expect(await balanceOf(user.id)).toBe(1000);
+      } finally {
+        await deleteTestUser(user.id);
+      }
+    });
+
+    it('a key whose settlement drained the balance to 0 is replayed as already_processed', async () => {
+      const user = await grantedUser();
+      try {
+        const KEY = crypto.randomUUID();
+        const client = createMockProvider({ generateContent: async () => okResult('[REPLY]\n큰 응답', 100_000_000, 100_000_000) });
+
+        const first = await chat(admin, client, input(user.id, KEY));
+        expect(first.status).toBe('completed');
+        expect(first.remainingBalance).toBe(0);
+
+        const replay = await chat(admin, client, input(user.id, KEY));
+        expect(replay.status).toBe('already_processed');
+        expect(replay.remainingBalance).toBe(0);
+        expect(client.generateContent).toHaveBeenCalledTimes(1);
+        expect((await ledgerRows(user.id, KEY)).count).toBe(1);
       } finally {
         await deleteTestUser(user.id);
       }
