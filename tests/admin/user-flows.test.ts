@@ -227,7 +227,7 @@ describe('warning notices (D-09)', () => {
   it('returns only the recipient\'s unacknowledged warnings with public reasons', async () => {
     const result = await getAccountNotices(useSession(WRITER), { userId: WRITER });
     expect(result).toEqual({
-      ok: true, suspension: null,
+      ok: true, suspension: null, publicationNotices: [],
       warnings: [
         { id: WARN_1, publicReason: '첫 번째 경고', createdAt: '2026-09-01T00:00:00Z' },
         { id: WARN_2, publicReason: '두 번째 경고', createdAt: '2026-09-02T00:00:00Z' },
