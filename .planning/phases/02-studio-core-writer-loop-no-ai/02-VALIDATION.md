@@ -97,11 +97,11 @@ created: 2026-08-25
 ### DB 체크포인트 (02-13 Task 2) — PASSED (2026-10-17)
 1회용 Supabase 프로젝트에서 `--project db` 실행(`node --env-file=.env.disposable ...` 방식, ref 일치 확인 후): template-policy-migration(0022->0023->재실행, `TEMPLATE_MIGRATION_DISPOSABLE_PROJECT_REF` opt-in) 10/10, template-options, template-tree-mutations, document-crud, locked-folder-guard, ownership-guard, schema-smoke, chapters draft/publish/edit-unpublish 외. 브랜치 `phase2/db-browser-gate`(c34cb97) 기준 **14 files / 66 tests passed**. `--mode disposable`만으로는 공유 env가 섞일 수 있으므로 사용 금지(VERIFICATION 참조).
 
-### 브라우저 체크포인트 (02-13 Task 3) — PARTIAL (2026-10-17)
-통과: 기본 템플릿 읽기 전용·사본 만들기, 기본 이름 중복 거부, 새 문서 제목 치환, 우클릭 메뉴, 좌·우·동시 패널 접기 DOM/selection 유지, KB·회차 저장 칩 전이, 유료 30토큰 발행→취소 보존. PENDING: touch long press·scroll 취소, 저장 실패→재시도(fault injection), 진행 중 AI 요청 유지(AI 키), rename 중복·scope별 확인·폴더 접기, 사용자 최종 UX 승인. 모바일 하단 탭은 Phase 16이라 제외.
+### 브라우저 체크포인트 (02-13 Task 3) — 자동 검증 PASSED, 사용자 확인 PENDING (2026-10-19)
+통과: 기본 템플릿 읽기 전용·사본 만들기, 기본 이름·rename·같은 scope 중복 거부와 서로 다른 scope 허용, 새 문서 제목 치환, 우클릭 메뉴, 폴더 접기, 좌·우·동시 패널 접기 DOM/selection 유지, 진행 중 AI 요청 중 접기(대화·입력 DOM 유지), KB·회차 저장 칩 전이와 저장 실패→재시도·저장 중 추가 입력(외부 fetch wrapper), 유료 30토큰 발행→취소 보존, touch long press 합성 이벤트 에뮬레이션. PENDING: 실제 touch 기기 long press·tap·scroll 취소, 실제 AI 응답(AI 키)·React DevTools mount count, 사용자 최종 UX 승인. 모바일 하단 탭은 Phase 16이라 제외.
 
 ### Sign-off 상태
-Unit 회귀 통과. DB 게이트 통과. 브라우저 게이트는 부분 통과이며 나머지는 verified/failed가 아닌 PENDING이다. 아래 Validation Sign-Off 체크박스는 브라우저 게이트 승인 전까지 채우지 않는다.
+Unit 회귀 통과. DB 게이트 통과. 브라우저 게이트는 자동 검증을 통과했고 실제 touch·실제 AI 응답·사용자 승인만 verified/failed가 아닌 PENDING이다. 아래 Validation Sign-Off 체크박스는 브라우저 게이트 승인 전까지 채우지 않는다.
 
 ---
 

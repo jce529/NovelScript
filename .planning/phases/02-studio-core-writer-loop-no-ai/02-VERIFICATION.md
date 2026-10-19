@@ -183,16 +183,16 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 # Reopen 보완 검증 (2026-10-12 정책, plan 02-07~02-13)
 
-> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PARTIAL - Unit·실DB 통과, 브라우저 부분 통과(터치·fault injection·AI 대화 PENDING)**. 2026-10-17 갱신.
+> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PARTIAL - Unit·실DB 통과, 브라우저 자동 검증 통과(실제 touch 기기·실제 AI 응답·사용자 UX 승인 PENDING)**. 2026-10-19 갱신.
 
 | # | 신규 truth | 증거 | 상태 |
 |---|-----------|------|------|
 | R1 | 기본 템플릿 5종 읽기 전용, 서버 guard가 우회 차단 | unit: template-policy, template-seeding, template-migration-source. 실DB(`--project db`): template-policy-migration·locked-folder-guard·schema-smoke 통과. 브라우저: 기본 템플릿 textarea `readOnly`, "읽기 전용" 칩, 저장/AI 삽입 버튼 없음, 우클릭 메뉴는 사본 만들기만 | **통과** (실DB + 브라우저) |
 | R2 | 기존 수정 내용이 `내 템플릿` 사본으로 보존되고 기본 5종 원문 복원 | 1회용 DB에서 0022→0023→재실행 통과(template-policy-migration 10/10, 최신 policy 복원 확인) | **통과** (실DB) |
-| R3 | 템플릿 이름 중복 불가, 사본/새 문서/템플릿 만들기 | unit 통과. 실DB template-options·template-tree-mutations 통과. 브라우저: 기본 이름 "인물"로 사본 생성 시 "기본 템플릿 이름은 사용할 수 없어요"로 거부+입력 유지, 다른 이름은 생성, 새 문서에서 `<% tp.file.title %>` 치환 확인 | **부분 통과** — 이름 바꾸기(rename) 중복 거부, 작품/계정 scope별 확인은 브라우저 미실행 |
-| R4 | 우클릭·long press 메뉴, 템플릿 섹션, 폴더 접기 | unit 통과. 브라우저: 일반 문서 우클릭=이름 바꾸기/삭제, 기본 템플릿 우클릭=사본 만들기만, 템플릿 섹션 구성 확인 | **부분 통과** — touch long press(탭 이동·long press 중 scroll 취소), 폴더 접기 브라우저 PENDING |
-| R5 | 좌·우 패널 접기에서 editor/AiPanel 유지(mount·selection·대화) | unit 통과. 브라우저(1440px): 좌/우/동시 접기 3회 반복 후 textarea·AiPanel DOM 노드 동일, MutationObserver 제거 0건(mount 증가 없음), selectionStart/End 유지, 본문 폭 705→925(좌)→1273(동시)→705 복원 | **부분 통과** — AI 대화 메시지·진행 중 AI 요청 유지는 AI 키 없이 미검증(DOM 유지만 확인). React DevTools 기반 mount count 미사용 |
-| R6 | 저장 상태 칩(저장됨/저장 중/저장 안 됨/저장 실패+재시도) | unit 통과. 브라우저: KB 문서·회차 모두 저장됨→저장 안 됨→저장 중→저장됨 전이 확인, 편집 중 textarea DOM 동일 | **부분 통과** — 저장 실패→본문 유지·재시도, 저장 중 추가 입력은 fault injection 훅 없이 미검증 |
+| R3 | 템플릿 이름 중복 불가, 사본/새 문서/템플릿 만들기 | unit 통과. 실DB template-options·template-tree-mutations 통과. 브라우저: 기본 이름 "인물"로 사본 생성 거부+입력 유지, 다른 이름은 생성, 새 문서에서 `<% tp.file.title %>` 치환. **rename 중복**("게이트 인물 양식"으로 변경) "이미 같은 이름의 템플릿이 있어요" 거부+입력 유지, 정상 이름 rename 성공. **scope**: "템플릿 만들기"에서 `이 작품 전용`·`계정 공용` 각각 생성, 같은 scope 중복은 거부, 서로 다른 scope의 같은 이름은 허용(DB: `account_template`/`work` 각 1행, unique index는 `(owner_id, work_id, btrim(name))` 기준) | **통과** |
+| R4 | 우클릭·long press 메뉴, 템플릿 섹션, 폴더 접기 | unit 통과. 브라우저: 일반 문서 우클릭=이름 바꾸기/삭제, 기본 템플릿 우클릭=사본 만들기만, 템플릿 섹션 구성, 폴더 접기/펼치기(접으면 하위 문서 숨김·펼치면 복귀). touch long press는 `pointerType: touch` **합성 PointerEvent 에뮬레이션**: 500ms 이상 누르면 메뉴(이름 바꾸기·삭제), 250ms에는 미표시, 100ms 짧은 탭·누르는 중 scroll·누르는 중 40px 이동에서는 미표시 | **부분 통과** — 실제 touch 기기/touch 브라우저에서의 long press→이름 바꾸기, 일반 tap 이동은 PENDING (사용자 확인) |
+| R5 | 좌·우 패널 접기에서 editor/AiPanel 유지(mount·selection·대화) | unit 통과. 브라우저(1440px): 좌/우/동시 접기 3회 반복 후 textarea·AiPanel DOM 노드 동일, MutationObserver 제거 0건(mount 증가 없음), selectionStart/End 유지, 본문 폭 705→925(좌)→1273(동시)→705 복원. **진행 중 AI 요청**: 서버 액션을 6초 지연시켜 전송 후 접기/펼치기 2회 반복(요청 진행 중) → 입력 DOM 동일(removed 0), 사용자 메시지 1건 유지, 완료 후 같은 대화에 결과(오류 안내+다시 시도)가 붙음 | **부분 통과** — 이 프로젝트에는 AI 키가 없어 실제 AI 응답 본문은 미검증(오류 응답으로 대체). React DevTools mount count 대신 MutationObserver 제거 감지 사용 |
+| R6 | 저장 상태 칩(저장됨/저장 중/저장 안 됨/저장 실패+재시도) | unit 통과. 브라우저(KB 문서·회차 모두): 저장됨→저장 안 됨→저장 중→저장됨 전이. **fault injection**(브라우저 `fetch` wrapper로 서버 액션 POST만 실패): 저장 실패 칩 표시, 본문·DOM 유지, wrapper 해제 후 재시도로 저장됨(회차는 DB 반영도 확인). **저장 중 추가 입력**(서버 액션 3초 지연): 저장 중 입력 → 완료 후 "저장 안 됨" 유지 | **통과** (앱 코드 수정 없이 외부 wrapper 사용) |
 | R7 | 기존 draft·고정 가격 발행·발행 후 수정·발행 취소 회귀 없음 | 실DB tests/chapters(draft·publish·edit-unpublish·reorder 등) 통과. 브라우저: 유료 30토큰 발행(`is_published=true`, `price_tier=30`) → 발행 취소(`is_published=false`, `unpublished_at` 기록, 본문·price_tier 보존) | **통과** |
 
 ## 실행한 자동 검증 (02-13 Task 1)
@@ -203,15 +203,15 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 > **실행 안전 규칙:** vitest는 `--mode disposable`만으로는 공유 `.env.local` 값이 섞여 들어와 공유 프로젝트를 가리킬 수 있었다(이관 테스트의 ref 가드가 차단했고 DB 변경은 없었다). DB suite는 반드시 `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run --project db ...`처럼 프로세스 환경변수를 1회용 값으로 고정해 실행하고, URL·DB URL·두 키의 ref가 1회용 프로젝트와 일치하는지 먼저 확인한다. `next dev`는 `--env-file`을 NODE_OPTIONS로 넘기다 실패하므로 셸에서 export 후 실행한다.
 
-## 실행한 브라우저 검증 (02-13 Task 3, 2026-10-17, 부분)
-1회용 DB + `next dev -p 3100`(1회용 env만 주입, 별도 worktree). 테스트 작가 계정은 서비스 롤로 생성한 세션 쿠키로 로그인(앱 로그인은 OAuth 전용). 위 R1·R3~R7의 브라우저 증거 참조.
+## 실행한 브라우저 검증 (02-13 Task 3, 2026-10-17~19)
+1회용 DB + `next dev -p 3100`(1회용 env만 주입, 별도 worktree). 테스트 작가 계정은 서비스 롤로 생성한 세션 쿠키로 로그인(앱 로그인은 OAuth 전용). 위 R1·R3~R7의 브라우저 증거 참조. 2026-10-19에 rename 중복·scope·폴더 접기·touch 에뮬레이션·fault injection·진행 중 AI 요청을 추가로 확인했다.
+
+> **검증 방법 주의:** fault injection과 요청 지연은 앱 코드가 아니라 페이지의 `window.fetch`를 감싸 서버 액션(`next-action` 헤더 POST)만 실패/지연시키는 개발 검증용 외부 wrapper다. dev 서버가 파일 변경으로 Fast Refresh되면 클라이언트 상태(예: AI 채팅 입력)가 꼬여 입력이 반영되지 않을 수 있으므로, 검증 중에는 worktree 파일을 건드리지 말고 이상하면 페이지를 새로 불러온다. 창 폭을 에뮬레이션해도 레이아웃(lg 이상) 반영에 재적용이 필요할 수 있다.
 
 ## 미완 항목 (PENDING - failed 아님)
-- **브라우저 gate(02-13 Task 3)는 승인하지 않는다.** 아래가 남아 있다.
-  - touch long press→이름 바꾸기, 일반 tap 이동, long press 중 scroll 취소 (실제 touch 기기/touch 브라우저 필요 — 사용자 확인)
-  - 저장 실패→본문 유지+저장 실패 표시→재시도, 저장 중 추가 입력→저장 안 됨 (개발 검증용 fault injection 필요)
-  - AI 대화 메시지·진행 중 AI 요청이 접기 후에도 같은 대화에 붙는지 (AI 키 필요), React DevTools/외부 wrapper 기반 mount count
-  - 이름 바꾸기(rename) 중복 거부, 작품/계정 scope별 사본·중복 확인, 폴더 접기
+- **브라우저 gate(02-13 Task 3)는 승인하지 않는다.** 자동으로 확인 가능한 항목은 모두 통과했고 아래만 남았다.
+  - **실제 touch 기기 또는 touch 브라우저**에서 long press→이름 바꾸기, 일반 tap 이동, long press 중 scroll 취소 (합성 이벤트 에뮬레이션은 통과했으나 실제 터치 입력은 미확인 — 사용자 확인)
+  - 실제 AI 응답이 진행 중일 때 접기 후에도 같은 대화에 붙는지 (이 프로젝트에 AI 키가 없어 오류 응답으로만 확인), React DevTools 기반 mount count
   - 사용자 최종 UX 확인(approved 또는 구체적 실패 입력)
 - 위가 승인되기 전까지 Phase 02 보완은 완료로 표기하지 않으며 ROADMAP/STATE/REQUIREMENTS는 변경하지 않는다.
 
