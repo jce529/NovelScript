@@ -9,6 +9,8 @@ import { getNodeAiContextAction } from '../../chapters/[chapterId]/actions';
 import { AiPanel, type MentionedNode } from '../../chapters/[chapterId]/ai-panel/AiPanel';
 import { MentionAutocomplete, type MentionCandidate } from '../../chapters/[chapterId]/ai-panel/MentionAutocomplete';
 import { StudioEditorPanels } from '@/components/studio/studio-panel-shell';
+import { StudioPane } from '@/components/studio/workspace/StudioPane';
+import { useStudioWorkspace } from '@/components/studio/workspace/mobile-tabs';
 import { SaveStatusChip } from '@/components/studio/save-status-chip';
 import { TemplateEditorToolbar } from '@/components/studio/template-editor-toolbar';
 import { createEditorState, editorReducer, selectSaveStatus } from '@/lib/studio/editor-state';
@@ -38,6 +40,7 @@ export default function KbNodeEditorPage({
   const { workId, nodeId } = use(params);
   const resourceKey = `kb:${workId}:${nodeId}`;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { notifyInsert } = useStudioWorkspace();
   const [editor, dispatch] = useReducer(editorReducer, undefined, createEditorState);
   const [loadState, setLoadState] = useState<LoadState | null>(null);
   const [mentionedNodes, setMentionedNodes] = useState<MentionedNode[]>([]);
@@ -117,6 +120,7 @@ export default function KbNodeEditorPage({
     const start = textarea ? textarea.selectionStart : null;
     const end = textarea ? textarea.selectionEnd : null;
     onEdit(spliceAtSelection(latest, text, start, end));
+    notifyInsert();
     if (textarea && start !== null) {
       requestAnimationFrame(() => {
         textarea.focus();
@@ -182,9 +186,15 @@ export default function KbNodeEditorPage({
   return (
     <StudioEditorPanels
       resourceKey={resourceKey}
-      toolbar={toolbar}
+      toolbar={
+        toolbar ? (
+          <StudioPane pane="write" domId={false}>
+            {toolbar}
+          </StudioPane>
+        ) : null
+      }
       editor={
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <StudioPane pane="write" className="flex min-w-0 flex-1 flex-col gap-4">
           <Textarea
             ref={textareaRef}
             value={synced ? editor.currentContent : ''}
@@ -202,10 +212,11 @@ export default function KbNodeEditorPage({
               onMention={addMention}
             />
           )}
-        </div>
+        </StudioPane>
       }
       ai={
         loaded && !readOnly && ai?.defaultProviderModel ? (
+          <StudioPane pane="ai">
           <AiPanel
             key={nodeId}
             defaultProviderId={ai.defaultProviderModel.providerId}
@@ -222,6 +233,7 @@ export default function KbNodeEditorPage({
             onAddMention={addMention}
             onInsertText={insertTextAtCursor}
           />
+          </StudioPane>
         ) : undefined
       }
     />

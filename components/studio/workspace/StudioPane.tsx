@@ -13,6 +13,7 @@ export function StudioPane({
   children,
   className,
   notice,
+  domId = true,
   ref,
 }: {
   pane: StudioPaneId;
@@ -20,6 +21,8 @@ export function StudioPane({
   className?: string;
   /** Optional guidance shown above children (e.g. AI pane on a page without a document). */
   notice?: ReactNode;
+  /** Set false for a second pane of the same kind (e.g. toolbar) so the DOM id stays unique. */
+  domId?: boolean;
   ref?: Ref<HTMLDivElement>;
 }) {
   const { activePane, isMobile, setActivePane, pathname } = useStudioWorkspace();
@@ -78,7 +81,7 @@ export function StudioPane({
   return (
     <div
       ref={setRefs}
-      id={studioPaneDomId(pane)}
+      id={domId ? studioPaneDomId(pane) : undefined}
       aria-hidden={view.ariaHidden}
       inert={view.inert || undefined}
       onClick={onClick}

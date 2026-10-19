@@ -18,6 +18,8 @@ import type { DefaultFallback, ProviderModelPair } from '@/lib/ai/providers/sett
 import type { ByokModelMap } from '@/lib/ai/providers/selection';
 import { MentionAutocomplete, type MentionCandidate } from './ai-panel/MentionAutocomplete';
 import { StudioEditorPanels } from '@/components/studio/studio-panel-shell';
+import { StudioPane } from '@/components/studio/workspace/StudioPane';
+import { useStudioWorkspace } from '@/components/studio/workspace/mobile-tabs';
 import { SaveStatusChip } from '@/components/studio/save-status-chip';
 import { createEditorState, editorReducer, selectSaveStatus } from '@/lib/studio/editor-state';
 import { applyEdit, performSave, spliceAtSelection } from '@/lib/studio/editor-session';
@@ -43,6 +45,7 @@ export default function ChapterEditorPage({
   const { workId, chapterId } = use(params);
   const resourceKey = `chapter:${workId}:${chapterId}`;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { notifyInsert } = useStudioWorkspace();
   const [editor, dispatch] = useReducer(editorReducer, undefined, createEditorState);
   const [isPublished, setIsPublished] = useState(false);
   const [priceTier, setPriceTier] = useState<number | null>(null);
@@ -153,6 +156,7 @@ export default function ChapterEditorPage({
     const start = textarea ? textarea.selectionStart : null;
     const end = textarea ? textarea.selectionEnd : null;
     onEdit(spliceAtSelection(latest, text, start, end));
+    notifyInsert();
     if (textarea && start !== null) {
       requestAnimationFrame(() => {
         textarea.focus();
@@ -237,9 +241,13 @@ export default function ChapterEditorPage({
   return (
     <StudioEditorPanels
       resourceKey={resourceKey}
-      toolbar={toolbar}
+      toolbar={
+        <StudioPane pane="write" domId={false}>
+          {toolbar}
+        </StudioPane>
+      }
       editor={
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <StudioPane pane="write" className="flex min-w-0 flex-1 flex-col gap-4">
           <ReviewRequestPanel workId={workId} chapterId={chapterId} />
           <Textarea
             ref={textareaRef}
@@ -255,10 +263,11 @@ export default function ChapterEditorPage({
             onContentChange={onEdit}
             onMention={addMention}
           />
-        </div>
+        </StudioPane>
       }
       ai={
         current?.status === 'ok' && current.defaultProviderModel ? (
+          <StudioPane pane="ai">
           <AiPanel
             key={chapterId}
             defaultProviderId={current.defaultProviderModel.providerId}
@@ -275,6 +284,7 @@ export default function ChapterEditorPage({
             onAddMention={addMention}
             onInsertText={insertTextAtCursor}
           />
+          </StudioPane>
         ) : undefined
       }
     />

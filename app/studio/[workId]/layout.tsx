@@ -11,6 +11,9 @@ import { TemplateSidebarEntry } from '@/components/studio/template-sidebar-entry
 import { partitionStudioSidebar } from '@/lib/kb/sidebar-sections';
 import { CreateRootFolderButton } from '@/components/studio/kb-node-dialogs';
 import { StudioPanelProvider, StudioSidebar } from '@/components/studio/studio-panel-shell';
+import { StudioWorkspace, StudioMobileNavigation } from '@/components/studio/workspace/mobile-tabs';
+import { StudioPane } from '@/components/studio/workspace/StudioPane';
+import { StudioStage } from '@/components/studio/workspace/StudioStage';
 import { Separator } from '@/components/ui/separator';
 
 export default async function WorkLayout({
@@ -92,19 +95,23 @@ export default async function WorkLayout({
 
   return (
     <StudioPanelProvider>
-    <div className="flex min-h-screen flex-col md:flex-row">
-      {/* 모바일: 문서 트리를 접이식 패널로 위에 두고, md 이상에서는 왼쪽 고정 사이드바 */}
-      <details className="group border-b bg-secondary md:hidden">
-        <summary className="flex h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium">
-          <span className="truncate">{work.title} · 문서 목록</span>
-          <span className="text-xs text-muted-foreground group-open:hidden">열기</span>
-          <span className="hidden text-xs text-muted-foreground group-open:inline">닫기</span>
-        </summary>
-        {sidebar}
-      </details>
-      <StudioSidebar>{sidebar}</StudioSidebar>
-      <main className="min-w-0 flex-1 p-4 md:p-8">{children}</main>
-    </div>
+      <StudioWorkspace>
+        {/* lg 미만은 탭 3개(설정집·회차 / 집필 / AI), lg 이상은 기존 desktop 셸 */}
+        <div className="flex h-dvh min-h-0 flex-col lg:h-auto lg:min-h-screen">
+          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+            <div className="contents max-lg:hidden">
+              <StudioSidebar>{sidebar}</StudioSidebar>
+            </div>
+            <div className="relative min-h-0 min-w-0 flex-1">
+              <StudioPane pane="tree" className="bg-secondary max-lg:overflow-y-auto lg:hidden">
+                {sidebar}
+              </StudioPane>
+              <StudioStage>{children}</StudioStage>
+            </div>
+          </div>
+          <StudioMobileNavigation />
+        </div>
+      </StudioWorkspace>
     </StudioPanelProvider>
   );
 }
