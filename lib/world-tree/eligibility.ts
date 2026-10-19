@@ -234,5 +234,95 @@ export function evaluateBranchEligibility(facts: EligibilityServerFacts): Branch
   };
 }
 
-/** @internal exported for the SQL generator / contract tests. */
-export const __eligibilitySqlInternals = { TITLE_PLACEHOLDER_SQL };
+// ---------------------------------------------------------------------------
+// DB policy generation
+// ---------------------------------------------------------------------------
+
+export const ELIGIBILITY_POLICY_SQL_BEGIN =
+  '-- BEGIN GENERATED world-tree eligibility policy (lib/world-tree/eligibility.ts renderEligibilityPolicySql) — do not edit by hand';
+export const ELIGIBILITY_POLICY_SQL_END = '-- END GENERATED world-tree eligibility policy';
+
+function sqlLiteral(value: string): string {
+  return `'${value.replaceAll("'", "''")}'`;
+}
+
+function sqlInteger(value: number): string {
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error('invalid_eligibility_threshold');
+  return String(value);
+}
+
+/**
+ * Deterministic SQL for the DB-side eligibility policy, generated from WORLD_TREE_ELIGIBILITY.
+ *
+ * Emits three internal functions (no tables, no writes, no grants):
+ *  - world_tree_eligibility_thresholds(): NO arguments, so no caller can pass or tamper with
+ *    thresholds. Returns the constant values and the counted KB category keys.
+ *  - world_tree_eligibility_body(text): CR removal + trim of ELIGIBILITY_TRIM_CODE_POINTS;
+ *    char_length() of its result equals eligibilityBodyLength() (UTF8 code points).
+ *  - world_tree_eligibility_is_untouched_seed(content, name, seed): the 02-08 provenance check
+ *    against kb_template_seed_catalog (raw or title-substituted seed).
+ * EXECUTE is revoked from public/anon/authenticated; 18-14's definer evaluator calls them.
+ *
+ * Regeneration procedure (when a threshold or rule changes):
+ *  1. Change WORLD_TREE_ELIGIBILITY (or the trim set) in this file only.
+ *  2. Run `renderEligibilityPolicySql()` and paste the whole block, BEGIN..END markers
+ *     included, into the generated block of supabase/migrations/0033_world_tree_eligibility.sql.
+ *  3. Run tests/world-tree/eligibility-policy.test.ts and 18-14's eligibility-source.test.ts
+ *     (drift check between the migration block and this output).
+ *  If 0033 has already been applied to a shared database, do NOT edit it: record
+ *  `needs_migration_number` in the plan/SUMMARY and get a new migration number assigned
+ *  instead of inventing one.
+ */
+export function renderEligibilityPolicySql(): string {
+  const c = WORLD_TREE_ELIGIBILITY;
+  const categoryPairs = ELIGIBILITY_CATEGORIES.map((k) => `${sqlLiteral(k)}, ${sqlInteger(c.categoryMinimums[k])}`).join(', ');
+  const countedCategories = KB_CATEGORIES.map(sqlLiteral).join(', ');
+  const trimChars = ELIGIBILITY_TRIM_CODE_POINTS.map((cp) => `chr(${sqlInteger(cp)})`).join(' || ');
+  const revoke = (sig: string) => `revoke all on function ${sig} from public, anon, authenticated;`;
+
+  return [
+    ELIGIBILITY_POLICY_SQL_BEGIN,
+    'create or replace function world_tree_eligibility_thresholds()',
+    'returns table (',
+    '  min_published_chapters integer,',
+    '  min_document_body_chars integer,',
+    '  min_setting_documents integer,',
+    '  category_minimums jsonb,',
+    '  counted_categories text[]',
+    ')',
+    'language sql immutable parallel safe',
+    'set search_path = pg_catalog',
+    'as $$',
+    `  select ${sqlInteger(c.minPublishedChapters)}::integer as min_published_chapters,`,
+    `         ${sqlInteger(c.minDocumentBodyChars)}::integer as min_document_body_chars,`,
+    `         ${sqlInteger(c.minSettingDocuments)}::integer as min_setting_documents,`,
+    `         jsonb_build_object(${categoryPairs}) as category_minimums,`,
+    `         array[${countedCategories}]::text[] as counted_categories;`,
+    '$$;',
+    revoke('world_tree_eligibility_thresholds()'),
+    '',
+    'create or replace function world_tree_eligibility_body(p_content text)',
+    'returns text',
+    'language sql immutable parallel safe',
+    'set search_path = pg_catalog',
+    'as $$',
+    `  select btrim(replace(coalesce(p_content, ''), chr(13), ''), ${trimChars});`,
+    '$$;',
+    revoke('world_tree_eligibility_body(text)'),
+    '',
+    'create or replace function world_tree_eligibility_is_untouched_seed(p_content text, p_name text, p_seed text)',
+    'returns boolean',
+    'language sql immutable parallel safe',
+    'set search_path = pg_catalog',
+    'as $$',
+    '  select coalesce(p_seed is not null and (',
+    '    public.world_tree_eligibility_body(p_content) = public.world_tree_eligibility_body(p_seed)',
+    '    or public.world_tree_eligibility_body(p_content) = public.world_tree_eligibility_body(',
+    `      regexp_replace(p_seed, ${sqlLiteral(TITLE_PLACEHOLDER_SQL)}, coalesce(replace(p_name, '\\', '\\\\'), ''), 'g'))`,
+    '  ), false);',
+    '$$;',
+    revoke('world_tree_eligibility_is_untouched_seed(text, text, text)'),
+    ELIGIBILITY_POLICY_SQL_END,
+    '',
+  ].join('\n');
+}
