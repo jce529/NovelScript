@@ -19,7 +19,11 @@ import {
 } from '../actions';
 
 type TemplateChoice = { id: string | null; name: string; scope: 'work' | 'account_template' | 'canonical'; isDefault: boolean };
-type GenerationSettings = { providerId: ProviderId; model: string; keySource: 'service' | 'byok'; presetLevel: PresetLevel; styleId: StylePresetId; genre: string };
+type GenerationSettings = {
+  providerId: ProviderId; model: string; keySource: 'service' | 'byok'; presetLevel: PresetLevel; styleId: StylePresetId; genre: string;
+  /** 04-10: freeform-only instruction, spread into buildRegeneratePayload (the work instruction is read on the server). */
+  customInstruction?: string | null;
+};
 
 export interface SaveDocumentPlanModalProps {
   workId: string;

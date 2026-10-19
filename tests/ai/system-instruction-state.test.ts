@@ -105,6 +105,22 @@ describe('createSystemInstructionController', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it('a re-attach after dispose (StrictMode replay) still ignores the earlier in-flight load', async () => {
+    const { controller, loads } = setup();
+    const detach = controller.attach();
+    controller.open('w1');
+    detach();
+    controller.attach();
+    expect(controller.getState().status).toBe('closed');
+    loads[0].d.resolve({ ok: true, instruction: '이전 마운트 응답' });
+    await flush();
+    expect(controller.getState().status).toBe('closed');
+    controller.open('w1');
+    loads[1].d.resolve({ ok: true, instruction: '새 응답' });
+    await flush();
+    expect(controller.getState()).toMatchObject({ status: 'ready', draft: '새 응답' });
+  });
+
   it('load failure blocks saving, shows an error and only a successful retry resets the draft', async () => {
     const { controller, loads, save } = setup();
     controller.open('w1');

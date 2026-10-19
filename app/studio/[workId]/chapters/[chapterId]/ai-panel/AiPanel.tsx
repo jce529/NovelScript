@@ -38,6 +38,7 @@ import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
 import { UploadFilesDialog } from './UploadFilesDialog';
 import type { ChatAttachment } from '@/lib/ai/attachments';
 import { AiInstructionControls, customInstructionForPayload } from './AiInstructionControls';
+import { SystemInstructionModal } from './SystemInstructionModal';
 
 const PROVIDER_LABELS: Record<ProviderId, string> = { gemini: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
 
@@ -502,13 +503,20 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         onAttach={(files) => setAttachments((prev) => [...prev, ...files.filter((f) => !prev.some((p) => p.name === f.name))])}
       />
 
+      <SystemInstructionModal
+        workId={workId}
+        open={systemInstructionOpen}
+        onOpenChange={setSystemInstructionOpen}
+        disabled={presetLevel === 'beginner'}
+      />
+
       {modalMessage?.proposal && (
         <SaveDocumentPlanModal
           workId={workId}
           open={Boolean(modalMessageId)}
           onOpenChange={(open) => { if (!open) setModalMessageId(null); }}
           proposal={modalMessage.proposal}
-          generation={{ providerId: modalMessage.providerId ?? providerId, model: modalMessage.model ?? model, keySource: modalMessage.keySource ?? keySource, presetLevel, styleId, genre }}
+          generation={{ providerId: modalMessage.providerId ?? providerId, model: modalMessage.model ?? model, keySource: modalMessage.keySource ?? keySource, presetLevel, styleId, genre, customInstruction: customInstructionForPayload(presetLevel, customInstruction) }}
           onSaved={(nodeId) => {
             const proposal = modalMessage.proposal!;
             setMessages((prev) => prev.map((message) => message.id === modalMessage.id ? { ...message, savedNodeId: nodeId } : message));
