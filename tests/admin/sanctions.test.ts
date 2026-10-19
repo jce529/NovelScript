@@ -290,25 +290,29 @@ describe('AI generation checks write access before provider work and before char
 
   it('a suspension landing during generation discards the output and never charges', async () => {
     const session = fakeClient({ access: ACCESS.ok });
-    const admin = fakeClient({ access: ACCESS.suspended, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990, acquire_ai_generation_lock: true, release_ai_generation_lock: true } });
+    const admin = fakeClient({ access: ACCESS.suspended, rows: { wallets: { balance: 1000 } }, rpcData: { settle_service_ai_generation: { kind: 'settled', remainingBalance: 990 }, acquire_ai_generation_lock: true, release_ai_generation_lock: true } });
     adminState.client = admin.client;
     const gemini = provider();
     const result = await chat(session.client, gemini as unknown as ProviderClient, input);
     expect(gemini.generateContent).toHaveBeenCalledTimes(1);
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'write_denied', code: 'write_suspended', error: WRITE_SUSPENDED_MESSAGE });
     expect(admin.rpc).toHaveBeenCalledWith('get_write_access', { p_user_id: userId });
+    // 11-10: the service path settles through settle_service_ai_generation; neither it nor the
+    // legacy debit may run once the suspension is detected.
+    expect(admin.rpcCalls).not.toContain('settle_service_ai_generation');
     expect(admin.rpcCalls).not.toContain('apply_wallet_delta');
   });
 
   it('charges normally when access holds through generation (control)', async () => {
     const session = fakeClient({ access: ACCESS.ok });
-    const admin = fakeClient({ access: ACCESS.ok, rows: { wallets: { balance: 1000 } }, rpcData: { apply_wallet_delta: 990, acquire_ai_generation_lock: true, release_ai_generation_lock: true } });
+    const admin = fakeClient({ access: ACCESS.ok, rows: { wallets: { balance: 1000 } }, rpcData: { settle_service_ai_generation: { kind: 'settled', remainingBalance: 990 }, acquire_ai_generation_lock: true, release_ai_generation_lock: true } });
     adminState.client = admin.client;
     const result = await chat(session.client, provider() as unknown as ProviderClient, input);
     expect(result).toMatchObject({ ok: true, status: 'completed', draft: '본문', remainingBalance: 990 });
-    expect(admin.rpcCalls).toEqual(['acquire_ai_generation_lock', 'get_write_access', 'apply_wallet_delta', 'release_ai_generation_lock']);
-    expect(admin.rpc).toHaveBeenCalledWith('apply_wallet_delta', expect.objectContaining({
-      p_reference_type: 'ai_generation', p_reference_id: '60000000-0000-4000-8000-000000000001',
+    // 11-10: settlement is one RPC that writes the ai_usage marker and the debit together.
+    expect(admin.rpcCalls).toEqual(['acquire_ai_generation_lock', 'get_write_access', 'settle_service_ai_generation', 'release_ai_generation_lock']);
+    expect(admin.rpc).toHaveBeenCalledWith('settle_service_ai_generation', expect.objectContaining({
+      p_owner_id: userId, p_idempotency_key: '60000000-0000-4000-8000-000000000001',
     }));
   });
 });
