@@ -16,6 +16,10 @@
 
 사용자와의 모든 대화는 한국어로 진행한다.
 
+# Jev 모델 자동 배정
+
+에이전트·plan·task를 어떤 모델로 돌릴지 정하는 모든 순간(plan-phase, execute-phase, quick, bug-execute, "모델 배정" 요청 등)에는 `jev-model-routing` 스킬(`/jev-model-routing`)을 먼저 따른다. 규칙 원본은 `.planning/skills/jev-model-routing.md`, 검증된 모델 ID는 `.planning/model-routing/models.md`, 결과 로그는 `.planning/model-routing/log.md`다. `config.json`의 `model_overrides`에 값이 있는 역할(현재 planner `gpt-6-sol`, checker `sonnet`)과 사용자가 대화에서 지정한 모델이 항상 우선이고, 그 외(특히 executor·researcher)는 Jev 분류 → 고정 표로 배정한다. 호출 전 한 줄 보고·`model:` 줄 확인은 아래 AGENTS.md 규칙 그대로다.
+
 # GSD plan-phase 모델 분담 (Codex planner + Claude checker)
 
 Agent 도구는 Claude 모델(`opus`/`sonnet`/`haiku`/`fable`)만 받는다. `.planning/config.json`의 `model_overrides`에 GPT 계열(`gpt-6-sol` 등)을 적어도 `resolve_model_ids: "omit"` 때문에 Agent 호출에는 적용되지 않는다. 그래서 `/gsd:plan-phase`는 다음처럼 나눠 실행한다:
