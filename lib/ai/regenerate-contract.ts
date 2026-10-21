@@ -11,6 +11,9 @@ const proposalSchema = z.object({
   recommendedTemplateName: z.string().max(200).optional(),
 });
 
+/** 04-09: same 4000-char limit as the stored work instruction (WORK_INSTRUCTION_MAX_LENGTH, DB CHECK). */
+export const CUSTOM_INSTRUCTION_MAX_LENGTH = 4000;
+
 export const regenerateSchema = z.object({
   workId: z.string().uuid(), proposal: proposalSchema, templateId: z.string().uuid().nullable(),
   targetFolderId: z.string().uuid(), folderVersion: z.string().max(4000).optional(),
@@ -20,12 +23,15 @@ export const regenerateSchema = z.object({
   presetLevel: z.enum(['beginner', 'intermediate', 'freeform']),
   styleId: z.enum(['concise-hemingway', 'maximalist-dostoevsky', 'lyrical-kimhoon', 'colloquial-kimyounha']),
   genre: z.string().max(100),
+  /** 04-09: freeform-only, never stored. The work instruction is read on the server, not accepted here. */
+  customInstruction: z.string().max(CUSTOM_INSTRUCTION_MAX_LENGTH).nullable().optional(),
 });
 
 export type RegeneratePayload = {
   workId: string; proposal: z.infer<typeof proposalSchema>; templateId: string | null; targetFolderId: string;
   folderVersion?: string; providerId: ProviderId; model: string; keySource: KeySource; idempotencyKey: string;
   presetLevel: PresetLevel; styleId: StylePresetId; genre: string;
+  customInstruction?: string | null;
   replacementConsent?: true;
   replacementSelection?: { providerId: ProviderId; model: string; keySource: 'service' };
 };

@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>뷰어 데스크톱</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+button{cursor:pointer}
+.bar{position:absolute;left:0;right:0;z-index:5;display:flex;align-items:center;box-sizing:border-box;padding:0 8px}
+.ib{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0}
+.nb{flex:0 0 200px;height:44px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid;background:transparent;padding:0 10px;white-space:nowrap}
+.nb.off{opacity:0.55;filter:blur(0.8px);background:rgba(113,113,122,0.16);color:#71717a}
+.bg{height:36px;border-radius:999px;border:1px solid;display:flex;align-items:center;gap:5px;padding:0 12px;font-size:13px;font-weight:700;background:transparent;margin-right:2px}
+.pop{position:absolute;z-index:7;right:24px;top:62px;width:330px;box-sizing:border-box;border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 36px rgba(0,0,0,0.28)}
+.pop:before{content:"";position:absolute;top:-7px;right:24px;width:14px;height:14px;transform:rotate(45deg);background:inherit}
+.lbl{font-size:12px;font-weight:700;opacity:0.65;margin-bottom:6px}
+.seg{display:flex;gap:6px}
+.sg{flex:1;height:38px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid;background:transparent;padding:0}
+.stp{display:flex;align-items:center;gap:8px}
+.stb{width:38px;height:38px;border-radius:9px;border:1px solid;background:transparent;font-size:18px;line-height:1;padding:0}
+.stv{flex:1;text-align:center;font-size:13px;font-weight:700}
+.toc{position:absolute;z-index:7;left:50%;margin-left:-240px;width:480px;bottom:48px;top:72px;border-radius:16px;display:flex;flex-direction:column;box-shadow:0 12px 36px rgba(0,0,0,0.28)}
+.trow{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border-bottom:1px solid;font-size:14px}
+.scrim{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,0.35)}
+.cm{padding:14px 18px;border-bottom:1px solid;display:flex;flex-direction:column;gap:6px}
+.act{border:0;background:transparent;font-size:12px;font-weight:600;padding:8px 6px 8px 0;opacity:0.65;color:inherit}
+.rp{margin-left:14px;padding:8px 0 4px 12px;border-left:2px solid;display:flex;flex-direction:column;gap:2px}
+.nick{font-size:13px;font-weight:700}
+.wr{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#4f46e5;color:#fff}
+.dlg{position:absolute;z-index:9;left:50%;top:50%;transform:translate(-50%,-50%);width:330px;box-sizing:border-box;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 44px rgba(0,0,0,0.35)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;height:54px;border-radius:12px;border:1px solid;padding:0 16px;font-size:15px;font-weight:700;background:transparent;width:100%;box-sizing:border-box}
+.toast{position:absolute;z-index:8;left:50%;transform:translateX(-50%);bottom:84px;max-width:520px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;line-height:1.45;text-align:center;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="position:relative;width:1280px;height:800px;overflow:hidden;background:{{bgc}};color:{{fgc}}">
+
+  <div onClick="{{toggleBars}}" onWheel="{{onWheel}}" style="position:absolute;inset:0;overflow-y:auto;padding:{{padTop}}px {{pad}}px 120px;box-sizing:border-box;font-family:{{fam}};font-size:{{fs}}px;line-height:{{lh}}">
+    <div style="margin:0 auto">
+      <div style="font-size:12px;opacity:0.5;margin-bottom:6px;font-family:system-ui,sans-serif">달빛 서고</div>
+      <h1 style="margin:0 0 22px;font-size:1.2em;font-weight:700;line-height:1.4">{{title}}</h1>
+      <p style="margin:0 0 1em">새벽의 문은 생각보다 낮았다. 하늘은 아직 회색이었고, 항구 쪽에서 밀려온 안개가 돌계단을 천천히 삼키고 있었다.</p>
+      <p style="margin:0 0 1em">소연은 열람증을 쥔 손에 힘을 주었다. 뒷면에 새겨진 번호는 어제보다 한 자리 더 닳아 있었다.</p>
+      <p style="margin:0 0 1em">“문이 열리면 돌아올 수 없다고 했지.”</p>
+      <p style="margin:0 0 1em">대답하는 이는 없었다. 서고의 종이 냄새가 안개 속에서 먼저 길을 열었다. 그녀는 한 걸음, 또 한 걸음 계단을 올랐다.</p>
+      <p style="margin:0 0 1em">문턱을 넘는 순간 모든 소리가 멈췄다. 높은 서가들이 천장 너머까지 이어져 있었고, 그 사이로 푸른 빛이 물처럼 흘렀다.</p>
+      <p style="margin:0 0 1em">열람실 한가운데, 누군가 펼쳐 둔 책 한 권이 바람도 없이 한 장씩 넘어가고 있었다.</p>
+      <p style="margin:0 0 1em;opacity:0.5;font-size:0.8em;font-family:system-ui,sans-serif">(샘플 문장 · 가짜 본문)</p>
+      <div style="display:flex;justify-content:center;padding:28px 0 8px;font-family:system-ui,sans-serif">
+        <button type="button" onClick="{{hintNext}}" style="font-size:13px;font-weight:600;border:1px solid {{line}};background:transparent;color:{{fgc}};border-radius:999px;padding:10px 16px;opacity:0.8">아래로 밀어서 다음 화 ↓</button>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{bars}}" hint-placeholder-val="{{true}}">
+    <div class="bar" style="top:0;height:52px;background:{{barBg}};border-bottom:1px solid {{line}};color:{{fgc}}">
+      <a class="ib" href="WorkDesktop.dc.html" aria-label="작품 상세로" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></a>
+      <button class="ib" type="button" aria-label="회차 목록" onClick="{{openToc}}" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+      <span style="flex-grow:1"></span>
+      <button class="bg" type="button" aria-label="정주행" aria-pressed="{{binge}}" onClick="{{toggleBinge}}" style="{{bingeSt}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4l10 8-10 8zM17 5v14"/></svg>정주행 {{bingeLabel}}</button>
+      <button class="ib" type="button" aria-label="뷰어 설정" onClick="{{openSet}}" style="color:{{fgc}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <div class="bar" style="bottom:0;height:64px;gap:16px;justify-content:center;padding:0 24px;background:{{barBg}};border-top:1px solid {{line}};color:{{fgc}}">
+      <button class="{{prevCls}}" type="button" onClick="{{goPrev}}" style="color:{{fgc}};border-color:{{line}}">‹ 이전 화</button>
+      <button class="nb" type="button" onClick="{{openCmt}}" style="color:{{fgc}};border-color:{{line}};flex:0 0 120px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>{{cmtCount}}</button>
+      <button class="{{nextCls}}" type="button" onClick="{{tryNext}}" style="color:{{fgc}};border-color:{{line}}">다음 화 ›</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+
+  <sc-if value="{{showSet}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePanel}}" style="background:rgba(0,0,0,0.08)"></div>
+    <div class="pop" style="background:{{panelBg}};color:{{fgc}}">
+      <div><div class="lbl">글꼴</div><div class="seg"><sc-for list="{{fonts}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">뷰어 모드</div><div class="seg"><sc-for list="{{themes}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">글자 크기</div><div class="stp"><button class="stb" type="button" onClick="{{fsDown}}" style="color:{{fgc}};border-color:{{line}}">−</button><span class="stv">{{fs}}px</span><button class="stb" type="button" onClick="{{fsUp}}" style="color:{{fgc}};border-color:{{line}}">+</button></div></div>
+      <div><div class="lbl">여백 크기 (본문 좌우)</div><div class="seg"><sc-for list="{{margins}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">줄 간격</div><div class="seg"><sc-for list="{{widths}}" as="o"><button class="sg" type="button" onClick="{{o.pick}}" style="{{o.st}}">{{o.label}}</button></sc-for></div></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showToc}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePanel}}"></div>
+    <div class="toc" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">
+        <span style="font-size:16px;font-weight:700">회차 목록</span>
+        <button class="ib" type="button" aria-label="닫기" onClick="{{closePanel}}" style="color:{{fgc}};width:36px;height:36px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div style="overflow-y:auto;flex-grow:1">
+        <sc-for list="{{chapters}}" as="c" hint-placeholder-count="10">
+          <div class="trow" style="border-color:{{line}};background:{{c.bg}}">
+            <span style="width:34px;font-weight:700;opacity:0.6">{{c.n}}</span>
+            <span style="flex-grow:1;font-weight:{{c.fw}}">{{c.title}}</span>
+            <span style="font-size:12px;font-weight:600;opacity:0.7">{{c.tag}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showCmt}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePanel}}"></div>
+    <div class="toc" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">
+        <span style="font-size:16px;font-weight:700">{{title}} 댓글 {{cmtCount}}</span>
+        <button class="ib" type="button" aria-label="닫기" onClick="{{closePanel}}" style="color:{{fgc}};width:36px;height:36px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div style="overflow-y:auto;flex-grow:1">
+        <sc-for list="{{comments}}" as="m" hint-placeholder-count="3">
+          <div class="cm" style="border-color:{{line}};background:{{m.bg}}">
+            <div style="display:flex;align-items:center;gap:8px"><span class="nick">{{m.nick}}</span><sc-if value="{{m.writer}}" hint-placeholder-val="{{false}}"><span class="wr">작가</span></sc-if><span style="font-size:12px;opacity:0.55">{{m.when}}</span></div>
+            <span style="font-size:14px;line-height:1.6">{{m.text}}</span>
+            <div style="display:flex;gap:10px"><button class="act" type="button" onClick="{{m.reply}}">답글</button><sc-if value="{{m.canReport}}" hint-placeholder-val="{{true}}"><button class="act" type="button" onClick="{{m.report}}">신고</button></sc-if></div>
+            <sc-for list="{{m.replies}}" as="p" hint-placeholder-count="1">
+              <div class="rp" style="border-color:{{line}}">
+                <div style="display:flex;align-items:center;gap:8px"><span class="nick">{{p.nick}}</span><sc-if value="{{p.writer}}" hint-placeholder-val="{{false}}"><span class="wr">작가</span></sc-if><span style="font-size:12px;opacity:0.55">{{p.when}}</span></div>
+                <span style="font-size:14px;line-height:1.6">{{p.text}}</span>
+                <div><sc-if value="{{p.canReport}}" hint-placeholder-val="{{true}}"><button class="act" type="button" onClick="{{p.report}}">신고</button></sc-if></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:10px 14px 14px;border-top:1px solid {{line}};display:flex;flex-direction:column;gap:6px">
+        <sc-if value="{{replyTo}}" hint-placeholder-val="{{false}}"><div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600"><span>↳ {{replyTo}}님에게 답글</span><button class="act" type="button" onClick="{{cancelReply}}" style="padding:4px 0">취소</button></div></sc-if>
+        <span style="font-size:11px;opacity:0.65">내 닉네임 “책벌레서연”으로 공개돼요. 익명 댓글은 쓸 수 없어요.</span>
+        <div style="display:flex;gap:8px"><input type="text" placeholder="댓글을 입력하세요" aria-label="댓글 입력" value="{{draft}}" onChange="{{onDraft}}" style="flex:1;height:44px;box-sizing:border-box;border-radius:10px;border:1px solid {{line}};background:transparent;color:{{fgc}};padding:0 12px;font-size:14px"><button type="button" onClick="{{postCmt}}" style="width:64px;height:44px;border-radius:10px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700">등록</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showEnd}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeEnd}}" style="z-index:8"></div>
+    <div class="dlg" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:18px;font-weight:700">마지막 화예요</span><span style="font-size:13px;line-height:1.55;opacity:0.75">다음 화는 아직 올라오지 않았어요. 새 회차 알림을 켜면 올라올 때 알려드려요.</span></div>
+      <button class="opt" type="button" onClick="{{enableAlarm}}" style="color:#fff;border-color:transparent;background:#4f46e5;justify-content:center">새 회차 알림 켜기</button>
+      <button type="button" onClick="{{closeEnd}}" style="height:40px;border:0;background:transparent;color:{{fgc}};font-size:14px;font-weight:600;opacity:0.7">닫기</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showReport}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeReport}}" style="z-index:8"></div>
+    <div class="dlg" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:18px;font-weight:700">댓글 신고</span><span style="font-size:12px;opacity:0.7">작성자의 역할(독자·작가)과 관계없이 신고할 수 있어요.</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{reasons}}" as="o"><button class="opt" type="button" onClick="{{o.pick}}" style="{{o.st}};height:46px;font-size:14px">{{o.label}}</button></sc-for></div>
+      <div style="font-size:11px;line-height:1.5;opacity:0.65">신고가 접수되면 관리자가 검토해 댓글 숨김, 댓글 정지, 계정 정지 등을 결정해요.</div>
+      <div style="display:flex;gap:8px"><button type="button" onClick="{{closeReport}}" style="flex:1;height:44px;border-radius:10px;border:1px solid {{line}};background:transparent;color:{{fgc}};font-size:14px;font-weight:600">취소</button><button type="button" onClick="{{submitReport}}" style="flex:1;height:44px;border-radius:10px;border:0;background:#dc2626;color:#fff;font-size:14px;font-weight:700">신고하기</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{showPay}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closePay}}" style="z-index:8"></div>
+    <div class="dlg" style="background:{{panelBg}};color:{{fgc}}">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12px;font-weight:700;opacity:0.6">유료 회차</span>
+        <span style="font-size:18px;font-weight:700">{{nextTitle}}</span>
+        <span style="font-size:13px;opacity:0.7">보유 토큰 {{balance}}</span>
+      </div>
+      <sc-if value="{{canPay}}" hint-placeholder-val="{{true}}">
+        <button class="opt" type="button" onClick="{{buyOwn}}" style="color:{{fgc}};border-color:{{line}}"><span>소장</span><span style="font-size:13px;font-weight:600;opacity:0.75">{{ownPrice}}토큰 · 영구</span></button>
+        <button class="opt" type="button" onClick="{{buyRent}}" style="color:#fff;border-color:transparent;background:#4f46e5"><span>대여</span><span style="font-size:13px;font-weight:600;opacity:0.9">{{rentPrice}}토큰 · {{rentDays}}일</span></button>
+      </sc-if>
+      <sc-if value="{{noPay}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:13px;line-height:1.55;background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px">토큰이 부족해요. 충전하면 바로 이어서 볼 수 있어요.</div>
+        <a class="opt" href="Home.dc.html" style="color:#fff;border-color:transparent;background:#4f46e5;justify-content:center">토큰 충전하기</a>
+      </sc-if>
+      <div style="font-size:11px;line-height:1.5;opacity:0.65">정주행 중 자동 결제는 내 계정 설정의 <b>{{defaultMode}}</b>로 처리돼요. 계정 설정에서 바꿀 수 있어요.</div>
+      <button type="button" onClick="{{closePay}}" style="height:40px;border:0;background:transparent;color:{{fgc}};font-size:14px;font-weight:600;opacity:0.7">닫기</button>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startCh":{"editor":"int","default":12,"min":1,"max":16},"lastCh":{"editor":"int","default":16,"min":1,"max":30},"theme":{"editor":"enum","default":"light","options":["light","dark","system"]},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const theme = st.theme || this.props.theme || 'light';
+    const dark = theme === 'dark';
+    const bgc = dark ? '#18181b' : '#ffffff';
+    const fgc = dark ? '#e4e4e7' : '#18181b';
+    const line = dark ? '#3f3f46' : '#e4e4e7';
+    const panelBg = dark ? '#27272a' : '#ffffff';
+    const barBg = dark ? 'rgba(24,24,27,0.97)' : 'rgba(255,255,255,0.97)';
+    const bars = st.bars === true;
+    const panel = st.panel || 'none';
+    const font = st.font || 'sans';
+    const fs = st.fs || 19;
+    const margin = st.margin || 'm';
+    const lh = st.lh || 'm';
+    const ch = st.ch || this.props.startCh || 12;
+    const LAST = this.props.lastCh || 16;
+    const bal = st.bal === undefined ? 10 : st.bal;
+    const binge = st.binge === true;
+    const owned = st.owned || {};
+    const cmts = st.cmts || [];
+    const FREE_UNTIL = 12, OWN = 10, RENT = 3;
+    const pool = ['문턱의 책', '거꾸로 흐르는 장', '새벽의 문', '잿빛 항구', '사서의 약속', '닫힌 서가', '두 번째 독자'];
+    const ttl = (n) => n + '화 ' + pool[n % 7];
+    const fam = font === 'serif' ? 'Georgia,"Nanum Myeongjo","Noto Serif KR",serif' : font === 'round' ? 'ui-rounded,"Nanum Gothic","Apple SD Gothic Neo",sans-serif' : 'system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+    const padMap = { s: 120, m: 240, l: 340 };
+    const lhMap = { s: 1.5, m: 1.85, l: 2.25 };
+    const on = dark ? 'background:#e4e4e7;color:#18181b;border-color:#e4e4e7' : 'background:#18181b;color:#fff;border-color:#18181b';
+    const offs = 'background:transparent;color:' + fgc + ';border-color:' + line;
+    const seg = (key, cur, opts) => opts.map((o) => ({ label: o[1], st: cur === o[0] ? on : offs, pick: () => this.setState({ [key]: o[0] }) }));
+    const say = (msg) => { this.setState({ toast: msg }); setTimeout(() => this.setState({ toast: '' }), 2600); };
+    const advanceTo = (n, patch, msg) => { this.setState(Object.assign({ ch: n, pay: false, panel: 'none' }, patch)); if (msg) say(msg); };
+    const next = ch + 1;
+    const isFree = (n) => n <= FREE_UNTIL || !!owned[n];
+    const pay = (kind) => {
+      const price = kind === '소장' ? OWN : RENT;
+      if (bal < price) { this.setState({ pay: true }); return; }
+      const o = Object.assign({}, owned); o[next] = kind;
+      advanceTo(next, { bal: bal - price, owned: o }, next + '화 ' + kind + ' 완료 (−' + price + ' 토큰)');
+    };
+    const tryNext = () => {
+      if (ch >= LAST) { this.setState({ end: true }); return; }
+      if (isFree(next)) { advanceTo(next, {}, ''); return; }
+      if (binge) {
+        const kind = '대여';
+        if (bal >= RENT) { pay(kind); return; }
+        this.setState({ binge: false, pay: true }); say('토큰이 모두 소진돼 정주행을 껐어요');
+        return;
+      }
+      this.setState({ pay: true });
+    };
+    const rows = [];
+    for (let n = 1; n <= 16; n++) {
+      const cur = n === ch;
+      const tag = cur ? '읽는 중' : n < ch ? '읽음' : owned[n] ? owned[n] : n <= FREE_UNTIL ? '무료' : '유료';
+      rows.push({ n: n, title: ttl(n), tag: tag, bg: cur ? (dark ? '#3f3f46' : '#eef2ff') : 'transparent', fw: cur ? 700 : 500 });
+    }
+    const repl = st.repl || {};
+    const reasonOpts = [['abuse', '욕설·비하·혐오'], ['spoiler', '스포일러'], ['spam', '광고·도배'], ['etc', '기타']];
+    const reason = st.reason || 'abuse';
+    const mkReport = (id) => () => this.setState({ rep: id, reason: 'abuse' });
+    const baseCmts = [
+      { id: 'c1', nick: '문턱지기', writer: true, when: '2시간 전', text: '이번 화부터 서고의 규칙이 하나씩 바뀝니다. 천천히 읽어 주세요.', bg: dark ? '#312e81' : '#eef2ff', mine: false, replies: [{ id: 'r1', nick: '밤새는독자', writer: false, when: '1시간 전', text: '작가님 다음 화 기대할게요!', mine: false }] },
+      { id: 'c2', nick: '밤새는독자', writer: false, when: '1시간 전', text: '마지막 장면에서 소름 돋았어요. 다음 화가 너무 궁금합니다.', bg: 'transparent', mine: false, replies: [{ id: 'r2', nick: '문턱지기', writer: true, when: '50분 전', text: '감사합니다. 다음 화도 재미있게 봐 주세요.', mine: false }] },
+      { id: 'c3', nick: '하린', writer: false, when: '40분 전', text: '열람증 번호가 닳는 묘사가 좋았어요.', bg: 'transparent', mine: false, replies: [] }
+    ];
+    const all = cmts.concat(baseCmts).map((m) => ({
+      id: m.id, nick: m.nick, writer: m.writer, when: m.when, text: m.text, bg: m.bg, canReport: !m.mine,
+      reply: () => this.setState({ replyTo: m.nick, replyId: m.id }), report: mkReport(m.id),
+      replies: (m.replies || []).concat(repl[m.id] || []).map((p) => ({ nick: p.nick, writer: p.writer, when: p.when, text: p.text, canReport: !p.mine, report: mkReport(p.id) }))
+    }));
+    return {
+      bgc: bgc, fgc: fgc, line: line, panelBg: panelBg, barBg: barBg,
+      bars: bars, showSet: bars && panel === 'set', showToc: panel === 'toc', showCmt: panel === 'cmt', showPay: st.pay === true,
+      fam: fam, fs: fs, pad: padMap[margin], padTop: bars ? 64 : 40, lh: lhMap[lh],
+      title: ttl(ch), nextTitle: ttl(next), balance: bal, ownPrice: OWN, rentPrice: RENT, rentDays: 7,
+      canPay: bal >= RENT, noPay: bal < RENT, defaultMode: '대여',
+      binge: binge, bingeLabel: binge ? 'ON' : 'OFF',
+      bingeSt: binge ? 'background:#4f46e5;color:#fff;border-color:#4f46e5' : 'color:' + fgc + ';border-color:' + line,
+      prevCls: ch > 1 ? 'nb' : 'nb off', nextCls: ch < LAST ? 'nb' : 'nb off', showEnd: st.end === true, closeEnd: () => this.setState({ end: false }), enableAlarm: () => { this.setState({ end: false }); say('새 회차가 올라오면 알려드릴게요.'); }, goPrev: () => { if (ch > 1) this.setState({ ch: ch - 1 }); },
+      tryNext: tryNext,
+      onWheel: (e) => { const t = e.currentTarget; if (e.deltaY > 0 && t.scrollTop + t.clientHeight >= t.scrollHeight - 4) tryNext(); },
+      hintNext: (e) => { e.stopPropagation(); tryNext(); },
+      buyOwn: () => pay('소장'), buyRent: () => pay('대여'), closePay: () => this.setState({ pay: false }),
+      toggleBinge: () => { const v = !binge; this.setState({ binge: v }); say(v ? '정주행 ON · 토큰이 소진될 때까지 다음 화를 자동으로 대여해요 (내 설정: 대여)' : '정주행 OFF'); },
+      toast: st.toast || '',
+      toggleBars: () => this.setState({ bars: !bars, panel: 'none' }),
+      openToc: () => this.setState({ panel: 'toc' }),
+      openCmt: () => this.setState({ panel: 'cmt' }),
+      openSet: () => this.setState({ panel: panel === 'set' ? 'none' : 'set' }),
+      closePanel: () => this.setState({ panel: 'none' }),
+      cmtCount: 128 + cmts.length, comments: all,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      draft: st.draft || '',
+      postCmt: () => {
+        const t = (st.draft || '').trim(); if (!t) return;
+        if (st.replyId) { const nr = Object.assign({}, repl); nr[st.replyId] = (nr[st.replyId] || []).concat([{ id: 'u' + t.length + Date.now(), nick: '책벌레서연', writer: false, when: '방금', text: t, mine: true }]); this.setState({ repl: nr, draft: '', replyTo: '', replyId: '' }); return; }
+        this.setState({ cmts: [{ id: 'u' + Date.now(), nick: '책벌레서연', writer: false, when: '방금', text: t, bg: 'transparent', mine: true, replies: [] }].concat(cmts), draft: '' });
+      },
+      replyTo: st.replyTo || '', cancelReply: () => this.setState({ replyTo: '', replyId: '' }),
+      showReport: !!st.rep, closeReport: () => this.setState({ rep: '' }),
+      reasons: reasonOpts.map((o) => ({ label: o[1], st: reason === o[0] ? 'background:#18181b;color:#fff;border-color:#18181b' : 'background:transparent;color:' + fgc + ';border-color:' + line, pick: () => this.setState({ reason: o[0] }) })),
+      submitReport: () => { this.setState({ rep: '', toast: '신고가 접수됐어요. 관리자가 검토할게요.' }); setTimeout(() => this.setState({ toast: '' }), 2600); },
+      fsDown: () => this.setState({ fs: Math.max(14, fs - 1) }),
+      fsUp: () => this.setState({ fs: Math.min(24, fs + 1) }),
+      fonts: seg('font', font, [['sans', '고딕'], ['serif', '명조'], ['round', '둥근']]),
+      themes: seg('theme', theme, [['light', '라이트'], ['dark', '다크'], ['system', '시스템']]),
+      margins: seg('margin', margin, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
+      widths: seg('lh', lh, [['s', '좁게'], ['m', '보통'], ['l', '넓게']]),
+      chapters: rows
+    };
+  }
+}
+</script>
+</body>
+</html>

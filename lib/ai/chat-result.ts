@@ -1,7 +1,7 @@
 /** Chat result contract + Korean copy shared by the server action and AiPanel (client-safe). */
 import type { DocumentProposal } from '@/lib/ai/prompt';
 import type { WriteDenialCode } from '@/lib/auth/write-access';
-import type { RefusalReasonCode, UsageReport } from '@/lib/ai/providers/types';
+import type { GenerateResult, RefusalReasonCode, UsageReport } from '@/lib/ai/providers/types';
 import { PER_REQUEST_MAX_OUTPUT_TOKENS } from '@/lib/ai/cost';
 
 export type ChatStatus = 'completed' | 'refused' | 'already_processed' | 'failed';
@@ -62,6 +62,30 @@ export const CAPPED_COPY: Record<CappedReason, { title: string; body: string; to
     toast: '한 번에 낼 수 있는 길이에 닿아 여기까지만 응답했어요. 토큰은 충분해요.',
   },
 };
+
+/**
+ * 11-11: completed-result cap fields. Only a provider `max_tokens` stop is capped and gets a
+ * reason from the existing classifier; stop/refusal/other carry no cap reason.
+ */
+export function cappedCompletionFields(call: {
+  maxOutputTokens: number;
+  finishReason: GenerateResult['finishReason'];
+  usage: Pick<UsageReport, 'outputTokens' | 'thoughtsTokens'>;
+}): Pick<ChatResult, 'wasCapped' | 'cappedReason'> {
+  if (call.finishReason !== 'max_tokens') return { wasCapped: false };
+  return { wasCapped: true, cappedReason: classifyCappedReason({ maxOutputTokens: call.maxOutputTokens, usage: call.usage }) };
+}
+
+/**
+ * 11-11: copy for a capped result, or null when it was not capped. A legacy capped result
+ * without a reason falls back to the balance copy.
+ */
+export function cappedPresentation(
+  result: Pick<ChatResult, 'wasCapped' | 'cappedReason'>,
+): { title: string; body: string; toast: string } | null {
+  if (!result.wasCapped) return null;
+  return CAPPED_COPY[result.cappedReason ?? 'balance'];
+}
 
 export interface ChatResult {
   ok: boolean;

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>빈 상태와 볼 수 없음</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.frame{background:#fff;border:1px solid #e4e4e7;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.fh{padding:10px 14px;border-bottom:1px solid #e4e4e7;background:#fafafb;display:flex;flex-direction:column;gap:2px}
+.fw{font-size:12px;font-weight:700;color:#3730a3}
+.fs{font-size:11px;color:#71717a}
+.body{flex-grow:1;min-height:260px;padding:22px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.ic{width:52px;height:52px;border-radius:999px;background:#f4f4f5;color:#71717a;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.t{font-size:16px;font-weight:700;color:#18181b;line-height:1.4}
+.d{font-size:13px;color:#52525b;line-height:1.6;max-width:240px}
+.btn{height:44px;padding:0 18px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:6px}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.lnk{font-size:13px;font-weight:600;color:#3730a3;padding:8px}
+.chip{font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;background:#f4f4f5;color:#3f3f46}
+.rec{display:flex;gap:8px;margin-top:8px;width:100%;justify-content:center}
+.rc{width:64px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.rcv{width:64px;aspect-ratio:3/4;border-radius:6px}
+.rcn{font-size:11px;color:#3f3f46;line-height:1.3}
+.rule{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#27272a;line-height:1.65}
+</style>
+</helmet>
+<div style="--accent: {{accent}}">
+<main class="wrap">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <h1 style="margin:0;font-size:22px;font-weight:700">빈 상태와 볼 수 없음 모음</h1>
+    <p style="margin:0;font-size:13px;color:#52525b">설명과 다음 행동 버튼을 화면 안에 보여주는 방식입니다. 자동으로 메인 화면으로 돌려보내지 않습니다. 문구는 임시안입니다.</p>
+  </div>
+
+  <div class="grid">
+    <sc-for list="{{states}}" as="s" hint-placeholder-count="10">
+      <section class="frame">
+        <div class="fh"><span class="fw">{{s.where}}</span><span class="fs">{{s.when}}</span></div>
+        <div class="body">
+          <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="{{s.icon}}"/></svg></div>
+          <div class="t">{{s.title}}</div>
+          <div class="d">{{s.desc}}</div>
+          <sc-if value="{{s.rec}}" hint-placeholder-val="{{false}}">
+            <div class="rec"><sc-for list="{{recs}}" as="r"><div class="rc"><div class="rcv" style="background:{{r.bg}}"></div><span class="rcn">{{r.n}}</span></div></sc-for></div>
+          </sc-if>
+          <a class="btn p" href="Ranking.dc.html" style="background:{{accent}};border-color:{{accent}}">{{s.cta}}</a>
+          <sc-if value="{{s.cta2}}" hint-placeholder-val="{{false}}"><a class="lnk" href="Home.dc.html">{{s.cta2}}</a></sc-if>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+
+  <div class="rule">
+    <b>적용 규칙</b>
+    <span>· 빈 상태에서 자동으로 다른 화면으로 이동하지 않는다. 안내 문구와 다음 행동 버튼을 보여준다.</span>
+    <span>· 숨김·삭제된 회차는 직접 링크로 열었을 때도, 이어 읽기에서 열었을 때도 같은 `볼 수 없는 회차` 화면을 쓴다. 이어 읽기 목록에는 `볼 수 없음`으로 표시한다.</span>
+    <span>· 숨겼다가 다시 공개하면 선호작 알림에는 `공개` 알림만 보낸다. 숨김 사실은 알리지 않는다.</span>
+    <span>· 오류 상태는 원인 설명보다 `다시 시도` 버튼을 먼저 보여준다.</span>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const book = 'M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM8 7h6';
+    const heart = 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z';
+    const bell = 'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0';
+    const lock = 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4';
+    const chat = 'M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z';
+    const search = 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5';
+    const warn = 'M12 3l10 18H2zM12 10v5M12 18h.01';
+    const star = 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z';
+    const eye = 'M2 12s3.5-7 10 -7 10 7 10 7-3.5 7-10 7S2 12 2 12zM3 3l18 18';
+    const states = [
+      { where: '내서재 · 이어 읽기', when: '읽은 작품이 없을 때', icon: book, title: '아직 읽은 작품이 없어요', desc: '마음에 드는 작품을 찾아 첫 화를 읽어 보세요.', cta: '랭킹 보러 가기', cta2: '무료연재 둘러보기' },
+      { where: '내서재 · 선호작', when: '선호작이 없을 때', icon: heart, title: '선호작이 비어 있어요', desc: '작품 상세에서 하트를 누르면 여기에 모여요.', cta: '작품 찾아보기' },
+      { where: '내서재 · 알림 구독', when: '구독한 작품이 없을 때', icon: bell, title: '구독 중인 작품이 없어요', desc: '알림을 켜 두면 새 회차가 올라올 때 알려드려요.', cta: '작품 찾아보기' },
+      { where: '내서재 · 소장함', when: '소장·대여한 회차가 없을 때', icon: lock, title: '소장하거나 대여한 회차가 없어요', desc: '유료 회차를 소장하거나 대여하면 여기서 다시 볼 수 있어요.', cta: '유료연재 보러 가기' },
+      { where: '내서재 (비로그인)', when: '로그인하지 않았을 때', icon: book, title: '로그인하면 내서재를 쓸 수 있어요', desc: '읽던 작품, 선호작, 소장한 회차를 한곳에서 볼 수 있어요.', cta: '로그인하기', cta2: '둘러보기만 할게요' },
+      { where: '뷰어 · 댓글', when: '댓글이 0개일 때', icon: chat, title: '첫 댓글을 남겨 보세요', desc: '이 회차를 읽고 든 생각을 닉네임으로 공개해 남길 수 있어요.', cta: '댓글 쓰기' },
+      { where: '작품 상세 · 리뷰', when: '리뷰가 0개일 때', icon: star, title: '아직 리뷰가 없어요', desc: '이 작품의 첫 리뷰어가 되어 주세요.', cta: '리뷰 작성' },
+      { where: '검색 결과', when: '결과가 없을 때', icon: search, title: '“달빛서고요” 검색 결과가 없어요', desc: '철자를 확인하거나 다른 검색어로 찾아 보세요. 대신 이런 작품은 어때요?', cta: '랭킹 보러 가기', rec: true },
+      { where: '랭킹·연재 목록', when: '조건에 맞는 작품이 없을 때', icon: book, title: '조건에 맞는 작품이 없어요', desc: '장르나 정렬 조건을 바꿔 보세요.', cta: '필터 초기화' },
+      { where: '홈 · 루키 쿼터존', when: '조건(10화 이상 신작)을 채운 작품이 없을 때', icon: star, title: '이번 주 루키 작품이 없어요', desc: '10화 이상 연재한 신작이 올라오면 여기에 나타나요.', cta: '주간 랭킹 보기' },
+      { where: '공통 · 불러오기 실패', when: '네트워크 오류', icon: warn, title: '불러오지 못했어요', desc: '연결 상태를 확인한 뒤 다시 시도해 주세요.', cta: '다시 시도' },
+      { where: '뷰어 · 볼 수 없는 회차', when: '숨긴 회차 / 숨긴 회차 링크 직접 접근 / 이어 읽기에서 진입', icon: eye, title: '볼 수 없는 회차예요', desc: '운영 정책에 따라 현재 공개되지 않은 회차예요.', cta: '작품 홈으로', cta2: '다른 회차 보기' }
+    ];
+    return {
+      accent: this.props.accent ?? '#4f46e5', states: states,
+      recs: [{ n: '달빛 서고', bg: bg(262) }, { n: '잿빛 항구', bg: bg(20) }, { n: '열세 번째 계절', bg: bg(160) }]
+    };
+  }
+}
+</script>
+</body>
+</html>

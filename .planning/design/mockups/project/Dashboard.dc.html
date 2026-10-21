@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작가 대시보드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.top{height:52px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;gap:12px;padding:0 16px;box-sizing:border-box}
+.logo{font-size:16px;font-weight:800;letter-spacing:-0.02em;color:#18181b}
+.crumb{font-size:13px;color:#52525b}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.plus{width:22px;height:22px;border-radius:999px;color:#fff;background:#4f46e5;display:flex;align-items:center;justify-content:center;font-size:15px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.h2{margin:0;font-size:15px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.chip.g{background:#f4f4f5;color:#3f3f46}
+.chip.w{background:#fef3c7;color:#854d0e}
+.btn{height:40px;padding:0 14px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.btn.dis{background:#f4f4f5;color:#a1a1aa;border-color:#e4e4e7;cursor:not-allowed}
+.work{border:1px solid #e4e4e7;border-radius:12px;background:#fff;padding:12px;display:flex;gap:12px;text-align:left;width:100%;box-sizing:border-box;color:#27272a}
+.work.on{border-color:#4f46e5;box-shadow:0 0 0 1px #4f46e5 inset;background:#eef2ff}
+.cover{width:64px;height:88px;border-radius:8px;background:repeating-linear-gradient(45deg,#e4e4e7,#e4e4e7 8px,#f4f4f5 8px,#f4f4f5 16px);flex-shrink:0}
+.seg{display:flex;gap:6px}
+.sg{height:34px;padding:0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font-size:12px;font-weight:600;color:#27272a}
+.sg.on{background:#18181b;border-color:#18181b;color:#fff}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid #f1f1f3;border-radius:10px;background:#fafafa}
+.kpi b{font-size:18px;color:#18181b}
+.kpi span{font-size:11px;color:#71717a}
+.cb{flex:1;min-width:0;height:30px;border:0;background:transparent;font-size:11px;color:#52525b;padding:0}
+.cb.on{color:#fff;background:#4f46e5;border-radius:6px;font-weight:700}
+.lnk{font-size:13px;font-weight:600;color:#4f46e5}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:30px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="min-height:1000px">
+  <header class="top">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span class="crumb">내 스튜디오 / <b style="color:#18181b">대시보드</b></span>
+    <span style="flex-grow:1"></span>
+    <a class="btn" href="Home.dc.html" style="height:34px">독자 화면으로</a>
+    <div class="tok"><span>1,500 토큰</span><span class="plus">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <main class="wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <h1 style="margin:0;font-size:22px;font-weight:700">내 작품</h1>
+      <button class="btn p" type="button" onClick="{{newWork}}">+ 새 작품 만들기</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <sc-for list="{{works}}" as="w">
+        <button class="{{w.cls}}" type="button" onClick="{{w.pick}}">
+          <div class="cover"></div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0;flex-grow:1">
+            <div style="display:flex;gap:6px;align-items:center"><span class="{{w.stCls}}">{{w.status}}</span><span class="chip g">{{w.pay}}</span></div>
+            <span style="font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{w.title}}</span>
+            <span class="sub">최신 {{w.latest}} · {{w.updated}} 업데이트</span>
+            <span class="sub">연독률 {{w.rr}}% · 완독률 {{w.cr}}%</span>
+          </div>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start">
+
+      <section class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div><h2 class="h2">{{cur.title}} · 통계</h2><p class="sub">스크롤 끝까지 읽은 독자의 비율이에요. 최근 30일 기준(샘플).</p></div>
+          <div class="seg"><sc-for list="{{views}}" as="v"><button class="{{v.cls}}" type="button" onClick="{{v.pick}}">{{v.label}}</button></sc-for></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+          <div class="kpi"><b>{{cur.rr}}%</b><span>연독률 (다음 화로 이어 읽음)</span></div>
+          <div class="kpi"><b>{{cur.cr}}%</b><span>평균 완독률</span></div>
+          <div class="kpi"><b>{{cur.views}}</b><span>누적 조회</span></div>
+          <div class="kpi"><b>{{cur.likes}}</b><span>선호작</span></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="chip w">{{insight}}</span>
+          <span class="sub">{{insightNote}}</span>
+        </div>
+
+        <div style="position:relative;height:210px;border-left:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7;margin-left:34px">
+          <div style="position:absolute;left:-34px;top:-6px;font-size:10px;color:#71717a">100%</div>
+          <div style="position:absolute;left:-28px;top:96px;font-size:10px;color:#71717a">50%</div>
+          <div style="position:absolute;left:-20px;bottom:-6px;font-size:10px;color:#71717a">0</div>
+          <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed #e4e4e7"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%" aria-label="그래프" role="img">
+            <polygon points="{{area}}" fill="#e0e7ff" opacity="0.7"></polygon>
+            <polyline points="{{line}}" fill="none" stroke="#4f46e5" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+          </svg>
+          <div style="position:absolute;left:{{markX}}%;top:{{markY}}%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:999px;background:#dc2626;border:2px solid #fff"></div>
+        </div>
+
+        <sc-if value="{{isEp}}" hint-placeholder-val="{{true}}">
+          <div style="display:flex;margin-left:34px"><sc-for list="{{epBtns}}" as="b"><button class="{{b.cls}}" type="button" onClick="{{b.pick}}">{{b.label}}</button></sc-for></div>
+          <p class="sub" style="margin-left:34px">회차를 누르면 `회차 내 이탈 구간`에서 그 회차의 스크롤 위치별 이탈을 볼 수 있어요.</p>
+        </sc-if>
+        <sc-if value="{{isDepth}}" hint-placeholder-val="{{false}}">
+          <div style="display:flex;justify-content:space-between;margin-left:34px;font-size:11px;color:#71717a"><span>본문 시작</span><span>25%</span><span>50%</span><span>75%</span><span>본문 끝</span></div>
+          <div style="display:flex;gap:6px;align-items:center;margin-left:34px;flex-wrap:wrap"><span class="sub">회차:</span><sc-for list="{{epBtns2}}" as="b"><button class="{{b.cls}}" type="button" style="flex:0 0 auto;width:34px" onClick="{{b.pick}}">{{b.label}}</button></sc-for></div>
+        </sc-if>
+      </section>
+
+      <aside style="display:flex;flex-direction:column;gap:12px">
+        <section class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h2 class="h2">경제 관리</h2><a class="lnk" href="Economy.dc.html">상세 보기 ›</a></div>
+          <div class="kpi"><b>1,500 토큰</b><span>노벨 토큰 잔액 · 독자·작가 공용 지갑</span></div>
+          <button class="btn p" type="button" onClick="{{charge}}">토큰 충전</button>
+          <a class="btn" href="SettingsHub.dc.html">외부 API 키(BYOK) 등록·관리</a>
+          <button class="btn dis" type="button" disabled>현금 환전 (준비 중)</button>
+          <p class="sub">현금 환전은 현재 범위 밖이에요. 유료 회차 수익은 아래 크레딧으로 쌓여요.</p>
+        </section>
+        <section class="card">
+          <h2 class="h2">이번 달 작가 크레딧</h2>
+          <div class="kpi"><b>+{{credit}} 토큰</b><span>유료 회차 소장·대여 (작가 90% 잠정)</span></div>
+          <a class="lnk" href="Earnings.dc.html">정산·수익 내역 보기 ›</a>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const WORKS = [
+      { id: 'mk', title: '달빛 서고', status: '연재중', pay: '유료 10화~', latest: '12화', updated: '10월 9일', rr: 71, cr: 64, views: '48,210', likes: '3,128', credit: 2340,
+        ep: [92, 88, 84, 81, 79, 77, 65, 70, 69, 66, 63, 61], dep: [100, 99, 98, 96, 95, 93, 90, 88, 86, 85, 84, 70, 66, 64, 62, 60, 59, 58, 52, 47] },
+      { id: 'sg', title: '잿빛 항구의 밤', status: '완결', pay: '무료', latest: '48화', updated: '9월 2일', rr: 82, cr: 77, views: '120,540', likes: '9,402', credit: 0,
+        ep: [95, 93, 92, 91, 90, 88, 89, 87, 86, 85, 84, 84], dep: [100, 99, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 88, 87, 86, 84, 82, 80, 79, 77] },
+      { id: 'dr', title: '새벽의 편지 (초안)', status: '임시저장', pay: '미정', latest: '3화', updated: '10월 1일', rr: 0, cr: 0, views: '0', likes: '0', credit: 0, ep: [], dep: [] }
+    ];
+    const sel = st.sel || 'mk';
+    const view = st.view || 'ep';
+    const chap = st.chap || 7;
+    const cur = WORKS.find((w) => w.id === sel);
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
+    const works = WORKS.map((w) => ({ cls: sel === w.id ? 'work on' : 'work', title: w.title, status: w.status, stCls: w.status === '연재중' ? 'chip' : 'chip g', pay: w.pay, latest: w.latest, updated: w.updated, rr: w.rr, cr: w.cr, pick: () => this.setState({ sel: w.id, chap: 7 }) }));
+    const empty = cur.ep.length === 0;
+    const data = view === 'ep' ? cur.ep : (empty ? [] : cur.dep.map((v, i) => Math.round(v - (chap - 7) * 0.4 * i * 0.2)));
+    const n = data.length;
+    const pt = (v, i) => (((i + 0.5) / n) * 100).toFixed(1) + ',' + (100 - v).toFixed(1);
+    const line = n ? data.map(pt).join(' ') : '';
+    const area = n ? '0,100 ' + line + ' 100,100' : '';
+    let worst = 0; let wi = 0;
+    for (let i = 1; i < n; i++) { const d = data[i - 1] - data[i]; if (d > worst) { worst = d; wi = i; } }
+    const insight = empty ? '데이터 없음' : view === 'ep' ? (wi + 1) + '화에서 ' + worst + '%p 하락' : Math.round((wi / n) * 100) + '% 지점에서 ' + worst + '%p 이탈';
+    return {
+      works: works, cur: cur,
+      views: [{ cls: view === 'ep' ? 'sg on' : 'sg', label: '회차별 완독률', pick: () => this.setState({ view: 'ep' }) }, { cls: view === 'depth' ? 'sg on' : 'sg', label: '회차 내 이탈 구간', pick: () => this.setState({ view: 'depth' }) }],
+      isEp: view === 'ep', isDepth: view === 'depth',
+      epBtns: cur.ep.map((v, i) => ({ cls: 'cb', label: (i + 1) + '화', pick: () => this.setState({ view: 'depth', chap: i + 1 }) })),
+      epBtns2: cur.ep.map((v, i) => ({ cls: chap === i + 1 ? 'cb on' : 'cb', label: String(i + 1), pick: () => this.setState({ chap: i + 1 }) })),
+      line: line, area: area,
+      markX: n ? ((wi + 0.5) / n) * 100 : -10, markY: n ? 100 - data[wi] : -10,
+      insight: insight,
+      insightNote: empty ? '발행한 회차가 생기면 통계가 쌓여요.' : view === 'ep' ? '이 회차 앞뒤의 전개나 분량을 살펴보세요.' : chap + '화 본문에서 독자가 가장 많이 떠난 위치예요. 해당 문단을 살펴보세요.',
+      credit: cur.credit.toLocaleString(),
+      newWork: () => say('새 작품 만들기는 작품 생성 화면으로 이동해요.'),
+      charge: () => say('토큰 충전소 모달이 열려요. (17번 보드)'),
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

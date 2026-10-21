@@ -12,6 +12,7 @@ import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 import { KB_CATEGORIES } from '@/lib/kb/categories';
 import type { ModelTier, ProviderClient, ProviderId } from '@/lib/ai/providers/types';
 import { MODEL_TIER_TO_ID } from '@/lib/ai/providers/models';
+import { CUSTOM_INSTRUCTION_MAX_LENGTH } from '@/lib/ai/regenerate-contract';
 import type { GenerationRoute } from '@/lib/ai/providers/byok';
 import type { Selection } from '@/lib/ai/providers/selection';
 
@@ -100,6 +101,9 @@ export async function regenerateDocumentWithTemplate(
     targetFolderId: string; folderVersion?: string; idempotencyKey: string;
     presetLevel: PresetLevel; styleId: StylePresetId; genre: string;
     route?: GenerationRoute;
+    /** 04-09: validated freeform instruction and the server-read work instruction (never client input). */
+    customInstruction?: string | null;
+    workSystemInstruction?: string | null;
   } & ({ providerId: ProviderId; model: string; keySource?: 'service' | 'byok'; modelTier?: never } | { modelTier: ModelTier; providerId?: never; model?: never; keySource?: 'service' }),
 ): Promise<RegenerateResult> {
   const providerId = input.providerId ?? 'gemini';
@@ -111,7 +115,9 @@ export async function regenerateDocumentWithTemplate(
     (input.templateId !== null && !UUID.safeParse(input.templateId).success) ||
     (input.modelTier !== undefined && !['lite', 'pro'].includes(input.modelTier)) ||
     !input.proposal.name.trim() || input.proposal.name.length > 100 || input.proposal.content.length > 20000 ||
-    input.genre.length > 100
+    input.genre.length > 100 ||
+    (input.customInstruction != null && (typeof input.customInstruction !== 'string' || input.customInstruction.length > CUSTOM_INSTRUCTION_MAX_LENGTH)) ||
+    (input.workSystemInstruction != null && (typeof input.workSystemInstruction !== 'string' || input.workSystemInstruction.length > CUSTOM_INSTRUCTION_MAX_LENGTH))
   ) return { ok: false, error: CHAT_COPY.invalid_input, failureKind: 'invalid_input' };
 
   const targetTemplate = await validateTargetTemplate(supabase, {
@@ -149,6 +155,8 @@ export async function regenerateDocumentWithTemplate(
       presetLevel: input.presetLevel,
       styleId: input.styleId,
       genre: input.genre,
+      customInstruction: input.customInstruction,
+      workSystemInstruction: input.workSystemInstruction,
       documentPlan: {
         category: input.proposal.category,
         folderPath: formatFolderPath(input.proposal.category, targetFolder.folder.path, '/'),

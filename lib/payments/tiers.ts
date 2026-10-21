@@ -1,22 +1,27 @@
-export const TOPUP_TIERS = Object.freeze([
-  Object.freeze({ id: 't100', tokens: 100, priceKrw: 1_000 }),
-  Object.freeze({ id: 't300', tokens: 300, priceKrw: 2_850 }),
-  Object.freeze({ id: 't550', tokens: 550, priceKrw: 5_000 }),
-  Object.freeze({ id: 't1000', tokens: 1_000, priceKrw: 9_000 }),
-] as const);
+// Client-safe top-up contract. Bundles, prices and tokens live in the
+// operator-managed public.payment_topup_tiers table and are read only on the
+// server (lib/payments/catalog.ts). Nothing here may import DB/server modules.
 
-export type TopupTierId = (typeof TOPUP_TIERS)[number]['id'];
-export type TopupTier = (typeof TOPUP_TIERS)[number];
+export type TopupTierId = string;
+
+export type TopupTier = {
+  id: TopupTierId;
+  tokens: number;
+  priceKrw: number;
+  /** Limited-time label; null outside its display window. */
+  label: string | null;
+};
 
 export const TOPUP_REFERENCE_TYPE = 'toss_topup' as const;
 
-export function isTopupTierId(value: unknown): value is TopupTierId {
-  return typeof value === 'string' && TOPUP_TIERS.some((tier) => tier.id === value);
-}
+export const TOPUP_TIER_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
-export function getTopupTier(tierId: unknown): TopupTier | undefined {
-  if (!isTopupTierId(tierId)) return undefined;
-  return TOPUP_TIERS.find((tier) => tier.id === tierId);
+/**
+ * FORMAT check only (1-64 chars of A-Z a-z 0-9 _ -, mirroring the DB CHECK).
+ * It does NOT mean the bundle exists or is on sale — use catalog.getTopupTier.
+ */
+export function isTopupTierId(value: unknown): value is TopupTierId {
+  return typeof value === 'string' && TOPUP_TIER_ID_PATTERN.test(value);
 }
 
 export function generateOrderId(): string {

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작가 정산·수익</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.top{height:52px;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;gap:12px;padding:0 16px;box-sizing:border-box}
+.logo{font-size:16px;font-weight:800;letter-spacing:-0.02em;color:#18181b}
+.crumb{font-size:13px;color:#52525b}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 5px 3px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.plus{width:22px;height:22px;border-radius:999px;color:#fff;background:#4f46e5;display:flex;align-items:center;justify-content:center;font-size:15px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.h2{margin:0;font-size:15px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.chip.g{background:#f4f4f5;color:#3f3f46}
+.chip.w{background:#fef3c7;color:#854d0e}
+.btn{height:40px;padding:0 14px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.btn.dis{background:#f4f4f5;color:#a1a1aa;border-color:#e4e4e7;cursor:not-allowed}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.sg{height:34px;padding:0 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font-size:12px;font-weight:600;color:#27272a}
+.sg.on{background:#18181b;border-color:#18181b;color:#fff}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:12px;border:1px solid #f1f1f3;border-radius:10px;background:#fafafa}
+.kpi b{font-size:20px;color:#18181b}
+.kpi span{font-size:11px;color:#71717a}
+.bar{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;border:0;background:transparent;padding:0 1px}
+.bar.on{background:#eef2ff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;color:#71717a;font-weight:700;padding:8px;border-bottom:1px solid #e4e4e7;white-space:nowrap}
+td{padding:10px 8px;border-bottom:1px solid #f4f4f5;color:#27272a}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl{color:#166534;font-weight:700}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:30px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="min-height:1300px">
+  <header class="top">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span class="crumb">내 스튜디오 / <a href="Dashboard.dc.html" style="text-decoration:underline">대시보드</a> / <b style="color:#18181b">정산·수익</b></span>
+    <span style="flex-grow:1"></span>
+    <div class="tok"><span>1,500 토큰</span><span class="plus">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <main class="wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div><h1 style="margin:0;font-size:22px;font-weight:700">정산·수익</h1><p class="sub">독자가 유료 회차를 소장·대여할 때 쌓이는 작가 크레딧이에요. 수치는 샘플입니다.</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div class="seg"><sc-for list="{{periods}}" as="p"><button class="{{p.cls}}" type="button" onClick="{{p.pick}}">{{p.label}}</button></sc-for></div>
+        <button class="btn" type="button" onClick="{{csv}}">CSV 내려받기</button>
+      </div>
+    </div>
+
+    <div style="background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.6">작가 90% · 플랫폼 10%는 <b>잠정 비율</b>이에요. 크레딧은 노벨 토큰으로 지갑에 쌓이고 AI 사용·회차 구매에 쓸 수 있어요. 현금 환전은 아직 지원하지 않아요.</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div class="kpi"><b>+{{total}}</b><span>{{periodName}} 작가 크레딧</span></div>
+      <div class="kpi"><b>{{ownN}}건 · +{{ownSum}}</b><span>소장 결제</span></div>
+      <div class="kpi"><b>{{rentN}}건 · +{{rentSum}}</b><span>대여 결제</span></div>
+      <div class="kpi"><b>+{{lifetime}}</b><span>누적 크레딧 (지갑에 반영됨)</span></div>
+      <div class="kpi"><b>{{readers}}명</b><span>결제한 독자 수</span></div>
+    </div>
+
+    <section class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div><h2 class="h2">일별 크레딧</h2><p class="sub">막대를 누르면 그날 받은 크레딧을 볼 수 있어요.</p></div>
+        <div class="seg"><sc-for list="{{works}}" as="w"><button class="{{w.cls}}" type="button" onClick="{{w.pick}}">{{w.label}}</button></sc-for></div>
+      </div>
+      <div style="display:flex;height:170px;border-bottom:1px solid #e4e4e7;padding:0 4px">
+        <sc-for list="{{days}}" as="d"><button class="{{d.cls}}" type="button" aria-label="{{d.aria}}" onClick="{{d.pick}}"><div style="height:{{d.h}}%;background:#4f46e5;border-radius:3px 3px 0 0"></div></button></sc-for>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#71717a;padding:0 4px"><span>{{firstDay}}</span><span>{{lastDay}}</span></div>
+      <div style="background:#f7f7f9;border-radius:10px;padding:10px 12px;font-size:13px"><b>{{pickLabel}}</b> · 크레딧 +{{pickVal}}</div>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">회차별 수익</h2>
+      <table>
+        <thead><tr><th>회차</th><th>작품</th><th class="num">소장가</th><th class="num">대여가</th><th class="num">소장</th><th class="num">대여</th><th class="num">작가 크레딧</th></tr></thead>
+        <tbody><sc-for list="{{eps}}" as="e"><tr><td>{{e.ep}}</td><td>{{e.work}}</td><td class="num">{{e.own}}</td><td class="num">{{e.rent}}</td><td class="num">{{e.on}}</td><td class="num">{{e.rn}}</td><td class="num pl">+{{e.cr}}</td></tr></sc-for></tbody>
+      </table>
+      <sc-if value="{{noEps}}" hint-placeholder-val="{{false}}"><div style="text-align:center;padding:24px;color:#71717a;font-size:13px">유료로 발행한 회차가 아직 없어요. 발행 설정에서 회차를 유료로 바꾸면 수익이 쌓여요.</div></sc-if>
+      <p class="sub">대여 크레딧은 소수 첫째 자리까지 보여줘요. 소수의 반올림·집계 규칙은 아직 정하지 않았어요.</p>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">크레딧 내역</h2>
+      <table>
+        <thead><tr><th>일시</th><th>내역</th><th class="num">결제 토큰</th><th class="num">크레딧</th></tr></thead>
+        <tbody><sc-for list="{{ledger}}" as="r"><tr><td style="white-space:nowrap;color:#52525b">{{r.at}}</td><td>{{r.what}}</td><td class="num">{{r.paid}}</td><td class="num pl">+{{r.cr}}</td></tr></sc-for></tbody>
+      </table>
+      <p class="sub">독자 닉네임은 보여주지 않고 건수로만 알려요. 환불된 결제는 크레딧에서 차감되고 내역에 `환불`로 표시돼요.</p>
+    </section>
+  </main>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const N = 30;
+    const mk = [], sg = [];
+    for (let i = 0; i < N; i++) { const d = new Date(2026, 9, 11 - (N - 1 - i)); mk.push({ label: (d.getMonth() + 1) + '월 ' + d.getDate() + '일', v: i < 8 ? 0 : 9 + ((i * 29) % 70) }); sg.push({ v: 0 }); }
+    const period = st.period || '30';
+    const count = period === '7' ? 7 : period === 'm' ? 11 : 30;
+    const wk = st.work || 'all';
+    const val = (i) => (wk === 'sg' ? 0 : mk[i].v);
+    const idxs = []; for (let i = N - count; i < N; i++) idxs.push(i);
+    const max = Math.max.apply(null, idxs.map(val).concat([1]));
+    const total = idxs.reduce((a, i) => a + val(i), 0);
+    const pick = st.pick === undefined || st.pick >= count ? count - 1 : st.pick;
+    const ratio = count / 30;
+    const f = (n) => Math.round(n).toLocaleString();
+    const ownSum = Math.round(total * 0.72), rentSum = total - ownSum;
+    const WK = [['all', '전체 작품'], ['mk', '달빛 서고'], ['sg', '잿빛 항구의 밤 (무료)']];
+    const all = [
+      { ep: '12화 새벽의 문', work: '달빛 서고', own: 30, rent: 9, on: 18, rn: 25 }, { ep: '11화 잿빛 항구', work: '달빛 서고', own: 30, rent: 9, on: 41, rn: 52 },
+      { ep: '10화 열람증', work: '달빛 서고', own: 10, rent: 3, on: 77, rn: 108 }
+    ];
+    const eps = wk === 'sg' ? [] : all.map((e) => { const o = Math.round(e.on * ratio), r = Math.round(e.rn * ratio); const cr = o * e.own * 0.9 + r * e.rent * 0.9; return { ep: e.ep, work: e.work, own: e.own + '토큰', rent: e.rent + '토큰', on: o, rn: r, cr: cr.toFixed(1).replace('.0', '') }; });
+    const led = [['10/10 22:05', '유료 회차 소장 · 11화 (3건)', 90, 81], ['10/10 20:12', '유료 회차 대여 · 12화 (5건)', 45, 40.5], ['10/09 23:40', '유료 회차 소장 · 10화 (6건)', 60, 54], ['10/09 09:15', '유료 회차 대여 · 11화 (2건)', 18, 16.2], ['10/08 21:02', '유료 회차 소장 · 12화 (1건)', 30, 27]];
+    return {
+      periods: [['7', '7일'], ['m', '이번 달'], ['30', '30일']].map((p) => ({ cls: period === p[0] ? 'sg on' : 'sg', label: p[1], pick: () => this.setState({ period: p[0], pick: undefined }) })),
+      periodName: period === '7' ? '최근 7일' : period === 'm' ? '이번 달' : '최근 30일',
+      total: f(total), ownSum: f(ownSum), rentSum: f(rentSum), ownN: f(ownSum / 24), rentN: f(rentSum / 8), lifetime: wk === 'sg' ? '0' : '2,340', readers: wk === 'sg' ? 0 : f(total / 11),
+      works: WK.map((w) => ({ cls: wk === w[0] ? 'sg on' : 'sg', label: w[1], pick: () => this.setState({ work: w[0], pick: undefined }) })),
+      days: idxs.map((i, k) => ({ cls: k === pick ? 'bar on' : 'bar', aria: mk[i].label + ' ' + val(i), h: (val(i) / max) * 100, pick: () => this.setState({ pick: k }) })),
+      firstDay: mk[N - count].label, lastDay: mk[N - 1].label, pickLabel: mk[idxs[pick]].label, pickVal: val(idxs[pick]),
+      eps: eps, noEps: eps.length === 0,
+      ledger: wk === 'sg' ? [] : led.map((r) => ({ at: r[0], what: r[1], paid: r[2], cr: String(r[3]).replace('.0', '') })),
+      csv: () => { this.setState({ toast: '정산 내역을 CSV로 내려받아요.' }); setTimeout(() => this.setState({ toast: '' }), 2400); },
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

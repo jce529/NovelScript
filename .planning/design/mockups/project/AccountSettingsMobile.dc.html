@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>독자 계정 설정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+button{cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:56px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:12px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px 80px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.h2{margin:0;font-size:16px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.k{font-size:12px;font-weight:700;color:#71717a;margin-bottom:4px}
+.v{font-size:15px;font-weight:600;color:#18181b}
+.btn{height:44px;padding:0 16px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:14px;font-weight:600}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.btn.dis{background:#f4f4f5;color:#a1a1aa;border-color:#e4e4e7;cursor:not-allowed}
+.seg{display:flex;gap:8px}
+.sg{flex:1;min-height:76px;border-radius:12px;border:1px solid #d4d4d8;background:#fff;color:#27272a;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:4px}
+.sg.on{border-color:#4f46e5;background:#eef2ff;box-shadow:0 0 0 1px #4f46e5 inset}
+.sgt{font-size:15px;font-weight:700}
+.sgd{font-size:12px;color:#52525b;line-height:1.45}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.4)}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(380px,calc(100vw - 32px));box-sizing:border-box;background:#fff;border-radius:18px;padding:22px 20px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.inp{height:48px;border-radius:10px;border:1px solid #d4d4d8;padding:0 12px;font-size:15px;box-sizing:border-box;width:100%}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:40px;max-width:360px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.warn{background:#fef3c7;color:#854d0e}
+</style>
+</helmet>
+<div style="min-height:844px">
+  <header class="hd"><a class="logo" href="Home.dc.html">NovelScript</a><span style="flex-grow:1"></span><span class="av">김</span></header>
+  <main class="wrap">
+    <h1 style="margin:0;font-size:22px;font-weight:700">계정 설정</h1>
+
+    <section class="card">
+      <h2 class="h2">프로필</h2>
+      <div class="row">
+        <div><div class="k">닉네임 (댓글·리뷰에 공개)</div><div class="v">{{nick}}</div></div>
+        <button class="{{nickBtnCls}}" type="button" onClick="{{openNick}}">닉네임 변경</button>
+      </div>
+      <sc-if value="{{cool}}" hint-placeholder-val="{{false}}"><div style="display:flex;gap:8px;align-items:center"><span class="badge warn">변경 제한</span><span class="sub">{{coolText}}</span></div></sc-if>
+      <sc-if value="{{canChange}}" hint-placeholder-val="{{true}}"><p class="sub">닉네임을 바꾸면 14일 동안 다시 바꿀 수 없어요. 이전에 쓴 댓글에도 새 닉네임이 표시돼요.</p></sc-if>
+      <div><div class="k">로그인 계정</div><div class="v" style="font-weight:500;color:#52525b">kakao · ***@***.com</div></div>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">자동 결제 방식</h2>
+      <p class="sub">뷰어의 <b>정주행</b>을 켜면 다음 화로 넘어갈 때 보유 토큰이 소진될 때까지 아래 방식으로 자동 결제해요. 언제든 바꿀 수 있고 바로 적용돼요.</p>
+      <div class="seg">
+        <sc-for list="{{modes}}" as="o"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}"><span class="sgt">{{o.label}}</span><span class="sgd">{{o.desc}}</span></button></sc-for>
+      </div>
+      <p class="sub">직접 소장/대여를 고르는 팝업은 이 설정과 상관없이 항상 두 가지를 모두 보여줘요.</p>
+    </section>
+  </main>
+
+  <sc-if value="{{showNick}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeNick}}"></div>
+    <div class="dlg">
+      <span style="font-size:18px;font-weight:700">닉네임 변경</span>
+      <input class="inp" type="text" value="{{draft}}" placeholder="새 닉네임 (2~12자)" aria-label="새 닉네임" onChange="{{onDraft}}">
+      <span style="font-size:12px;line-height:1.5;color:{{hintColor}}">{{hint}}</span>
+      <div style="background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.55">변경하면 14일 동안 다시 바꿀 수 없어요. 신중하게 정해 주세요.</div>
+      <div style="display:flex;gap:8px"><button class="btn" type="button" style="flex:1" onClick="{{closeNick}}">취소</button><button class="btn p" type="button" style="flex:1" onClick="{{saveNick}}">변경하기</button></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startCooldown":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const nick = st.nick || '책벌레서연';
+    const cd = st.cd === undefined ? (this.props.startCooldown ? 9 : 0) : st.cd;
+    const cool = cd > 0;
+    const mode = st.mode || 'rent';
+    const draft = st.draft || '';
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
+    let hint = '2~12자, 한글·영문·숫자만 쓸 수 있어요.'; let hintColor = '#52525b';
+    if (draft && (draft.length < 2 || draft.length > 12)) { hint = '2~12자로 입력해 주세요.'; hintColor = '#b91c1c'; }
+    else if (draft === nick) { hint = '현재 닉네임과 같아요.'; hintColor = '#b91c1c'; }
+    return {
+      nick: nick, cool: cool, canChange: !cool,
+      coolText: cd + '일 뒤에 다시 변경할 수 있어요. (최근 변경 후 14일)',
+      nickBtnCls: cool ? 'btn dis' : 'btn',
+      openNick: () => { if (!cool) this.setState({ showNick: true, draft: '' }); },
+      closeNick: () => this.setState({ showNick: false }),
+      showNick: st.showNick === true,
+      draft: draft, hint: hint, hintColor: hintColor,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      saveNick: () => { if (draft.length < 2 || draft.length > 12 || draft === nick) return; this.setState({ nick: draft, cd: 14, showNick: false }); say('닉네임을 바꿨어요. 14일 뒤에 다시 바꿀 수 있어요.'); },
+      modes: [
+        { cls: mode === 'rent' ? 'sg on' : 'sg', label: '대여 (기본)', desc: '회차당 3토큰 · 7일 동안 볼 수 있어요. 토큰을 아껴 가볍게 읽을 때', pick: () => { this.setState({ mode: 'rent' }); say('자동 결제 방식을 대여로 바꿨어요.'); } },
+        { cls: mode === 'own' ? 'sg on' : 'sg', label: '소장', desc: '회차당 10토큰 · 기간 없이 계속 볼 수 있어요. 다시 읽을 작품일 때', pick: () => { this.setState({ mode: 'own' }); say('자동 결제 방식을 소장으로 바꿨어요.'); } }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

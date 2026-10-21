@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작품 상세 모바일 상단 바 비교</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9;color:#18181b}
+.wrap{width:1760px;box-sizing:border-box;padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+h1{margin:0;font-size:22px}
+.lead{margin:0;font-size:14px;color:#52525b;line-height:1.6}
+.cols{display:flex;gap:28px;align-items:flex-start}
+.col{width:390px;display:flex;flex-direction:column;gap:8px}
+.lab{font-size:16px;font-weight:700}
+.subl{font-size:13px;color:#52525b;min-height:36px}
+.ph{width:390px;height:560px;overflow:hidden;background:#fff;border:1px solid #e4e4e7;border-radius:14px;position:relative}
+.top{height:52px;box-sizing:border-box;padding:0 8px 0 4px;display:flex;align-items:center;gap:2px;border-bottom:1px solid #e4e4e7;background:#fff}
+.ib{width:40px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0;flex-shrink:0}
+.rep{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#b91c1c;border:1px solid #fecaca;background:#fef2f2;border-radius:999px;padding:7px 10px;white-space:nowrap}
+.tok{display:flex;align-items:center;gap:6px;border:1px solid #d4d4d8;border-radius:999px;padding:3px 3px 3px 10px;font-size:12px;font-weight:600;margin-left:2px;flex-shrink:0}
+.plus{width:20px;height:20px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ban{height:110px;background:linear-gradient(180deg,#c7d2fe,#fff)}
+.meta{padding:0 16px;margin-top:-70px;display:flex;gap:14px}
+.cover{width:96px;aspect-ratio:3/4;border-radius:10px;background:#818cf8;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.h1{font-size:18px;font-weight:700}
+.au{font-size:13px;color:#3730a3;font-weight:600;margin-top:4px}
+.kpi{display:flex;gap:8px;padding:14px 16px 0}
+.kc{flex:1;border:1px solid #e4e4e7;border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;font-size:11px;color:#71717a}
+.kc b{font-size:16px;color:#18181b}
+.tabs{display:flex;border-bottom:1px solid #e4e4e7;margin-top:14px}
+.tb{flex:1;text-align:center;font-size:14px;font-weight:600;color:#71717a;padding:12px 0;border-bottom:2px solid transparent}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.line{height:44px;margin:10px 16px 0;border-bottom:1px solid #f1f1f3;background:linear-gradient(#f4f4f5,#f4f4f5) 0 12px/60% 10px no-repeat}
+.line.s{background-size:45% 10px}
+.pros{margin:4px 0 0;padding-left:18px;font-size:13px;color:#3f3f46;line-height:1.7}
+.note{border:1px solid #e0e7ff;background:#eef2ff;border-radius:12px;padding:12px 16px;font-size:13px;color:#3730a3;line-height:1.6}
+</style>
+</helmet>
+<div class="wrap">
+<h1>34. 작품 상세 모바일 상단 바 비교 (잔액 칩 · 검색)</h1>
+<p class="lead">미결정 항목이라 현재안과 3가지 대안을 나란히 둔다. 상단 바는 390px 폭을 그대로 쓴 모습이고, 아래 작품 정보는 위치를 보여주는 임시 틀이다(샘플 데이터).</p>
+<div class="cols"><div class="col"><div class="lab">현재안 · 둘 다 생략</div><div class="subl">상단: 뒤로 · 신고 · 선호작 · 알림 · 공유</div>
+<div class="ph"><div class="top"><button class="ib" type="button" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span style="flex-grow:1"></span><span class="rep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>불일치·표절 신고</span><button class="ib" type="button" aria-label="선호작"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button><button class="ib" type="button" aria-label="알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button><button class="ib" type="button" aria-label="공유"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button></div>
+<div class="ban"></div>
+<div class="meta"><div class="cover"></div><div style="padding-top:62px"><div class="h1">달빛 아래의 기록관</div><div class="au">한서진</div></div></div>
+<div class="kpi"><div class="kc"><b>82%</b><span>연독률</span></div><div class="kc"><b>64%</b><span>완독률</span></div><div class="kc"><b>12.4만</b><span>조회</span></div></div>
+<div class="tabs"><span class="tb">소개</span><span class="tb on">회차</span><span class="tb">세계관</span><span class="tb">리뷰</span></div>
+<div class="line"></div><div class="line s"></div><div class="line"></div>
+</div><ul class="pros"><li>상단 바가 가장 단순하다</li><li>잔액은 소장/대여 팝업에서 보여준다</li><li>검색하려면 뒤로 가야 한다</li></ul></div><div class="col"><div class="lab">A안 · 잔액 칩 유지</div><div class="subl">잔액 확인과 충전 +를 바로 누를 수 있다</div>
+<div class="ph"><div class="top"><button class="ib" type="button" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span style="flex-grow:1"></span><span class="rep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>신고</span><button class="ib" type="button" aria-label="선호작"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button><button class="ib" type="button" aria-label="알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button><span class="tok">128<span class="plus" style="background:#4f46e5">+</span></span></div>
+<div class="ban"></div>
+<div class="meta"><div class="cover"></div><div style="padding-top:62px"><div class="h1">달빛 아래의 기록관</div><div class="au">한서진</div></div></div>
+<div class="kpi"><div class="kc"><b>82%</b><span>연독률</span></div><div class="kc"><b>64%</b><span>완독률</span></div><div class="kc"><b>12.4만</b><span>조회</span></div></div>
+<div class="tabs"><span class="tb">소개</span><span class="tb on">회차</span><span class="tb">세계관</span><span class="tb">리뷰</span></div>
+<div class="line"></div><div class="line s"></div><div class="line"></div>
+</div><ul class="pros"><li>신고 문구를 `신고`로 줄이고 공유 버튼은 없앤다</li><li>소장/대여 전에 잔액을 미리 본다</li><li>검색은 뒤로 가야 한다</li></ul></div><div class="col"><div class="lab">B안 · 검색 유지 (확정)</div><div class="subl">작품을 보다가 바로 다른 작품을 찾을 수 있다</div>
+<div class="ph"><div class="top"><button class="ib" type="button" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span style="flex-grow:1"></span><span class="rep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>신고</span><button class="ib" type="button" aria-label="선호작"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button><button class="ib" type="button" aria-label="알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button><button class="ib" type="button" aria-label="검색"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg></button></div>
+<div class="ban"></div>
+<div class="meta"><div class="cover"></div><div style="padding-top:62px"><div class="h1">달빛 아래의 기록관</div><div class="au">한서진</div></div></div>
+<div class="kpi"><div class="kc"><b>82%</b><span>연독률</span></div><div class="kc"><b>64%</b><span>완독률</span></div><div class="kc"><b>12.4만</b><span>조회</span></div></div>
+<div class="tabs"><span class="tb">소개</span><span class="tb on">회차</span><span class="tb">세계관</span><span class="tb">리뷰</span></div>
+<div class="line"></div><div class="line s"></div><div class="line"></div>
+</div><ul class="pros"><li>신고 문구를 `신고`로 줄이고 공유 버튼은 없앤다</li><li>잔액은 소장/대여 팝업에서 보여준다</li><li>검색창 패널은 21번 보드와 같다</li></ul></div><div class="col"><div class="lab">C안 · 둘 다 유지</div><div class="subl">전역 헤더와 같은 정보를 모두 노출</div>
+<div class="ph"><div class="top"><button class="ib" type="button" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span style="flex-grow:1"></span><span class="rep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>신고</span><button class="ib" type="button" aria-label="선호작"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button><button class="ib" type="button" aria-label="알림"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button><span class="tok">128<span class="plus" style="background:#4f46e5">+</span></span><button class="ib" type="button" aria-label="검색"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 21l-4.3-4.3M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg></button></div>
+<div class="ban"></div>
+<div class="meta"><div class="cover"></div><div style="padding-top:62px"><div class="h1">달빛 아래의 기록관</div><div class="au">한서진</div></div></div>
+<div class="kpi"><div class="kc"><b>82%</b><span>연독률</span></div><div class="kc"><b>64%</b><span>완독률</span></div><div class="kc"><b>12.4만</b><span>조회</span></div></div>
+<div class="tabs"><span class="tb">소개</span><span class="tb on">회차</span><span class="tb">세계관</span><span class="tb">리뷰</span></div>
+<div class="line"></div><div class="line s"></div><div class="line"></div>
+</div><ul class="pros"><li>신고는 `신고`로 줄이고 공유는 소개 탭으로 옮겨도 상단이 빽빽하다 (아이콘 6개)</li><li>실제 폭 390px 기준이라 눌림 영역이 좁아진다</li></ul></div></div>
+<div class="note">2026-10-12 B안으로 확정했다. 공유 버튼은 모바일·데스크톱 모두 없앴고, 신고 버튼은 `신고`로 줄였다. 9번 보드에 반영했다.</div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -79,9 +79,45 @@ const reviewSchema = z.object({
   reason: optionalText(2000).refine((v) => v !== null, { message: REASON_REQUIRED_MESSAGE }),
 });
 
+export const SANCTION_ADJUST_OPERATIONS = ['lift', 'change_duration'] as const;
+export type SanctionAdjustOperation = (typeof SANCTION_ADJUST_OPERATIONS)[number];
+
+const PG_BIGINT_MAX = BigInt('9223372036854775807');
+
+/** history seq is a Postgres bigint carried as a decimal string (no JS number precision loss). */
+const SEQ_PATTERN = /^(0|[1-9][0-9]{0,18})$/;
+const expectedSeq = z
+  .string()
+  .refine((value) => SEQ_PATTERN.test(value) && BigInt(value) <= PG_BIGINT_MAX, { message: 'invalid_seq' });
+
+const requiredText = (max: number) =>
+  optionalText(max).refine((v) => v !== null, { message: REASON_REQUIRED_MESSAGE });
+
+const adjustSanctionSchema = z
+  .object({
+    idempotencyKey: z.uuid(),
+    userId: z.uuid(),
+    expectedSeq,
+    operation: z.enum(SANCTION_ADJUST_OPERATIONS),
+    reason: requiredText(2000),
+    publicReason: requiredText(500),
+    endsAt: z.iso.datetime({ offset: true }).nullish(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.operation === 'change_duration') {
+      if (!value.endsAt) ctx.addIssue({ code: 'custom', path: ['endsAt'], message: 'expiry_required' });
+      else if (Date.parse(value.endsAt) <= Date.now()) {
+        ctx.addIssue({ code: 'custom', path: ['endsAt'], message: 'expiry_in_past' });
+      }
+    } else if (value.endsAt) {
+      ctx.addIssue({ code: 'custom', path: ['endsAt'], message: 'expiry_not_allowed' });
+    }
+  });
+
 export type ModerateReportGroupInput = z.input<typeof moderationSchema>;
 export type UnblindTargetInput = z.input<typeof unblindSchema>;
 export type ResolveReviewRequestInput = z.input<typeof reviewSchema>;
+export type AdjustUserSanctionInput = z.input<typeof adjustSanctionSchema>;
 
 type Failure = { ok: false; error: AdminErrorCode; fieldErrors?: Record<string, string> };
 
@@ -97,6 +133,9 @@ function validationFailure(error: z.ZodError): Failure {
 
 const RPC_ERRORS: [string, AdminErrorCode][] = [
   ['stale_target', 'stale_target'],
+  // adjust_user_sanction: the current sanction ended or was lifted since the history was read.
+  ['no_active_sanction', 'stale_target'],
+  ['sanction_unchanged', 'validation_failed'],
   ['idempotency_conflict', 'conflict'],
   ['reason_required', 'reason_required'],
   ['actor_not_admin', 'not_found'],
@@ -199,6 +238,32 @@ export async function resolveReviewRequest(
       p_outcome: v.outcome,
       p_expected_version: v.targetVersion,
       p_reason: v.reason,
+    });
+  }, deps);
+}
+
+/**
+ * Lift or change the duration of a user's current sanction (ADMIN-03, Reopen 2026-10-12).
+ * expectedSeq pins the history version the administrator saw; the RPC reuses the lift path
+ * and, for a duration change, applies the new suspension in the same transaction.
+ */
+export async function adjustUserSanction(
+  input: AdjustUserSanctionInput,
+  deps?: AdminAuthDeps
+): Promise<AdminResult<{ actionId: string }>> {
+  return withAdminAction(async ({ actor, admin }) => {
+    const parsed = adjustSanctionSchema.safeParse(input);
+    if (!parsed.success) return validationFailure(parsed.error);
+    const v = parsed.data;
+    return callRpc(admin, 'adjust_user_sanction', {
+      p_actor_id: actor.userId,
+      p_idempotency_key: v.idempotencyKey,
+      p_user_id: v.userId,
+      p_expected_seq: v.expectedSeq,
+      p_operation: v.operation,
+      p_reason: v.reason,
+      p_public_reason: v.publicReason,
+      p_ends_at: v.operation === 'change_duration' ? v.endsAt : null,
     });
   }, deps);
 }

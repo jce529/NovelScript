@@ -3,7 +3,8 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 vi.mock('@/app/studio/settings/ai-providers/actions', () => ({ registerByokKeyAction: vi.fn(), recheckByokKeyAction: vi.fn(), deleteByokKeyAction: vi.fn(), saveDefaultAction: vi.fn() }));
-const pageMocks = vi.hoisted(() => ({ listKeys: vi.fn(), models: vi.fn(), current: vi.fn(), usage: vi.fn() }));
+const pageMocks = vi.hoisted(() => ({ listKeys: vi.fn(), models: vi.fn(), current: vi.fn(), usage: vi.fn(), availability: vi.fn() }));
+vi.mock('@/lib/ai/providers/service-availability', () => ({ getServiceAvailability: pageMocks.availability }));
 vi.mock('@/lib/ai/providers/byok', () => ({ listByokKeys: pageMocks.listKeys }));
 vi.mock('@/lib/ai/providers/byok-models', () => ({ loadConnectedByokModels: pageMocks.models }));
 vi.mock('@/lib/ai/providers/settings', () => ({ getDefaultProviderModel: pageMocks.current }));
@@ -38,11 +39,12 @@ const cards = (registered = false, replacement: string | null = null): ByokCardD
 const html = (items: ReturnType<typeof cards>) => renderToStaticMarkup(React.createElement(ByokKeyCards, { cards: items }));
 async function pageHtml(searchParams: { saved?: string; error?: string } = {}, current = { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' }, usage: { ok: boolean; providers?: { provider: string; calls: number; inputTokens: number; outputTokens: number; models: { model: string; calls: number; inputTokens: number; outputTokens: number }[] }[]; reason?: string } = { ok: true, providers: [{ provider: 'openai', calls: 12, inputTokens: 345, outputTokens: 82, models: [
   { model: 'gpt-4o-mini', calls: 12, inputTokens: 345, outputTokens: 82 },
-] }] }) {
+] }] }, availability = { gemini: true, openai: true, anthropic: true }) {
   pageMocks.listKeys.mockResolvedValue([{ id: 'key-id', provider: 'openai', maskedHint: '••••1234', status: 'connected', modelIds: ['gpt-4o-mini'], createdAt: '2026-09-29T00:00:00Z', verifiedAt: null }]);
   pageMocks.models.mockResolvedValue({ openai: ['gpt-4o-mini', 'outside-catalog'] });
   pageMocks.current.mockResolvedValue(current);
   pageMocks.usage.mockResolvedValue(usage);
+  pageMocks.availability.mockReturnValue(availability);
   const tree = await AiProvidersSettingsPage({ searchParams: Promise.resolve(searchParams) });
   return renderToStaticMarkup(tree);
 }
@@ -153,6 +155,18 @@ describe('BYOK settings cards', () => {
     expect(output).toContain('삭제');
     expect(output).not.toContain('secret_id');
     expect(output).not.toContain('unavailable');
+  });
+  it('keeps keyless service options visible but disabled with a text reason, BYOK stays enabled', async () => {
+    const usage = { ok: true, providers: [] };
+    const output = await pageHtml({}, undefined, usage, { gemini: true, openai: false, anthropic: false });
+    const option = (value: string) => output.match(new RegExp(`<option[^>]*value="${value}"[^>]*>`))?.[0] ?? '';
+    expect(option('openai:gpt-4o-mini:service')).toContain('disabled');
+    expect(option('openai:gpt-4o-mini:byok')).not.toContain('disabled');
+    expect(option('gemini:gemini-3.5-flash:service')).not.toContain('disabled');
+    expect(output).toContain('GPT-4o mini [서비스 키]');
+    expect(output).toContain('서비스 키가 설정되지 않았어요');
+    expect(output).toContain('OpenAI [서비스 키] 모델은 선택할 수 없어요');
+    expect(output).not.toContain('Gemini [서비스 키] 모델은 선택할 수 없어요');
   });
   it('rendersDeleteReplacementOnlyForMatchingDefault', async () => {
     const output = await pageHtml();

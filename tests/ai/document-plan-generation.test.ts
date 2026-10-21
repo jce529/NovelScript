@@ -15,7 +15,7 @@ import { CLARIFY_MESSAGE } from '@/lib/ai/document-plan';
 import { CHAT_COPY } from '@/lib/ai/chat-result';
 import { DOCUMENT_CONTRACT_COPY } from '@/lib/ai/document-contract';
 import { FOLDER_COPY } from '@/lib/kb/actions';
-import { assembleUserContent, PRESET_INSTRUCTIONS, STYLE_PRESETS } from '@/lib/ai/prompt';
+import { assembleUserContent, PRESET_INSTRUCTIONS, RESPONSE_PROTOCOL_INSTRUCTIONS, STYLE_PRESETS } from '@/lib/ai/prompt';
 
 const folder = { id: 'folder-1', name: '주요 등장인물', isRoot: false, path: '주요 등장인물', version: 'v7' };
 const template = { id: 'template-1', name: '인물 템플릿', scope: 'work' as const, content: '# 개요\n## 성격', isDefault: false };
@@ -66,6 +66,35 @@ describe('active document planning strategy', () => {
     expect(call.contents).toBe(assembleUserContent({ mentionedDocs: [], precedingText: '앞선 본문', chatHistory: input().chatHistory }));
     expect(h.settle).toHaveBeenCalledTimes(1);
     expect(h.settle.mock.calls[0][2].idempotencyKey).toBe('same-key');
+  });
+
+  it('04-09: carries freeform custom and work instructions alongside the document plan', async () => {
+    const CUSTOM = 'CUSTOM-SENTINEL: 현재형으로 쓰세요.';
+    const WORK = 'WORK-SENTINEL: 주인공은 존댓말을 쓴다.';
+    await chat({} as never, provider, { ...input(), presetLevel: 'freeform', customInstruction: CUSTOM, workSystemInstruction: WORK });
+    const sys = h.generate.mock.calls[0][0].systemInstruction as string;
+    expect(sys).toContain(CUSTOM);
+    expect(sys).toContain(WORK);
+    expect(sys).not.toContain(PRESET_INSTRUCTIONS.freeform);
+    expect(sys).toContain('대상 폴더: 인물/주요 등장인물');
+    expect(sys.endsWith(RESPONSE_PROTOCOL_INSTRUCTIONS)).toBe(true);
+    expect(h.settle).toHaveBeenCalledTimes(1);
+  });
+
+  it('04-09: intermediate planning applies the work instruction only', async () => {
+    await chat({} as never, provider, { ...input(), customInstruction: 'CUSTOM-SENTINEL', workSystemInstruction: 'WORK-SENTINEL' });
+    const sys = h.generate.mock.calls[0][0].systemInstruction as string;
+    expect(sys).toContain('WORK-SENTINEL');
+    expect(sys).not.toContain('CUSTOM-SENTINEL');
+    expect(sys).toContain(PRESET_INSTRUCTIONS.intermediate);
+  });
+
+  it('04-09: beginner planning applies neither instruction', async () => {
+    await chat({} as never, provider, { ...input(), presetLevel: 'beginner', customInstruction: 'CUSTOM-SENTINEL', workSystemInstruction: 'WORK-SENTINEL' });
+    const sys = h.generate.mock.calls[0][0].systemInstruction as string;
+    expect(sys).not.toContain('WORK-SENTINEL');
+    expect(sys).not.toContain('CUSTOM-SENTINEL');
+    expect(sys).toContain('대상 폴더: 인물/주요 등장인물');
   });
 
   it('adds planned folder and template metadata and preserves cap status', async () => {

@@ -34,8 +34,15 @@ function setup(opts: FakeLedgerOptions) {
   return admin;
 }
 const asClient = (p: ReturnType<typeof createMockProvider>) => p as unknown as ProviderClient;
+/** 11-10: the service path settles via settle_service_ai_generation (0030), not apply_wallet_delta. */
 const debitCalls = (admin: ReturnType<typeof createFakeLedgerAdmin>) =>
-  admin.rpc.mock.calls.filter(c => c[0] === 'apply_wallet_delta');
+  admin.rpc.mock.calls.filter(c => c[0] === 'settle_service_ai_generation');
+const settleArgs = (admin: ReturnType<typeof createFakeLedgerAdmin>, n = 0) =>
+  debitCalls(admin)[n][1] as { p_idempotency_key: string; p_debit_amount: number; p_usage: Record<string, unknown> };
+const keyLedger = (admin: ReturnType<typeof createFakeLedgerAdmin>) =>
+  admin.state.ledger.filter(r => r.wallet_id === OWNER && r.reference_type === 'ai_generation' && r.reference_id === KEY);
+const keyUsage = (admin: ReturnType<typeof createFakeLedgerAdmin>) =>
+  admin.state.usage.filter(r => r.owner_id === OWNER && r.idempotency_key === KEY);
 
 function refusal(stage: 'input' | 'output', reasonCode: RefusalReasonCode, inputTokens: number, outputTokens: number, reported = true): GenerateResult {
   return {
@@ -57,7 +64,11 @@ describe('chat() structured refusals', () => {
     const result = await chat(session, asClient(provider), input);
     const amount = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 900, candidatesTokenCount: 0 });
     expect(debitCalls(admin)).toHaveLength(1);
-    expect(debitCalls(admin)[0][1]).toMatchObject({ p_reference_id: KEY, p_delta: 0 - amount });
+    expect(settleArgs(admin)).toMatchObject({ p_idempotency_key: KEY, p_debit_amount: amount, p_usage: { status: 'refused' } });
+    expect(keyLedger(admin)).toEqual([{ wallet_id: OWNER, reference_type: 'ai_generation', reference_id: KEY, delta: -amount }]);
+    expect(keyUsage(admin)).toHaveLength(1);
+    expect(keyUsage(admin)[0]).toMatchObject({ status: 'refused', key_source: 'service' });
+    expect(keyUsage(admin)[0].service_settled_at).not.toBeNull();
     expect(result).toEqual({
       ok: false, status: 'refused', error: CHAT_COPY.refusedTitle,
       refusal: { stage: 'input', reasonCode: 'SAFETY', debitAmount: amount }, remainingBalance: 1000 - amount,
@@ -70,26 +81,55 @@ describe('chat() structured refusals', () => {
     const provider = createMockProvider({ generateContent: async () => refusal('output', code, 3000, 4000) });
     const result = await chat(session, asClient(provider), input);
     const amount = computeDebitAmount({ pricing: GEMINI_PRICING_USD_PER_MILLION['gemini-3.5-flash'], promptTokenCount: 3000, candidatesTokenCount: 4000 });
-    expect(debitCalls(admin)[0][1]).toMatchObject({ p_delta: 0 - amount });
+    expect(settleArgs(admin).p_debit_amount).toBe(amount);
+    expect(keyLedger(admin)[0].delta).toBe(-amount);
     expect(result).toMatchObject({ status: 'refused', refusal: { stage: 'output', reasonCode: code, debitAmount: amount } });
     expect(JSON.stringify(result)).not.toContain('PARTIAL-OUTPUT');
   });
 
-  it('refusal with zero reported usage debits 0 and is still refused', async () => {
+  it('unreported refusal (D-12): no settlement, no usage, no ledger; refused with debit 0 and the same key retries', async () => {
     const admin = setup({ balances: { [OWNER]: 1000 } });
-    const provider = createMockProvider({ generateContent: async () => refusal('input', 'SAFETY', 0, 0, false) });
+    const provider = createMockProvider();
+    provider.generateContent
+      .mockResolvedValueOnce(refusal('input', 'SAFETY', 0, 0, false))
+      .mockResolvedValueOnce(okResult());
     const result = await chat(session, asClient(provider), input);
-    expect((debitCalls(admin)[0][1] as { p_delta: number }).p_delta).toBe(0);
-    expect(result).toMatchObject({ status: 'refused', refusal: { debitAmount: 0 } });
+    expect(result).toEqual({
+      ok: false, status: 'refused', error: CHAT_COPY.refusedTitle, remainingBalance: 1000,
+      refusal: { stage: 'input', reasonCode: 'SAFETY', debitAmount: 0 },
+    });
+    expect(debitCalls(admin)).toHaveLength(0);
+    expect(keyUsage(admin)).toHaveLength(0);
+    expect(admin.state.ledger).toHaveLength(0);
+    const retry = await chat(session, asClient(provider), input);
+    expect(retry.status).toBe('completed');
+    expect(provider.generateContent).toHaveBeenCalledTimes(2);
   });
 
-  it('refusal replay with the same key is already_processed without a provider call', async () => {
-    setup({ balances: { [OWNER]: 1000 } });
+  it('reported refusal with zero tokens: completed usage marker, no ledger row, replay blocked', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
+    const provider = createMockProvider({ generateContent: async () => refusal('input', 'SAFETY', 0, 0, true) });
+    const result = await chat(session, asClient(provider), input);
+    expect(result).toMatchObject({ status: 'refused', remainingBalance: 1000, refusal: { debitAmount: 0 } });
+    expect(settleArgs(admin).p_debit_amount).toBe(0);
+    expect(keyUsage(admin)).toHaveLength(1);
+    expect(keyUsage(admin)[0].service_settled_at).not.toBeNull();
+    expect(admin.state.ledger).toHaveLength(0);
+    expect(admin.state.balances[OWNER]).toBe(1000);
+    const replay = await chat(session, asClient(provider), input);
+    expect(replay.status).toBe('already_processed');
+    expect(provider.generateContent).toHaveBeenCalledTimes(1);
+  });
+
+  it('reported refusal replay with the same key is already_processed without a provider call (settled once)', async () => {
+    const admin = setup({ balances: { [OWNER]: 1000 } });
     const provider = createMockProvider({ generateContent: async () => refusal('input', 'SAFETY', 900, 0) });
     await chat(session, asClient(provider), input);
     const replay = await chat(session, asClient(provider), input);
     expect(replay.status).toBe('already_processed');
     expect(provider.generateContent).toHaveBeenCalledTimes(1);
+    expect(debitCalls(admin)).toHaveLength(1);
+    expect(keyLedger(admin)).toHaveLength(1);
   });
 
   it('D-04: a failed provider call leaves no row, so resending the same key completes once', async () => {
@@ -101,6 +141,7 @@ describe('chat() structured refusals', () => {
     const first = await chat(session, asClient(provider), input);
     expect(first.failureKind).toBe('rate_limited');
     expect(admin.state.ledger).toHaveLength(0);
+    expect(keyUsage(admin)).toHaveLength(0);
     const second = await chat(session, asClient(provider), input);
     expect(second.status).toBe('completed');
     expect(provider.generateContent).toHaveBeenCalledTimes(2);
@@ -108,8 +149,8 @@ describe('chat() structured refusals', () => {
     expect(admin.state.ledger.filter(r => r.reference_id === KEY)).toHaveLength(1);
   });
 
-  it('refusal whose debit fails with no ledger row is a settlement failure (no refusal info)', async () => {
-    setup({ balances: { [OWNER]: 1000 }, debitError: 'rpc' });
+  it('refusal whose settlement fails before commit is a settlement failure (no refusal info)', async () => {
+    setup({ balances: { [OWNER]: 1000 }, settleError: 'rpc' });
     const provider = createMockProvider({ generateContent: async () => refusal('input', 'SAFETY', 900, 0) });
     const result = await chat(session, asClient(provider), input);
     expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'settlement', error: CHAT_COPY.settlement });
@@ -167,7 +208,7 @@ describe('chat() provider error kinds and scrubbed logs', () => {
   });
 
   it('settlement failure logs only provider/stage/idempotencyKey', async () => {
-    setup({ balances: { [OWNER]: 1000 }, debitError: 'rpc' });
+    setup({ balances: { [OWNER]: 1000 }, settleError: 'rpc' });
     await chat(session, asClient(createMockProvider()), input);
     expect(errorSpy).toHaveBeenCalledTimes(1);
     const [, payload] = errorSpy.mock.calls[0] as [string, Record<string, unknown>];

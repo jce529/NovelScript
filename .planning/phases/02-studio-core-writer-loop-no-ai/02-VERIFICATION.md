@@ -177,3 +177,50 @@ No gaps found. All 5 ROADMAP success criteria are verified with passing automate
 
 *Verified: 2026-08-28*
 *Verifier: Claude (gsd-verifier)*
+
+
+---
+
+# Reopen 보완 검증 (2026-10-12 정책, plan 02-07~02-13)
+
+> 위 2026-08-28 결과는 기존 구현에 대한 역사 증거로 보존한다. 아래 신규 truth는 과거 `passed`를 승계하지 않고 실제 증거만 기록한다. 전체 상태: **PASSED - Unit·실DB·브라우저 게이트 통과, 브라우저 게이트는 사용자 지시로 승인(2026-10-19). 실제 touch 기기·실제 AI 응답은 에이전트가 독립 검증하지 못한 잔여 항목**.
+
+| # | 신규 truth | 증거 | 상태 |
+|---|-----------|------|------|
+| R1 | 기본 템플릿 5종 읽기 전용, 서버 guard가 우회 차단 | unit: template-policy, template-seeding, template-migration-source. 실DB(`--project db`): template-policy-migration·locked-folder-guard·schema-smoke 통과. 브라우저: 기본 템플릿 textarea `readOnly`, "읽기 전용" 칩, 저장/AI 삽입 버튼 없음, 우클릭 메뉴는 사본 만들기만 | **통과** (실DB + 브라우저) |
+| R2 | 기존 수정 내용이 `내 템플릿` 사본으로 보존되고 기본 5종 원문 복원 | 1회용 DB에서 0022→0023→재실행 통과(template-policy-migration 10/10, 최신 policy 복원 확인) | **통과** (실DB) |
+| R3 | 템플릿 이름 중복 불가, 사본/새 문서/템플릿 만들기 | unit 통과. 실DB template-options·template-tree-mutations 통과. 브라우저: 기본 이름 "인물"로 사본 생성 거부+입력 유지, 다른 이름은 생성, 새 문서에서 `<% tp.file.title %>` 치환. **rename 중복**("게이트 인물 양식"으로 변경) "이미 같은 이름의 템플릿이 있어요" 거부+입력 유지, 정상 이름 rename 성공. **scope**: "템플릿 만들기"에서 `이 작품 전용`·`계정 공용` 각각 생성, 같은 scope 중복은 거부, 서로 다른 scope의 같은 이름은 허용(DB: `account_template`/`work` 각 1행, unique index는 `(owner_id, work_id, btrim(name))` 기준) | **통과** |
+| R4 | 우클릭·long press 메뉴, 템플릿 섹션, 폴더 접기 | unit 통과. 브라우저: 일반 문서 우클릭=이름 바꾸기/삭제, 기본 템플릿 우클릭=사본 만들기만, 템플릿 섹션 구성, 폴더 접기/펼치기(접으면 하위 문서 숨김·펼치면 복귀). touch long press는 `pointerType: touch` **합성 PointerEvent 에뮬레이션**: 500ms 이상 누르면 메뉴(이름 바꾸기·삭제), 250ms에는 미표시, 100ms 짧은 탭·누르는 중 scroll·누르는 중 40px 이동에서는 미표시 | **부분 통과** — 실제 touch 기기/touch 브라우저에서의 long press→이름 바꾸기, 일반 tap 이동은 PENDING (사용자 확인) |
+| R5 | 좌·우 패널 접기에서 editor/AiPanel 유지(mount·selection·대화) | unit 통과. 브라우저(1440px): 좌/우/동시 접기 3회 반복 후 textarea·AiPanel DOM 노드 동일, MutationObserver 제거 0건(mount 증가 없음), selectionStart/End 유지, 본문 폭 705→925(좌)→1273(동시)→705 복원. **진행 중 AI 요청**: 서버 액션을 6초 지연시켜 전송 후 접기/펼치기 2회 반복(요청 진행 중) → 입력 DOM 동일(removed 0), 사용자 메시지 1건 유지, 완료 후 같은 대화에 결과(오류 안내+다시 시도)가 붙음 | **부분 통과** — 이 프로젝트에는 AI 키가 없어 실제 AI 응답 본문은 미검증(오류 응답으로 대체). React DevTools mount count 대신 MutationObserver 제거 감지 사용 |
+| R6 | 저장 상태 칩(저장됨/저장 중/저장 안 됨/저장 실패+재시도) | unit 통과. 브라우저(KB 문서·회차 모두): 저장됨→저장 안 됨→저장 중→저장됨 전이. **fault injection**(브라우저 `fetch` wrapper로 서버 액션 POST만 실패): 저장 실패 칩 표시, 본문·DOM 유지, wrapper 해제 후 재시도로 저장됨(회차는 DB 반영도 확인). **저장 중 추가 입력**(서버 액션 3초 지연): 저장 중 입력 → 완료 후 "저장 안 됨" 유지 | **통과** (앱 코드 수정 없이 외부 wrapper 사용) |
+| R7 | 기존 draft·고정 가격 발행·발행 후 수정·발행 취소 회귀 없음 | 실DB tests/chapters(draft·publish·edit-unpublish·reorder 등) 통과. 브라우저: 유료 30토큰 발행(`is_published=true`, `price_tier=30`) → 발행 취소(`is_published=false`, `unpublished_at` 기록, 본문·price_tier 보존) | **통과** |
+
+## 실행한 자동 검증 (02-13 Task 1)
+`npx vitest run --project unit` (14 files: template-migration-source, template-seeding, template-policy, template-copy, template-action-wrappers, template-dialogs, sidebar-sections, kb-node-menu, template-tree-ui, editor-state, studio-panel-shell, kb-editor-state, chapter-editor-state, client-bundle-fs-free): **14 files / 214 tests passed**.
+
+## 실행한 실DB 검증 (02-13 Task 2, 2026-10-17)
+1회용 Supabase 프로젝트(전용 `.env.disposable`, 공유 프로젝트와 분리)에 0001~0021을 적용하고(0011은 파일 선두 BOM 때문에 BOM 제거 후 적용) `npx vitest run --project db`로 실행: template-policy-migration, template-options, template-tree-mutations, document-crud, locked-folder-guard, ownership-guard, schema-smoke, tests/chapters/*. 브랜치 `phase2/db-browser-gate`(c34cb97) 기준 **14 files / 66 tests passed**(분기 전 작업 트리에서도 이관 10 tests + 나머지 13 files 56 tests 통과).
+
+> **실행 안전 규칙:** vitest는 `--mode disposable`만으로는 공유 `.env.local` 값이 섞여 들어와 공유 프로젝트를 가리킬 수 있었다(이관 테스트의 ref 가드가 차단했고 DB 변경은 없었다). DB suite는 반드시 `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run --project db ...`처럼 프로세스 환경변수를 1회용 값으로 고정해 실행하고, URL·DB URL·두 키의 ref가 1회용 프로젝트와 일치하는지 먼저 확인한다. `next dev`는 `--env-file`을 NODE_OPTIONS로 넘기다 실패하므로 셸에서 export 후 실행한다.
+
+## 실행한 브라우저 검증 (02-13 Task 3, 2026-10-17~19)
+1회용 DB + `next dev -p 3100`(1회용 env만 주입, 별도 worktree). 테스트 작가 계정은 서비스 롤로 생성한 세션 쿠키로 로그인(앱 로그인은 OAuth 전용). 위 R1·R3~R7의 브라우저 증거 참조. 2026-10-19에 rename 중복·scope·폴더 접기·touch 에뮬레이션·fault injection·진행 중 AI 요청을 추가로 확인했다.
+
+> **검증 방법 주의:** fault injection과 요청 지연은 앱 코드가 아니라 페이지의 `window.fetch`를 감싸 서버 액션(`next-action` 헤더 POST)만 실패/지연시키는 개발 검증용 외부 wrapper다. dev 서버가 파일 변경으로 Fast Refresh되면 클라이언트 상태(예: AI 채팅 입력)가 꼬여 입력이 반영되지 않을 수 있으므로, 검증 중에는 worktree 파일을 건드리지 말고 이상하면 페이지를 새로 불러온다. 창 폭을 에뮬레이션해도 레이아웃(lg 이상) 반영에 재적용이 필요할 수 있다.
+
+## 승인과 잔여 항목
+- **브라우저 gate(02-13 Task 3)는 2026-10-19 사용자의 "전부 진행해줘" 지시로 승인됐다.** 사용자가 보고한 레이아웃 이슈 2건은 수정·재검증됐다. 별도의 폰 테스트 결과가 아니라 지시를 승인 근거로 기록한다.
+- 에이전트가 독립 검증하지 못한 잔여 항목(failed 아님): 실제 touch 기기에서의 long press→이름 바꾸기·일반 tap 이동·long press 중 scroll 취소(합성 이벤트·모바일 에뮬레이션만 확인), 실제 AI 응답이 진행 중일 때의 대화 유지(이 프로젝트에 AI 키가 없어 오류 응답으로만 확인)·React DevTools mount count.
+- ROADMAP은 `gsd-tools roadmap update-plan-progress 02`로 동기화한다. STATE/REQUIREMENTS·타 phase 문서는 이 plan 범위가 아니다.
+
+## 발견 사항 — 레이아웃 버그 (사용자 보고, 수정 완료)
+- BUG-02 → [fixed/02-02](../../fixed/02-02%20%ED%85%9C%ED%94%8C%EB%A6%BF%20%ED%88%B4%EB%B0%94%20%EC%A2%81%EC%9D%80%20%ED%8F%AD%20%EA%B9%A8%EC%A7%90%20%EC%88%98%EC%A0%95.md): 템플릿 툴바를 위/아래 2단으로 분리(390px 실측 이름 폭 0 → 98px, 겹침 0).
+- BUG-03 → [fixed/02-03](../../fixed/02-03%20%ED%8A%B8%EB%A6%AC%20%ED%96%89%20%EC%9D%B4%EB%A6%84%20%EC%9E%98%EB%A6%BC%EA%B3%BC%20%EB%B2%84%ED%8A%BC%20%EB%8F%99%EC%8B%9C%20%ED%91%9C%EC%8B%9C%20%EC%88%98%EC%A0%95.md): 트리 행 이름 보존, 행 액션은 hover(마우스)/활성 행(터치)만 표시. 모바일 드로어 `details.group`이 모든 행 버튼을 동시에 켜던 원인을 이름 그룹(`group/row`)으로 해결.
+- 두 건 모두 수정·재검증되어 브라우저 게이트의 승인 차단 사유가 해소됐다.
+
+## 발견 사항 (비차단)
+- 기본 템플릿 본문과 이를 복사한 새 문서 본문이 BOM(`U+FEFF`)으로 시작한다.
+- `supabase/migrations/0011_ai_doc_planning.sql`이 BOM으로 시작해 `scripts/apply-migration.mjs`로 그대로 적용하면 구문 오류가 난다.
+
+## Phase 18 의존 계약
+기본 template은 readonly+copy만 제공한다. 세계관 공개 정책은 포함되지 않는다.

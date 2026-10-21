@@ -54,9 +54,50 @@ export interface SuspensionNotice {
   sanctionedUntil: string | null;
 }
 
+/** Reader-facing "published again" notice. Deliberately carries no blind/reason/actor data. */
+export interface PublicationNotice {
+  id: string;
+  workId: string;
+  chapterId: string | null;
+  title: string;
+  createdAt: string;
+}
+
+export const PUBLICATION_NOTICE_LIMIT = 25;
+
 export type AccountNoticesResult =
-  | { ok: true; warnings: WarningNotice[]; suspension: SuspensionNotice | null }
+  | { ok: true; warnings: WarningNotice[]; suspension: SuspensionNotice | null; publicationNotices: PublicationNotice[] }
   | { ok: false; code: 'unauthenticated' | 'unavailable' };
+
+/**
+ * Unacknowledged publication notices for the session user (recipient-only RLS), oldest first,
+ * max 25. A failure here must not hide warnings, so callers get an empty list.
+ */
+async function loadPublicationNotices(
+  supabase: SupabaseClient, userId: string,
+): Promise<PublicationNotice[]> {
+  try {
+    const { data, error } = await supabase.from('publication_notifications')
+      .select('id, work_id, chapter_id, title, created_at')
+      .eq('user_id', userId).is('acknowledged_at', null)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .limit(PUBLICATION_NOTICE_LIMIT);
+    if (error) return [];
+    return ((data ?? []) as Record<string, unknown>[])
+      .filter((row) => typeof row.id === 'string' && typeof row.work_id === 'string'
+        && typeof row.title === 'string' && row.title.trim() !== '')
+      .map((row) => ({
+        id: row.id as string,
+        workId: row.work_id as string,
+        chapterId: typeof row.chapter_id === 'string' ? row.chapter_id : null,
+        title: row.title as string,
+        createdAt: typeof row.created_at === 'string' ? row.created_at : '',
+      }));
+  } catch {
+    return [];
+  }
+}
 
 /** Outstanding (unacknowledged) warnings for the session user only, oldest first. */
 export async function getAccountNotices(
@@ -64,13 +105,14 @@ export async function getAccountNotices(
 ): Promise<AccountNoticesResult> {
   if (!UUID.safeParse(userId).success) return { ok: false, code: 'unauthenticated' };
   try {
-    const [sanctions, acks, access] = await Promise.all([
+    const [sanctions, acks, access, publicationNotices] = await Promise.all([
       supabase.from('user_sanctions')
         .select('id, kind, public_reason, created_at')
         .eq('user_id', userId).eq('kind', 'warning')
         .order('created_at', { ascending: true }),
       supabase.from('warning_acknowledgements').select('sanction_id').eq('user_id', userId),
       checkWriteAccess(supabase, userId),
+      loadPublicationNotices(supabase, userId),
     ]);
     if (sanctions.error || acks.error) return { ok: false, code: 'unavailable' };
     const acknowledged = new Set(
@@ -86,9 +128,30 @@ export async function getAccountNotices(
     const suspension = !access.ok && access.code === 'write_suspended'
       ? { permanent: access.permanent, sanctionedUntil: access.sanctionedUntil }
       : null;
-    return { ok: true, warnings, suspension };
+    return { ok: true, warnings, suspension, publicationNotices };
   } catch {
     return { ok: false, code: 'unavailable' };
+  }
+}
+
+/** Stamps this reader's own publication notice as acknowledged (allowed while suspended). */
+export async function acknowledgePublicationNotification(
+  supabase: SupabaseClient, { userId, notificationId }: { userId: string; notificationId: string },
+): Promise<AcknowledgeResult> {
+  if (!UUID.safeParse(userId).success) return { ok: false, code: 'unauthenticated', error: NOTICE_ACK_ERROR };
+  if (!UUID.safeParse(notificationId).success) return { ok: false, code: 'not_found', error: NOTICE_ACK_ERROR };
+  try {
+    const { data, error } = await supabase.rpc('acknowledge_publication_notification', {
+      p_notification_id: notificationId,
+    });
+    if (error) {
+      if (error.message?.includes('notification_not_found')) return { ok: false, code: 'not_found', error: NOTICE_ACK_ERROR };
+      if (error.message?.includes('authentication_required')) return { ok: false, code: 'unauthenticated', error: NOTICE_ACK_ERROR };
+      return { ok: false, code: 'unavailable', error: NOTICE_ACK_ERROR };
+    }
+    return data === true ? { ok: true } : { ok: false, code: 'unavailable', error: NOTICE_ACK_ERROR };
+  } catch {
+    return { ok: false, code: 'unavailable', error: NOTICE_ACK_ERROR };
   }
 }
 

@@ -23,7 +23,7 @@
 
 - [x] **EDIT-01**: Writer can insert `@`-mention references to KB documents via autocomplete search by name/type
 - [x] **EDIT-02**: Writer can see a visible list of currently-mentioned/in-context documents before generating
-- [x] **EDIT-03**: Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
+- [ ] **EDIT-03**: Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
 - [x] **EDIT-04**: Writer can trigger AI generation that sends mentioned KB docs + preset + instruction to Gemini and inserts the result into the canvas
 - [x] **EDIT-05**: Writer sees a token/cost estimate before generating
 
@@ -35,10 +35,10 @@
 
 ### Reader / Discovery (READ)
 
-- [x] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
-- [x] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
-- [x] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
-- [x] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
+- [ ] **READ-01**: Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
+- [ ] **READ-02**: Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
+- [ ] **READ-03**: Reader can adjust font size and toggle a dark/alternate theme in the viewer
+- [ ] **READ-04**: Reader's last-read chapter is remembered and resumed on return (이어보기)
 - [x] **READ-05**: Reader can report a novel or chapter for review from the detail page or viewer
 - [x] **READ-07**: Reader can toggle a per-work new-chapter notification subscription (알림) from the work detail page header, login-gated; subscription state persists to the account. Actual delivery channel (push/email/in-app inbox) is not defined by this requirement and remains open for a later phase — v1 scope is the subscription toggle and its persisted state only.
 - [x] **READ-08**: Reader can save/unsave a work to a personal 선호작 (bookmark) list from the work detail page header, login-gated — distinct from the 좋아요 (like) action, which remains a separate count-based control.
@@ -47,14 +47,14 @@
 ### Payments (PAY)
 
 - [ ] **PAY-01**: User can purchase tokens through Toss Payments and see the charge reflected as a wallet balance
-- [x] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
+- [ ] **PAY-02**: User can spend tokens to unlock a paid chapter, with balance deducted atomically at unlock time; the chapter's author is credited 90% of the spent tokens, with the remaining 10% retained as a platform fee. This 90/10 split is a **provisional figure** (not final — subject to revision), and must be implemented behind a single adjustable constant rather than hardcoded inline (see `.planning/phases/06-paid-chapter-unlock/06-CONTEXT.md` D-10)
 - [ ] **PAY-03**: Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
 
 ### Admin / Moderation (ADMIN)
 
-- [x] **ADMIN-01**: Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
-- [x] **ADMIN-02**: Admin can unpublish/blind a specific chapter
-- [x] **ADMIN-03**: Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
+- [ ] **ADMIN-01**: Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
+- [ ] **ADMIN-02**: Admin can unpublish/blind a specific chapter
+- [ ] **ADMIN-03**: Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
 - [x] **ADMIN-04**: Admin can mark a report resolved or dismissed with a short note
 
 ## v1.1 Requirements (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)
@@ -67,7 +67,7 @@
 - [x] **PROV-02**: 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [x] **PROV-03**: 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받을 수 있다 (비스트리밍, 고정 base URL)
 - [x] **PROV-04**: 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
-- [x] **PROV-05**: 모델 피커에는 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 (전역 모드 토글 없음)
+- [ ] **PROV-05**: 모델 피커는 서비스 키 모델을 숨기지 않고, 호출 불가 모델은 선택 불가(비활성+안내)로 표시한다. 호출 가능 여부는 서버가 실제 키 유무와 BYOK 키의 연결 상태·검증 모델 교집합으로 판정하며, 각 항목의 BYOK / 서비스 키 배지로 비용 주체를 보여 준다. 서비스 키 없는 모델은 AI_PROVIDER_FIXTURE에서도 같은 규칙을 적용하고 서버 호출 경로에서 거부한다(전역 모드 토글 없음).
 - [x] **PROV-06**: 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 일어나지 않는다
 - [x] **PROV-07**: 서비스 키 모드에서 작가는 선택한 제공자·모델의 실제 단가가 반영된 비용 추정치를 생성 전에 본다 (Gemini 단가를 다른 제공자에 재사용하지 않는다)
 
@@ -86,7 +86,7 @@
 ### AI 과금 경로 (COST)
 
 - [x] **COST-01**: 서비스 키 호출의 토큰 차감이 멱등하다 — 같은 호출이 재시도돼도 두 번 차감되지 않는다 (현재 매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지가 무력화된 상태를 수정)
-- [x] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
+- [ ] **COST-02**: 모든 AI 호출이 지갑 원장과 분리된 사용 기록에 남아 제공자·모델·토큰 수를 조회할 수 있다 — 지갑 원장에는 0원 행이 기록되지 않는다
 
 ### MCP 서버 (MCP)
 
@@ -112,7 +112,7 @@
 - [x] **STUDIO-01**: 작가가 계정 설정에서 제공자별 BYOK 연결 상태와 키 끝 4자리를 바로 확인하고 관리 페이지로 이동할 수 있다
 - [x] **STUDIO-02**: 작가가 설정 문서 편집 화면에서 회차와 동일한 AI 패널로 대화할 수 있고, 현재 문서가 컨텍스트로 쓰이며 초안 삽입·문서 제안 저장이 동일하게 동작한다
 - [x] **STUDIO-03**: 작가가 로컬 .md/.txt를 업로드해 설정 문서로 일괄 저장하거나 이번 대화에만 첨부할 수 있고, Jev 자동 분류 시 기존 트리 위의 제안 배치를 드래그앤드롭으로 수정·승인한 뒤에만 그 배치대로 저장된다 (저장 시 서버가 폴더를 재검증)
-- [x] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
+- [ ] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
 
 ### 버그 수정 통합 (BUGFIX)
 
@@ -139,6 +139,24 @@
 - [ ] **LEGAL-03**: AI기본법(2026.1 시행)의 생성형 AI 고지 의무 해당 여부가 검토되고, 해당하면 약관·화면에 반영된다 (현재 문서에 미반영)
 - [ ] **LEGAL-04**: BYOK 사용 시 개인정보 국외 이전·제3자 제공 고지와 동의 구조(약관 조항 10④)가 처리방침에 반영된다
 
+### 세계수 (WTREE) — 설계 확정(2026-10-12), Phase 18 배정
+
+첫 버전은 **셀프 가지**(작가가 자기 작품의 세계관을 가지치기)만 범위다. 스토어 구매 연동(판매 철회·라이선스·크레딧)은 스토어 보류 해제 후 별도 정의한다. 규칙 원본은 `.planning/design/WORLD-TREE.md`, 시안은 목업 보드 40~43.
+
+- [ ] **WTREE-01**: 작가가 세계관마다 연표를 만들 수 있다 — 시대 구간(이름·순서)은 필수, 연도 숫자는 선택이며, 작품을 구간에 배치하고 같은 구간 안 순서를 수동 지정하며 병렬 작품은 `동시 진행`으로 표시한다(구간의 첫 작품은 표시 불가)
+- [ ] **WTREE-02**: 각 가지가 자기 연표를 가진다 — 잔가지는 분기 시점까지 본가지 연표를 이어받고(수정 불가) 이후 구간만 독립 편집하며, 독립 구간에 "본가지 몇 기에 해당" 메모를 선택 입력할 수 있다
+- [ ] **WTREE-03**: 작가가 `이 세계관에서 가지 치기`로 If 가지를 만든다 — 세계관을 복제해 설정 문서를 하나 이상 수정·삭제·추가해야 `가지 확정`되고(변경 0건이면 확정 불가) 새 작품과 연표 위치가 만들어진다 — 부모 작품은 발행 상태에서 발행 회차 50화 이상·본문 있는 설정 문서 20개 이상(인물 5·장소 3·사건 3)을 충족해야 가지를 칠 수 있다(임시 기준, WORLD-TREE 규칙 22)
+- [ ] **WTREE-04**: 작가가 확장 가지를 만든다 — 기존 설정은 그대로 가져오고(수정·삭제 불가) 새 설정을 하나 이상 추가해야 확정된다(추가가 없으면 가지가 아니라 연표의 새 작품) — 부모 조건은 WTREE-03과 같다
+- [ ] **WTREE-05**: 잔가지는 분기 시점 스냅샷으로 고정되고, 원작 설정이 나중에 바뀌어도 가지에는 반영되지 않고 알림만 간다
+- [ ] **WTREE-06**: 세계수 보기에서 본가지·잔가지·열매(작품)를 세계관 내 시간순으로 보고(동시 진행은 위·아래), If 가지와 확장 가지가 구분되며, 열매·가지를 선택하면 상세가 나온다 — 독자는 작품 상세 `세계관` 탭의 `세계수` 보기(모바일 포함), 작가는 스튜디오 세계관 공개 설정에서 편집하고, 큰 화면용 단독 화면을 병행한다
+- [ ] **WTREE-07**: 별도 연결 공개 토글 없이 발행 여부로 공개를 정한다 — 독자에게는 발행된 작품만 세계수에 보이고, 부모 작품을 비공개로 돌리면 세계수는 유지되며 그 가지는 작품명·열매 없이 위치만 암시되는 `부러진 가지`로 표시된다(복원은 재발행). 작가 본인과 관리자에게는 항상 전체가 보인다
+- [ ] **WTREE-08**: 가지 굵기는 본가지와의 근접도(1 − 변경·추가 문서 비율, 분기 깊이 감쇠)와 파생 규모, 열매 크기는 독자 지표(독자 수·완독률·연독률)로 정해진다 — 작가 본인 조회는 지표에서 제외하고 세부 계수는 phase 계획에서 확정한다
+- [ ] **WTREE-09**: 스포일러 잠금이 가지로 확장된다 — 독자 진도는 세계관 단위로 합산하고, 분기 이전 설정은 본가지 진도 기준, 잔가지 고유 설정은 잔가지 진도 기준으로 잠근다 (READ-06 Lore 위키 선행)
+- [ ] **WTREE-10**: 하위 가지가 있는 가지·작품은 삭제할 수 없고(하위부터 정리), 비공개 전환은 하위 가지에 전파되지 않는다
+- [ ] **WTREE-11**: 작가가 스토어에서 구매한 세계관을 `내 구매 에셋`에서 `이 세계관으로 작품 시작`(가지 치기)으로 편입한다 — 설정을 수정하면 If 가지, 새 설정만 추가하면 확장 가지로 확정되고, 변경·추가가 없으면 확정할 수 없다. 이 가지는 원작자 세계수에 잔가지로 연결되며 원작자는 숨길 수 없고 구매자는 자기 가지의 독자 공개만 선택한다 (스토어 보류 해제 후 구현, WTREE-03~05 선행)
+- [ ] **WTREE-12**: 구매한 세계관 에셋은 구매 후 7일 이내이고 가지 확정(스냅샷 복제)을 하지 않았을 때만 전액 환불되며(토큰 그대로 반환, 판매자 크레딧 환불분 차감·미정산분은 정산 전 취소), 가지를 확정하거나 작품을 공개하면 취소·환불할 수 없다(이후 비공개·삭제해도 동일). 구매 화면과 `가지 확정` 직전에 이를 안내한다 (스토어 보류 해제 후 구현, WTREE-11 선행, 법적 청약철회 정합성은 LEGAL 게이트에서 확인)
+- [ ] **WTREE-13**: 세계관 에셋은 등록 시 자동 점검(금칙어·저작권 유사 등)을 통과하면 사전 심사 없이 등록되고, 이후 신고가 접수되면 관리자 신고 큐에서 판매 중지·경고·정지로 처리된다. 판매가 중지되면 세계관 자체의 문제(표절·저작권 침해 등)일 때는 파생 가지도 블라인드하고 해당 구매자를 보상하며, 그 외 사유는 기존 가지·구매를 스냅샷 그대로 유지하고 신규 구매만 막는다 (스토어 보류 해제 후 구현, 저작권·보상 범위는 LEGAL 게이트에서 확인)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -151,7 +169,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Reader
 
-- **READ-06**: Reader-facing opt-in "AI로 작성됨" / lore-wiki showcase
+- **READ-06**: Reader-facing opt-in "AI로 작성됨" / lore-wiki showcase — **2026-10-10 결정: Lore 위키 + 스포일러 잠금은 최종 청사진 범위로 승격**(요구사항 정의·phase 배정 대기, 아직 v2 후보로 유지)
 
 ### Admin
 
@@ -184,10 +202,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | MCP 회차 본문 직접 수정 툴 (`update_chapter_body` 류) | 프롬프트 인젝션 하나로 발행 본문이 조용히 재작성될 수 있음. 초안/제안 객체만 제공해 구조적으로 차단 (MCP-05) |
 | MCP 성공 기준에 ChatGPT E2E 검증 포함 | ChatGPT가 쓰기 가능 커스텀 커넥터를 Business/Enterprise/Edu로 제한 — 개인 Plus 작가에게 달성 불가능한 기준이 됨. Claude만 검증 대상 |
 | 토큰 현금 환전 (작가 정산/Cash-out) | 초기엔 매출이 AI 비용을 상쇄하는 데 집중 |
-| SLM 기반 자동 사전검수 파이프라인 | 베타 규모에서는 운영자 수동 검토(ADMIN-01~04)로 대체 |
-| 정밀 스크롤 심도 기반 유효완독률 알고리즘 | 간소화 지표(READ-01)로 시작 |
+| SLM 기반 자동 사전검수 파이프라인 | 베타 규모에서는 운영자 수동 검토(ADMIN-01~04)로 대체. 2026-10-10: 출시는 수동 검토로 확정, 자동 검수는 출시 후 후속 |
+| 정밀 스크롤 심도 기반 유효완독률 알고리즘 | 간소화 지표(READ-01)로 시작. 2026-10-10: 완독률·연독률 랭킹은 최종 청사진 범위로 결정(요구사항 ID 미배정), 지금 로드맵에서는 계속 제외 |
 | 3-Strike 자동 제재 체계 | 계정 조치는 v1에서 전부 수동 판단(ADMIN-03) |
-| 3패널 AI 협업 캔버스 (`@`멘션 컨텍스트 주입, 전용 시스템프롬프트 모달, KB 그래프 뷰), 파일트리 내 드래그앤드롭 이동 | 멘션 기반 컨텍스트 주입 메커니즘 자체를 먼저 검증; UI 정교화는 그 다음. (Phase 2 amendment: 기본 폴더/파일 트리 탐색·생성·이름변경·삭제 자체는 범위에 포함됨 — 위 KB-02 참고. 드래그앤드롭 이동만 계속 범위 밖) |
+| 3패널 AI 협업 캔버스 (`@`멘션 컨텍스트 주입, 전용 시스템프롬프트 모달, KB 그래프 뷰), 파일트리 내 드래그앤드롭 이동 | 멘션 기반 컨텍스트 주입 메커니즘 자체를 먼저 검증; UI 정교화는 그 다음. (Phase 2 amendment: 기본 폴더/파일 트리 탐색·생성·이름변경·삭제 자체는 범위에 포함됨 — 위 KB-02 참고. 드래그앤드롭 이동만 계속 범위 밖.) 2026-10-10: 에디터 최종 형태는 3패널 IDE로 결정, 단계 배분은 미정 |
 | 실시간 색상 그라데이션 비용 게이지 / 관계 지역성 가중치 | 단순 추정치(EDIT-05)로 충분, 튜닝은 사용 데이터 확보 후 |
 | PortOne 등 PG 추상화 레이어 | Toss Payments 직접 연동으로 확정 (founder decision, 2026-08-25) |
 
@@ -198,33 +216,33 @@ Explicitly excluded. Documented to prevent scope creep.
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
-| KB-01 | Phase 2 | Complete |
-| KB-02 | Phase 2 | Complete |
+| KB-01 | Phase 2 | Complete (Phase 2 재개 보완 02-07~13: 일회용 DB·브라우저 UAT 통과 2026-10-19) |
+| KB-02 | Phase 2 | Complete (Phase 2 재개 보완 02-07~13: 일회용 DB·브라우저 UAT 통과 2026-10-19) |
 | KB-03 | Phase 04.1 | Complete |
 | KB-04 | Phase 04.1 | Complete |
 | KB-05 | Phase 04.1 | Complete |
 | EDIT-01 | Phase 4 | Complete |
 | EDIT-02 | Phase 4 | Complete |
-| EDIT-03 | Phase 4 | Complete |
+| EDIT-03 | Phase 4 | Code complete (04-12 실제 키·브라우저 pending; 자유형 지시 입력·서버 전달 구현 04-09·04-10) |
 | EDIT-04 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
 | EDIT-05 | Phase 4 | Complete (live GEMINI_API_KEY UAT pending) |
 | CONT-01 | Phase 2 | Complete |
 | CONT-02 | Phase 2 | Complete |
 | CONT-03 | Phase 2 | Complete |
-| READ-01 | Phase 3 | Complete |
-| READ-02 | Phase 3 | Complete |
-| READ-03 | Phase 3 | Complete |
-| READ-04 | Phase 3 | Complete |
+| READ-01 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
+| READ-02 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
+| READ-03 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
+| READ-04 | Phase 3 | Code complete (0024·0025 미적용; 03-19 실DB·브라우저 pending) |
 | READ-05 | Phase 3 | Complete |
 | READ-07 | Phase 3 | Complete |
 | READ-08 | Phase 3 | Complete |
 | READ-09 | Phase 3 | Complete |
-| PAY-01 | Phase 5 | Mapped |
-| PAY-02 | Phase 6 | Complete (DB tests passed 2026-10-01; browser E2E pending) |
-| PAY-03 | Phase 5 | Mapped |
-| ADMIN-01 | Phase 7 | Complete |
-| ADMIN-02 | Phase 7 | Complete |
-| ADMIN-03 | Phase 7 | Complete |
+| PAY-01 | Phase 5 | Code complete (05-07 Toss 샌드박스·실DB pending; 충전은 웹훅 전용) |
+| PAY-02 | Phase 6 | Reopened (청사진 갭: 대여·정주행·소장함 없음; 이전: Complete (DB tests passed 2026-10-01; browser E2E pending)) |
+| PAY-03 | Phase 5 | Code complete (05-07 Toss 샌드박스·실DB pending) |
+| ADMIN-01 | Phase 7 | Code complete (07-15 실DB·브라우저 pending) |
+| ADMIN-02 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
+| ADMIN-03 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
 | ADMIN-04 | Phase 7 | Complete |
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
@@ -235,7 +253,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | PROV-02 | Phase 9 | Complete |
 | PROV-03 | Phase 9 | Complete |
 | PROV-04 | Phase 9 | Complete |
-| PROV-05 | Phase 10 | Complete |
+| PROV-05 | Phase 10 | Code complete (10-10 UAT pending; 서비스 키 없는 모델은 비활성 표시) |
 | PROV-06 | Phase 11 | Code complete (browser UAT pending) |
 | PROV-07 | Phase 9 | Complete |
 | BYOK-01 | Phase 10 | Complete |
@@ -248,7 +266,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-08 | Phase 11 | Code complete (browser UAT pending) |
 | BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
-| COST-02 | Phase 11 | Code complete (browser UAT pending) |
+| COST-02 | Phase 11 | Code complete (0030 미적용; 11-12 실DB 회귀 pending) |
 | MCP-01 | Phase 12 | Mapped |
 | MCP-02 | Phase 13 | Mapped |
 | MCP-03 | Phase 13 | Mapped |
@@ -265,12 +283,25 @@ Explicitly excluded. Documented to prevent scope creep.
 | STUDIO-01 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-02 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
 | STUDIO-03 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
-| STUDIO-04 | Phase 16 | Complete (live Jev/browser/mobile verification pending) |
+| STUDIO-04 | Phase 16 | Code complete (16-03 브라우저 UAT pending; 계정·AI 설정 페이지 범위 충돌 미결) |
 | BUGFIX-01 | Phase 17 | Not started |
-| BUGFIX-02 | Phase 17 | Not started |
+| BUGFIX-02 | Phase 17 | Mostly fixed (fixed/15-03·15-04 2026-10-02; 잔여 검증·문서 갱신) |
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
+| WTREE-01 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-02 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-03 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-04 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-05 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-06 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-07 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-08 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-09 | Deferred (READ-06 Lore 위키·스포일러 잠금 phase에서 함께) | Defined |
+| WTREE-10 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-11 | Deferred (스토어 보류 해제 후) | Defined |
+| WTREE-12 | Deferred (스토어 보류 해제 후) | Defined |
+| WTREE-13 | Deferred (스토어 보류 해제 후) | Defined |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -279,12 +310,16 @@ Explicitly excluded. Documented to prevent scope creep.
 **Coverage:**
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
+- 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
+- Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
+*Last updated: 2026-10-12 — 청사진 기준 재판정으로 14개 요구사항을 Reopened 처리(`.planning/gaps/2026-10-12-blueprint-reconcile.md`), 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
+*Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
+*Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
 *Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*
 *Previously updated: 2026-09-22 — BUG-01의 Jev 선계획·템플릿 생성·저장 위치 검증 범위를 AIDOC-01~04로 정의하고 Phase 15에 배정*
 *Previously updated: 2026-09-16 — v1.1 traceability mapped: PROV/BYOK/COST/MCP 27개 전수를 Phase 8~14에 배정 (roadmapper)*

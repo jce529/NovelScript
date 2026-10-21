@@ -12,6 +12,7 @@ import type {
   AdminActionType,
   AdminPage,
   ReportGroupSummary,
+  ReportQueueFilter,
   ReportStatus,
   ReviewRequestStatus,
   ReviewRequestSummary,
@@ -27,6 +28,12 @@ export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
   open: '미처리',
   resolved: '처리 완료',
   dismissed: '기각',
+};
+
+/** Queue filter labels: the three DB statuses plus the read-only "all" view. */
+export const QUEUE_FILTER_LABELS: Record<ReportQueueFilter, string> = {
+  ...REPORT_STATUS_LABELS,
+  all: '전체',
 };
 
 export const REVIEW_STATUS_LABELS: Record<ReviewRequestStatus, string> = {
@@ -56,11 +63,14 @@ export const ACTION_TYPE_LABELS: Record<AdminActionType, string> = {
 export function LocalTime({ value, withZone = false }: { value: string; withZone?: boolean }) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return <span>-</span>;
-  const text = date.toLocaleString('ko-KR', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    ...(withZone ? { timeZoneName: 'short' as const } : {}),
-  });
+  // dateStyle/timeStyle cannot be combined with timeZoneName (RangeError/TypeError), so the
+  // zone variant spells out the same medium date + short time fields explicitly.
+  const text = date.toLocaleString(
+    'ko-KR',
+    withZone
+      ? { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }
+      : { dateStyle: 'medium', timeStyle: 'short' }
+  );
   return (
     <time dateTime={date.toISOString()} title={date.toISOString()} suppressHydrationWarning>
       {text}
@@ -70,6 +80,18 @@ export function LocalTime({ value, withZone = false }: { value: string; withZone
 
 export function ReportStatusBadge({ status }: { status: ReportStatus }) {
   return <Badge variant={status === 'open' ? 'default' : 'secondary'}>{REPORT_STATUS_LABELS[status]}</Badge>;
+}
+
+/** Every status present in a group; mixed groups render one badge per status. */
+export function ReportStatusBadges({ group }: { group: Pick<ReportGroupSummary, 'status' | 'statuses'> }) {
+  const statuses = group.statuses.length > 0 ? group.statuses : [group.status];
+  return (
+    <span className="flex flex-wrap gap-1">
+      {statuses.map((status) => (
+        <ReportStatusBadge key={status} status={status} />
+      ))}
+    </span>
+  );
 }
 
 export function ReviewStatusBadge({ status }: { status: ReviewRequestStatus }) {
@@ -100,8 +122,9 @@ function Cover({ url }: { url: string | null }) {
 
 export function QueueTabs({ state }: { state: AdminQueueState }) {
   const tabs = [
-    { tab: 'reports' as const, label: '신고' },
-    { tab: 'reviews' as const, label: '재검토 요청' },
+    { tab: 'reports' as const, label: '작품·회차 신고' },
+    { tab: 'reviews' as const, label: '작가 재검토' },
+    { tab: 'sanctions' as const, label: '제재 이력' },
   ];
   return (
     <nav aria-label="관리 목록" className="flex gap-1 border-b border-border">
@@ -136,13 +159,13 @@ function StatusSelect({ state }: { state: AdminQueueState }) {
         id="admin-report-status"
         value={state.status}
         onChange={(event) =>
-          router.push(queueHref({ tab: 'reports', status: event.target.value as ReportStatus, page: 1 }))
+          router.push(queueHref({ tab: 'reports', status: event.target.value as ReportQueueFilter, page: 1 }))
         }
         className="h-11 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
       >
-        {(Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]).map((status) => (
+        {(Object.keys(QUEUE_FILTER_LABELS) as ReportQueueFilter[]).map((status) => (
           <option key={status} value={status}>
-            {REPORT_STATUS_LABELS[status]}
+            {QUEUE_FILTER_LABELS[status]}
           </option>
         ))}
       </select>
@@ -190,14 +213,14 @@ export function ReportQueue({ state, page }: { state: AdminQueueState; page: Adm
     <section aria-labelledby="report-queue-heading" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 id="report-queue-heading" className="text-xl font-semibold">
-          {REPORT_STATUS_LABELS[state.status]} 신고
+          {QUEUE_FILTER_LABELS[state.status]} 신고
         </h2>
         <StatusSelect state={state} />
       </div>
 
       {page.items.length === 0 ? (
         <p className="py-8 text-muted-foreground">
-          {state.status === 'open' ? '미처리 신고가 없습니다' : `${REPORT_STATUS_LABELS[state.status]} 신고가 없습니다`}
+          {state.status === 'open' ? '미처리 신고가 없습니다' : `${QUEUE_FILTER_LABELS[state.status]} 신고가 없습니다`}
         </p>
       ) : (
         <>
@@ -226,7 +249,7 @@ export function ReportQueue({ state, page }: { state: AdminQueueState; page: Adm
                   <td className="py-3 pr-4">{group.reportCount}건</td>
                   <td className="py-3 pr-4 text-sm [overflow-wrap:anywhere]">{group.categories.join(', ')}</td>
                   <td className="py-3 pr-4 text-sm"><LocalTime value={group.oldestReportedAt} /></td>
-                  <td className="py-3 pr-4"><ReportStatusBadge status={group.status} /></td>
+                  <td className="py-3 pr-4"><ReportStatusBadges group={group} /></td>
                   <td className="py-3 text-sm">{reporterSummary(group)}</td>
                 </tr>
               ))}
@@ -250,7 +273,7 @@ export function ReportQueue({ state, page }: { state: AdminQueueState; page: Adm
                   <dd><LocalTime value={group.oldestReportedAt} /></dd>
                   <dt className="font-medium text-muted-foreground">상태</dt>
                   <dd className="flex flex-wrap gap-2">
-                    <ReportStatusBadge status={group.status} />
+                    <ReportStatusBadges group={group} />
                     {group.blinded ? <Badge variant="destructive">블라인드됨</Badge> : null}
                   </dd>
                 </dl>

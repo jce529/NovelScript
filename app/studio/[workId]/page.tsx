@@ -17,6 +17,13 @@ export default async function WorkHomePage({ params }: { params: Promise<{ workI
       {reviewState && <ReviewRequestPanel workId={workId} chapterId={null} initialState={reviewState} />}
       <p className="text-muted-foreground">{work?.synopsis || ''}</p>
       <Link href={`/studio/${workId}/chapters`} className="underline w-fit">회차 목록으로 이동</Link>
+      {/* 18-11: world-tree entry links only; settings and the wizard live on /studio/{id}/world. */}
+      {work && (
+        <nav aria-label="세계관" className="flex flex-wrap gap-3">
+          <Link href={`/studio/${workId}/world`} className="underline w-fit">세계관 설정</Link>
+          <Link href={`/studio/${workId}/world#world-branching`} className="underline w-fit">이 세계관에서 가지 치기</Link>
+        </nav>
+      )}
     </div>
   );
 }

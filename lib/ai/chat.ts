@@ -5,7 +5,7 @@ import {
   composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal,
 } from '@/lib/ai/prompt';
 import type { ProviderId, ProviderClient } from '@/lib/ai/providers/types';
-import type { ChatResult } from '@/lib/ai/chat-result';
+import { cappedCompletionFields, type ChatResult } from '@/lib/ai/chat-result';
 import { preflightPaidGeneration, settlePaidGeneration } from '@/lib/ai/paid-generation';
 import { runDocumentPlanningStrategy } from '@/lib/ai/document-plan';
 import type { DecisionClient } from '@/lib/ai/decision/types';
@@ -47,6 +47,11 @@ export interface ChatInput {
   /** Plan 15-04: supplied by chatAction only when planning is active. */
   planning?: { mode: 'active'; decisionClient: DecisionClient };
   route?: GenerationRoute;
+  /** 04-07/11-10: freeform-only custom instruction (validated by the caller, 04-09). Never stored. */
+  customInstruction?: string | null;
+  /** 04-07/11-10: server-only work instruction read by the authenticated Server Action
+   * (getWorkSystemInstruction, 04-09) — not client-trusted input. Ignored for beginner. Never stored. */
+  workSystemInstruction?: string | null;
 }
 
 /**
@@ -69,15 +74,15 @@ export interface ChatInput {
  * A suspension committed after that second check is treated like any write that finished just
  * before the sanction.
  *
- * Phase 8 (COST-01, D-02/D-03): the debit uses reference_type 'ai_generation' and
- * reference_id = input.idempotencyKey, so the ledger unique constraint
- * (wallet_id, reference_type, reference_id) guarantees one debit per writer send. A key already
- * recorded for this wallet returns 'already_processed' before the cap and the provider call.
- * Ledger lookup failures fail closed. A debit error is followed by a scoped ledger re-read:
- * row present → 'already_processed'; absent → settlement failure with no body exposed.
- * Residual risk (accepted): two same-key requests that both pass the precheck before either
- * debits may both call the provider (D-03 only blocks recorded keys); the unique constraint
- * still guarantees a single debit. No process-local lock, no new table.
+ * Phase 8 / 11-09~10 (COST-01/COST-02): idempotency lives in lib/ai/paid-generation.ts. A
+ * service send is complete when ai_usage(owner_id, idempotency_key) has service_settled_at set;
+ * settle_service_ai_generation writes that marker and any positive debit (ledger reference_type
+ * 'ai_generation', reference_id = idempotencyKey) in one transaction. Zero-cost completions write
+ * the usage marker only — no delta-0 ledger row (legacy delta-0 rows still block replay). A key
+ * already completed returns 'already_processed' before the cap and the provider call, including a
+ * re-check under the wallet lease. Lookup failures fail closed. A settlement error is followed by
+ * a marker re-read: present → 'already_processed'; absent → settlement failure, no body exposed.
+ * Resends after a provider error or rejected output are allowed with the same key.
  *
  * D-05..D-08: a structured provider refusal is debited by provider-reported usage with the same
  * key and returned as 'refused' with normalized reason info only (no reply/draft/proposal).
@@ -110,7 +115,10 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
       const strategy = await runDocumentPlanningStrategy({ supabase, providerClient: activeClient, decisionClient: input.planning.decisionClient, ctx: pre.ctx, input, mentionedDocs });
       if (strategy.kind === 'result') return strategy.chatResult;
     }
-    const systemInstruction = composeSystemInstruction({ presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre });
+    const systemInstruction = composeSystemInstruction({
+      presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre,
+      customInstruction: input.customInstruction, workSystemInstruction: input.workSystemInstruction,
+    });
     const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
     const generationModel = 'walletBalance' in pre.ctx ? pre.ctx.model : pre.ctx.route.trusted.selection.model;
     const settled = await settlePaidGeneration(activeClient, pre.ctx, { ...id, workId: input.workId, chapterId: input.chapterId ?? null, ledgerReason: chatLedgerReason(input) },
@@ -124,7 +132,7 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
       reply,
       draft,
       proposal,
-      wasCapped: settled.result.finishReason === 'max_tokens',
+      ...cappedCompletionFields({ maxOutputTokens: pre.ctx.maxOutputTokens, finishReason: settled.result.finishReason, usage: settled.result.usage }),
       ...('remainingBalance' in settled ? { remainingBalance: settled.remainingBalance } : {}),
     };
   } finally {

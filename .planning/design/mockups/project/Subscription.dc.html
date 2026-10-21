@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>구독 플랜 · 결제 내역</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9;color:#18181b}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px}
+.k{font-size:12px;color:#71717a;line-height:1.5}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:13px;color:#52525b;padding:7px 14px;min-height:36px;border-radius:8px;border:1px solid #e4e4e7;background:#fff;white-space:nowrap}
+.chip.on{background:#18181b;color:#fff;border-color:#18181b;font-weight:600}
+.tabs{display:flex;border-bottom:1px solid #e4e4e7}
+.tb{font-size:15px;font-weight:600;color:#71717a;padding:12px 18px;border:0;background:transparent;border-bottom:2px solid transparent;min-height:44px}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.h{margin:0;font-size:17px;font-weight:700}
+.d{margin:0;font-size:13px;color:#52525b;line-height:1.6}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.plan{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.plan.cur{border-color:#4f46e5;box-shadow:0 0 0 1px #4f46e5 inset}
+.pn{font-size:18px;font-weight:700}
+.pp{font-size:26px;font-weight:800}
+.pp small{font-size:13px;font-weight:500;color:#71717a}
+.ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;font-size:13px;color:#3f3f46;line-height:1.5}
+.ul li{display:flex;gap:8px}
+.ul li:before{content:"";width:6px;height:6px;border-radius:999px;background:#4f46e5;margin-top:7px;flex-shrink:0}
+.ul li.no{color:#a1a1aa}
+.ul li.no:before{background:#d4d4d8}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.badge.g{background:#dcfce7;color:#166534}
+.badge.r{background:#fee2e2;color:#b91c1c}
+.badge.y{background:#fef3c7;color:#854d0e}
+.badge.z{background:#f4f4f5;color:#52525b}
+.btn{height:44px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:14px;font-weight:700;padding:0 16px}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.btn.dg{color:#b91c1c;border-color:#fecaca}
+.btn[disabled]{opacity:.45;cursor:default}
+.stat{background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.warn{background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.55}
+.err{background:#fee2e2;color:#991b1b;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.55}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:12px;color:#71717a;font-weight:600;padding:8px 10px;border-bottom:1px solid #e4e4e7;white-space:nowrap}
+.tbl td{padding:12px 10px;border-bottom:1px solid #f1f1f3;vertical-align:middle}
+.tbl td.n{text-align:right;font-weight:700;white-space:nowrap}
+.scroll{overflow-x:auto}
+.lnk{border:0;background:transparent;color:#3730a3;font-size:13px;font-weight:600;padding:8px 4px;min-height:36px;text-decoration:underline}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45)}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:#fff;border-radius:18px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.pm{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 14px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;font-size:14px;font-weight:600;color:#27272a;text-align:left}
+.pm.on{border-color:#4f46e5;background:#eef2ff;box-shadow:0 0 0 1px #4f46e5 inset}
+.sum{background:#f4f4f5;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3f3f46}
+.sum div{display:flex;justify-content:space-between;gap:12px}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:1px solid #d4d4d8;border-radius:10px;padding:10px;font-family:inherit;font-size:13px;resize:vertical}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:40px;max-width:360px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1100px">
+  <header class="hd">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span style="flex-grow:1"></span>
+    <div class="tok"><span>1,500 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <main class="wrap">
+    <div class="chips">
+      <span class="k">목업 보기 전환 (실제 화면에는 없는 컨트롤)</span>
+      <sc-for list="{{states}}" as="s"><button class="{{s.cls}}" type="button" onClick="{{s.pick}}">{{s.label}}</button></sc-for>
+    </div>
+    <p class="k" style="margin:0">프로필 메뉴의 `결제 내역`과 지갑 화면의 `구독 관리`가 이 화면을 연다. 가격·지급 토큰·환불 기간은 모두 임시 예시 값이고 샘플 데이터다. 결제 승인은 Toss 연동 전이라 화면만 있다.</p>
+
+    <h1 style="margin:0;font-size:22px;font-weight:700">구독 · 결제 내역</h1>
+    <div class="tabs"><sc-for list="{{tabs}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+
+    <sc-if value="{{isPlan}}" hint-placeholder-val="{{true}}">
+      <section class="stat">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;gap:8px;align-items:center"><b style="font-size:16px">{{curName}}</b><span class="{{curBadgeCls}}">{{curBadge}}</span></div>
+          <span class="d">{{curDesc}}</span>
+        </div>
+        <sc-if value="{{canCancel}}" hint-placeholder-val="{{false}}"><button class="btn dg" type="button" onClick="{{askCancel}}">구독 해지</button></sc-if>
+        <sc-if value="{{canResume}}" hint-placeholder-val="{{false}}"><button class="btn p" type="button" onClick="{{resume}}">해지 취소</button></sc-if>
+        <sc-if value="{{canRetry}}" hint-placeholder-val="{{false}}"><button class="btn p" type="button" onClick="{{retryPay}}">결제 수단 변경 · 다시 결제</button></sc-if>
+      </section>
+      <sc-if value="{{failed}}" hint-placeholder-val="{{false}}"><div class="err">결제에 실패했어요. 3일 안에 결제되지 않으면 구독이 자동으로 종료되고, 이미 받은 토큰은 그대로 유지돼요.</div></sc-if>
+
+      <div class="plans">
+        <sc-for list="{{plans}}" as="p">
+          <section class="{{p.cls}}">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="pn">{{p.name}}</span><sc-if value="{{p.isCur}}" hint-placeholder-val="{{false}}"><span class="badge">이용 중</span></sc-if></div>
+            <div class="pp">{{p.price}}<small> {{p.per}}</small></div>
+            <span class="d">{{p.sub}}</span>
+            <ul class="ul"><sc-for list="{{p.perks}}" as="f"><li class="{{f.cls}}">{{f.text}}</li></sc-for></ul>
+            <span style="flex-grow:1"></span>
+            <button class="{{p.btnCls}}" type="button" disabled="{{p.dis}}" onClick="{{p.pick}}">{{p.btn}}</button>
+          </section>
+        </sc-for>
+      </div>
+      <p class="k" style="margin:0">구독료도 토큰 충전과 같은 현금→토큰 결제라서 환전 수수료 정책이 동일하게 적용돼요. 구독 중에도 헤더의 `+`로 토큰을 따로 충전할 수 있어요. 프리미엄 모델·설정집 이미지 열람 혜택의 범위는 정해지면 값만 바꿔요.</p>
+    </sc-if>
+
+    <sc-if value="{{isPay}}" hint-placeholder-val="{{false}}">
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <h2 class="h">결제 내역</h2>
+          <div class="chips"><sc-for list="{{filters}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead><tr><th>일시</th><th>내역</th><th>결제 수단</th><th style="text-align:right">금액</th><th>상태</th><th></th></tr></thead>
+            <tbody>
+              <sc-for list="{{rows}}" as="r">
+                <tr><td>{{r.at}}</td><td><b>{{r.what}}</b><div class="k">{{r.sub}}</div></td><td>{{r.how}}</td><td class="n">{{r.amt}}</td><td><span class="{{r.stCls}}">{{r.st}}</span></td>
+                  <td style="white-space:nowrap"><button class="lnk" type="button" onClick="{{r.receipt}}">영수증</button><sc-if value="{{r.canRefund}}" hint-placeholder-val="{{false}}"><button class="lnk" type="button" onClick="{{r.refund}}">환불 요청</button></sc-if></td></tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <sc-if value="{{noRows}}" hint-placeholder-val="{{false}}"><p class="d" style="text-align:center;padding:24px 0">이 조건의 결제 내역이 없어요. 필터를 바꾸거나 토큰을 충전해 보세요.</p></sc-if>
+        <p class="k" style="margin:0">작가 크레딧·AI 소모 같은 토큰 증감은 `경제 관리`(작가) 화면에서 보고, 이곳은 현금 결제만 모아요. 오래된 내역은 CSV로 내려받을 수 있어요(후속).</p>
+      </section>
+      <section class="card">
+        <h2 class="h">환불 기준 (임시)</h2>
+        <ul class="ul"><li>토큰 충전: 결제 후 7일 안에, 충전한 토큰을 하나도 쓰지 않았을 때 전액 환불해요.</li><li>이미 쓴 토큰이 있으면 환불할 수 없어요. 일부만 쓴 경우는 고객 문의로 받아요.</li><li>구독료: 해지는 언제든 가능하고 이미 낸 달은 말일까지 이용해요. 해당 달에 받은 토큰을 쓰지 않았다면 7일 안에 환불 요청할 수 있어요.</li><li>환불은 처음 결제한 수단으로 3~5영업일 안에 돌아가요.</li></ul>
+      </section>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{dlgSub}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeDlg}}"></div>
+    <div class="dlg" role="dialog" aria-label="구독 시작">
+      <b style="font-size:18px">{{dlgPlan}} 구독 시작</b>
+      <div class="sum"><div><span>월 구독료</span><b>{{dlgPrice}}</b></div><div><span>매월 지급 토큰</span><b>{{dlgTok}}</b></div><div><span>다음 결제일</span><b>2026.11.12</b></div></div>
+      <span class="k" style="margin-top:2px">결제 수단 (임시)</span>
+      <sc-for list="{{pms}}" as="m"><button class="{{m.cls}}" type="button" onClick="{{m.pick}}">{{m.label}}</button></sc-for>
+      <div class="warn">매월 같은 날 자동으로 결제돼요. 해지는 언제든 가능하고, 이미 낸 달은 말일까지 이용할 수 있어요.</div>
+      <button class="btn p" type="button" style="height:48px" onClick="{{confirmSub}}">{{dlgPrice}} 결제하고 구독</button>
+      <button class="btn" type="button" onClick="{{closeDlg}}">취소</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{dlgCancel}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeDlg}}"></div>
+    <div class="dlg" role="dialog" aria-label="구독 해지">
+      <b style="font-size:18px">구독을 해지할까요?</b>
+      <p class="d" style="margin:0">해지해도 이번 결제 기간이 끝나는 2026.11.12까지는 모든 혜택을 그대로 쓸 수 있어요. 다음 달부터 결제되지 않아요. 이미 받은 토큰은 사라지지 않아요.</p>
+      <button class="btn dg" type="button" style="height:48px" onClick="{{confirmCancel}}">구독 해지</button>
+      <button class="btn" type="button" onClick="{{closeDlg}}">계속 이용</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{dlgReceipt}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeDlg}}"></div>
+    <div class="dlg" role="dialog" aria-label="영수증">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">영수증</b><span class="{{rc.stCls}}">{{rc.st}}</span></div>
+      <div class="sum">
+        <div><span>주문 번호</span><b>{{rc.no}}</b></div><div><span>결제 일시</span><b>{{rc.at}}</b></div><div><span>내역</span><b>{{rc.what}}</b></div><div><span>지급 토큰</span><b>{{rc.tok}}</b></div><div><span>결제 수단</span><b>{{rc.how}}</b></div><div><span>결제 금액</span><b>{{rc.amt}}</b></div>
+      </div>
+      <button class="btn" type="button" onClick="{{saveReceipt}}">PDF로 저장</button>
+      <button class="btn" type="button" onClick="{{closeDlg}}">닫기</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{dlgRefund}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" onClick="{{closeDlg}}"></div>
+    <div class="dlg" role="dialog" aria-label="환불 요청">
+      <b style="font-size:18px">환불 요청</b>
+      <div class="sum"><div><span>대상</span><b>{{rf.what}}</b></div><div><span>환불 금액</span><b>{{rf.amt}}</b></div><div><span>회수 토큰</span><b>{{rf.tok}}</b></div></div>
+      <label class="k" for="why">환불 사유 (선택)</label>
+      <textarea id="why" class="ta" placeholder="예: 잘못 결제했어요"></textarea>
+      <div class="warn">환불을 접수하면 지급된 토큰이 바로 회수돼요. 처음 결제한 수단으로 3~5영업일 안에 돌아가요.</div>
+      <button class="btn dg" type="button" style="height:48px" onClick="{{confirmRefund}}">환불 요청</button>
+      <button class="btn" type="button" onClick="{{closeDlg}}">취소</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
+    const tab = st.tab || 'plan';
+    const sub = st.sub || 'none';
+    const dlg = st.dlg || null;
+    const filter = st.filter || 'all';
+    const refunded = st.refunded || {};
+    const pm = st.pm || 0;
+
+    const P = {
+      pro: { name: 'NovelScript Pro', price: '9,900원', tok: '1,000 토큰' },
+      byok: { name: 'BYOK 플랜', price: '4,900원', tok: '300 토큰' }
+    };
+    const states = [['none', '구독 전'], ['pro', 'Pro 구독 중'], ['byok', 'BYOK 구독 중'], ['cancel', '해지 예약'], ['fail', '결제 실패']].map((s) => ({ label: s[1], cls: sub === s[0] ? 'chip on' : 'chip', pick: () => this.setState({ sub: s[0], dlg: null }) }));
+    const tabs = [['plan', '구독 플랜'], ['pay', '결제 내역']].map((t) => ({ label: t[1], cls: tab === t[0] ? 'tb on' : 'tb', pick: () => this.setState({ tab: t[0] }) }));
+
+    const base = sub === 'byok' ? 'byok' : (sub === 'none' ? null : 'pro');
+    const cur = {
+      none: ['구독 중이 아니에요', 'badge z', '미구독', '토큰은 필요할 때 헤더의 +로 충전해서 써요. 구독하면 매달 토큰을 먼저 받아요.'],
+      pro: ['NovelScript Pro', 'badge g', '이용 중', '매월 12일 9,900원 결제 · 다음 결제일 2026.11.12 · 이번 달 지급 토큰 1,000개'],
+      byok: ['BYOK 플랜', 'badge g', '이용 중', '매월 12일 4,900원 결제 · 다음 결제일 2026.11.12 · 이번 달 지급 토큰 300개'],
+      cancel: ['NovelScript Pro', 'badge y', '해지 예약', '2026.11.12까지 이용할 수 있고 이후에는 결제되지 않아요.'],
+      fail: ['NovelScript Pro', 'badge r', '결제 실패', '10월 12일 구독료가 결제되지 않았어요.']
+    }[sub];
+
+    const openSub = (k) => () => this.setState({ dlg: { t: 'sub', plan: k } });
+    const planDefs = [
+      { key: 'free', name: '무료', price: '0원', per: '', sub: '구독 없이 쓰는 기본 이용', perks: [['토큰은 필요할 때 충전', 0], ['기본 AI 모델', 0], ['설정집 이미지 팝업 열람은 회차 진도까지', 0], ['프리미엄 모델 호출', 1], ['매월 기본 지급 토큰', 1]] },
+      { key: 'pro', name: P.pro.name, price: P.pro.price, per: '/월', sub: '독자와 작가 모두를 위한 구독', perks: [['매월 1,000 토큰 기본 지급', 0], ['프리미엄 AI 모델 호출 권한', 0], ['뷰어 설정집 이미지 팝업 무제한', 0], ['충전보다 토큰당 가격이 낮아요(임시)', 0]] },
+      { key: 'byok', name: P.byok.name, price: P.byok.price, per: '/월', sub: '내 API 키를 쓰는 작가용', perks: [['매월 300 토큰 기본 지급', 0], ['플랫폼 편집 기능 이용', 0], ['내 키 모델 호출은 지갑 토큰 차감 없음', 0], ['서비스 프리미엄 모델 호출', 1]] }
+    ];
+    const plans = planDefs.map((p) => {
+      const isCur = (p.key === 'free' && sub === 'none') || (p.key === base && sub !== 'none');
+      let btn = '이 플랜으로 구독', dis = false, bc = 'btn p', pick = openSub(p.key);
+      if (p.key === 'free') { btn = isCur ? '현재 이용 중' : '구독 해지로 전환'; dis = isCur || sub === 'cancel'; bc = 'btn'; pick = () => this.setState({ dlg: { t: 'cancel' } }); if (!isCur && sub === 'cancel') btn = '해지 예약됨'; }
+      else if (isCur) { btn = '이용 중'; dis = true; bc = 'btn'; pick = () => {}; }
+      else if (sub === 'cancel' || sub === 'fail') { btn = '변경은 위 버튼으로'; dis = true; bc = 'btn'; pick = () => {}; }
+      else if (sub !== 'none') { btn = p.key + '로 변경'; btn = (p.key === 'pro' ? 'Pro로 변경' : 'BYOK 플랜으로 변경'); }
+      return { name: p.name, price: p.price, per: p.per, sub: p.sub, cls: isCur ? 'plan cur' : 'plan', isCur: isCur, btn: btn, dis: dis, btnCls: bc, pick: pick, perks: p.perks.map((f) => ({ text: f[0], cls: f[1] ? 'no' : '' })) };
+    });
+
+    const pay = [
+      { id: 'a', at: '2026.10.12 09:14', what: 'NovelScript Pro 구독', sub: '10월 구독료 · +1,000토큰', how: '카드 ····4821', amt: '9,900원', st: '완료', tok: '1,000토큰', no: 'NS-20261012-0041', ok: false, kind: 'sub' },
+      { id: 'b', at: '2026.10.09 22:40', what: '토큰 충전', sub: '550토큰 묶음 · 미사용', how: '카카오페이', amt: '5,000원', st: '완료', tok: '550토큰', no: 'NS-20261009-0178', ok: true, kind: 'charge' },
+      { id: 'c', at: '2026.10.03 18:02', what: '토큰 충전', sub: '100토큰 묶음 · 일부 사용', how: '카드 ····4821', amt: '1,000원', st: '완료', tok: '100토큰', no: 'NS-20261003-0502', ok: false, kind: 'charge' },
+      { id: 'd', at: '2026.09.27 11:30', what: '토큰 충전', sub: '550토큰 묶음', how: '토스페이', amt: '5,000원', st: '환불 완료', tok: '550토큰', no: 'NS-20260927-0093', ok: false, kind: 'charge', refunded: true },
+      { id: 'e', at: '2026.09.20 08:01', what: '토큰 충전', sub: '100토큰 묶음', how: '카드 ····4821', amt: '1,000원', st: '실패', tok: '0토큰', no: 'NS-20260920-0007', ok: false, kind: 'charge', failed: true },
+      { id: 'f', at: '2026.09.12 09:14', what: 'NovelScript Pro 구독', sub: '9월 구독료 · +1,000토큰', how: '카드 ····4821', amt: '9,900원', st: '완료', tok: '1,000토큰', no: 'NS-20260912-0033', ok: false, kind: 'sub' }
+    ].map((p) => { if (refunded[p.id]) { p.st = '환불 접수'; p.ok = false; } return p; });
+    const stCls = (s) => ({ '완료': 'badge g', '환불 완료': 'badge z', '환불 접수': 'badge y', '실패': 'badge r' }[s]);
+    const fs = [['all', '전체'], ['charge', '토큰 충전'], ['sub', '구독'], ['refund', '환불']].map((f) => ({ label: f[1], cls: filter === f[0] ? 'chip on' : 'chip', pick: () => this.setState({ filter: f[0] }) }));
+    const shown = pay.filter((p) => filter === 'all' || (filter === 'refund' ? (p.st === '환불 완료' || p.st === '환불 접수') : p.kind === filter));
+    const rows = shown.map((p) => ({ at: p.at, what: p.what, sub: p.sub, how: p.how, amt: p.amt, st: p.st, stCls: stCls(p.st), canRefund: p.ok,
+      receipt: () => this.setState({ dlg: { t: 'receipt', id: p.id } }), refund: () => this.setState({ dlg: { t: 'refund', id: p.id } }) }));
+    const byId = (id) => pay.find((p) => p.id === id) || pay[0];
+    const rcp = dlg && dlg.t === 'receipt' ? byId(dlg.id) : pay[0];
+    const rfp = dlg && dlg.t === 'refund' ? byId(dlg.id) : pay[1];
+    const dp = dlg && dlg.t === 'sub' ? P[dlg.plan] : P.pro;
+    const pms = ['카드 ····4821', '카카오페이', '토스페이'].map((m, i) => ({ label: m, cls: pm === i ? 'pm on' : 'pm', pick: () => this.setState({ pm: i }) }));
+
+    return {
+      accent: this.props.accent ?? '#4f46e5',
+      states: states, tabs: tabs, isPlan: tab === 'plan', isPay: tab === 'pay',
+      curName: cur[0], curBadgeCls: cur[1], curBadge: cur[2], curDesc: cur[3],
+      canCancel: sub === 'pro' || sub === 'byok', canResume: sub === 'cancel', canRetry: sub === 'fail', failed: sub === 'fail',
+      askCancel: () => this.setState({ dlg: { t: 'cancel' } }),
+      resume: () => { this.setState({ sub: 'pro' }); say('해지를 취소했어요. 구독이 계속돼요.'); },
+      retryPay: () => this.setState({ dlg: { t: 'sub', plan: 'pro' } }),
+      plans: plans, filters: fs, rows: rows, noRows: rows.length === 0,
+      dlgSub: !!(dlg && dlg.t === 'sub'), dlgCancel: !!(dlg && dlg.t === 'cancel'), dlgReceipt: !!(dlg && dlg.t === 'receipt'), dlgRefund: !!(dlg && dlg.t === 'refund'),
+      dlgPlan: dp.name, dlgPrice: dp.price, dlgTok: dp.tok, pms: pms,
+      closeDlg: () => this.setState({ dlg: null }),
+      confirmSub: () => { const k = dlg.plan; this.setState({ sub: k, dlg: null }); say(P[k].name + ' 구독을 시작했어요. ' + P[k].tok + '이 지급됐어요.'); },
+      confirmCancel: () => { this.setState({ sub: 'cancel', dlg: null }); say('구독을 해지했어요. 2026.11.12까지 이용할 수 있어요.'); },
+      rc: { st: rcp.st, stCls: stCls(rcp.st), no: rcp.no, at: rcp.at, what: rcp.what + ' · ' + rcp.sub.split(' · ')[0], tok: rcp.tok, how: rcp.how, amt: rcp.amt },
+      saveReceipt: () => { this.setState({ dlg: null }); say('영수증을 PDF로 저장했어요.'); },
+      rf: { what: rfp.what + ' · ' + rfp.sub.split(' · ')[0], amt: rfp.amt, tok: rfp.tok },
+      confirmRefund: () => { const n = Object.assign({}, refunded); n[dlg.id] = true; this.setState({ refunded: n, dlg: null }); say('환불을 접수했어요. 3~5영업일 안에 돌아가요.'); },
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

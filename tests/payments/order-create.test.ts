@@ -40,8 +40,27 @@ describe('top-up order creation (Supabase integration)', () => {
     expect(data?.return_path).toBe('/');
   });
 
+  it('orders a unique event bundle added only in the DB, then deletes the order before the bundle', async () => {
+    const tierId = `evt_${crypto.randomUUID().slice(0, 8)}`;
+    const { error: tierError } = await adminClient().from('payment_topup_tiers')
+      .insert({ id: tierId, tokens: 1_234, price_krw: 9_876, sort_order: 999, label: '테스트 이벤트' });
+    expect(tierError).toBeNull();
+    let eventOrderId: string | undefined;
+    try {
+      const created = await createTopupOrderAction(tierId, '/');
+      eventOrderId = created.orderId;
+      expect(created).toMatchObject({ amountKrw: 9_876, orderName: '1,234 토큰 충전' });
+      const { data } = await adminClient().from('payment_orders').select('tier_id,amount_krw,token_amount').eq('order_id', created.orderId).single();
+      expect(data).toMatchObject({ tier_id: tierId, amount_krw: 9_876, token_amount: 1_234 });
+    } finally {
+      if (eventOrderId) await adminClient().from('payment_orders').delete().eq('order_id', eventOrderId);
+      await adminClient().from('payment_topup_tiers').delete().eq('id', tierId);
+    }
+  });
+
   it('rejects invalid tier ids and unauthenticated users', async () => {
     await expect(createTopupOrderAction('invalid' as never, '/')).rejects.toThrow();
+    await expect(createTopupOrderAction('bad id!', '/')).rejects.toThrow();
     sessionState.userId = null;
     await expect(createTopupOrderAction('t100', '/')).rejects.toThrow();
   });

@@ -1,13 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { EyeOff, Lock } from 'lucide-react';
 import { REVIEW_BADGE, tocRowBadge } from '@/lib/moderation/user-actions';
 import type { PublicChapterListItem } from '@/lib/chapters/actions';
 
 export function TocSheet({
-  open, onOpenChange, workId, toc, currentChapterId,
+  open, onOpenChange, workId, toc, currentChapterId, onNavigate,
 }: {
+  /** Called before a TOC link navigates so the viewer can flush pending progress. */
+  onNavigate?: () => void;
   open: boolean;
   onOpenChange: (next: boolean) => void;
   workId: string;
@@ -23,13 +26,15 @@ export function TocSheet({
             const isCurrent = chapter.id === currentChapterId;
             return (
               <li key={chapter.id}>
-                <a
+                <Link
                   href={`/works/${workId}/chapters/${chapter.id}`}
+                  scroll={false}
+                  onClick={() => onNavigate?.()}
                   className={`flex h-11 items-center gap-2 border-l-2 px-3 text-sm ${isCurrent ? 'border-primary font-semibold' : 'border-transparent font-normal text-foreground'}`}
                 >
                   <span>{chapter.orderIndex + 1}화 {chapter.title}</span>
                   <TocBadge chapter={chapter} />
-                </a>
+                </Link>
               </li>
             );
           })}

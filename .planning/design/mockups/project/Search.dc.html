@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>검색 결과</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.hd{background:#fff}
+.hdi{max-width:1152px;margin:0 auto;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ib{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{border-top:1px solid #f1f1f3}
+.pti,.sti{max-width:1152px;margin:0 auto;padding:0 8px;box-sizing:border-box;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 16px;background:transparent;border-top:0;border-left:0;border-right:0;font-family:inherit;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{background:#fafafb;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7}
+.s1{font-size:14px;color:#52525b;padding:0 12px;min-height:44px;background:transparent;border:0;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.s1.on{color:#3730a3;font-weight:700}
+.wrap{max-width:1152px;margin:0 auto;padding:28px 16px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:0.08em;color:#71717a;text-transform:uppercase}
+.h2{margin:0;font-size:22px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:13px;color:#52525b;line-height:1.5}
+.gc{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#52525b;padding:7px 14px;border-radius:8px;white-space:nowrap;flex-shrink:0;background:#fff;border:1px solid #e4e4e7}
+.gc.on{background:#18181b;color:#fff;font-weight:600;border-color:#18181b}
+.tag{font-size:13px;color:#27272a;padding:7px 14px;border:1px solid #d4d4d8;border-radius:8px;white-space:nowrap;background:#fff}
+.sel{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#27272a;padding:8px 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;white-space:nowrap}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cv{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden}
+.num{position:absolute;left:0;top:0;min-width:28px;height:28px;background:rgba(0,0,0,0.6);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 8px;box-sizing:border-box}
+.trust{position:absolute;right:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#18181b;color:#fff}
+.t{font-size:14px;font-weight:600;color:#18181b;line-height:1.35}
+.au{font-size:12px;color:#71717a}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.btn{font-size:13px;font-weight:600;padding:9px 18px;border-radius:8px;border:1px solid #d4d4d8;background:#fff;color:#27272a}
+.st2{position:absolute;left:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:#27272a}
+.pr{font-size:12px;font-weight:700;color:#3730a3}
+.sb{flex:1;max-width:560px;height:44px;border-radius:999px;border:1px solid #d4d4d8;background:#fff;padding:0 18px;box-sizing:border-box;font-size:15px;font-family:inherit}
+.rowc{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:12px;display:flex;gap:14px;align-items:center}
+.rc{width:60px;aspect-ratio:3/4;border-radius:8px;flex-shrink:0}
+.mini{display:flex;flex-direction:column;gap:6px;align-items:center;width:84px;font-size:12px;color:#27272a;text-align:center}
+.mav{width:56px;height:56px;border-radius:999px}
+.hl{background:#fef08a;border-radius:3px;padding:0 1px}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1300px">
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="Home.dc.html">NovelScript</a>
+      <input class="sb" type="search" aria-label="검색어" value="{{q}}" onChange="{{onQ}}" placeholder="작품, 태그, 작가 검색">
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500 토큰</span><a class="plus" href="TokenCharge.dc.html" style="background:{{accent}}" aria-label="토큰 충전">+</a></div>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt" style="background:#fff"><div class="pti"><a class="p1" href="Series.dc.html">무료연재</a><a class="p1" href="Series.dc.html">유료연재</a><a class="p1" href="Ranking.dc.html">랭킹</a><a class="p1" href="Library.dc.html">내서재</a></div></nav>
+  </header>
+
+  <main class="wrap">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="au">목업 보기 전환 (실제 화면에는 없는 컨트롤)</span><sc-for list="{{views}}" as="v"><button class="{{v.cls}}" type="button" onClick="{{v.pick}}">{{v.label}}</button></sc-for></div>
+    <sc-if value="{{panel}}" hint-placeholder-val="{{false}}">
+      <section style="background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">최근 검색어</b><button class="gc" type="button" onClick="{{clearRecent}}" style="border:0;background:transparent">전체 삭제</button></div>
+          <sc-if value="{{hasRecent}}" hint-placeholder-val="{{true}}"><div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{recents}}" as="r"><span style="display:inline-flex;align-items:center;border:1px solid #d4d4d8;border-radius:999px;background:#fff"><button type="button" onClick="{{r.pick}}" style="border:0;background:transparent;min-height:44px;padding:0 6px 0 14px;font-size:13px;font-family:inherit;cursor:pointer">{{r.word}}</button><button type="button" aria-label="{{r.word}} 삭제" onClick="{{r.del}}" style="border:0;background:transparent;width:44px;min-height:44px;font-size:16px;color:#71717a;cursor:pointer">×</button></span></sc-for></div></sc-if>
+          <sc-if value="{{noRecent}}" hint-placeholder-val="{{false}}"><span class="sub">최근 검색어가 없어요.</span></sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <b style="font-size:14px">추천 검색어</b>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{suggests}}" as="g"><button class="gc" type="button" onClick="{{g.pick}}">{{g.rank}} {{g.word}} <small style="font-size:11px;color:#71717a">{{g.tag}}</small></button></sc-for></div>
+          <span class="au">앞의 세 개는 운영에서 고른 키워드, 뒤의 둘은 이번 주 많이 검색된 키워드예요. 비율은 운영에서 바꿀 수 있고 여기서는 3:2 예시예요. 입력 중 자동완성은 제공하지 않아요.</span>
+        </div>
+      </section>
+    </sc-if>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <h1 class="h2">“{{q}}” 검색 결과</h1>
+      <p class="sub">{{count}}</p>
+    </div>
+    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none"><sc-for list="{{tabs}}" as="t"><button class="{{t.cls}}" type="button" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+
+    <sc-if value="{{results}}" hint-placeholder-val="{{true}}"><div style="display:flex;flex-direction:column;gap:16px"><sc-if value="{{showWorks}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-if value="{{tabAll}}" hint-placeholder-val="{{true}}"><span style="font-size:14px;font-weight:700">작품</span></sc-if>
+        <sc-for list="{{works}}" as="w">
+          <a class="rowc" href="WorkDesktop.dc.html">
+            <div class="rc" style="background:{{w.bg}}"></div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><span class="t">{{w.title}}</span><span class="au">{{w.author}} · {{w.genre}} · {{w.ep}}화 · {{w.state}}</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{w.tags}}" as="g"><span class="badge">#{{g}}</span></sc-for></div></div>
+            <span class="badge">연독률 {{w.read}}%</span>
+          </a>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showTags}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-if value="{{tabAll}}" hint-placeholder-val="{{true}}"><span style="font-size:14px;font-weight:700">태그</span></sc-if>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{tags}}" as="g"><a class="tag" href="Ranking.dc.html">#{{g.name}} <span class="au">{{g.n}}편</span></a></sc-for></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showAuthors}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-if value="{{tabAll}}" hint-placeholder-val="{{true}}"><span style="font-size:14px;font-weight:700">작가</span></sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{authors}}" as="a"><a class="rowc" href="AuthorPage.dc.html"><div class="mav" style="background:{{a.bg}}"></div><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="t">{{a.name}}</span><span class="au">작품 {{a.n}}편 · 대표작 {{a.top}}</span></div><span class="au">작가 페이지 ›</span></a></sc-for></div>
+      </div>
+    </sc-if>
+
+    </div></sc-if>
+    <sc-if value="{{noRes}}" hint-placeholder-val="{{false}}">
+      <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:36px 16px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center">
+        <b style="font-size:16px">“{{q}}” 검색 결과가 없어요</b><span class="sub">철자를 확인하거나 다른 검색어로 찾아 보세요. 대신 이런 작품은 어때요?</span>
+        <a class="btn" href="Ranking.dc.html" style="margin-top:6px">랭킹 보러 가기</a>
+      </div>
+    </sc-if>
+    <p class="sub">검색어가 비어 있으면 최근 검색어와 인기 태그를 보여주고, 결과가 없으면 16번 보드의 빈 상태를 써요. 작품 결과는 작품 상세로, 작가 결과는 작가 페이지로 이동해요.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const q = st.q === undefined ? '달빛' : st.q;
+    const tab = st.tab || 'all';
+    const rec = st.rec || ['달빛', '북쪽 별', '무협 완결'];
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const hit = q.trim() === '달빛';
+    const workSrc = hit ? [
+      { title: '달빛 서고', author: '작가 A', genre: '판타지', ep: 12, state: '연재중', read: 92, tags: ['서고', '마법', '성장'], h: 262 },
+      { title: '달빛 아래 우체국', author: '작가 P', genre: '로맨스', ep: 30, state: '완결', read: 77, tags: ['우편', '힐링'], h: 20 }
+    ] : [];
+    const tagSrc = hit ? [{ name: '달빛', n: 14 }, { name: '달빛마법', n: 3 }] : [];
+    const authorSrc = hit ? [{ name: '달빛작가', n: 2, h: 40, top: '달빛 서고' }, { name: '달빛이든방', n: 1, h: 200, top: '달빛 아래 우체국' }, { name: '한달빛', n: 4, h: 330, top: '소금 길의 약속' }] : [];
+    const counts = { works: workSrc.length, tags: tagSrc.length, authors: authorSrc.length };
+    const total = counts.works + counts.tags + counts.authors;
+    const defs = [['all', '전체 ' + total], ['works', '작품 ' + counts.works], ['tags', '태그 ' + counts.tags], ['authors', '작가 ' + counts.authors]];
+    return {
+      accent: this.props.accent ?? '#4f46e5', q: q, onQ: (e) => this.setState({ q: e.target.value }),
+      tabs: defs.map((d) => ({ label: d[1], cls: tab === d[0] ? 'gc on' : 'gc', pick: () => this.setState({ tab: d[0] }) })),
+      tabAll: tab === 'all',
+      count: total === 0 ? '일치하는 결과가 없어요.' : '작품 ' + counts.works + '개 · 태그 ' + counts.tags + '개 · 작가 ' + counts.authors + '명',
+      showWorks: total > 0 && (tab === 'all' || tab === 'works') && counts.works > 0,
+      showTags: total > 0 && (tab === 'all' || tab === 'tags') && counts.tags > 0,
+      showAuthors: total > 0 && (tab === 'all' || tab === 'authors') && counts.authors > 0,
+      noRes: total === 0 && st.view !== 'panel',
+      works: workSrc.map((w) => ({ title: w.title, author: w.author, genre: w.genre, ep: w.ep, state: w.state, read: w.read, tags: w.tags, bg: bg(w.h) })),
+      tags: tagSrc, authors: authorSrc.map((a) => ({ name: a.name, n: a.n, top: a.top, bg: bg(a.h) })),
+      views: [['res', '검색 결과'], ['panel', '검색창을 눌렀을 때']].map((v) => ({ label: v[1], cls: (st.view === 'panel') === (v[0] === 'panel') ? 'gc on' : 'gc', pick: () => this.setState({ view: v[0] }) })),
+      panel: st.view === 'panel', results: st.view !== 'panel' && total > 0,
+      recents: rec.map((w, i) => ({ word: w, pick: () => this.setState({ q: w, view: 'res' }), del: () => this.setState({ rec: rec.filter((x, j) => j !== i) }) })), hasRecent: rec.length > 0, noRecent: rec.length === 0, clearRecent: () => this.setState({ rec: [] }),
+      suggests: ['회귀', '서고', '궁중 로맨스', '헌터물', '완결 추천'].map((w, i) => ({ word: w, rank: String(i + 1), tag: i < 3 ? '운영' : '인기', pick: () => this.setState({ q: w, view: 'res' }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

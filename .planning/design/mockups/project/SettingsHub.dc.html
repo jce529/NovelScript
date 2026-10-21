@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>통합 설정 허브</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+.nav{background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:2px;font-size:14px;color:#27272a}
+.ng{font-size:11px;font-weight:700;color:#71717a;letter-spacing:0.04em;padding:10px 10px 4px}
+.ni{padding:8px 10px;border-radius:8px}
+.ni.on{background:#e0e7ff;color:#3730a3;font-weight:600}
+.ni.sub{padding-left:22px}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.h{margin:0;font-size:15px;font-weight:700;color:#18181b}
+.d{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #f1f1f3;padding-top:10px}
+.pn{font-size:14px;font-weight:600;color:#18181b}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#52525b}
+.chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.ok{background:#dcfce7;color:#166534}
+.bad{background:#fee2e2;color:#991b1b}
+.none{background:#f4f4f5;color:#3f3f46}
+.wait{background:#f4f4f5;color:#3f3f46;border:1px dashed #a1a1aa}
+.btn{font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid #d4d4d8;color:#27272a;background:#fff}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.sel{font-size:13px;border:1px solid #d4d4d8;border-radius:8px;padding:7px 10px;color:#27272a;background:#fff;min-width:240px}
+.ann{font-size:12px;color:#52525b;line-height:1.55}
+</style>
+</helmet>
+<div style="width:1280px;height:700px;box-sizing:border-box;background:#f7f7f9;padding:24px 28px;display:flex;flex-direction:column;gap:14px">
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <span style="font-size:18px;font-weight:700;color:#18181b">통합 설정 허브: AI 섹션</span>
+    <span class="ann">지금은 /account(요약)와 /studio/settings/ai-providers(관리)로 나뉘어 있다. 한 허브의 좌측 메뉴로 합치고, 에디터에서는 "설정에서 관리" 링크로만 들어온다.</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;flex-grow:1;min-height:0">
+
+    <div class="nav" style="align-self:flex-start">
+      <span class="ng">계정</span>
+      <span class="ni">프로필</span>
+      <span class="ni">지갑 · 결제 내역</span>
+      <span class="ng">AI</span>
+      <span class="ni on">키 관리</span>
+      <span class="ni">기본 모델</span>
+      <span class="ni">MCP 연결</span>
+      <span class="ni">이번 달 사용량</span>
+      <span class="ng">작품</span>
+      <span class="ni">알림 · 공개 설정</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div class="card">
+        <h2 class="h">API 키 관리</h2>
+        <p class="d">내 키로 호출하면 지갑 토큰이 차감되지 않는다. 키는 저장 후 다시 보여주지 않고 끝 4자리만 표시한다.</p>
+        <div class="row"><div style="display:flex;flex-direction:column;gap:2px"><span class="pn">OpenAI</span><span class="mono">sk-…1a2b</span></div><div style="display:flex;gap:8px;align-items:center"><span class="chip ok">연결됨</span><span class="btn">교체</span><span class="btn">삭제</span></div></div>
+        <div class="row"><div style="display:flex;flex-direction:column;gap:2px"><span class="pn">Anthropic</span><span class="mono">sk-ant-…9z8y</span></div><div style="display:flex;gap:8px;align-items:center"><span class="chip bad">검증 실패</span><span class="btn p">키 다시 검증</span><span class="btn">삭제</span></div></div>
+        <div class="row"><div style="display:flex;flex-direction:column;gap:2px"><span class="pn">Gemini</span><span class="mono">플랫폼 키 사용 중 (토큰 차감)</span></div><div style="display:flex;gap:8px;align-items:center"><span class="chip none">미등록</span><span class="btn p">키 등록</span></div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+        <div class="card">
+          <h2 class="h">기본 모델</h2>
+          <p class="d">에디터 모델 피커의 시작값. 쓸 수 없게 되면 무엇으로 바뀌었는지 패널에서 알린다.</p>
+          <span class="sel">서비스 · Gemini 표준 ▾</span>
+        </div>
+        <div class="card">
+          <h2 class="h">MCP 연결</h2>
+          <p class="d">Claude 같은 외부 AI가 내 작품을 읽고 초안을 제안하게 연결한다. 해제하면 즉시 차단된다.</p>
+          <div style="display:flex;gap:8px;align-items:center"><span class="chip wait">준비 중 (Phase 12)</span></div>
+        </div>
+        <div class="card">
+          <h2 class="h">이번 달 사용량</h2>
+          <p class="d">내 키 호출 수와 토큰 수. 금액은 표시하지 않는다.</p>
+          <div style="display:flex;justify-content:space-between"><span class="pn">OpenAI</span><span class="mono">42회 · 118k 토큰</span></div>
+          <div style="display:flex;justify-content:space-between"><span class="pn">Anthropic</span><span class="mono">0회 · 0 토큰</span></div>
+        </div>
+      </div>
+      <span class="ann">키 관리 화면이 기본으로 열리고, 나머지 AI 항목은 같은 페이지에서 스크롤하거나 좌측 메뉴로 이동하는 두 안이 있다. 위 시안은 한 페이지 안에 모은 안이다.</span>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

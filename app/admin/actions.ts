@@ -1,7 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { moderateReportGroup, resolveReviewRequest, unblindTarget } from '@/lib/admin/actions';
+import {
+  adjustUserSanction,
+  moderateReportGroup,
+  resolveReviewRequest,
+  unblindTarget,
+  type SanctionAdjustOperation,
+} from '@/lib/admin/actions';
 import type { AdminResult, ModerationAction, ReviewOutcome } from '@/lib/admin/types';
 
 /**
@@ -38,6 +44,17 @@ export interface ResolveReviewRequestFormInput {
   outcome: ReviewOutcome;
   targetVersion: string;
   reason: string;
+}
+
+export interface AdjustUserSanctionFormInput {
+  idempotencyKey: string;
+  userId: string;
+  /** bigint history seq as a decimal string, passed through unchanged. */
+  expectedSeq: string;
+  operation: SanctionAdjustOperation;
+  reason: string;
+  publicReason: string;
+  endsAt?: string | null;
 }
 
 type ActionResult = AdminResult<{ actionId: string }>;
@@ -90,6 +107,21 @@ export async function resolveReviewRequestAction(input: ResolveReviewRequestForm
     outcome: raw.outcome as ReviewOutcome,
     targetVersion: raw.targetVersion as string,
     reason: raw.reason as string,
+  });
+  if (result.ok) revalidateModeration();
+  return result;
+}
+
+export async function adjustUserSanctionAction(input: AdjustUserSanctionFormInput): Promise<ActionResult> {
+  const raw = asObject(input);
+  const result = await adjustUserSanction({
+    idempotencyKey: raw.idempotencyKey as string,
+    userId: raw.userId as string,
+    expectedSeq: raw.expectedSeq as string,
+    operation: raw.operation as SanctionAdjustOperation,
+    reason: raw.reason as string,
+    publicReason: raw.publicReason as string,
+    endsAt: raw.endsAt as string | null | undefined,
   });
   if (result.ok) revalidateModeration();
   return result;

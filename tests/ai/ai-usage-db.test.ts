@@ -18,6 +18,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('AI usage database contract', () =
     const columns = await db`select column_name from information_schema.columns where table_schema = 'public' and table_name = 'ai_usage'`;
     const names = columns.map((row) => String(row.column_name));
     expect(names).toEqual(expect.arrayContaining(['owner_id', 'provider', 'model', 'key_source', 'status', 'input_tokens', 'output_tokens', 'thoughts_tokens', 'idempotency_key', 'work_id', 'chapter_id', 'created_at']));
+    expect(names).toContain('service_settled_at');
     expect(names.some((name) => /prompt|response|raw_error|secret/i.test(name))).toBe(false);
     const table = await db`select obj_description('public.ai_usage'::regclass) as comment`;
     expect(String(table[0]?.comment)).toMatch(/not authoritative for settlement or accounting/i);

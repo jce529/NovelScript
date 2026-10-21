@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { checkWriteAccess } from '@/lib/auth/write-access';
 import {
-  acknowledgeWarning, getAccountNotices, getReviewTargetState, requestReview,
+  acknowledgePublicationNotification, acknowledgeWarning, getAccountNotices, getReviewTargetState, requestReview,
   NOTICE_ACK_ERROR, REVIEW_ERRORS,
   type AccountNoticesResult, type AcknowledgeResult, type ReviewRequestResult, type ReviewTargetResult,
 } from './user-actions';
@@ -34,6 +34,12 @@ export async function acknowledgeWarningAction(sanctionId: string): Promise<Ackn
   const { supabase, userId } = await session();
   if (!userId) return { ok: false, code: 'unauthenticated', error: NOTICE_ACK_ERROR };
   return acknowledgeWarning(supabase, { userId, sanctionId });
+}
+
+export async function acknowledgePublicationNotificationAction(notificationId: string): Promise<AcknowledgeResult> {
+  const { supabase, userId } = await session();
+  if (!userId) return { ok: false, code: 'unauthenticated', error: NOTICE_ACK_ERROR };
+  return acknowledgePublicationNotification(supabase, { userId, notificationId });
 }
 
 export interface ReviewPanelState {

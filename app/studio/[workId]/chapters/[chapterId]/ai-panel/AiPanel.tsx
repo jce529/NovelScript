@@ -6,14 +6,12 @@ import Link from 'next/link';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel,
-  DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+import { ModelPicker, PICKER_ERROR_MESSAGE, PICKER_LOADING_MESSAGE } from '@/components/ai/model-picker';
+import { useServiceAvailability, type ServiceAvailabilityStatus } from '@/lib/ai/providers/use-service-availability';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Paperclip, Settings2, X } from 'lucide-react';
+import { Paperclip, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { GENRES } from '@/lib/works/genres';
 import {
@@ -22,7 +20,7 @@ import {
 } from '@/lib/ai/prompt';
 import type { ProviderId } from '@/lib/ai/providers/types';
 import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
-import { buildModelChoices, decodeSelection, encodeSelection, KEY_SOURCE_LABEL, type ByokModelMap, type KeySource } from '@/lib/ai/providers/selection';
+import { buildModelChoices, encodeSelection, KEY_SOURCE_LABEL, type ByokModelMap, type KeySource, type Selection } from '@/lib/ai/providers/selection';
 import { computeDebitAmount } from '@/lib/ai/cost';
 import { GEMINI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/gemini/cost';
 import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
@@ -31,9 +29,15 @@ import {
   createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice, createReplacementAttempt,
   type ChatNotice, type SendAttempt,
 } from '@/lib/ai/chat-request';
-import type { ChatResult } from '@/lib/ai/chat-result';
+import { cappedPresentation, type CappedReason, type ChatResult } from '@/lib/ai/chat-result';
 import type { KbCategory } from '@/lib/kb/categories';
 import { chatAction } from '../actions';
+import { loadAiWalletStatusAction } from '@/app/studio/ai-wallet-actions';
+import {
+  createWalletRefreshController, shouldRefreshWalletAfterChat,
+  type WalletRefreshController, type WalletRefreshTrigger, type WalletStatusState,
+} from '@/lib/ai/wallet-refresh';
+import { WalletBalanceGauge } from './WalletBalanceGauge';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { AiPanelNotice } from './AiPanelNotice';
 import { DefaultFallbackNotice } from './DefaultFallbackNotice';
@@ -41,6 +45,8 @@ import type { DefaultFallback } from '@/lib/ai/providers/settings';
 import { SaveDocumentPlanModal } from './SaveDocumentPlanModal';
 import { UploadFilesDialog } from './UploadFilesDialog';
 import type { ChatAttachment } from '@/lib/ai/attachments';
+import { AiInstructionControls, customInstructionForPayload } from './AiInstructionControls';
+import { SystemInstructionModal } from './SystemInstructionModal';
 
 const PROVIDER_LABELS: Record<ProviderId, string> = { gemini: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic' };
 
@@ -73,16 +79,6 @@ export interface AiPanelProps {
   onInsertText: (text: string) => void;
 }
 
-/** This session's redesign: all three levels are the SAME chat-driven
- * generation (no separate "생성하기" button, no separate UI for any level) —
- * they differ ONLY in which system-prompt instruction is active. */
-const PRESET_LEVEL_META: Record<PresetLevel, { label: string; description: string }> = {
-  beginner: { label: '초보자', description: 'AI가 알아서 다음 전개를 판단해요. 별다른 지시 없이 대화를 시작해보세요.' },
-  intermediate: { label: '중급자', description: '표준 지시에 약간의 재량을 더해 대화를 이어가요.' },
-  freeform: { label: '자유형', description: '정해진 지시 없이, 대화 내용을 최우선으로 반영해요.' },
-};
-
-const PRESET_LEVELS: PresetLevel[] = ['beginner', 'intermediate', 'freeform'];
 const STYLE_IDS = Object.keys(STYLE_PRESETS) as StylePresetId[];
 
 interface ChatMessage {
@@ -93,6 +89,8 @@ interface ChatMessage {
   proposal?: DocumentProposal | null;
   savedNodeId?: string;
   wasCapped?: boolean;
+  /** 11-11 contract: why the reply stopped at the output limit (bubble copy); absent → balance copy. */
+  cappedReason?: CappedReason;
   /** 이 응답을 만든 provider·모델 — 모델 선택은 전송 후 기본값으로 돌아가므로 재생성에는 이 값을 쓴다. */
   providerId?: ProviderId;
   model?: string;
@@ -109,6 +107,8 @@ interface SendPayload {
   keySource: KeySource;
   genre: string;
   presetLevel: PresetLevel;
+  /** 04-10: freeform-only instruction captured at send time; retry replays it verbatim. */
+  customInstruction: string | null;
   styleId: StylePresetId;
   mentionedNodeIds: string[];
   precedingText: string;
@@ -117,11 +117,31 @@ interface SendPayload {
   replacementSelection?: { providerId: ProviderId; model: string; keySource: 'service' };
 }
 
+/** The selection a send attempt will actually call: an explicit service-key replacement wins
+ * over the frozen original selection. Never the current UI selection. */
+export function attemptSelection(p: Pick<SendPayload, 'providerId' | 'model' | 'keySource' | 'replacementSelection'>): Selection {
+  return p.replacementSelection ?? { providerId: p.providerId, model: p.model, keySource: p.keySource };
+}
+
+export const SELECTION_UNAVAILABLE_MESSAGE = '선택한 모델의 서비스 키를 지금 쓸 수 없어요. 다른 모델을 고르거나 키 관리에서 확인해 주세요.';
+
+/** Why a selection cannot be sent right now (null = usable). BYOK never depends on service availability. */
+export function selectionBlockReason(status: ServiceAvailabilityStatus, usable: boolean): string | null {
+  if (usable) return null;
+  if (status === 'loading') return PICKER_LOADING_MESSAGE;
+  if (status === 'error') return PICKER_ERROR_MESSAGE;
+  return SELECTION_UNAVAILABLE_MESSAGE;
+}
+
 export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defaultProviderId, defaultModel, defaultKeySource, defaultFallback, byokModels, mentionedNodes, onRemoveMention, onAddMention, onInsertText }: AiPanelProps) {
   const [providerId, setProviderId] = useState<ProviderId>(defaultProviderId);
   const [model, setModel] = useState<string>(defaultModel);
   const [keySource, setKeySource] = useState<KeySource>(defaultKeySource);
-  const modelChoices = buildModelChoices(byokModels);
+  // 10-08 contract: service rows follow the real service-key availability; BYOK rows are independent.
+  const { availability, status: availabilityStatus, reload: reloadAvailability, canUseSelection } = useServiceAvailability();
+  const modelChoices = buildModelChoices(byokModels, availability ?? undefined);
+  // Set when a retry / explicit replacement was blocked because its ACTUAL selection is unusable.
+  const [attemptBlockedReason, setAttemptBlockedReason] = useState<string | null>(null);
   // 대체 동의·다른 모델 선택·배너 닫기 중 하나가 일어나면 해소된다(이번 패널 세션만, 계정 기본값은 그대로).
   const [fallbackResolved, setFallbackResolved] = useState(false);
   // 계정 기본값 박스는 대체된 값이 아니라 작가가 실제로 설정한 값을 보여 준다.
@@ -129,6 +149,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const consentPending = Boolean(defaultFallback?.requiresConsent) && !fallbackResolved;
   const [genre, setGenre] = useState<string>(defaultGenre ?? GENRES[0]);
   const [presetLevel, setPresetLevel] = useState<PresetLevel>('intermediate');
+  // Kept across preset switches; only freeform sends include it (customInstructionForPayload).
+  const [customInstruction, setCustomInstruction] = useState('');
+  const [systemInstructionOpen, setSystemInstructionOpen] = useState(false);
   const [styleId, setStyleId] = useState<StylePresetId>(DEFAULT_STYLE_PRESET);
   const [isGenerating, setIsGenerating] = useState(false);
   const [modalMessageId, setModalMessageId] = useState<string | null>(null);
@@ -146,6 +169,31 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const retryButtonRef = useRef<HTMLButtonElement>(null);
   const settingsLinkRef = useRef<HTMLAnchorElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  // 04-11: read-only wallet gauge state. The controller drops stale responses and goes inert on unmount/workId change.
+  const [walletStatus, setWalletStatus] = useState<WalletStatusState>({ kind: 'loading' });
+  const walletControllerRef = useRef<WalletRefreshController | null>(null);
+
+  function refreshWallet(trigger: WalletRefreshTrigger) {
+    if (!walletControllerRef.current || walletControllerRef.current.disposed) {
+      walletControllerRef.current = createWalletRefreshController({ load: loadAiWalletStatusAction, apply: setWalletStatus });
+    }
+    void walletControllerRef.current.refresh(trigger);
+  }
+
+  useEffect(() => {
+    refreshWallet('mount');
+    const onFocus = () => refreshWallet('focus');
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      walletControllerRef.current?.dispose();
+      walletControllerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workId]);
+
+  const currentSelectionBlockReason = selectionBlockReason(availabilityStatus, canUseSelection({ providerId, model, keySource }));
+  const selectionBlockedMessage = currentSelectionBlockReason ?? attemptBlockedReason;
 
   const mentionedNodeIds = mentionedNodes.map((n) => n.id);
   const pricingTable = providerId === 'openai' ? OPENAI_PRICING_USD_PER_MILLION
@@ -172,6 +220,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     return {
       userTurnId: crypto.randomUUID(),
       userMessage, history, providerId, model, keySource, genre, presetLevel, styleId, mentionedNodeIds,
+      customInstruction: customInstructionForPayload(presetLevel, customInstruction),
       precedingText: content,
       attachments,
     };
@@ -187,9 +236,18 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
    * The lock is taken synchronously before any await so a double click or
    * Enter burst issues exactly one chatAction. */
   async function runAttempt(attempt: SendAttempt<SendPayload>) {
-    if (!lockRef.current.tryAcquire()) return;
-    setNotice(null);
     const p = attempt.payload;
+    // Guard the selection this attempt will really call (frozen snapshot or explicit replacement),
+    // before taking the lock. Blocked: keep the attempt/notice for a later retry, change nothing.
+    const actual = attemptSelection(p);
+    const blocked = selectionBlockReason(availabilityStatus, canUseSelection(actual));
+    if (blocked) {
+      setAttemptBlockedReason(blocked);
+      return;
+    }
+    if (!lockRef.current.tryAcquire()) return;
+    setAttemptBlockedReason(null);
+    setNotice(null);
     const base: ChatMessage[] = [...p.history, { id: p.userTurnId, role: 'user' as const, text: p.userMessage }];
     setMessages(base);
     setIsGenerating(true);
@@ -204,6 +262,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         keySource: p.keySource,
         mentionedNodeIds: [...p.mentionedNodeIds],
         presetLevel: p.presetLevel,
+        customInstruction: p.customInstruction,
         styleId: p.styleId,
         genre: p.genre,
         precedingText: p.precedingText,
@@ -220,6 +279,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     }
 
     if (result === null) {
+      // Response lost / settlement error: the debit may or may not have happened — re-read, never resend.
+      refreshWallet('settled');
       failedAttemptRef.current = attempt;
       if (p.keySource === 'byok') {
         const outcome = resolveChatOutcome({ ok: false, status: 'failed', failureKind: 'unavailable' }, p.providerId);
@@ -241,14 +302,15 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       setMessages([...base, {
         id: crypto.randomUUID(), role: 'assistant', text: result.reply ?? '',
         draft: result.draft ?? null, proposal: result.proposal ?? null, wasCapped: Boolean(result.wasCapped),
+        cappedReason: result.wasCapped ? result.cappedReason : undefined,
         providerId: p.replacementSelection?.providerId ?? p.providerId,
         model: p.replacementSelection?.model ?? p.model,
         keySource: p.replacementSelection ? 'service' : p.keySource,
       }]);
-      if (result.wasCapped) {
-        toast('보유 토큰을 모두 사용해서 여기까지만 응답했어요.');
-      }
+      const capped = cappedPresentation(result);
+      if (capped) toast(capped.toast);
       if (outcome.refreshBalance) router.refresh();
+      if (shouldRefreshWalletAfterChat(outcome)) refreshWallet('settled');
       return;
     }
 
@@ -258,12 +320,13 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     failedAttemptRef.current = n.retryable || n.byokAction?.kind === 'replacement' ? attempt : null;
     if (n.byokAction?.kind === 'invalid_key') router.refresh();
     if (n.refreshBalance) router.refresh();
+    if (shouldRefreshWalletAfterChat(outcome)) refreshWallet('settled');
     showNotice(n);
   }
 
   function handleSend() {
     const trimmed = chatInput.trim();
-    if (!trimmed || isGenerating || lockRef.current.locked || consentPending) return;
+    if (!trimmed || isGenerating || lockRef.current.locked || consentPending || currentSelectionBlockReason) return;
     const failed = failedAttemptRef.current;
     // A new message after a failure drops the failed user turn from history.
     const history = failed ? messages.filter((m) => m.id !== failed.payload.userTurnId) : messages;
@@ -288,6 +351,13 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     const action = notice?.notice.byokAction;
     const attempt = failedAttemptRef.current;
     if (!attempt || !action || action.kind !== 'replacement' || isGenerating || lockRef.current.locked) return;
+    // Explicit consent goes through the same actual-selection guard; while the replacement
+    // service is unusable neither the snapshot nor the visible model/cost owner changes.
+    const blocked = selectionBlockReason(availabilityStatus, canUseSelection(action.selection));
+    if (blocked) {
+      setAttemptBlockedReason(blocked);
+      return;
+    }
     const next = createReplacementAttempt(attempt, action.selection);
     setProviderId(action.selection.providerId);
     setModel(action.selection.model);
@@ -338,41 +408,24 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-2">
           <div className="flex w-full min-w-0 flex-col gap-1">
-            <label className="text-xs text-muted-foreground">AI 모델</label>
-            <Select value={encodeSelection({ providerId, model, keySource })} onValueChange={(value) => {
-              const selection = value ? decodeSelection(value) : null;
-              if (!selection || !modelChoices.some((choice) => choice.value === encodeSelection(selection))) return;
-              setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource); setFallbackResolved(true);
-            }}>
-              <SelectTrigger id="ai-model-select" className="w-full">
-                <SelectValue>
-                  {(value: string) => {
-                    const selection = decodeSelection(value);
-                    const choice = modelChoices.find((item) => item.value === value);
-                    return selection && choice ? <>{PROVIDER_LABELS[selection.providerId]} {'\u00B7'} {choice.displayName} <Badge variant={selection.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[selection.keySource]}</Badge></> : value;
-                  }}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((pid, index) => {
-                  const choices = modelChoices.filter((choice) => choice.providerId === pid);
-                  return <div key={pid} role="group" aria-label={PROVIDER_LABELS[pid]} className={index ? 'border-t border-border mt-1' : ''}>
-                    <div className="flex justify-between bg-muted px-2 py-1 text-xs font-semibold"><span>{PROVIDER_LABELS[pid]}</span><span>{choices.length}개</span></div>
-                    {choices.map((choice) => <SelectItem key={choice.value} value={choice.value} aria-label={`${PROVIDER_LABELS[pid]} ${choice.displayName} ${choice.badge}`}>
-                      {choice.displayName} <Badge variant={choice.keySource === 'byok' ? 'secondary' : 'outline'}>{choice.badge}</Badge>
-                    </SelectItem>)}
-                  </div>;
-                })}
-              </SelectContent>
-            </Select>
+            <label htmlFor="ai-model-select" className="text-xs text-muted-foreground">AI 모델</label>
+            <ModelPicker
+              choices={modelChoices}
+              value={encodeSelection({ providerId, model, keySource })}
+              onSelection={(selection) => {
+                setProviderId(selection.providerId); setModel(selection.model); setKeySource(selection.keySource); setFallbackResolved(true);
+                setAttemptBlockedReason(null);
+              }}
+              loading={availabilityStatus === 'loading'}
+              loadFailed={availabilityStatus === 'error'}
+              onRetry={reloadAvailability}
+            />
             <p className="text-xs text-muted-foreground">이 대화가 끝날 때까지 유지돼요</p>
             <div className="rounded-md border border-border p-2 text-xs text-muted-foreground">
               {'\uACC4\uC815 \uAE30\uBCF8\uAC12:'} {PROVIDER_LABELS[accountDefault.providerId]} {'\u00B7'} {PROVIDER_MODELS[accountDefault.providerId].find((entry) => entry.id === accountDefault.model)?.displayName ?? accountDefault.model} <Badge variant={accountDefault.keySource === 'byok' ? 'secondary' : 'outline'}>{KEY_SOURCE_LABEL[accountDefault.keySource]}</Badge>
               {' · '}<Link className="underline" href="/studio/settings/ai-providers">설정에서 변경</Link>
             </div>
-            {keySource === 'byok' ? (
-              <p role="status" aria-live="polite" className="text-xs text-muted-foreground">내 키로 호출해요 · 지갑 토큰은 차감되지 않아요</p>
-            ) : (
+            {keySource !== 'byok' && (
               <p className="text-xs text-muted-foreground">입력 1,000 + 출력 1,000 토큰 기준 약 {exampleCost} 지갑 토큰 · 실제 비용은 사용량에 따라 달라져요</p>
             )}
           </div>
@@ -385,35 +438,20 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
               </SelectContent>
             </Select>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  type="button" variant="outline" size="icon"
-                  aria-label="AI 지시 프리셋 설정"
-                  title={`AI 지시 프리셋: ${PRESET_LEVEL_META[presetLevel].label}`}
-                  className="size-8 shrink-0"
-                >
-                  <Settings2 className="size-4" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>AI 지시 프리셋</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={presetLevel} onValueChange={(value) => setPresetLevel(value as PresetLevel)}>
-                  {PRESET_LEVELS.map((level) => (
-                    <DropdownMenuRadioItem key={level} value={level} className="flex-col items-start gap-0.5">
-                      <span className="font-medium">{PRESET_LEVEL_META[level].label}</span>
-                      <span className="text-xs text-muted-foreground">{PRESET_LEVEL_META[level].description}</span>
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
+
+        <AiInstructionControls
+          presetLevel={presetLevel}
+          onPresetChange={(level) => {
+            setPresetLevel(level);
+            // Beginner never edits the work instruction: an open modal closes (its pending
+            // load/save is invalidated by the modal controller); the stored value is kept.
+            if (level === 'beginner') setSystemInstructionOpen(false);
+          }}
+          customInstruction={customInstruction}
+          onCustomInstructionChange={setCustomInstruction}
+          onOpenSystemInstruction={() => { if (presetLevel !== 'beginner') setSystemInstructionOpen(true); }}
+        />
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">문체 프리셋</label>
@@ -502,6 +540,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
                 proposal={message.proposal ?? null}
                 savedNodeId={message.savedNodeId}
                 wasCapped={Boolean(message.wasCapped)}
+                cappedReason={message.cappedReason}
                 interactive={isLast}
                 isBusy={isGenerating}
                 onInsertDraft={() => message.draft && onInsertText(message.draft)}
@@ -523,13 +562,21 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         onAttach={(files) => setAttachments((prev) => [...prev, ...files.filter((f) => !prev.some((p) => p.name === f.name))])}
       />
 
+      <SystemInstructionModal
+        workId={workId}
+        open={systemInstructionOpen}
+        onOpenChange={setSystemInstructionOpen}
+        disabled={presetLevel === 'beginner'}
+      />
+
       {modalMessage?.proposal && (
         <SaveDocumentPlanModal
           workId={workId}
           open={Boolean(modalMessageId)}
           onOpenChange={(open) => { if (!open) setModalMessageId(null); }}
           proposal={modalMessage.proposal}
-          generation={{ providerId: modalMessage.providerId ?? providerId, model: modalMessage.model ?? model, keySource: modalMessage.keySource ?? keySource, presetLevel, styleId, genre }}
+          generation={{ providerId: modalMessage.providerId ?? providerId, model: modalMessage.model ?? model, keySource: modalMessage.keySource ?? keySource, presetLevel, styleId, genre, customInstruction: customInstructionForPayload(presetLevel, customInstruction) }}
+          onWalletRefresh={() => refreshWallet('regenerate')}
           onSaved={(nodeId) => {
             const proposal = modalMessage.proposal!;
             setMessages((prev) => prev.map((message) => message.id === modalMessage.id ? { ...message, savedNodeId: nodeId } : message));
@@ -562,6 +609,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         )}
       </div>
 
+      <WalletBalanceGauge keySource={keySource} status={walletStatus} onRetry={() => refreshWallet('retry')} />
+
       <div className="flex items-center gap-2">
         <Input
           ref={inputRef}
@@ -572,10 +621,16 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           disabled={isGenerating || consentPending}
           className="flex-1"
         />
-        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || consentPending} onClick={handleSend}>
+        <Button type="button" size="sm" disabled={isGenerating || !chatInput.trim() || consentPending || Boolean(currentSelectionBlockReason)} onClick={handleSend}>
           보내기
         </Button>
       </div>
+      {selectionBlockedMessage && (
+        <p data-selection-blocked="" role="status" aria-live="polite" className="text-xs text-muted-foreground">
+          {selectionBlockedMessage}
+          {availabilityStatus !== 'loading' && <>{' '}<button type="button" className="underline" onClick={reloadAvailability}>다시 확인</button></>}
+        </p>
+      )}
     </aside>
   );
 }

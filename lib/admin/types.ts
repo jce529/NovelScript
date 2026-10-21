@@ -10,7 +10,11 @@
 export const REPORT_STATUSES = ['open', 'resolved', 'dismissed'] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
 
-export const SANCTION_KINDS = ['warning', 'suspension', 'permanent_suspension', 'lift'] as const;
+/** Queue filter choice: a DB status or the read-only "all" view (never stored in the DB). */
+export const REPORT_QUEUE_FILTERS = ['open', 'resolved', 'dismissed', 'all'] as const;
+export type ReportQueueFilter = (typeof REPORT_QUEUE_FILTERS)[number];
+
+export const SANCTION_KINDS =['warning', 'suspension', 'permanent_suspension', 'lift'] as const;
 export type SanctionKind = (typeof SANCTION_KINDS)[number];
 
 /** Effective cache value stored on profiles.sanction_kind. */
@@ -64,7 +68,10 @@ export interface ReportGroupSummary {
   reporterCount: number;
   categories: string[];
   oldestReportedAt: string;
+  /** Compatibility representative status (open > resolved > dismissed). Screens render statuses. */
   status: ReportStatus;
+  /** Every status present in the group. */
+  statuses: ReportStatus[];
   /** Current blind state of the exact target row. */
   blinded: boolean;
   /** Any report ID in the group; detail pages resolve the whole group from it. */
@@ -172,6 +179,39 @@ export interface WarningNotice {
 export interface EffectiveSanction {
   kind: SanctionCacheKind;
   sanctionedUntil: string | null;
+}
+
+/** Admin-only sanction list row (readers and writers). */
+export interface AdminSanctionUserSummary {
+  userId: string;
+  role: 'reader' | 'writer';
+  penName: string | null;
+  effectiveSanction: EffectiveSanction;
+  /** Decimal text so seq above Number.MAX_SAFE_INTEGER stays exact. */
+  expectedSeq: string;
+  latestAt: string;
+}
+
+/** Whitelisted audit metadata for sanction duration changes. */
+export interface AdminSanctionMetadata {
+  operation?: string;
+  changeId?: string;
+  previousEndsAt?: string | null;
+  newEndsAt?: string | null;
+}
+
+/** Admin-only sanction history entry (internal note included). */
+export interface AdminSanctionHistoryEntry {
+  id: string;
+  seq: string;
+  kind: SanctionKind;
+  publicReason: string | null;
+  internalNote: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  actorId: string | null;
+  adminActionId: string | null;
+  metadata: AdminSanctionMetadata;
 }
 
 export type AdminErrorCode =

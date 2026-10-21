@@ -42,6 +42,50 @@ describe('document regeneration BYOK routing', () => {
     expect(mocks.settle).not.toHaveBeenCalled();
   });
 
+  describe('04-09 instructions reach the provider request', () => {
+    const CUSTOM = 'CUSTOM-SENTINEL: 현재형으로 쓰세요.';
+    const WORK = 'WORK-SENTINEL: 주인공은 존댓말을 쓴다.';
+    const generated = { text: '[DOCUMENT]\n카테고리: 인물\n이름: Mira\n내용:\n# Mira\n## 성격\n차분함\n[/DOCUMENT]', finishReason: 'stop', refusal: null,
+      usage: { inputTokens: 2, outputTokens: 3, thoughtsTokens: null, reported: { input: true, output: true } } };
+    const provider = { provider: 'gemini', generateContent: vi.fn() };
+    const serviceInput = { ...input, route: undefined, providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' } as const;
+
+    beforeEach(() => {
+      provider.generateContent.mockReset();
+      provider.generateContent.mockResolvedValue(generated);
+      mocks.preflight.mockResolvedValue({ ok: true, ctx: { admin: {}, walletBalance: 900, model: 'gemini-3.5-flash', maxOutputTokens: 2048 } });
+      mocks.settle.mockImplementation(async (_client, _ctx, _id, generate) => ({ kind: 'completed', result: await generate(), debitAmount: 1, remainingBalance: 899 }));
+    });
+    const sys = () => provider.generateContent.mock.calls[0][0].systemInstruction as string;
+
+    it('freeform: custom and work instructions are composed with the document plan', async () => {
+      const result = await regenerateDocumentWithTemplate(db, provider as never, { ...serviceInput, presetLevel: 'freeform', customInstruction: CUSTOM, workSystemInstruction: WORK });
+      expect(result).toMatchObject({ ok: true, name: 'Mira' });
+      expect(sys()).toContain(CUSTOM);
+      expect(sys()).toContain(WORK);
+      expect(sys()).toContain('대상 폴더: Characters');
+    });
+
+    it('intermediate: work instruction only', async () => {
+      await regenerateDocumentWithTemplate(db, provider as never, { ...serviceInput, customInstruction: CUSTOM, workSystemInstruction: WORK });
+      expect(sys()).toContain(WORK);
+      expect(sys()).not.toContain(CUSTOM);
+    });
+
+    it('beginner: neither instruction', async () => {
+      await regenerateDocumentWithTemplate(db, provider as never, { ...serviceInput, presetLevel: 'beginner', customInstruction: CUSTOM, workSystemInstruction: WORK });
+      expect(sys()).not.toContain(CUSTOM);
+      expect(sys()).not.toContain(WORK);
+    });
+
+    it('rejects an oversized customInstruction before preflight or provider', async () => {
+      const result = await regenerateDocumentWithTemplate(db, provider as never, { ...serviceInput, presetLevel: 'freeform', customInstruction: 'a'.repeat(4001) });
+      expect(result).toMatchObject({ ok: false, failureKind: 'invalid_input' });
+      expect(mocks.preflight).not.toHaveBeenCalled();
+      expect(provider.generateContent).not.toHaveBeenCalled();
+    });
+  });
+
   it('revalidates folder and template before route preflight', async () => {
     await regenerateDocumentWithTemplate(db, client, input);
     expect(mocks.template).toHaveBeenCalledWith(db, expect.objectContaining({ ownerId, workId, templateId }));

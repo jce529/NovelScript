@@ -5,6 +5,7 @@ import { createGeminiProvider } from './gemini';
 import { createOpenAiProvider } from './openai';
 import { createAnthropicProvider } from './anthropic';
 import { createFixtureProvider, readProviderFixture } from './fixture';
+import { assertServiceKeyAvailable } from './service-availability';
 
 const ENV_VAR_BY_PROVIDER: Record<ProviderId, string> = {
   gemini: 'GEMINI_API_KEY',
@@ -30,6 +31,8 @@ export function createPlatformProvider(
   providerId: ProviderId,
   env: Record<string, string | undefined> = process.env,
 ): ProviderClient {
+  // BUG-03 / 10-07: the real service key gates every platform call, fixture included.
+  assertServiceKeyAvailable(providerId, env);
   const fixture = readProviderFixture(env);
   if (fixture) {
     console.warn(`[ai/providers] AI_PROVIDER_FIXTURE=${fixture} is active; serving canned responses. Set AI_PROVIDER_FIXTURE=off to disable.`);

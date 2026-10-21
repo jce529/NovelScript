@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>장바구니와 구매 완료</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9;color:#18181b}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:12px}
+.logo{font-size:17px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap}
+.sp{font-size:13px;font-weight:700;color:#3730a3;background:#e0e7ff;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.ib{position:relative;width:40px;height:40px;border-radius:999px;border:0;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#3730a3;flex-shrink:0}
+.cnt{position:absolute;top:2px;right:0;min-width:18px;height:18px;border-radius:999px;background:#4f46e5;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.k{font-size:12px;color:#71717a;line-height:1.5}
+.chip{font-size:13px;color:#52525b;padding:7px 13px;min-height:36px;border-radius:8px;border:1px solid #e4e4e7;background:#fff;white-space:nowrap}
+.chip.on{background:#18181b;color:#fff;border-color:#18181b;font-weight:600}
+.ghost{max-width:1152px;margin:0 auto;padding:16px;box-sizing:border-box;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;opacity:.45}
+.gh{height:220px;border-radius:14px;background:#e4e4e7}
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,0.35)}
+.panel{position:fixed;z-index:41;top:0;right:0;bottom:0;width:min(420px,100vw);background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #e4e4e7}
+.pb{flex:1;overflow:auto;padding:14px 18px;display:flex;flex-direction:column;gap:14px}
+.pf{border-top:1px solid #e4e4e7;padding:14px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.grp{display:flex;flex-direction:column;gap:8px}
+.gt{display:flex;gap:10px;align-items:center}
+.gc{width:36px;height:48px;border-radius:6px;flex-shrink:0}
+.it{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid #e4e4e7;border-radius:10px;font-size:13px}
+.x{width:32px;height:32px;border-radius:999px;border:0;background:transparent;color:#71717a;font-size:18px;flex-shrink:0}
+.sum{background:#f4f4f5;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3f3f46}
+.sum div{display:flex;justify-content:space-between;gap:12px}
+.btn{height:48px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:15px;font-weight:700;padding:0 16px;width:100%;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.btn.p{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.warn{background:#fef3c7;color:#854d0e;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.55}
+.dlg{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;background:#fff;border-radius:18px;padding:24px 20px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 16px 44px rgba(0,0,0,0.3)}
+.ok{width:56px;height:56px;border-radius:999px;background:#dcfce7;color:#166534;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.toast{position:fixed;z-index:60;left:50%;transform:translateX(-50%);bottom:40px;max-width:380px;box-sizing:border-box;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(24,24,27,0.92);color:#fff}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:900px">
+  <header class="hd">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <a class="sp" href="StoreMain.dc.html">에셋 스토어</a>
+    <span style="flex-grow:1"></span>
+    <button class="ib" type="button" aria-label="장바구니 닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12zM6 6L5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg><span class="cnt">{{n}}</span></button>
+    <div class="tok"><span>{{bal}} 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+    <span class="av">김</span>
+  </header>
+  <div style="position:relative;z-index:45;max-width:760px;margin:0 auto 0 0;padding:14px 16px 0;box-sizing:border-box;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <span class="k">목업 보기 전환 (실제 화면에는 없는 컨트롤)</span>
+    <sc-for list="{{views}}" as="v"><button class="{{v.cls}}" type="button" onClick="{{v.pick}}">{{v.label}}</button></sc-for>
+  </div>
+  <div class="ghost"><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div><div class="gh"></div></div>
+
+  <div class="scrim"></div>
+  <aside class="panel" aria-label="장바구니">
+    <div class="ph"><b style="font-size:17px">장바구니 <span class="k" style="font-weight:400">{{n}}개</span></b><a class="x" href="StoreMain.dc.html" aria-label="닫기" style="display:flex;align-items:center;justify-content:center">×</a></div>
+    <div class="pb">
+      <sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+        <sc-for list="{{groups}}" as="g">
+          <div class="grp">
+            <div class="gt"><div class="gc" style="background:{{g.bg}}"></div><div style="flex:1;min-width:0"><b style="font-size:14px">{{g.title}}</b><div class="k">{{g.seller}}</div></div></div>
+            <sc-for list="{{g.items}}" as="i"><div class="it"><span style="flex:1">{{i.name}}</span><b>{{i.price}}토큰</b><button class="x" type="button" aria-label="{{i.name}} 빼기" onClick="{{i.del}}">×</button></div></sc-for>
+          </div>
+        </sc-for>
+        <span class="k">에셋은 한 세트씩 담겨요. 이미 구매한 에셋은 담기지 않아요.</span>
+        <div class="warn">세계관은 구매 후 7일 이내, 가지를 확정하기 전에만 환불할 수 있어요.</div>
+      </sc-if>
+      <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+        <div style="text-align:center;padding:48px 8px;display:flex;flex-direction:column;gap:10px;align-items:center">
+          <b style="font-size:16px">장바구니가 비어 있어요</b>
+          <span class="k">에셋 상세에서 필요한 모듈을 골라 담아 보세요.</span>
+          <a class="btn" href="StoreMain.dc.html" style="width:auto">스토어 둘러보기</a>
+        </div>
+      </sc-if>
+    </div>
+    <sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+      <div class="pf">
+        <div class="sum"><div><span>결제 예정</span><b>{{total}}토큰</b></div><div><span>내 토큰</span><b>{{bal}}토큰</b></div><div><span>결제 후 잔액</span><b style="color:{{afterColor}}">{{after}}토큰</b></div></div>
+        <sc-if value="{{short}}" hint-placeholder-val="{{false}}"><div class="warn">토큰이 {{lack}}개 모자라요. 충전하면 장바구니는 그대로 유지돼요.</div></sc-if>
+        <sc-if value="{{enough}}" hint-placeholder-val="{{true}}"><button class="btn p" type="button" onClick="{{pay}}">{{total}}토큰 일괄 결제</button></sc-if>
+        <sc-if value="{{short}}" hint-placeholder-val="{{false}}"><a class="btn p" href="TokenCharge.dc.html">토큰 충전하고 결제</a></sc-if>
+      </div>
+    </sc-if>
+  </aside>
+
+  <sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+    <div class="scrim" style="z-index:50"></div>
+    <div class="dlg" role="dialog" aria-label="구매 완료">
+      <div class="ok">✓</div>
+      <b style="font-size:19px;text-align:center">구매했어요</b>
+      <div class="sum"><sc-for list="{{doneItems}}" as="d"><div><span>{{d.name}}</span><b>{{d.price}}토큰</b></div></sc-for><div style="border-top:1px solid #d4d4d8;padding-top:6px"><span>결제 후 잔액</span><b>{{after}}토큰</b></div></div>
+      <div class="warn" style="background:#eef2ff;color:#3730a3">구매한 에셋은 `내 구매 에셋`에 보관돼요. 세계관은 거기서 `이 세계관으로 작품 시작`(가지 치기)으로 내 작품에 들여요. 이 에셋을 쓴 작품의 상세 소개 맨 아래에는 출처가 작게 표기돼요. 문체 프롬프트·템플릿 적용 방법은 정해지면 안내해요.</div><div class="warn"><b>환불 안내</b> · 구매 후 7일 이내에 가지를 확정하기 전이면 전액 환불돼요(토큰 그대로 반환). 가지를 확정하거나 작품을 공개하면 환불할 수 없어요.</div>
+      <a class="btn p" href="BranchFlow.dc.html">내 구매 에셋에서 작품 시작 (세계관)</a><a class="btn" href="Editor.dc.html">스튜디오로 이동</a>
+      <a class="btn" href="StoreMain.dc.html">스토어 계속 둘러보기</a>
+    </div>
+  </sc-if>
+  <sc-if value="{{toast}}" hint-placeholder-val="{{false}}"><div class="toast">{{toast}}</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const say = (m) => { this.setState({ toast: m }); setTimeout(() => this.setState({ toast: '' }), 2400); };
+    const view = st.view || 'full';
+    const removed = st.removed || {};
+    const bg = (h) => 'linear-gradient(150deg,hsl(' + h + ' 45% 40%),hsl(' + (h + 40) + ' 50% 62%))';
+    const all = [
+      { id: 'a', pack: '다크 판타지 유니버스 팩', seller: '달빛작가', h: 260, name: '세계관 한 세트', price: 25 },
+      { id: 'b', pack: '제국 암살자 문체 프롬프트', seller: '검은펜', h: 20, name: '문체 프롬프트', price: 12 }
+    ];
+    const items = view === 'empty' ? [] : all.filter((i) => !removed[i.id]);
+    const total = items.reduce((a, i) => a + i.price, 0);
+    const bal = view === 'short' ? 9 : 1500;
+    const after = bal - total;
+    const packs = [];
+    items.forEach((i) => { let g = packs.find((p) => p.title === i.pack); if (!g) { g = { title: i.pack, seller: i.seller, bg: bg(i.h), items: [] }; packs.push(g); }
+      g.items.push({ name: i.name, price: i.price, del: () => { const n = Object.assign({}, removed); n[i.id] = true; this.setState({ removed: n }); say('장바구니에서 뺐어요.'); } }); });
+    const views = [['full', '담김'], ['short', '잔액 부족'], ['empty', '비어 있음']].map((v) => ({ label: v[1], cls: view === v[0] ? 'chip on' : 'chip', pick: () => this.setState({ view: v[0], removed: {}, done: false }) }));
+    return {
+      accent: this.props.accent ?? '#4f46e5', views: views, n: items.length, bal: bal.toLocaleString('ko-KR'),
+      groups: packs, hasItems: items.length > 0, empty: items.length === 0, total: total, after: after.toLocaleString('ko-KR'),
+      afterColor: after < 0 ? '#b91c1c' : '#18181b', short: items.length > 0 && after < 0, enough: items.length > 0 && after >= 0, lack: Math.max(0, -after),
+      pay: () => this.setState({ done: true }),
+      done: !!st.done, doneItems: items.map((i) => ({ name: i.name, price: i.price })),
+      toast: st.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

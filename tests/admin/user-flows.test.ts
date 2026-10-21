@@ -227,7 +227,7 @@ describe('warning notices (D-09)', () => {
   it('returns only the recipient\'s unacknowledged warnings with public reasons', async () => {
     const result = await getAccountNotices(useSession(WRITER), { userId: WRITER });
     expect(result).toEqual({
-      ok: true, suspension: null,
+      ok: true, suspension: null, publicationNotices: [],
       warnings: [
         { id: WARN_1, publicReason: '첫 번째 경고', createdAt: '2026-09-01T00:00:00Z' },
         { id: WARN_2, publicReason: '두 번째 경고', createdAt: '2026-09-02T00:00:00Z' },
@@ -510,7 +510,7 @@ describe('reader actions recheck permission (D-07/D-13)', () => {
     db.sanction[WRITER] = 'suspension';
     db.rpcHandlers.can_view = () => ({ data: true, error: null });
     db.rpcHandlers.increment_chapter_view = () => ({ data: null, error: null });
-    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeUndefined();
+    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeNull();
     expect(db.calls).not.toContain('rpc:increment_chapter_view');
     expect(db.reading_progress).toHaveLength(0);
   });
@@ -528,9 +528,9 @@ describe('reader actions recheck permission (D-07/D-13)', () => {
   it('bookkeeping failures never reject the viewer action', async () => {
     db.rpcHandlers.increment_chapter_view = () => 'throw';
     db.rpcHandlers.can_view = () => ({ data: null, error: { message: 'down' } });
-    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeUndefined();
+    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeNull();
     db.rpcHandlers.can_view = () => ({ data: true, error: null });
     db.fail.add('reading_progress');
-    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeUndefined();
+    await expect(trackChapterOpenAction(WORK, CHAPTER, false)).resolves.toBeNull();
   });
 });

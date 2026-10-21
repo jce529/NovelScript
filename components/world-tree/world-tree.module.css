@@ -1,0 +1,317 @@
+/* World-tree scoped styles (18-10). Visualization tokens live here so app/globals.css stays untouched. */
+.root {
+  --tree-trunk: #92400e;
+  --tree-branch-if: #a16207;
+  --tree-branch-expand: #15803d;
+  --tree-broken: #78716c;
+  --tree-fruit-1: #b91c1c;
+  --tree-fruit-2: #c2410c;
+  --tree-fruit-3: #a16207;
+  --tree-fruit-4: #4d7c0f;
+  --tree-fruit-5: #0f766e;
+  --tree-fruit-6: #1d4ed8;
+  --tree-fruit-7: #6d28d9;
+  --tree-fruit-8: #be185d;
+  --tree-accent: var(--ring, #4f46e5);
+  --wt-canvas-height: 520px;
+  --wt-chrome: 220px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 14px;
+  min-width: 0;
+}
+
+:global(.dark) .root {
+  --tree-trunk: #d97706;
+  --tree-branch-if: #ca8a04;
+  --tree-branch-expand: #4ade80;
+  --tree-broken: #a8a29e;
+  --tree-fruit-1: #f87171;
+  --tree-fruit-2: #fb923c;
+  --tree-fruit-3: #facc15;
+  --tree-fruit-4: #a3e635;
+  --tree-fruit-5: #2dd4bf;
+  --tree-fruit-6: #60a5fa;
+  --tree-fruit-7: #a78bfa;
+  --tree-fruit-8: #f472b6;
+}
+
+.stage {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scroller {
+  position: relative;
+  overflow: auto;
+  max-height: var(--wt-canvas-height);
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: 14px;
+  background: var(--card, transparent);
+  -webkit-overflow-scrolling: touch;
+}
+
+.canvas {
+  position: relative;
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.path {
+  fill: none;
+  stroke-linecap: round;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.pathTrunk {
+  stroke: var(--tree-trunk);
+}
+
+.pathIf {
+  stroke: var(--tree-branch-if);
+}
+
+.pathExpand {
+  stroke: var(--tree-branch-expand);
+}
+
+.pathBroken {
+  stroke: var(--tree-broken);
+  stroke-dasharray: 4 5;
+}
+
+.pathSelected {
+  filter: drop-shadow(0 0 3px var(--tree-accent));
+}
+
+/* The button is the real touch target (>= 44px); the visual circle is drawn inside it. */
+.node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.node:focus-visible {
+  outline: 3px solid var(--tree-accent);
+  outline-offset: 2px;
+}
+
+.fruit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  line-height: 1;
+}
+
+.nodeSelected .fruit,
+.nodeSelected .stub {
+  outline: 3px solid var(--tree-accent);
+  outline-offset: 2px;
+}
+
+.fruitUnpublished {
+  border-style: dashed;
+}
+
+.stub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px dashed var(--tree-broken);
+  color: var(--tree-broken);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.nodeLabel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--muted-foreground, #52525b);
+  pointer-events: none;
+}
+
+.nodeLabelTop {
+  bottom: 100%;
+}
+
+.nodeLabelBottom {
+  top: 100%;
+}
+
+.scale {
+  position: absolute;
+  bottom: 6px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted-foreground, #52525b);
+  pointer-events: none;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  font-size: 12px;
+  color: var(--muted-foreground, #52525b);
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: 14px;
+  background: var(--card, transparent);
+  overflow-y: auto;
+  max-height: var(--wt-canvas-height);
+  line-height: 1.55;
+  font-size: 14px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: var(--wt-canvas-height);
+  overflow-y: auto;
+}
+
+.listItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 52px;
+}
+
+.listSelect {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  padding: 6px 12px;
+  text-align: left;
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.listSelect:focus-visible {
+  outline: 3px solid var(--tree-accent);
+  outline-offset: 2px;
+}
+
+.listSelected {
+  border: 3px solid var(--tree-accent);
+}
+
+.listNote {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted-foreground, #52525b);
+}
+
+.skeleton {
+  height: var(--wt-canvas-height);
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(120, 113, 108, 0.12), rgba(120, 113, 108, 0.24), rgba(120, 113, 108, 0.12));
+  background-size: 200% 100%;
+  animation: wtShimmer 1.4s linear infinite;
+}
+
+@keyframes wtShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+.hint {
+  display: none;
+  font-size: 12px;
+  color: var(--muted-foreground, #52525b);
+}
+
+/* Mobile: 340px scroll area, detail always visible below it (non-modal bottom sheet, no scale transform). */
+@media (max-width: 767px) {
+  .root {
+    --wt-canvas-height: 340px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .hint {
+    display: block;
+  }
+
+  .stub {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .detail {
+    max-height: none;
+    min-height: max(220px, calc(100dvh - var(--wt-canvas-height) - var(--wt-chrome)));
+    border-radius: 14px 14px 0 0;
+    border-bottom: 0;
+    position: sticky;
+    bottom: 0;
+    overflow-y: auto;
+  }
+}

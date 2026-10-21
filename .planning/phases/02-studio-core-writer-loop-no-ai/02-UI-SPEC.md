@@ -1,7 +1,7 @@
 ---
 phase: 2
 slug: studio-core-writer-loop-no-ai
-status: draft
+status: draft (Reopen 2026-10-12 개정 반영, 승인 대기)
 shadcn_initialized: true
 preset: base-nova
 created: 2026-08-25
@@ -28,7 +28,7 @@ created: 2026-08-25
 **Note on shadcn init:** Ran non-interactively with `-d`/`--defaults` (`--template=next --preset=base-nova`) rather than the interactive `ui.shadcn.com/create` preset-paste flow, since no interactive user turn was available in this research session. Result: `components.json` written, `base-nova` style, `neutral` base color, CSS variables enabled, `lucide` icons, Tailwind v4 confirmed. One component (`button`) and `lib/utils.ts` were scaffolded automatically; `app/globals.css` was updated with the full shadcn token set (light + dark). This is a real, verifiable initialization — not a placeholder — and should be treated as locked for all subsequent phases unless a future phase explicitly re-themes.
 
 **Components needed this phase (install via `npx shadcn add <name>` during implementation — only `button` exists today):**
-`button`, `input`, `textarea`, `label`, `select`, `dialog`, `badge`, `separator`, `tooltip`, `dropdown-menu`, `scroll-area`, `sonner` (toast for save/error feedback), `context-menu` (right-click on tree nodes — optional polish, dropdown-menu suffices if context-menu is skipped).
+`button`, `input`, `textarea`, `label`, `select`, `dialog`, `badge`, `separator`, `tooltip`, `dropdown-menu`, `scroll-area`, `sonner` (toast for save/error feedback), `context-menu` (right-click on tree nodes; Reopen 2026-10-12부터 필수 — 우클릭/모바일 길게 누르기 행 메뉴가 `이름 바꾸기`·`사본 만들기` 진입점이다. 구현: `components/studio/kb-node-menu.tsx`).
 
 ---
 
@@ -98,7 +98,7 @@ Accent reserved for: primary CTA buttons, active/selected tree-node indicator, c
 | Primary CTA — create work | "새 작품 만들기" |
 | Primary CTA — create chapter | "새 회차 추가" |
 | Primary CTA — create KB document (inside a category folder) | "새 문서 만들기" |
-| Primary CTA — create custom template | "새 템플릿 만들기" |
+| Primary CTA — create custom template | "템플릿 만들기" (Reopen: 기존 "새 템플릿 만들기" 대체) |
 | Primary CTA — publish chapter | "발행하기" — from Phase 4 onward, if the chapter contains AI-accepted content not yet published, this click is intercepted by the AI 콘텐츠 검토 확인 모달 (D-16, legal requirement) before the publish actually fires; see `.planning/phases/04-ai-gateway-mention-based-generation/04-UI-SPEC.md` Copywriting Contract |
 | Primary CTA — save KB document (explicit save if not autosave) | "문서 저장" |
 | Primary CTA — save chapter draft (explicit save, distinct from the separate "발행하기" publish action) | "회차 저장" |
@@ -108,7 +108,7 @@ Accent reserved for: primary CTA buttons, active/selected tree-node indicator, c
 | Empty state — synopsis left blank (Phase 3 discovery preview shown inline in the 새 작품 만들기 form as a hint, per D-03) | Body: "시놉시스를 입력하지 않으면 독자 화면에 빈 문구로 표시돼요." |
 | Error state — generic save failure | "저장하지 못했어요. 잠시 후 다시 시도해주세요." |
 | Error state — filename/title collision (Open Question 3 in RESEARCH.md — sibling name uniqueness enforced) | "이미 같은 이름의 파일/폴더가 있어요. 다른 이름을 사용해주세요." |
-| Error state — locked folder rename/delete attempt (D-15, tooltip + toast if a direct action is somehow triggered) | "기본 폴더는 이름을 바꾸거나 삭제할 수 없어요." |
+| Error state — locked folder rename/delete attempt (D-15, tooltip + toast if a direct action is somehow triggered) | "기본 폴더는 이름을 바꾸거나 삭제할 수 없어요." (기본 템플릿 파일 5종의 수정·이름 변경 시도도 같은 잠금 정책이며 Reopen 섹션의 `사본 만들어 수정`으로 안내한다) |
 | Error state — required title missing on 새 작품 만들기 (D-03) | "작품 제목을 입력해주세요." |
 | Destructive — delete file/folder (non-locked KB node) | Confirm dialog title: "'{name}'을(를) 삭제할까요?" · Body: "삭제하면 되돌릴 수 없어요." · Buttons: [취소] [삭제] (destructive variant) |
 | Destructive — delete chapter | Confirm dialog title: "'{title}' 회차를 삭제할까요?" · Body: "삭제하면 되돌릴 수 없어요." · Buttons: [취소] [삭제] (destructive variant) |
@@ -130,6 +130,31 @@ Accent reserved for: primary CTA buttons, active/selected tree-node indicator, c
 | shadcn official (`@shadcn`, `base-nova` style) | `button` (installed), plus `input`, `textarea`, `label`, `select`, `dialog`, `badge`, `separator`, `tooltip`, `dropdown-menu`, `scroll-area`, `sonner`, `context-menu` (to be installed during implementation as needed) | not required |
 
 No third-party registries were declared for this phase. If a future phase needs a third-party block, the registry vetting gate (view source, scan for `fetch`/`eval`/`process.env`/obfuscation, developer sign-off) must run before it is added to that phase's UI-SPEC.
+
+---
+
+## Reopen 개정 (2026-10-12) — 템플릿 읽기 전용 정책
+
+> 최우선 입력: `02-CONTEXT.md` 맨 끝 "Reopen 논의 결정 (2026-10-12)". 위 본문의 "기본 템플릿 편집 허용"(D-10), 기본 편집 가능 의미, optional context-menu 문구와 충돌하면 이 섹션이 이긴다. 과거 PLAN/SUMMARY와 2026-08-28 검증 결과는 역사 증거로 보존한다.
+
+### KB-01 — 읽기 전용 기본 템플릿 + 사용자 사본
+- 기본 템플릿 5종(인물·장소·사건·세력·아이템)은 잠금(읽기 전용)이다. 수정·이름 변경·이동·삭제·잠금 해제 불가(UI는 disabled, 서버는 0023 guard가 우회까지 차단).
+- 고치려면 "사본 만들어 수정" -> 이름 입력 -> `내 템플릿` 사본 생성 -> 새 양식으로 이동해 편집. 템플릿 이름은 중복 불가(생성·이름 변경 모두 실패, 입력값 유지). 작품 범위와 계정 범위를 각각 지원한다.
+- 이미 수정된 기본 템플릿은 `내 템플릿` 사본으로 이관되고 기본 5종은 원문으로 복원된다(0022/0023 마이그레이션).
+- 템플릿 편집 화면 도구줄: 기본 템플릿은 "읽기 전용" 안내 + "사본 만들어 수정", 사용자 템플릿은 일반 편집.
+
+### KB-02 — 메뉴·섹션·패널 계약
+- 행 메뉴: 데스크톱 우클릭, 터치 길게 누르기(500ms; 8px 초과 이동/스크롤/취소 시 열지 않음; 일반 탭은 이동). 일반 문서·사용자 템플릿은 "이름 바꾸기" 활성. 기본 템플릿 메뉴는 "사본 만들기"만 활성.
+- 사이드바 섹션: 기본 5종 · `내 템플릿` · "템플릿 만들기" · "새 문서 (템플릿에서)" · 내 폴더 · 계정 공유 폴더 · 회차. "새 문서 (템플릿에서)"는 제목/대상 폴더를 받아 선택한 양식에서 제목 치환으로 생성한다.
+- 폴더는 접기/펼치기 가능(aria-expanded 동기화).
+- 데스크톱(lg 이상) 좌·우 패널 접기 «·»: 각각/동시에 접히고 접힌 패널은 세로 띠로 남으며 본문 폭이 확장된다. 접어도 editor/AiPanel은 언마운트되지 않아야 한다(textarea 선택·AI 대화·진행 중 요청 유지; 브라우저 게이트에서 확인). 모바일 하단 탭은 Phase 16 소관이라 이 계약에 포함하지 않는다.
+- 저장 상태 칩: 저장됨 / 저장 중 / 저장 안 됨 / 저장 실패(본문 유지 + 재시도). KB 에디터와 회차 에디터 공통. 회차 발행/발행 취소 pending은 칩에 반영하지 않는다.
+
+### Phase 18 선행 계약
+기본 template은 readonly + copy만 제공한다. 세계관 공개 토글/공개 정책은 미배정 영역(보드 25) 소관이라 포함하지 않는다.
+
+### 구현 상태
+구현: 02-07(0022/0023·seed) · 02-08(서버 policy/copy) · 02-09(액션 wrapper·다이얼로그) · 02-10(사이드바·메뉴) · 02-11(저장/패널 상태) · 02-12(에디터 연결). 브라우저 확인은 02-13 Task 3 게이트(PENDING)에서만 verified로 바꾼다.
 
 ---
 

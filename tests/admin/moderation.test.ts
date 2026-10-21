@@ -11,9 +11,11 @@ import {
   getReviewRequestDetail,
   listReportGroups,
   listReviewRequests,
+  listSanctionUsers,
+  getUserSanctionHistory,
   ADMIN_PAGE_SIZE,
 } from '../../lib/admin/queries';
-import { moderateReportGroup, resolveReviewRequest, unblindTarget } from '../../lib/admin/actions';
+import { adjustUserSanction, moderateReportGroup, resolveReviewRequest, unblindTarget } from '../../lib/admin/actions';
 
 const adminId = '10000000-0000-4000-8000-000000000003';
 const writerId = '10000000-0000-4000-8000-000000000001';
@@ -75,11 +77,15 @@ describe('every exported admin operation authorizes independently', () => {
     ['listReportGroups', (d) => listReportGroups({}, d)],
     ['getReportDetail', (d) => getReportDetail(reportA, d)],
     ['listReviewRequests', (d) => listReviewRequests({}, d)],
+    ['listSanctionUsers', (d) => listSanctionUsers({}, d)],
+    ['getUserSanctionHistory', (d) => getUserSanctionHistory({ userId: writerId }, d)],
     ['getReviewRequestDetail', (d) => getReviewRequestDetail(requestId, d)],
     ['moderateReportGroup', (d) => moderateReportGroup(validCommand, d)],
     ['unblindTarget', (d) => unblindTarget({ idempotencyKey: key, workId, chapterId, targetVersion: 'v', reason: 'r' }, d)],
     ['resolveReviewRequest', (d) => resolveReviewRequest(
       { idempotencyKey: key, requestId, outcome: 'maintained', targetVersion: 'v', reason: 'r' }, d)],
+    ['adjustUserSanction', (d) => adjustUserSanction(
+      { idempotencyKey: key, userId: writerId, expectedSeq: '1', operation: 'lift', reason: 'r', publicReason: 'p', endsAt: null }, d)],
   ];
 
   it('covers every exported function', () => {
@@ -112,7 +118,7 @@ describe('listReportGroups', () => {
         items: [{
           target: { type: 'chapter', workId, chapterId }, workTitle: 'Work 1', chapterTitle: 'One',
           coverImageUrl: null, reportCount: 2, reporterCount: 2, categories: ['기타', '스팸/광고'],
-          oldestReportedAt: '2026-01-01T00:00:00+00:00', status: 'open', blinded: false, anchorReportId: reportA,
+          oldestReportedAt: '2026-01-01T00:00:00+00:00', status: 'open', statuses: ['open'], blinded: false, anchorReportId: reportA,
         }],
         page: 1, pageSize: 25, totalCount: 30, hasNext: false,
       },
@@ -128,7 +134,7 @@ describe('listReportGroups', () => {
     if (!result.ok) throw new Error('expected ok');
     expect(result.data.items).toHaveLength(25);
     expect(result.data.hasNext).toBe(true);
-    expect(result.data.items.every((g) => g.status === 'resolved')).toBe(true);
+    expect(result.data.items.every((g) => g.status === 'resolved' && g.statuses.join() === 'resolved')).toBe(true);
   });
 
   it('distinguishes work-level targets from chapter targets', async () => {
@@ -149,12 +155,33 @@ describe('listReportGroups', () => {
     });
   });
 
-  it.each([{ status: 'all' }, { page: 0 }, { page: -1 }, { page: 'x' }, { page: 1.5 }])(
+  it.each([{ status: 'deleted' }, { status: 'ALL' }, { page: 0 }, { page: -1 }, { page: 'x' }, { page: 1.5 }])(
     'rejects invalid filters without an RPC: %j', async (input) => {
       const { deps, rpc } = world();
       expect(await listReportGroups(input, deps)).toEqual({ ok: false, error: 'validation_failed' });
       expect(rpc).not.toHaveBeenCalled();
     });
+
+  it('routes only all to list_report_groups_all and maps the statuses present', async () => {
+    const row = { ...groupRow(1), statuses: ['dismissed', 'bogus', 'resolved'] };
+    const { deps, rpc } = world({ rpc: () => ok([row]) });
+    const result = await listReportGroups({ status: 'all', page: 2 }, deps);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith('list_report_groups_all', { p_limit: 26, p_offset: 25 });
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.data.items[0]).toMatchObject({ status: 'resolved', statuses: ['resolved', 'dismissed'] });
+    expect(JSON.stringify(result)).not.toMatch(/secret|idempotency|bogus/);
+  });
+
+  it('prefers open as the representative status and defaults a missing set to open', async () => {
+    const { deps } = world({ rpc: () => ok([{ ...groupRow(1), statuses: ['dismissed', 'open'] }, groupRow(2)]) });
+    const result = await listReportGroups({ status: 'all' }, deps);
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.data.items.map((g) => [g.status, g.statuses])).toEqual([
+      ['open', ['open', 'dismissed']],
+      ['open', ['open']],
+    ]);
+  });
 
   it('hides database errors', async () => {
     const { deps } = world({ rpc: () => ({ data: null, error: { message: 'relation secret_table does not exist' } }) });

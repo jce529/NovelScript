@@ -68,6 +68,8 @@ export async function runDocumentPlanningStrategy(args: {
 
   const systemInstruction = composeSystemInstruction({
     presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre,
+    // 04-09: same two instructions as the general chat path (validated/server-read by chatAction).
+    customInstruction: input.customInstruction, workSystemInstruction: input.workSystemInstruction,
     documentPlan: { category: plan.category as ChatInput['planning'] extends never ? never : import('@/lib/kb/categories').KbCategory, folderPath: plan.folderPath, templateName: plan.templateName, templateContent: plan.templateContent, purpose: plan.purpose },
   });
   const contents = assembleUserContent({ mentionedDocs: mentionedDocs as Array<{ name: string; category: string; content: string }>, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작가 페이지</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.hd{background:#fff}
+.hdi{max-width:1152px;margin:0 auto;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ib{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{border-top:1px solid #f1f1f3}
+.pti,.sti{max-width:1152px;margin:0 auto;padding:0 8px;box-sizing:border-box;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 16px;background:transparent;border-top:0;border-left:0;border-right:0;font-family:inherit;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{background:#fafafb;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7}
+.s1{font-size:14px;color:#52525b;padding:0 12px;min-height:44px;background:transparent;border:0;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.s1.on{color:#3730a3;font-weight:700}
+.wrap{max-width:1152px;margin:0 auto;padding:28px 16px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:0.08em;color:#71717a;text-transform:uppercase}
+.h2{margin:0;font-size:22px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:13px;color:#52525b;line-height:1.5}
+.gc{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#52525b;padding:7px 14px;border-radius:8px;white-space:nowrap;flex-shrink:0;background:#fff;border:1px solid #e4e4e7}
+.gc.on{background:#18181b;color:#fff;font-weight:600;border-color:#18181b}
+.tag{font-size:13px;color:#27272a;padding:7px 14px;border:1px solid #d4d4d8;border-radius:8px;white-space:nowrap;background:#fff}
+.sel{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#27272a;padding:8px 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;white-space:nowrap}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cv{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden}
+.num{position:absolute;left:0;top:0;min-width:28px;height:28px;background:rgba(0,0,0,0.6);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 8px;box-sizing:border-box}
+.trust{position:absolute;right:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#18181b;color:#fff}
+.t{font-size:14px;font-weight:600;color:#18181b;line-height:1.35}
+.au{font-size:12px;color:#71717a}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.btn{font-size:13px;font-weight:600;padding:9px 18px;border-radius:8px;border:1px solid #d4d4d8;background:#fff;color:#27272a}
+.st2{position:absolute;left:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:#27272a}
+.pr{font-size:12px;font-weight:700;color:#3730a3}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1100px">
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="Home.dc.html">NovelScript</a>
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500 토큰</span><a class="plus" href="TokenCharge.dc.html" style="background:{{accent}}" aria-label="토큰 충전">+</a></div>
+      <a class="ib" href="Search.dc.html" aria-label="검색" style="width:44px;height:44px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></a>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt" style="background:#fff"><div class="pti"><a class="p1" href="Series.dc.html">무료연재</a><a class="p1" href="Series.dc.html">유료연재</a><a class="p1" href="Ranking.dc.html">랭킹</a><a class="p1" href="Library.dc.html">내서재</a></div></nav>
+  </header>
+
+  <main class="wrap">
+    <a class="au" href="Search.dc.html" style="font-size:13px">‹ 검색 결과로</a>
+    <section style="background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+      <div style="width:84px;height:84px;border-radius:999px;background:linear-gradient(160deg,hsl(40 45% 82%),hsl(70 40% 60%));flex-shrink:0"></div>
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px">
+        <h1 class="h2">달빛작가</h1>
+        <p class="sub">서고와 도서관을 무대로 한 판타지를 씁니다. 매주 월·목 연재.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">작품 {{total}}편</span><span class="badge">연재중 {{ongoing}}편</span><span class="badge">완결 {{ended}}편</span><span class="badge">구독자 {{subs}}명</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:150px">
+        <button class="{{subCls}}" type="button" onClick="{{toggleSub}}" aria-pressed="{{subOn}}">{{subLabel}}</button>
+        <span class="sub" style="text-align:center">새 작품·새 회차 알림</span>
+      </div>
+    </section>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px"><sc-for list="{{filters}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+      <div style="display:flex;gap:8px"><sc-for list="{{sorts}}" as="f"><button class="{{f.cls}}" type="button" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+      <sc-for list="{{items}}" as="w" hint-placeholder-count="3">
+        <a class="card" href="WorkDesktop.dc.html">
+          <div class="cv" style="background:{{w.bg}}"><span class="st2">{{w.state}}</span><span class="trust">연독률 {{w.read}}%</span></div>
+          <span class="t">{{w.title}}</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge">{{w.genre}}</span><span class="badge">{{w.ep}}화</span><span class="badge">완독률 {{w.comp}}%</span></div>
+          <span class="au">{{w.date}}</span>
+        </a>
+      </sc-for>
+    </div>
+    <p class="sub">작품 상세의 작가 이름과 검색 결과의 작가 항목에서 들어와요. 공개된 작품만 보여주고, 숨김 처리된 작품은 나타나지 않아요.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const f = st.f || 'all';
+    const sort = st.sort || 'upd';
+    const subOn = !!st.sub;
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const src = [
+      { title: '달빛 서고', genre: '판타지', ep: 12, state: '연재중', read: 92, comp: 81, h: 262, date: '2026.09.20 연재 시작 · 어제 업데이트', start: 3, upd: 1, pop: 1 },
+      { title: '모래시계 도서관', genre: '판타지', ep: 60, state: '완결', read: 78, comp: 64, h: 40, date: '2025.11.02 연재 시작 · 완결', start: 2, upd: 3, pop: 2 },
+      { title: '은하 우체국', genre: '판타지', ep: 10, state: '연재중', read: 76, comp: 62, h: 250, date: '2026.10.01 연재 시작 · 3일 전 업데이트', start: 1, upd: 2, pop: 3 }
+    ];
+    let items = src.filter((w) => f === 'all' || (f === 'on' ? w.state === '연재중' : w.state === '완결'));
+    items.sort((a, b) => a[sort === 'upd' ? 'upd' : sort === 'start' ? 'start' : 'pop'] - b[sort === 'upd' ? 'upd' : sort === 'start' ? 'start' : 'pop']);
+    const mk = (defs, cur, key) => defs.map((d) => ({ label: d[1], cls: cur === d[0] ? 'gc on' : 'gc', pick: () => this.setState({ [key]: d[0] }) }));
+    return {
+      accent: this.props.accent ?? '#4f46e5',
+      subOn: subOn, subs: subOn ? '3,421' : '3,420', subLabel: subOn ? '구독 중' : '작가 알림 구독', subCls: subOn ? 'gc on' : 'gc', toggleSub: () => this.setState({ sub: !subOn }),
+      total: src.length, ongoing: src.filter((w) => w.state === '연재중').length, ended: src.filter((w) => w.state === '완결').length,
+      filters: mk([['all', '전체'], ['on', '연재중'], ['end', '완결']], f, 'f'),
+      sorts: mk([['upd', '업데이트순'], ['start', '신작순'], ['pop', '인기순']], sort, 'sort'),
+      items: items.map((w) => ({ title: w.title, genre: w.genre, ep: w.ep, state: w.state, read: w.read, comp: w.comp, bg: bg(w.h), date: w.date }))
+    };
+  }
+}
+</script>
+</body>
+</html>

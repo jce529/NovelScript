@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>무료·유료 연재 목록</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+.hd{background:#fff}
+.hdi{max-width:1152px;margin:0 auto;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:14px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;color:#18181b;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ib{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#27272a;border:0;background:transparent;padding:0}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pt{border-top:1px solid #f1f1f3}
+.pti,.sti{max-width:1152px;margin:0 auto;padding:0 8px;box-sizing:border-box;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.p1{font-size:15px;font-weight:600;color:#3f3f46;padding:12px 16px;background:transparent;border-top:0;border-left:0;border-right:0;font-family:inherit;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0}
+.p1.on{color:#3730a3;border-bottom-color:#4f46e5}
+.st{background:#fafafb;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7}
+.s1{font-size:14px;color:#52525b;padding:0 12px;min-height:44px;background:transparent;border:0;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.s1.on{color:#3730a3;font-weight:700}
+.wrap{max-width:1152px;margin:0 auto;padding:28px 16px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:0.08em;color:#71717a;text-transform:uppercase}
+.h2{margin:0;font-size:22px;font-weight:700;color:#18181b}
+.sub{margin:0;font-size:13px;color:#52525b;line-height:1.5}
+.gc{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#52525b;padding:7px 14px;border-radius:8px;white-space:nowrap;flex-shrink:0;background:#fff;border:1px solid #e4e4e7}
+.gc.on{background:#18181b;color:#fff;font-weight:600;border-color:#18181b}
+.tag{font-size:13px;color:#27272a;padding:7px 14px;border:1px solid #d4d4d8;border-radius:8px;white-space:nowrap;background:#fff}
+.sel{font-family:inherit;cursor:pointer;min-height:36px;font-size:13px;color:#27272a;padding:8px 12px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;white-space:nowrap}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cv{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden}
+.num{position:absolute;left:0;top:0;min-width:28px;height:28px;background:rgba(0,0,0,0.6);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 8px;box-sizing:border-box}
+.trust{position:absolute;right:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#18181b;color:#fff}
+.t{font-size:14px;font-weight:600;color:#18181b;line-height:1.35}
+.au{font-size:12px;color:#71717a}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.btn{font-size:13px;font-weight:600;padding:9px 18px;border-radius:8px;border:1px solid #d4d4d8;background:#fff;color:#27272a}
+.st2{position:absolute;left:8px;top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff;color:#27272a}
+.pr{font-size:12px;font-weight:700;color:#3730a3}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1500px">
+  <header class="hd">
+    <div class="hdi">
+      <a class="logo" href="Home.dc.html">NovelScript</a>
+      <span style="flex-grow:1"></span>
+      <div class="tok"><span>1,500 토큰</span><a class="plus" href="TokenCharge.dc.html" style="background:{{accent}}" aria-label="토큰 충전">+</a></div>
+      <button class="ib" type="button" aria-label="검색" style="width:44px;height:44px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <span class="av">김</span>
+    </div>
+    <nav class="pt" style="background:#fff"><div class="pti">
+      <button class="{{freeCls}}" type="button" onClick="{{goFree}}">무료연재</button>
+      <button class="{{paidCls}}" type="button" onClick="{{goPaid}}">유료연재</button>
+      <a class="p1" href="Ranking.dc.html">랭킹</a><a class="p1" href="Library.dc.html">내서재</a>
+    </div></nav>
+    <nav class="st"><div class="sti"><sc-for list="{{subs}}" as="s"><button class="{{s.cls}}" type="button" onClick="{{s.pick}}">{{s.label}}</button></sc-for></div></nav>
+  </header>
+
+  <main class="wrap">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span class="eyebrow">{{eyebrow}}</span>
+      <h1 class="h2">{{title}}</h1>
+      <p class="sub">{{desc}}</p>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;min-width:0">
+        <span class="tag">태그검색</span>
+        <sc-for list="{{genres}}" as="g"><button class="{{g.cls}}" type="button" onClick="{{g.pick}}">{{g.label}}</button></sc-for>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span class="sel">{{sortLabel}} ▾</span><span class="sel">{{statusLabel}} ▾</span>
+      </div>
+    </div>
+
+    <p class="sub" style="font-size:12px">신작은 연재 시작일이 가까운 순, 인기는 완독률과 조회수를 함께 반영한 순서예요.</p>
+    <sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px">
+        <sc-for list="{{items}}" as="w" hint-placeholder-count="12">
+          <a class="card" href="WorkDesktop.dc.html">
+            <div class="cv" style="background:{{w.bg}}"><sc-if value="{{w.tag}}" hint-placeholder-val="{{false}}"><span class="st2">{{w.tag}}</span></sc-if></div>
+            <span class="t">{{w.title}}</span>
+            <span class="au">{{w.author}}</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge">{{w.genre}}</span><span class="badge">{{w.ep}}화</span><span class="pr">{{w.price}}</span></div>
+          </a>
+        </sc-for>
+      </div>
+      <div style="display:flex;justify-content:center"><span class="btn">더보기</span></div>
+    </sc-if>
+    <sc-if value="{{noItems}}" hint-placeholder-val="{{false}}">
+      <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:40px 16px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center">
+        <b style="font-size:16px">조건에 맞는 작품이 없어요</b><span class="sub">장르나 정렬 조건을 바꿔 보세요.</span>
+        <button class="btn" type="button" onClick="{{reset}}">필터 초기화</button>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const kind = st.kind || 'free';
+    const sub = st.sub || 'all';
+    const genre = st.genre || '전체';
+    const bg = (h) => 'linear-gradient(160deg,hsl(' + h + ' 45% 82%),hsl(' + (h + 30) + ' 40% 60%))';
+    const subDefs = [['all', '전체'], ['new', '신작'], ['hot', '인기'], ['end', '완결']];
+    const subs = subDefs.map((d) => ({ label: d[1], cls: sub === d[0] ? 's1 on' : 's1', pick: () => this.setState({ sub: d[0] }) }));
+    const genres = ['전체', '판타지', '무협', '현대', '로맨스', '미스터리', '현대판타지'].map((g) => ({ label: g, cls: genre === g ? 'gc on' : 'gc', pick: () => this.setState({ genre: g }) }));
+    const src = [
+      ['달빛 서고', '작가 A', '판타지', 12, 262, 'new', 'hot'],
+      ['잿빛 항구의 편지', '작가 B', '로맨스', 11, 20, 'new', 'hot'],
+      ['열세 번째 계절', '작가 C', '미스터리', 13, 160, 'end', ''],
+      ['북쪽 별의 서기관', '작가 D', '판타지', 25, 210, '', 'hot'],
+      ['여름의 끝에서 만나', '작가 E', '현대', 11, 340, 'new', ''],
+      ['소금 길의 약속', '작가 F', '로맨스', 40, 350, 'end', 'hot'],
+      ['유리 탑의 수리공', '작가 G', '판타지', 12, 190, '', 'hot'],
+      ['밤 열한 시의 편의점', '작가 H', '현대', 30, 120, 'end', ''],
+      ['붉은 지도의 주인', '작가 I', '미스터리', 14, 5, 'new', ''],
+      ['겨울 해바라기', '작가 J', '로맨스', 8, 300, 'new', ''],
+      ['검은 숲의 약사', '작가 K', '판타지', 52, 130, '', 'hot'],
+      ['모래시계 도서관', '작가 L', '판타지', 60, 40, 'end', '']
+    ];
+    const items = src.filter((a, i) => {
+      if (genre !== '전체' && a[2] !== genre) return false;
+      if (sub === 'new') return a[5] === 'new';
+      if (sub === 'end') return a[5] === 'end';
+      if (sub === 'hot') return a[6] === 'hot';
+      return true;
+    }).map((a, i) => ({
+      title: a[0], author: a[1], genre: a[2], ep: a[3], bg: bg(a[4]),
+      tag: a[5] === 'end' ? '완결' : a[5] === 'new' ? 'NEW' : '',
+      price: kind === 'paid' ? (a[3] > 20 ? '회차당 3토큰~' : '3화부터 유료') : '무료'
+    }));
+    const isFree = kind === 'free';
+    return {
+      accent: this.props.accent ?? '#4f46e5', subs: subs, genres: genres, items: items,
+      hasItems: items.length > 0, noItems: items.length === 0,
+      freeCls: isFree ? 'p1 on' : 'p1', paidCls: isFree ? 'p1' : 'p1 on',
+      goFree: () => this.setState({ kind: 'free', sub: 'all' }), goPaid: () => this.setState({ kind: 'paid', sub: 'all' }),
+      eyebrow: isFree ? 'Free Series' : 'Paid Series',
+      title: isFree ? '무료연재' : '유료연재',
+      desc: isFree ? '모든 회차를 무료로 읽을 수 있는 작품이에요.' : '앞부분은 무료로 읽고, 이후 회차는 소장하거나 대여해서 읽는 작품이에요.',
+      sortLabel: sub === 'hot' ? '인기순 (완독률·조회수)' : sub === 'new' ? '연재 시작일순' : '업데이트순',
+      statusLabel: sub === 'end' ? '완결만' : '연재 전체',
+      reset: () => this.setState({ genre: '전체', sub: 'all' })
+    };
+  }
+}
+</script>
+</body>
+</html>

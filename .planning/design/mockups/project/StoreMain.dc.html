@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>에셋 스토어 메인</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9;color:#18181b}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+button{cursor:pointer}
+.hd{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #e4e4e7;height:60px;padding:0 16px;box-sizing:border-box;display:flex;align-items:center;gap:12px}
+.logo{font-size:17px;font-weight:800;letter-spacing:-0.02em;white-space:nowrap}
+.sp{font-size:13px;font-weight:700;color:#3730a3;background:#e0e7ff;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.srch{flex:1;max-width:420px;min-width:120px;height:38px;box-sizing:border-box;border:1px solid #d4d4d8;border-radius:999px;padding:0 14px;font-size:14px;background:#fafafa}
+.ib{position:relative;width:40px;height:40px;border-radius:999px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:#27272a;flex-shrink:0}
+.cnt{position:absolute;top:2px;right:0;min-width:18px;height:18px;border-radius:999px;background:#4f46e5;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.tok{display:flex;align-items:center;gap:8px;border:1px solid #d4d4d8;border-radius:999px;padding:4px 6px 4px 12px;font-size:14px;font-weight:600;white-space:nowrap}
+.plus{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wrap{max-width:1152px;margin:0 auto;padding:20px 16px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px}
+.h2{margin:0;font-size:19px;font-weight:700}
+.k{font-size:12px;color:#71717a;line-height:1.5}
+.show{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.ban{border-radius:16px;min-height:150px;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;color:#fff;position:relative;overflow:hidden}
+.ban b{font-size:19px;line-height:1.3}
+.ban span{font-size:13px;opacity:.92}
+.flt{background:#fff;border:1px solid #e4e4e7;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.fr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fl{font-size:13px;font-weight:700;width:64px;flex-shrink:0;color:#3f3f46}
+.chip{font-size:13px;color:#52525b;padding:7px 13px;min-height:36px;border-radius:8px;border:1px solid #e4e4e7;background:#fff;white-space:nowrap}
+.chip.on{background:#18181b;color:#fff;border-color:#18181b;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.cv{height:128px;position:relative}
+.ty{position:absolute;left:10px;top:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.93);color:#18181b}
+.ow{position:absolute;right:10px;top:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#166534;color:#fff}
+.cb{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px}
+.t{font-size:15px;font-weight:700;line-height:1.35}
+.sl{font-size:13px;color:#3730a3;font-weight:600}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#52525b;align-items:center}
+.pr{font-size:15px;font-weight:800}
+.tg{font-size:11px;color:#52525b;background:#f4f4f5;border-radius:6px;padding:3px 7px}
+.empty{background:#fff;border:1px dashed #d4d4d8;border-radius:14px;padding:40px 16px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.btn{height:44px;border-radius:10px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:14px;font-weight:700;padding:0 16px}
+.sel{height:36px;border-radius:8px;border:1px solid #d4d4d8;background:#fff;padding:0 10px;font-size:13px}
+</style>
+</helmet>
+<div style="--accent: {{accent}}; min-height:1500px">
+  <header class="hd">
+    <a class="logo" href="Home.dc.html">NovelScript</a>
+    <span class="sp">에셋 스토어</span>
+    <input class="srch" type="search" placeholder="세계관·문체 프롬프트·템플릿 검색" aria-label="에셋 검색" value="{{q}}" onInput="{{onQ}}">
+    <span style="flex-grow:1"></span>
+    <a class="btn" href="StoreSeller.dc.html" style="height:36px;display:flex;align-items:center;font-size:13px">내 에셋 판매</a>
+    <button class="ib" type="button" aria-label="장바구니"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12zM6 6L5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg><span class="cnt">2</span></button>
+    <div class="tok"><span>1,500 토큰</span><span class="plus" style="background:{{accent}}">+</span></div>
+    <span class="av">김</span>
+  </header>
+
+  <main class="wrap">
+    <p class="k" style="margin:0">스토어 진입은 프로필 메뉴의 `에셋 스토어`와 스튜디오 헤더의 링크 두 곳이다(헤더 탭으로는 두지 않는다). 에셋은 세계관 · 문체 프롬프트 · 템플릿 세 종류이고 각각 통째로 판매한다(인물·장소만 따로 팔지 않는다). 장바구니는 스토어 안에서만 보인다. 에셋 이름·판매자·가격·평점은 모두 샘플이다.</p>
+
+    <section style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 class="h2">추천 모음</h2><span class="k">운영에서 고른 주제별 큐레이션</span></div>
+      <div class="show">
+        <a class="ban" href="AssetDetail.dc.html" style="background:linear-gradient(150deg,#4338ca,#7c3aed)"><b>이달의 베스트셀러 세계관</b><span>이번 달 가장 많이 담긴 세계관 팩 모음</span></a>
+        <a class="ban" href="AssetDetail.dc.html" style="background:linear-gradient(150deg,#1f2937,#6d28d9)"><b>새로 올라온 다크 판타지 팩</b><span>최근 2주 안에 등록된 신규 에셋</span></a>
+        <a class="ban" href="AssetDetail.dc.html" style="background:linear-gradient(150deg,#0f766e,#1d4ed8)"><b>히트작이 선택한 문체 프롬프트</b><span>랭킹 상위 작품이 쓴 문체만 모았어요</span></a>
+      </div>
+    </section>
+
+    <section class="flt" aria-label="검색 필터">
+      <div class="fr"><span class="fl">장르</span><sc-for list="{{genres}}" as="g"><button class="{{g.cls}}" type="button" onClick="{{g.pick}}">{{g.label}}</button></sc-for></div>
+      <div class="fr"><span class="fl">에셋 유형</span><sc-for list="{{types}}" as="g"><button class="{{g.cls}}" type="button" onClick="{{g.pick}}">{{g.label}}</button></sc-for></div>
+      <div class="fr"><span class="fl">가격</span><sc-for list="{{prices}}" as="g"><button class="{{g.cls}}" type="button" onClick="{{g.pick}}">{{g.label}}</button></sc-for></div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <h2 class="h2">에셋 <span class="k" style="font-weight:400">{{count}}</span></h2>
+        <label class="k" style="display:flex;gap:8px;align-items:center">정렬
+          <select class="sel" onChange="{{onSort}}"><sc-for list="{{sorts}}" as="s"><option value="{{s.v}}" selected="{{s.sel}}">{{s.label}}</option></sc-for></select>
+        </label>
+      </div>
+      <sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+        <div class="grid">
+          <sc-for list="{{items}}" as="a">
+            <a class="card" href="AssetDetail.dc.html">
+              <div class="cv" style="background:{{a.bg}}"><span class="ty">{{a.type}}</span><sc-if value="{{a.owned}}" hint-placeholder-val="{{false}}"><span class="ow">구매함</span></sc-if></div>
+              <div class="cb">
+                <span class="t">{{a.title}}</span>
+                <span class="sl">{{a.seller}}</span>
+                <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tg">{{a.genre}}</span><sc-if value="{{a.sample}}" hint-placeholder-val="{{false}}"><span class="tg">예시 데이터 포함</span></sc-if></div>
+                <div class="meta"><span>★ {{a.rating}} ({{a.rev}}) · 판매 {{a.sold}}</span><span class="pr">{{a.price}}</span></div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{noItems}}" hint-placeholder-val="{{false}}">
+        <div class="empty">
+          <b style="font-size:16px">조건에 맞는 에셋이 없어요</b>
+          <span class="k">장르나 가격 조건을 줄이거나 필터를 초기화해 보세요.</span>
+          <button class="btn" type="button" onClick="{{reset}}">필터 초기화</button>
+        </div>
+      </sc-if>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4f46e5","options":["#4f46e5","#0f766e","#be185d","#b45309"]},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const genre = st.genre || 'all', type = st.type || 'all', price = st.price || 'all', sort = st.sort || 'pop', q = (st.q || '').trim();
+    const bg = (h) => 'linear-gradient(150deg,hsl(' + h + ' 45% 40%),hsl(' + (h + 40) + ' 50% 62%))';
+    const all = [
+      { title: '다크 판타지 유니버스 팩', type: '세계관', genre: '판타지', seller: '달빛작가', min: 25, rating: '4.8', rev: 126, sold: 842, h: 260, sample: false, owned: true, date: 3 },
+      { title: '제국 암살자 문체 프롬프트', type: '문체 프롬프트', genre: '무협', seller: '검은펜', min: 12, rating: '4.6', rev: 88, sold: 530, h: 20, sample: false, owned: false, date: 5 },
+      { title: '궁중 로맨스 설정 템플릿', type: '템플릿', genre: '로맨스', seller: '유리공방', min: 10, rating: '4.7', rev: 54, sold: 301, h: 330, sample: true, owned: false, date: 2 },
+      { title: '성간 항로 세계관', type: '세계관', genre: 'SF', seller: '소금길', min: 30, rating: '4.5', rev: 41, sold: 218, h: 200, sample: false, owned: false, date: 1 },
+      { title: '강호 연대기', type: '세계관', genre: '무협', seller: '검은펜', min: 22, rating: '4.4', rev: 33, sold: 190, h: 140, sample: false, owned: false, date: 4 },
+      { title: '담백한 1인칭 문체', type: '문체 프롬프트', genre: '로맨스', seller: '유리공방', min: 8, rating: '4.9', rev: 71, sold: 477, h: 300, sample: false, owned: false, date: 6 },
+      { title: '폐허 도시 생존 규칙', type: '세계관', genre: 'SF', seller: '달빛작가', min: 28, rating: '4.3', rev: 19, sold: 96, h: 60, sample: false, owned: false, date: 7 },
+      { title: '학원 이능 설정 템플릿', type: '템플릿', genre: '판타지', seller: '소금길', min: 9, rating: '4.2', rev: 12, sold: 58, h: 100, sample: true, owned: false, date: 8 }
+    ];
+    const mk = (defs, cur, key) => defs.map((d) => ({ label: d[1], cls: cur === d[0] ? 'chip on' : 'chip', pick: () => this.setState({ [key]: d[0] }) }));
+    let items = all.filter((a) => (genre === 'all' || a.genre === genre) && (type === 'all' || a.type === type)
+      && (price === 'all' || (price === 'lo' ? a.min <= 10 : price === 'mid' ? a.min >= 11 && a.min <= 20 : a.min >= 21))
+      && (!q || (a.title + a.seller + a.genre).indexOf(q) >= 0));
+    if (sort === 'pop') items.sort((x, y) => y.sold - x.sold);
+    if (sort === 'new') items.sort((x, y) => x.date - y.date);
+    if (sort === 'lo') items.sort((x, y) => x.min - y.min);
+    if (sort === 'rate') items.sort((x, y) => parseFloat(y.rating) - parseFloat(x.rating));
+    const sortDefs = [['pop', '인기순'], ['new', '신규순'], ['rate', '평점순'], ['lo', '낮은 가격순']];
+    return {
+      accent: this.props.accent ?? '#4f46e5', q: st.q || '',
+      onQ: (e) => this.setState({ q: e.target.value }),
+      genres: mk([['all', '전체'], ['판타지', '판타지'], ['무협', '무협'], ['로맨스', '로맨스'], ['SF', 'SF']], genre, 'genre'),
+      types: mk([['all', '전체'], ['세계관', '세계관'], ['문체 프롬프트', '문체 프롬프트'], ['템플릿', '템플릿']], type, 'type'),
+      prices: mk([['all', '전체'], ['lo', '10토큰 이하'], ['mid', '11~20토큰'], ['hi', '21토큰 이상']], price, 'price'),
+      sorts: sortDefs.map((s) => ({ v: s[0], label: s[1], sel: sort === s[0] })),
+      onSort: (e) => this.setState({ sort: e.target.value }),
+      count: items.length + '개',
+      hasItems: items.length > 0, noItems: items.length === 0,
+      reset: () => this.setState({ genre: 'all', type: 'all', price: 'all', q: '' }),
+      items: items.map((a) => ({ title: a.title, type: a.type, genre: a.genre, seller: a.seller, rating: a.rating, rev: a.rev, sold: a.sold, sample: a.sample, owned: a.owned, bg: bg(a.h), price: a.min + '토큰' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

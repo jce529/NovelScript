@@ -69,6 +69,7 @@ const key = '70000000-0000-4000-8000-000000000001';
 
 import * as serverActions from '../../app/admin/actions';
 import {
+  adjustUserSanctionAction,
   moderateReportGroupAction,
   resolveReviewRequestAction,
   unblindTargetAction,
@@ -87,11 +88,23 @@ const blind = {
 };
 const unblind = { idempotencyKey: key, workId, chapterId, targetVersion: 'v2', reason: '수정 확인' };
 const review = { idempotencyKey: key, requestId, outcome: 'unblinded' as const, targetVersion: 'v3', reason: '수정됨' };
+const targetUserId = '10000000-0000-4000-8000-000000000001';
+const lift = {
+  idempotencyKey: key,
+  userId: targetUserId,
+  expectedSeq: '9007199254740993',
+  operation: 'lift' as const,
+  reason: ' 소명 확인 ',
+  publicReason: ' 제재 해제 ',
+  endsAt: null,
+};
+const futureIso = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 
 const invocations: [string, () => Promise<unknown>][] = [
   ['moderateReportGroupAction', () => moderateReportGroupAction(blind)],
   ['unblindTargetAction', () => unblindTargetAction(unblind)],
   ['resolveReviewRequestAction', () => resolveReviewRequestAction(review)],
+  ['adjustUserSanctionAction', () => adjustUserSanctionAction(lift)],
 ];
 
 beforeEach(() => {
@@ -104,7 +117,7 @@ beforeEach(() => {
 });
 
 describe('server action module surface', () => {
-  it("is a 'use server' module exporting exactly the three guarded commands", () => {
+  it("is a 'use server' module exporting exactly the four guarded commands", () => {
     const source = readFileSync(path.resolve(__dirname, '../../app/admin/actions.ts'), 'utf8');
     expect(source.trimStart().startsWith("'use server'")).toBe(true);
     const exported = Object.entries(serverActions)
@@ -160,6 +173,60 @@ describe('forged actor input is ignored', () => {
       expect(args.p_actor_id).toBe(adminId);
       expect(JSON.stringify(args)).not.toContain(forgedActor);
     }
+  });
+
+  it('sanction adjustment binds the session administrator and only the target userId', async () => {
+    const forged = { ...lift, actorId: forgedActor, p_actor_id: forgedActor, actor: { userId: forgedActor }, extra: 'x' };
+    expect(await adjustUserSanctionAction(forged as never)).toEqual({ ok: true, data: { actionId: ACTION_ID } });
+    const [fn, args] = h.rpc.mock.calls[0] as [string, Record<string, unknown>];
+    expect(fn).toBe('adjust_user_sanction');
+    expect(args.p_actor_id).toBe(adminId);
+    expect(args.p_user_id).toBe(targetUserId);
+    expect(Object.keys(args).sort()).toEqual([
+      'p_actor_id', 'p_ends_at', 'p_expected_seq', 'p_idempotency_key', 'p_operation', 'p_public_reason', 'p_reason', 'p_user_id',
+    ]);
+    expect(JSON.stringify(args)).not.toContain(forgedActor);
+  });
+});
+
+describe('sanction adjustment validation happens before any write', () => {
+  it.each([
+    ['empty reasons', { reason: '  ', publicReason: '' }, 'reason_required'],
+    ['non-UUID user', { userId: 'user-1' }, 'validation_failed'],
+    ['non-UUID retry key', { idempotencyKey: 'retry-1' }, 'validation_failed'],
+    ['non-decimal seq', { expectedSeq: '1e3' }, 'validation_failed'],
+    ['negative seq', { expectedSeq: '-1' }, 'validation_failed'],
+    ['numeric seq', { expectedSeq: 12 as unknown as string }, 'validation_failed'],
+    ['oversized seq', { expectedSeq: '9'.repeat(20) }, 'validation_failed'],
+    ['unknown operation', { operation: 'warn' as unknown as 'lift' }, 'validation_failed'],
+    ['lift with expiry', { endsAt: futureIso(1) }, 'validation_failed'],
+    ['duration change without expiry', { operation: 'change_duration' as const, endsAt: null }, 'validation_failed'],
+    ['duration change to the past', { operation: 'change_duration' as const, endsAt: '2020-01-01T00:00:00Z' }, 'validation_failed'],
+    ['duration change with a non-ISO expiry', { operation: 'change_duration' as const, endsAt: 'tomorrow' }, 'validation_failed'],
+    ['internal reason over 2000', { reason: 'a'.repeat(2001) }, 'validation_failed'],
+    ['public reason over 500', { publicReason: 'a'.repeat(501) }, 'validation_failed'],
+  ])('%s is rejected without RPC or revalidation', async (_label, patch, code) => {
+    const result = await adjustUserSanctionAction({ ...lift, ...patch });
+    expect(result).toMatchObject({ ok: false, error: code });
+    expect(h.rpc).not.toHaveBeenCalled();
+    expect(h.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('empty reasons report both field errors', async () => {
+    const result = await adjustUserSanctionAction({ ...lift, reason: '', publicReason: ' ' });
+    expect(result).toMatchObject({
+      fieldErrors: { reason: '조치 사유를 입력해 주세요.', publicReason: '조치 사유를 입력해 주세요.' },
+    });
+  });
+
+  it('a malformed non-object payload is rejected without an RPC', async () => {
+    expect((await adjustUserSanctionAction(null as never)).ok).toBe(false);
+    expect(h.rpc).not.toHaveBeenCalled();
+  });
+
+  it('seq zero is syntactically allowed and left to the database current-seq check', async () => {
+    expect((await adjustUserSanctionAction({ ...lift, expectedSeq: '0' })).ok).toBe(true);
+    expect((h.rpc.mock.calls[0] as [string, Record<string, unknown>])[1].p_expected_seq).toBe('0');
   });
 });
 
@@ -279,6 +346,30 @@ describe('exact command binding', () => {
       p_reason: '수정됨',
     });
   });
+
+  it('lift binds adjust_user_sanction with a null expiry and the seq as a decimal string', async () => {
+    await adjustUserSanctionAction(lift);
+    expect(h.rpc).toHaveBeenCalledTimes(1);
+    expect(h.rpc).toHaveBeenCalledWith('adjust_user_sanction', {
+      p_actor_id: adminId,
+      p_idempotency_key: key,
+      p_user_id: targetUserId,
+      p_expected_seq: '9007199254740993',
+      p_operation: 'lift',
+      p_reason: '소명 확인',
+      p_public_reason: '제재 해제',
+      p_ends_at: null,
+    });
+  });
+
+  it('duration change binds the future expiry', async () => {
+    const endsAt = futureIso(7);
+    await adjustUserSanctionAction({ ...lift, operation: 'change_duration', endsAt });
+    expect(h.rpc).toHaveBeenCalledWith('adjust_user_sanction', expect.objectContaining({
+      p_operation: 'change_duration',
+      p_ends_at: endsAt,
+    }));
+  });
 });
 
 describe('revalidation only after successful writes', () => {
@@ -299,6 +390,32 @@ describe('revalidation only after successful writes', () => {
     const result = await moderateReportGroupAction(blind);
     expect(result).toEqual({ ok: false, error: code });
     expect(JSON.stringify(result)).not.toContain('reset');
+    expect(h.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('a successful sanction adjustment revalidates admin, reader and studio routes', async () => {
+    await adjustUserSanctionAction(lift);
+    expect(h.revalidatePath).toHaveBeenCalledWith('/admin', 'layout');
+    expect(h.revalidatePath).toHaveBeenCalledWith('/works/[workId]', 'layout');
+    expect(h.revalidatePath).toHaveBeenCalledWith('/studio', 'layout');
+  });
+
+  it.each([
+    ['stale_target', 'stale_target'],
+    ['no_active_sanction', 'stale_target'],
+    ['idempotency_conflict', 'conflict'],
+    ['self_sanction_forbidden', 'self_sanction_forbidden'],
+    ['sanction_unchanged', 'validation_failed'],
+    ['invalid_sanction_expiry', 'validation_failed'],
+    ['invalid_action', 'validation_failed'],
+    ['invalid_arguments', 'validation_failed'],
+    ['profile_not_found', 'not_found'],
+    ['actor_not_admin', 'not_found'],
+    ['connection reset', 'unavailable'],
+  ])('adjustment RPC failure "%s" maps to %s without revalidation', async (message, code) => {
+    h.rpcError = { message };
+    const result = await adjustUserSanctionAction(lift);
+    expect(result).toEqual({ ok: false, error: code });
     expect(h.revalidatePath).not.toHaveBeenCalled();
   });
 });

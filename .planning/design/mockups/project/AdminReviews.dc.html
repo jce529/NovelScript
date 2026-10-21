@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>관리자 작가 재검토</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font-family:inherit}
+button{cursor:pointer}
+.hd{background:#fff;border-bottom:1px solid #e4e4e7;height:52px;padding:0 24px;box-sizing:border-box;display:flex;align-items:center;gap:16px}
+.logo{font-size:17px;font-weight:800;color:#18181b;letter-spacing:-0.02em}
+.av{width:30px;height:30px;border-radius:999px;background:#c7d2fe;color:#3730a3;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tabs{display:flex;gap:2px;padding:0 24px;background:#fff;border-bottom:1px solid #e4e4e7;overflow-x:auto}
+.tb{font-size:14px;font-weight:600;color:#71717a;padding:12px 16px;border-bottom:2px solid transparent;white-space:nowrap}
+.tb.on{color:#18181b;border-bottom-color:#18181b}
+.card{background:#fff;border:1px solid #e4e4e7;border-radius:12px}
+.qi{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:0;border-bottom:1px solid #f1f1f3;background:#fff;text-align:left;width:100%;box-sizing:border-box}
+.qi.on{background:#eef2ff}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#f4f4f5;color:#3f3f46;white-space:nowrap}
+.badge.red{background:#fee2e2;color:#991b1b}
+.badge.ind{background:#e0e7ff;color:#3730a3}
+.badge.ok{background:#dcfce7;color:#166534}
+.badge.warn{background:#fef3c7;color:#854d0e}
+.lbl{font-size:12px;font-weight:700;color:#52525b;margin-bottom:6px}
+.opt{height:42px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;color:#27272a;font-size:13px;font-weight:600;padding:0 12px}
+.opt.on{background:#18181b;color:#fff;border-color:#18181b}
+.opt.danger.on{background:#dc2626;border-color:#dc2626}
+.sub{margin:0;font-size:12px;color:#52525b;line-height:1.55}
+.box{border:1px solid #d4d4d8;border-radius:10px;padding:10px 12px;min-height:56px;font-size:13px;color:#52525b;line-height:1.55;width:100%;box-sizing:border-box}
+.pb{height:42px;border-radius:9px;border:0;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;padding:0 20px}
+.msg{font-size:13px;font-weight:600;color:#166534;background:#dcfce7;border-radius:10px;padding:10px 12px}
+.tl{border-left:2px solid #e4e4e7;margin-left:6px;padding-left:16px;display:flex;flex-direction:column;gap:14px}
+.tli{position:relative;display:flex;flex-direction:column;gap:3px}
+.tli:before{content:"";position:absolute;left:-23px;top:5px;width:10px;height:10px;border-radius:999px;background:#a1a1aa}
+</style>
+</helmet>
+<div style="width:1280px;min-height:820px;box-sizing:border-box">
+  <header class="hd"><a class="logo" href="Home.dc.html">NovelScript</a><span style="font-size:13px;color:#52525b">관리자</span><span style="flex-grow:1"></span><span class="av">관</span></header>
+  <nav class="tabs"><a class="tb" href="AdminReports.dc.html">작품·회차 신고</a><a class="tb" href="AdminComments.dc.html">댓글 신고</a><a class="tb on" href="AdminReviews.dc.html">작가 재검토</a><a class="tb" href="AdminSanctions.dc.html">제재 이력</a></nav>
+
+  <div style="display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;padding:20px 24px 40px;align-items:start">
+    <div class="card" style="overflow:hidden">
+      <div style="padding:12px 14px;border-bottom:1px solid #e4e4e7;font-size:14px;font-weight:700">재검토 요청 {{openCount}}건</div>
+      <sc-for list="{{queue}}" as="q" hint-placeholder-count="3">
+        <button class="{{q.cls}}" type="button" onClick="{{q.pick}}">
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge ind">{{q.target}}</span><span class="badge {{q.stCls}}">{{q.status}}</span></div>
+          <span style="font-size:13px;font-weight:600">{{q.title}}</span>
+          <span class="sub">작가 {{q.author}} · 요청 {{q.when}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:18px;min-width:0">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:700;color:#71717a">작가 재검토 요청</span><span style="font-size:18px;font-weight:700">{{sel.title}}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+        <div style="background:#fef2f2;border-radius:10px;padding:12px 14px"><div class="lbl" style="color:#991b1b">블라인드 사유</div><span style="font-size:13px;line-height:1.6">{{sel.reason}}</span><div class="sub" style="padding-top:6px">적용일 {{sel.since}} · 처리자 관리자B</div></div>
+        <div style="background:#f7f7f9;border-radius:10px;padding:12px 14px"><div class="lbl">작가 소명</div><span style="font-size:13px;line-height:1.6">{{sel.appeal}}</span></div>
+      </div>
+      <div><div class="lbl">수정 이력</div><div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{sel.edits}}" as="e"><span>· {{e}}</span></sc-for></div></div>
+      <div><div class="lbl">판단</div><div style="display:flex;gap:8px"><sc-for list="{{choices}}" as="o"><button class="{{o.cls}}" type="button" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div></div>
+      <div><div class="lbl">해제·유지 사유 (내부)</div><div class="box">{{inner}}</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="sub">해제하면 즉시 공개되고, 선호작 독자에게는 `공개` 알림만 가요. 유지하면 작가에게 사유가 전달돼요.</span><button class="pb" type="button" onClick="{{apply}}">판단 확정</button></div>
+      <sc-if value="{{msg}}" hint-placeholder-val="{{false}}"><div class="msg">{{msg}}</div></sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const items = [
+      { id: 1, target: '회차', title: '잿빛 항구의 편지 · 20화', author: '소금길', when: '3시간 전', reason: '시놉시스와 무관한 광고성 본문', since: '10.08', appeal: '광고 문구를 모두 삭제하고 본문을 원래 전개로 되돌렸습니다.', edits: ['10.09 본문 수정 (광고 문단 3개 삭제)', '10.10 재검토 요청'] },
+      { id: 2, target: '작품', title: '북극여우의 일기', author: '북극여우', when: '어제', reason: '표지 이미지 저작권 의심', since: '10.06', appeal: '직접 제작한 표지로 교체했습니다.', edits: ['10.09 표지 교체', '10.09 재검토 요청'] }
+    ];
+    const done = st.done || {}; const selId = st.sel || 1; const sel = items.find((x) => x.id === selId); const pick = st.pick || 'unblind';
+    const label = (id) => (done[id] ? (done[id] === 'unblind' ? '해제됨' : '유지됨') : '대기');
+    return {
+      openCount: items.filter((x) => !done[x.id]).length,
+      queue: items.map((q) => ({ target: q.target, title: q.title, author: q.author, when: q.when, status: label(q.id), stCls: done[q.id] ? 'ok' : 'warn', cls: q.id === selId ? 'qi on' : 'qi', pick: () => this.setState({ sel: q.id, msg: '' }) })),
+      sel: sel,
+      choices: [['unblind', '블라인드 해제'], ['keep', '블라인드 유지']].map((c) => ({ label: c[1], cls: pick === c[0] ? 'opt on' : 'opt', pick: () => this.setState({ pick: c[0] }) })),
+      inner: pick === 'unblind' ? '수정 내용이 정책에 맞아 해제.' : '수정 후에도 정책 위반이 남아 유지. 추가 수정 안내.',
+      msg: st.msg || '',
+      apply: () => { const d = Object.assign({}, done); d[selId] = pick; this.setState({ done: d, msg: pick === 'unblind' ? '블라인드를 해제했어요. 선호작 독자에게 공개 알림이 전달돼요.' : '블라인드를 유지했어요. 사유가 작가에게 전달돼요.' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

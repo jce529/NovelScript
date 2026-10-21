@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Phase 17 context gathered
-last_updated: "2026-10-07T23:59:23.611Z"
-last_activity: 2026-10-10 -- Phase 11 코드 완료 (11-01~07), 11-VERIFICATION human_needed(브라우저 UAT 6건 대기)
+stopped_at: 자동 실행 가능한 재개 보완 plan 전부 완료 (18-11까지). 남은 plan 10개는 전부 실DB·브라우저가 필요한 수동 gate. Phase 12~14·17은 미시작
+last_updated: "2026-10-19T08:00:00.000Z"
+last_activity: 2026-10-19 -- 재개 phase 보완 plan 실행 완료 (Phase 2 UAT 통과·합병, 3·4·5·7·10·11·16·18 코드 완료), 문서 정합
 progress:
-  total_phases: 18
-  completed_phases: 12
-  total_plans: 84
-  completed_plans: 78
-  percent: 93
+  total_phases: 19
+  completed_phases: 6
+  total_plans: 145
+  completed_plans: 135
 ---
 
 # Project State
@@ -21,22 +20,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** Phase 11 — byok-ux
+**Current focus:** 재개 phase 보완 plan의 실DB·브라우저 검증 (일회용 Supabase 프로젝트에 0024~0036 적용 후)
 
 ## Current Position
 
-Phase: 11 (byok-ux) — CODE COMPLETE (UAT 대기)
-Plan: 7 of 8 완료 (11-08 Task 2 브라우저 UAT 대기)
-Status: Phase 11 code complete — verification human_needed
-Last activity: 2026-10-10 -- Phase 11 상태 동기화 (ROADMAP·REQUIREMENTS·SSOT)
+Phase: 재개 phase 2·3·4·5·7·10·11·16·18 — 보완 plan 코드 완료
+Plan: 자동 실행 가능한 plan 전부 완료. 남은 plan 10개(전부 수동 gate): 03-19, 03-20, 04-12, 05-07, 07-15, 10-10, 11-08(Task 2 UAT), 11-12, 16-03, 18-12
+Status: Code complete — 실DB·브라우저 검증 대기 (단위 테스트 161개 파일 2,516개 통과, tsc·eslint 오류 0)
+Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
+
+**Phase 2:** 2026-10-19 완료(검증 포함). 일회용 DB(0001~0023)와 브라우저 UAT 통과, BUG-02·03 수정. 실제 터치 기기·AI 응답 진행 중 접기는 수용(미검증) 항목. 근거는 `02-13-SUMMARY.md`·`02-VERIFICATION.md`.
+
+**마이그레이션(일회용 DB 적용·DB suite 통과, 2026-10-19):** 0024·0025(Phase 3), 0026(4), 0027(5), 0029(7), 0030(11), 0032~0036(18)을 일회용 Supabase 프로젝트(`.env.disposable`, 공유 프로젝트와 ref 다름 확인)에 적용했다. 03-19·07-15·18-12의 실DB suite를 `READING_STATE_DB_TEST=1 COMPLETION_DB_TEST=1 WTREE_BRANCH_RACE_SCHEMA_COMMIT=1`로 skipped 0 실행해 통과(테스트 결함 3건 수정: timeline 픽스처 uuid 추론·`::text::jsonb`·단일 트랜잭션 deferred 복원, branching 상속 구간 위치·소유자 롤 soft delete). **공유 프로젝트에는 아직 미적용 — 적용 금지.** 브라우저 UAT는 일부 수행(결함 3건 수정, 범위·pending은 `.planning/gaps/2026-10-19-disposable-uat-results.md`) — 03-19 Task 2·07-15 15-02·18-12 Task 2는 pending 항목이 남아 승인 대기, Toss 키 gate(05-07)는 대기. 0028·0031은 의도적 결번. 0011은 UTF-8 BOM으로 시작해 `apply-migration.mjs` 단독 실행 시 구문 오류 가능.
+
+**실행 시 주의(이번 세션 발견):** vitest `--mode disposable`만으로는 공유 `.env.local` 값이 섞일 수 있다 → 실DB suite는 프로세스 환경변수로 일회용 DB를 고정하고 ref를 먼저 확인한다. `.env*` 읽기는 `.claude/settings.json`의 deny 규칙으로 막혀 있고, 키 존재 확인은 `node scripts/check-env.mjs`만 쓴다.
 
 **출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
 
+**세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). 18-01~11·13·14 코드 완료(2026-10-19), 18-12(실DB·브라우저) 대기. 알려진 공백: `create_purchase_order`에 가지 초안 검사 없음, 로그아웃 상태 작가의 자기 조회는 조회수에 계속 집계.
+
+**청사진 재판정(2026-10-12):** Phase 2·3·4·6·7·10·16 완료 취소(Reopened, 5·11은 기존 미완료). 완료 유지: 1·04.1·8·9·15. 근거·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`. 어느 phase에도 속하지 않는 청사진 영역(댓글·완독 데이터·독자 공간 화면 등)은 ROADMAP "미배정 청사진 영역"에 모았다.
+
 **부족한 부분·다음 할 일 점검:** `.planning/gaps/2026-10-04-gap-analysis.md` (우선순위·공백·법무 게이트 정리)
 
-병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-03~07(Toss 키 대기), Phase 6 브라우저 E2E.
+병행 대기: Phase 15 15-09 Task 2 브라우저 UAT(활성화 차단), Phase 5 05-07(Toss 샌드박스 키 대기), Phase 6 브라우저 E2E. 미시작: Phase 12·13·14(MCP, discuss부터), Phase 17(CONTEXT만 있음, plan 전).
 
-> **progress 카운터 기준 (2026-10-04 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 12개(1,2,3,4,04.1,6,7,8,9,10,15,16), `completed_plans`는 SUMMARY.md가 있는 GSD plan 78/84다(2026-10-10: Phase 11 11-01~07 +7). Phase 6·16은 GSD 밖에서 구현돼 plan 카운트에 없다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
+> **progress 카운터 기준 (2026-10-19 실측 정정):** `completed_phases`는 ROADMAP에서 `[x]`인 6개(1, 2, 04.1, 8, 9, 15; 2026-10-12 청사진 재판정으로 2,3,4,6,7,10,16 완료 취소 후 Phase 2는 2026-10-19 검증 통과로 복구), `completed_plans`는 SUMMARY.md가 있는 GSD plan 135/145다(`find .planning/phases -name '[0-9]*-[0-9]*-SUMMARY.md'`). Phase 6은 GSD 밖에서 구현돼 plan 카운트에 없고, Phase 16은 16-01·02가 GSD로 실행됐다. `[x]`는 "코드 완료"일 수 있고 검증 상태는 ROADMAP Progress 표 Status 열에 따로 적는다 (Phase 15는 활성화 차단, Phase 6·16은 live 검증 대기).
 
 **v1.1 리서치 (완료 2026-09-16):** `.planning/research/` 5종 — FEATURES(기능 지형)·ARCHITECTURE(어댑터/BYOK 신뢰경계/MCP 배치)·STACK(호출 계층·암호화·MCP 구현체)·PITFALLS(키 유출·과금 경계·MCP 보안)·SUMMARY(합본). v1.0 리서치는 `.planning/research/v1.0/`로 아카이브됨.
 
@@ -112,6 +121,7 @@ Recent decisions affecting current work:
 - [Phase 07]: 07-04: blind precedence over free/entitled in SQL; entitlement reported separately; purchases raise content_blinded before debit
 - [Phase 07]: Warning notices use session client + own-row RLS; AccountNotices loads after hydration so failures never block render/login
 - [Phase 07]: purchaseChapterAction rechecks access state: blinded refused before order, owned retry returns ok without charge
+- [Phase 02]: Plan 02-07: 기본 템플릿 5종 읽기 전용 — 0022(수정본 '{카테고리} 사본' 보존·원본 복원·잠금, private catalog/provenance)·0023(영역 owner+work btrim(name) 유일, 잠금 해제·위장 seed·예약 이름·영역 위장 차단 trigger guard); canonical seed는 CR 제거·BOM 유지. 실DB 적용·integration은 02-13 게이트
 
 ### Roadmap Evolution
 
@@ -158,13 +168,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-02T02:34:57.142Z
-Stopped at: Phase 17 context gathered
+Last session: 2026-10-13T06:40:01.358Z
+Stopped at: Completed 02-07-PLAN.md (DB gate pending 02-13)
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
-Resume file: .planning/phases/17-bugfix-consolidation/17-CONTEXT.md
+Resume file: None
 
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.

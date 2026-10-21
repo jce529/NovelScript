@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "next-dev-disposable",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/dev-disposable.mjs"],
+      "port": 3100
     }
   ]
 }

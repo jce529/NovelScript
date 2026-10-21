@@ -19,7 +19,7 @@ import glob, json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 GRAPH = "graphify-out/graph.json"
-PREFIXES = ["PROV", "BYOK", "COST", "MCP", "AIDOC", "STUDIO", "BUGFIX"]
+PREFIXES = ["PROV", "BYOK", "COST", "MCP", "AIDOC", "STUDIO", "BUGFIX", "WTREE"]
 ORIGIN = "req-link"
 SSOT = "docs/SSOT-PLANNING-IMPLEMENTATION.md"
 ROADMAP = ".planning/ROADMAP.md"

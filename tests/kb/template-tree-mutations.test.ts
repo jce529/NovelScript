@@ -108,14 +108,22 @@ describe('BUG-03 template tree mutations (integration)', () => {
     expect((await moveTemplateFile(admin, { ownerId: other.id, nodeId: created.nodeId!, targetCategoryFolderId: placeId })).ok).toBe(false);
   });
 
-  it('rejects a non-category target and a sibling name collision', async () => {
+  it('rejects a non-category target and a same-area duplicate name in another category folder', async () => {
     const created = await createNode(admin, { ownerId: owner.id, workId, parentId: personId,
       category: 'template', nodeType: 'file', name: '충돌 양식' });
+    expect(created.ok).toBe(true);
     expect((await moveTemplateFile(admin, { ownerId: owner.id, nodeId: created.nodeId!, targetCategoryFolderId: rootId })).ok).toBe(false);
-    await createNode(admin, { ownerId: owner.id, workId, parentId: placeId,
+    // 0023 kb_nodes_template_area_name_unique: names are unique per owner + area, not per folder.
+    const duplicate = await createNode(admin, { ownerId: owner.id, workId, parentId: placeId,
       category: 'template', nodeType: 'file', name: '충돌 양식' });
+    expect(duplicate).toEqual({ ok: false, error: '이미 같은 이름의 템플릿이 있어요. 다른 이름을 사용해주세요.' });
+    // The same name in the account area is a different area and stays allowed.
+    const otherArea = await createNode(admin, { ownerId: owner.id, workId, parentId: accountPlaceId,
+      category: 'template', nodeType: 'file', name: '충돌 양식' });
+    expect(otherArea.ok).toBe(true);
+    // The custom file still moves freely inside its own area.
     expect(await moveTemplateFile(admin, { ownerId: owner.id, nodeId: created.nodeId!, targetCategoryFolderId: placeId }))
-      .toEqual({ ok: false, error: '이미 같은 이름의 파일/폴더가 있어요. 다른 이름을 사용해주세요.' });
+      .toEqual({ ok: true, nodeId: created.nodeId });
   });
 
   it('moves a legacy unclassified file from the template root into an account category', async () => {

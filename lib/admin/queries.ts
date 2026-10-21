@@ -3,13 +3,20 @@ import { z } from 'zod';
 import { withAdminAction, type AdminAuthDeps } from '@/lib/admin/auth';
 import {
   ADMIN_ACTION_TYPES,
+  REPORT_QUEUE_FILTERS,
   REPORT_STATUSES,
+  SANCTION_KINDS,
   REVIEW_REQUEST_STATUSES,
   type AdminActionRecord,
   type AdminActionType,
   type AdminPage,
   type AdminReportDetail,
   type AdminReportItem,
+  type AdminSanctionHistoryEntry,
+  type AdminSanctionMetadata,
+  type AdminSanctionUserSummary,
+  type EffectiveSanction,
+  type SanctionKind,
   type AdminResult,
   type ModerationTarget,
   type ReportGroupSummary,
@@ -97,9 +104,18 @@ function page<T>(items: T[], pageNumber: number, total: unknown): AdminPage<T> {
 }
 
 const pageSchema = z.coerce.number().int().min(1).max(MAX_PAGE).default(1);
-const reportListSchema = z.object({ status: z.enum(REPORT_STATUSES).default('open'), page: pageSchema });
+const reportListSchema = z.object({ status: z.enum(REPORT_QUEUE_FILTERS).default('open'), page: pageSchema });
+const sanctionUserListSchema = z.object({ page: pageSchema });
+const sanctionHistorySchema = z.object({ userId: z.uuid(), page: pageSchema });
 const reviewListSchema = z.object({ status: z.enum(REVIEW_REQUEST_STATUSES).default('open'), page: pageSchema });
 const idSchema = z.uuid();
+
+/** Valid statuses present in a group, ordered open > resolved > dismissed; never empty. */
+function groupStatuses(value: unknown): ReportStatus[] {
+  const present = new Set(Array.isArray(value) ? value.map(str) : []);
+  const ordered = REPORT_STATUSES.filter((s) => present.has(s));
+  return ordered.length > 0 ? ordered : ['open'];
+}
 
 /** D-20: defaults to open reports, oldest group first; 25 complete target groups per page. */
 export async function listReportGroups(
@@ -112,15 +128,17 @@ export async function listReportGroups(
     const { status, page: pageNumber } = parsed.data;
 
     // Fetch one extra group to know whether a next page exists.
-    const { data, error } = await admin.rpc('list_report_groups', {
-      p_status: status,
-      p_limit: ADMIN_PAGE_SIZE + 1,
-      p_offset: (pageNumber - 1) * ADMIN_PAGE_SIZE,
-    });
+    const paging = { p_limit: ADMIN_PAGE_SIZE + 1, p_offset: (pageNumber - 1) * ADMIN_PAGE_SIZE };
+    const { data, error } =
+      status === 'all'
+        ? await admin.rpc('list_report_groups_all', paging)
+        : await admin.rpc('list_report_groups', { p_status: status, ...paging });
     if (error) return { ok: false, error: 'unavailable' };
 
     const list = rows(data);
-    const items = list.map<ReportGroupSummary>((row) => ({
+    const items = list.map<ReportGroupSummary>((row) => {
+      const statuses = status === 'all' ? groupStatuses(row.statuses) : [status];
+      return {
       target: target(row.work_id, row.chapter_id),
       workTitle: str(row.work_title),
       chapterTitle: strOrNull(row.chapter_title),
@@ -129,10 +147,12 @@ export async function listReportGroups(
       reporterCount: num(row.reporter_count),
       categories: Array.isArray(row.categories) ? row.categories.map(str) : [],
       oldestReportedAt: time(row.oldest_reported_at),
-      status,
+      status: statuses[0],
+      statuses,
       blinded: bool(row.blinded),
       anchorReportId: str(row.anchor_report_id),
-    }));
+      };
+    });
     return { ok: true, data: page(items, pageNumber, list[0]?.total_groups) };
   }, deps);
 }
@@ -229,5 +249,92 @@ export async function getReviewRequestDetail(
         targetActionHistory: mapActions(row.target_action_history),
       },
     };
+  }, deps);
+}
+
+function sanctionKind(value: unknown): SanctionKind | null {
+  return (SANCTION_KINDS as readonly string[]).includes(str(value)) ? (value as SanctionKind) : null;
+}
+
+function effectiveSanction(kind: unknown, until: unknown): EffectiveSanction {
+  // The database already compared sanctioned_until with now(); do not re-judge it here.
+  if (kind === 'permanent_suspension') return { kind: 'permanent_suspension', sanctionedUntil: null };
+  if (kind === 'suspension') return { kind: 'suspension', sanctionedUntil: timeOrNull(until) };
+  return { kind: 'none', sanctionedUntil: null };
+}
+
+/** Whitelist only the duration-change keys written by adjust_user_sanction. */
+function mapSanctionMetadata(value: unknown): AdminSanctionMetadata {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const m = value as Row;
+  const out: AdminSanctionMetadata = {};
+  if (typeof m.operation === 'string') out.operation = m.operation;
+  if (typeof m.change_id === 'string') out.changeId = m.change_id;
+  if ('previous_ends_at' in m) out.previousEndsAt = timeOrNull(m.previous_ends_at);
+  if ('new_ends_at' in m) out.newEndsAt = timeOrNull(m.new_ends_at);
+  return out;
+}
+
+/** 07-08 list_sanction_users: readers and writers with any sanction history, newest first. */
+export async function listSanctionUsers(
+  input: { page?: number | string } = {},
+  deps?: AdminAuthDeps
+): Promise<AdminResult<AdminPage<AdminSanctionUserSummary>>> {
+  return withAdminAction(async ({ admin }) => {
+    const parsed = sanctionUserListSchema.safeParse(input ?? {});
+    if (!parsed.success) return { ok: false, error: 'validation_failed' };
+    const pageNumber = parsed.data.page;
+    const { data, error } = await admin.rpc('list_sanction_users', {
+      p_limit: ADMIN_PAGE_SIZE + 1,
+      p_offset: (pageNumber - 1) * ADMIN_PAGE_SIZE,
+    });
+    if (error) return { ok: false, error: 'unavailable' };
+    const list = rows(data);
+    const items = list.map<AdminSanctionUserSummary>((row) => ({
+      userId: str(row.user_id),
+      role: row.role === 'writer' ? 'writer' : 'reader',
+      penName: strOrNull(row.pen_name),
+      effectiveSanction: effectiveSanction(row.effective_kind, row.sanctioned_until),
+      expectedSeq: str(row.expected_seq),
+      latestAt: time(row.latest_at),
+    }));
+    return { ok: true, data: page(items, pageNumber, list[0]?.total_users) };
+  }, deps);
+}
+
+/** 07-08 get_user_sanction_history: warning/suspension/permanent/lift timeline, newest first. */
+export async function getUserSanctionHistory(
+  input: { userId: string; page?: number | string },
+  deps?: AdminAuthDeps
+): Promise<AdminResult<AdminPage<AdminSanctionHistoryEntry>>> {
+  return withAdminAction(async ({ admin }) => {
+    const parsed = sanctionHistorySchema.safeParse(input ?? {});
+    if (!parsed.success) return { ok: false, error: 'validation_failed' };
+    const { userId, page: pageNumber } = parsed.data;
+    const { data, error } = await admin.rpc('get_user_sanction_history', {
+      p_user_id: userId,
+      p_limit: ADMIN_PAGE_SIZE + 1,
+      p_offset: (pageNumber - 1) * ADMIN_PAGE_SIZE,
+    });
+    if (error) return { ok: false, error: 'unavailable' };
+    const list = rows(data);
+    const items: AdminSanctionHistoryEntry[] = [];
+    for (const row of list) {
+      const kind = sanctionKind(row.kind);
+      if (!kind) continue;
+      items.push({
+        id: str(row.id),
+        seq: str(row.seq),
+        kind,
+        publicReason: strOrNull(row.public_reason),
+        internalNote: strOrNull(row.internal_note),
+        endsAt: timeOrNull(row.ends_at),
+        createdAt: time(row.created_at),
+        actorId: strOrNull(row.actor_id),
+        adminActionId: strOrNull(row.admin_action_id),
+        metadata: mapSanctionMetadata(row.metadata),
+      });
+    }
+    return { ok: true, data: page(items, pageNumber, list[0]?.total_events) };
   }, deps);
 }

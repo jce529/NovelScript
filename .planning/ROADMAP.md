@@ -19,20 +19,20 @@ v1.1은 새 제품이 아니라 기존 `lib/ai/` 모듈의 증축 마일스톤�
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Wallet Infrastructure** - Auth works, and the token wallet/ledger is proven safe with fake credits before anything real touches it (completed 2026-08-29)
-- [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29)
-- [x] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30)
-- [x] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md)
+- [x] **Phase 2: Studio Core (Writer Loop, No AI)** - Writers build a knowledge base and draft/publish chapters without AI involved (completed 2026-08-29) — 재개(청사진 갭, 2026-10-12: 기본 템플릿 정책·우클릭·패널 접기) 보완 완료 2026-10-19
+- [ ] **Phase 3: Reader Core (Reading Loop, No Payment)** - Readers discover and read published chapters end-to-end, all free at this stage (completed 2026-08-30) — **재개(청사진 갭, 2026-10-12): 독자 화면 구조·완독 데이터·뷰어 chrome**
+- [ ] **Phase 4: AI Gateway (Mention-Based Generation)** - Writers generate AI-assisted prose from mentioned KB docs, with cost guardrails from the start (completed 2026-08-30 — live GEMINI_API_KEY round-trip deferred, see 04-VERIFICATION.md) — **재개(청사진 갭, 2026-10-12): EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치)·⚙ 모달**
 - [x] **Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리)** (INSERTED) - Custom folder creation anywhere in the KB tree, 회차 as a fixed tree folder, account-shared folder space mentionable from any work (completed 2026-08-31)
-- [ ] **Phase 5: Real Payment Integration** (2/7 plans) - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
-- [x] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (completed 2026-10-01; shipped outside GSD, live-DB/E2E verification pending — see Phase 6 detail)
-- [x] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports (completed 2026-09-17)
+- [ ] **Phase 5: Real Payment Integration** (7/8 plans) - Users convert real money into tokens via a verified, non-spoofable Toss Payments flow
+- [ ] **Phase 6: Paid Chapter Unlock** - Users spend real tokens to unlock paid chapters (completed 2026-10-01; shipped outside GSD, live-DB/E2E verification pending — see Phase 6 detail) — **재개(청사진 갭, 2026-10-12): 대여·정주행·소장함·정산 화면**
+- [ ] **Phase 7: Admin Moderation Surface** - Admins review reports and take corrective action, closing the loop opened by reader reports (completed 2026-09-17) — **재개(청사진 갭, 2026-10-12): 관리자 탭 4개·제재 이력·프리셋**
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP) — 1단계: NovelScript가 LLM을 호출한다**
 
 - [x] **Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정** - Gemini가 공통 어댑터로 이관된 뒤에도 동작이 그대로이고, 같은 AI 호출을 재시도해도 토큰이 두 번 빠지지 않는다
 - [x] **Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가** - 작가가 플랫폼 키로 OpenAI·Anthropic 모델을 골라 집필하고, 그 모델의 실제 단가가 반영된 비용 추정을 본다
-- [x] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다
-- [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** (7/8 plans) - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다 (코드 완료·검증 human_needed 2026-10-08 — 브라우저 UAT 6건 대기, 11-08 Task 2)
+- [ ] **Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지** - 작가가 자기 API 키를 안전하게 맡기고, 피커에서 실제 호출 가능한 모델과 누가 비용을 내는지를 본다 — **재개(청사진 갭, 2026-10-12): PROV-05·failed 키 전체 은닉 결함**
+- [ ] **Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX** (11/13 plans) - 지갑 잔액이 0인 작가도 자기 키로 생성하고, 실패는 원인별로 구분돼 보이며, 이번 달 내 키 사용량을 확인한다 (코드 완료·검증 human_needed 2026-10-08 — 브라우저 UAT 6건 대기, 11-08 Task 2)
 
 **v1.1 — 하드 경계 — 2단계: LLM이 NovelScript를 호출한다**
 
@@ -43,7 +43,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **v1.1 — 마무리 품질 페이즈**
 
 - [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
-- [x] **Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)** - 작가가 계정 설정에서 BYOK 현황을 보고, 설정 문서에서도 AI와 대화하며, 로컬 작업물을 업로드해 Jev가 제안한 배치를 트리에서 수정·승인해 저장하고, 모바일 세로 화면에서도 스튜디오를 쓴다 (completed 2026-10-02; shipped outside GSD, live Jev/browser/mobile verification pending — see Phase 16 detail)
+- [ ] **Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)** - 작가가 계정 설정에서 BYOK 현황을 보고, 설정 문서에서도 AI와 대화하며, 로컬 작업물을 업로드해 Jev가 제안한 배치를 트리에서 수정·승인해 저장하고, 모바일 세로 화면에서도 스튜디오를 쓴다 (completed 2026-10-02; shipped outside GSD, live Jev/browser/mobile verification pending — see Phase 16 detail) — **재개(청사진 갭, 2026-10-12): 검증 gaps_found·모바일 탭/설정 허브 결정 충돌**
+- [ ] **Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)** - 작가가 자기 세계관을 가지 쳐 If·확장 가지 작품을 연재하고, 연표로 작품을 배치하며, 독자가 작품 상세 세계관 탭에서 세계수를 본다
 
 ## Phase Details
 
@@ -65,6 +66,11 @@ Plans:
 - [x] 01-05-PLAN.md — Writer upgrade flow + account settings/deletion
 
 ### Phase 2: Studio Core (Writer Loop, No AI)
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: 기본 템플릿 정책·우클릭·패널 접기. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 2 절.
+>
+> **보완 완료 (2026-10-19)** — 02-07~13 완료. 1회용 Supabase 프로젝트에서 실DB 게이트(14 files / 66 tests)와 브라우저 게이트를 통과했고(사용자 지시로 승인), 게이트 중 발견된 레이아웃 버그 2건은 `fixed/02-02`·`fixed/02-03`으로 수정됐다. 실제 touch 기기·실제 AI 응답은 에이전트가 독립 검증하지 못한 잔여 항목이다(`02-VERIFICATION.md`).
+
 **Goal**: Writers can build a knowledge base and draft/publish chapters, independent of AI assistance.
 **Depends on**: Phase 1
 **Requirements**: KB-01, KB-02, CONT-01, CONT-02, CONT-03
@@ -83,9 +89,19 @@ Plans:
 - [x] 02-04-PLAN.md — Chapter business logic (draft/publish/unpublish/reorder + ownership guards)
 - [x] 02-05-PLAN.md — KB tree UI + document editor + create/rename/delete dialogs
 - [x] 02-06-PLAN.md — Chapter list (drag-reorder) + chapter editor/publish UI
+- [x] 02-07-PLAN.md — (보완) 수정된 기본 템플릿 보존 이관(0022)과 DB 잠금·이름 유일성(0023); 실DB 적용·integration은 02-13
+- [x] 02-08-PLAN.md — (보완) 템플릿 사본·불변성·중복 이름 서버 계약
+- [x] 02-09-PLAN.md — (보완) 템플릿 열기·사본 이름 입력·새 문서 연결 계약
+- [x] 02-10-PLAN.md — (보완) 템플릿 섹션·접이식 트리·우클릭과 길게 누르기
+- [x] 02-11-PLAN.md — (보완) 공유 패널 접기와 저장 상태 컴포넌트
+- [x] 02-12-PLAN.md — (보완) 설정 문서·회차 편집기에 읽기 전용·패널·저장 칩 연결
+- [x] 02-13-PLAN.md — (보완) 결정 문구 정합과 실DB·브라우저 최종 게이트(완료 2026-10-19: 1회용 DB 14 files/66 tests, 브라우저 승인)
 **UI hint**: yes
 
 ### Phase 3: Reader Core (Reading Loop, No Payment)
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: 독자 화면 구조·완독 데이터·뷰어 chrome. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 3 절.
+
 **Goal**: Readers can discover and read published chapters end-to-end with a Korean-market-standard viewer, and can flag problem content — all chapters free at this stage.
 **Depends on**: Phase 2
 **Requirements**: READ-01, READ-02, READ-03, READ-04, READ-05, READ-07, READ-08, READ-09
@@ -109,8 +125,24 @@ Plans:
 - [x] 03-05-PLAN.md — Discovery feed UI (app/page.tsx): banner, recently-read, genre/sort filters, trending grid
 - [x] 03-06-PLAN.md — Work detail page UI: 3-tab structure, header icons, CTA, like button, report dialog
 - [x] 03-07-PLAN.md — Chapter viewer UI: toolbar, TOC/settings sheets, font/theme, bottom nav, view/progress tracking
+- [x] 03-08-PLAN.md — Phase 18의 선행인 작품 상세 4탭 셸과 고정 신고·집계 중 메타
+- [x] 03-09-PLAN.md — 독자 헤더 2단·메인 탭·서브 행과 Phase 5 잔액 슬롯
+- [x] 03-10-PLAN.md — 홈 4구역·가로 스냅 슬라이더와 READ-09 배너 제거
+- [x] 03-11-PLAN.md — 0024 회차별 위치·활성시간 원천과 RPC 전용 쓰기
+- [x] 03-12-PLAN.md — 0025 서버 완독 판정과 임시 속도·끝센티넬 계약
+- [x] 03-13-PLAN.md — 진도 Route Handler·RPC 어댑터와 실제 회차 열람 bootstrap
+- [x] 03-14-PLAN.md — 5항목 화이트리스트 설정·연간 cookie·말풍선 패널
+- [x] 03-15-PLAN.md — 스크롤 좌표·활성시간·끝센티넬과 중복 안전 전송 controller
+- [x] 03-16-PLAN.md — 뷰어 chrome·경계·설정 cookie와 스크롤 진도 최종 연결
+- [x] 03-17-PLAN.md — Phase 5 provider를 루트에 한 번 마운트하고 헤더 +를 연결
+- [x] 03-18-PLAN.md — 뷰어·작품 상세 잔액 부족을 같은 충전 모달로 연결
+- [ ] 03-19-PLAN.md — 실DB 읽기 원천·권한과 브라우저 독자 전체 흐름 검증
+- [ ] 03-20-PLAN.md — 검증 증거 재판정과 READ-09 폐기 문구 인계안
 
 ### Phase 4: AI Gateway (Mention-Based Generation)
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: EDIT-03 자유형 지시 입력 없음(문서와 코드 불일치)·⚙ 모달. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 4 절.
+
 **Goal**: Writers can generate AI-assisted prose from mention-injected KB context, with cost visibility and spend guardrails built in from the start (not bolted on later).
 **Depends on**: Phase 1, Phase 2
 **Requirements**: EDIT-01, EDIT-02, EDIT-03, EDIT-04, EDIT-05
@@ -130,6 +162,12 @@ Plans:
 - [x] 04-04-PLAN.md — generate/estimateCost Server Actions — D-13 cap-before-call, debit-after-call
 - [x] 04-05-PLAN.md — AiPanel UI shell: header controls, chip list, cost estimate, D-10rev preview card
 - [x] 04-06-PLAN.md — Mention autocomplete + quick-add UI + final page wiring + human-verify checkpoint
+- [x] 04-07-PLAN.md — 자유형과 작품 추가 지시의 순수 합성 계약을 TDD로 확정한다.
+- [x] 04-08-PLAN.md — 저장 위치는 work_ai_instructions 별도 비공개 테이블로 확정한다.
+- [x] 04-09-PLAN.md — 기존 실제 호출 경로에 두 지시를 연결한다.
+- [x] 04-10-PLAN.md — 기존 공용 AiPanel 내부에 두 편집 UX를 보완한다.
+- [x] 04-11-PLAN.md — 기존 지갑/원장의 읽기 데이터로 잔액 게이지를 보완한다.
+- [ ] 04-12-PLAN.md — 코드 보완과 별도로 실DB/브라우저 검증을 수행하고 Phase 04의 낡은 문구만 검증 결과에 맞춘다.
 
 ### Phase 04.1: 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) (INSERTED)
 
@@ -157,15 +195,19 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — 충전 티어·주문 ID 헬퍼·`payment_orders` 마이그레이션(0016_payments)·Toss SDK 의존성
 - [x] 05-02-PLAN.md — 소유자 검증 주문 생성·크레딧 폴링 액션·Toss confirm/조회 서버 클라이언트 (DB 테스트 2026-10-01 통과)
-- [ ] 05-03-PLAN.md — Toss 브라우저 복귀 처리(지갑 적립은 webhook 전용)
-- [ ] 05-04-PLAN.md — 검증된 멱등 webhook 적립, 인증 proxy 우회
-- [ ] 05-05-PLAN.md — 4상태 충전 다이얼로그와 주문·복귀 계약 연결
-- [ ] 05-06-PLAN.md — 로컬 전체 결제 경계 검증, UI 목업 제공
+- [x] 05-03-PLAN.md — Toss 브라우저 복귀 처리(지갑 적립은 webhook 전용)
+- [x] 05-04-PLAN.md — 검증된 멱등 webhook 적립, 인증 proxy 우회
+- [x] 05-05-PLAN.md — 4상태 충전 다이얼로그와 주문·복귀 계약 연결
+- [x] 05-06-PLAN.md — 로컬 전체 결제 경계 검증, UI 목업 제공
 - [ ] 05-07-PLAN.md — Toss 샌드박스 흐름·렌더링 UI 최종 검증 (수동)
+- [x] 05-08-PLAN.md — D-01 개정에 맞춰 완료된 05-01·02의 고정 상품 원천만 DB 운영 목록으로 이관한다.
 **UI hint**: yes
 **Status**: In progress (2/7 plans) — 05-01·05-02 실행 완료: `payment_orders`(0016_payments)·주문 생성·Toss 서버 클라이언트, DB 테스트 2026-10-01 통과. 05-03~07(복귀 처리, webhook 적립, 충전 UI, 샌드박스 검증)은 미실행이며, 실제 샌드박스·webhook 검증은 Toss 가맹 키(사업자등록 + merchant application)에 의존한다.
 
 ### Phase 6: Paid Chapter Unlock
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: 대여·정주행·소장함·정산 화면. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 6 절.
+
 **Goal**: Users can spend real, purchased tokens to unlock paid chapters, combining the proven wallet (Phase 1), paid-chapter metadata (Phase 2), and real payments (Phase 5).
 **Depends on**: Phase 1, Phase 2, Phase 5
 **Requirements**: PAY-02
@@ -191,6 +233,9 @@ Residual (stays in v1.0, not yet done):
 - GSD-format documentation now includes `06-CONTEXT.md`, `06-RESEARCH.md`, retrospective `06-SUMMARY.md`, `06-VERIFICATION.md` (`gaps_found`) and `06-VALIDATION.md`. The verification document records a source audit, not a completed gsd-verifier or live-DB run.
 
 ### Phase 7: Admin Moderation Surface
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: 관리자 탭 4개·제재 이력·프리셋. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 7 절.
+
 **Goal**: Admins can review reported content and take corrective action, closing the loop opened by reader reports (Phase 3) and the safety mitigations shipped with generation (Phase 4).
 **Depends on**: Phase 1, Phase 3
 **Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
@@ -219,6 +264,14 @@ Residual (stays in v1.0, not yet done):
 
 **Wave 6 (blocked on Wave 5)**
 - [x] 07-07-PLAN.md — 실제 DB 적용·동시성·브라우저 통합 검증
+- [x] 07-08-PLAN.md — 댓글 제외 관리자 보완의 DB 계약을 예약 번호 0029 하나로 완성한다.
+- [x] 07-09-PLAN.md — 기존 URL 상태·관리자 조회 모듈을 확장해 전체 필터와 제재 이력 탭의 데이터를 공급한다.
+- [x] 07-10-PLAN.md — 현재 제재 조정의 서버 액션과 1·7·30일 계산을 기존 moderation 패턴에 추가한다.
+- [x] 07-11-PLAN.md — 기존 관리자 화면에 댓글 제외 청사진 UI를 연결한다.
+- [x] 07-12-PLAN.md — 새 공개 알림을 기존 AccountNotices를 통해 선호작 독자에게 전달한다.
+- [x] 07-13-PLAN.md — 프로필 메뉴에서 관리자 진입을 권한자에게만 제공한다.
+- [x] 07-14-PLAN.md — 이번 보완에서 실제로 달라진 관리자 UI·검증 계약 문구만 개정한다.
+- [ ] 07-15-PLAN.md — 완성된 보완 구현을 실DB와 실제 브라우저에서 승인 가능한 증거로 검증한다.
 
 **Cross-cutting constraints:** 세션 기반 관리자 판정; 조치/감사 기록의 원자성; 제재 중 기존 읽기 유지; 블라인드와 발행 상태 분리; 기존 구매권 보존; DB 검사 skip은 통과로 인정하지 않음.
 **UI hint**: yes
@@ -294,6 +347,9 @@ Residual (stays in v1.0, not yet done):
 **Notes**: BYOK와 새 벤더를 동시에 디버깅하지 않는다 — 이 페이즈는 **플랫폼 키로만** 어댑터가 작동함을 증명한다. 세 벤더의 `usage` 필드 이름이 모두 다르므로 공통 `UsageReport`로 정규화한다. ~~한국어 토큰 추정 상수는 provider별로 분리해 보정한다~~ — Phase 8에서 로컬 입력 추정을 제거했으므로(2026-09-18) 해당 없음. 출력 상한은 provider별 출력 단가로만 환산한다.
 
 ### Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: PROV-05·failed 키 전체 은닉 결함. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 10 절. 발견된 버그: `.planning/phases/10-byok/bugs/BUG-01-byok-models-loader-wipes-all-on-failed-key.md`.
+
 **Goal**: 작가가 자신의 API 키를 플랫폼에 맡기고, 그 키 검증이 돌려준 모델 목록이 곧 피커가 보여주는 "내가 실제로 쓸 수 있는 모델"이 된다 — 누가 비용을 내는지가 선택 시점에 보인다.
 **Depends on**: Phase 9
 **Requirements**: BYOK-01, BYOK-02, BYOK-03, BYOK-04, PROV-05
@@ -305,6 +361,19 @@ Residual (stays in v1.0, not yet done):
 **Plans**: TBD
 **UI hint**: yes
 **Notes**: 키 검증(models-list)과 피커는 **같은 기능**이다 — 검증 결과가 피커의 모델 목록을 생산하므로 페이즈를 가르지 않는다. 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)은 **이 페이즈 계획 시점에 확정**한다 — 구현 중 미루면 데이터 마이그레이션이 된다. 별도 평문 `masked_hint` 컬럼이 BYOK 슬라이스에서 가장 중요한 스키마 결정. 평문 키가 어떤 경로로도 로그에 닿지 않음을 테스트로 확인한다.
+
+Plans:
+- [x] 10-00-PLAN.md — Phase 10 전체가 기대는 계약을 먼저 고정한다: (1) Vault 실제 시그니처/권한 프로브, (2) 이후 plan이 GREEN으로 만들 RED 테스트 4개.
+- [x] 10-01-PLAN.md — BYOK 키 보관 스키마와 Vault 접근 함수를 마이그레이션 0014로 만들고, 실제 테스트 DB에 적용해 Wave 0의 DB 테스트를 GREEN으로 만든다.
+- [x] 10-02-PLAN.md — DB·UI와 독립적인 순수 계약 두 묶음을 구현한다: (1) 선택 값 코덱 + 피커 항목 생성 + 삭제 대체 규칙, (2) 제공자별 models-list 검증기 + 원인별 한국어 오류 문구.
+- [x] 10-03-PLAN.md — BYOK 도메인 로직(서버 전용)을 구현한다: 등록/재확인/삭제/메타데이터 조회, Phase 11용 복호화 경계 함수, 그리고 keySource를 포함하는 계정 기본값 읽기/쓰기.
+- [x] 10-04-PLAN.md — 설정 페이지에 BYOK 키 등록·재확인·삭제 UI와 source-aware 계정 기본값 셀렉트를 만든다(UI-SPEC 계약 그대로).
+- [x] 10-05-PLAN.md — AI 패널 모델 피커를 source-aware로 바꾸고(배지·항목 분리·기본값 복원), chatAction이 keySource를 받되 Phase 10에서는 byok 호출을 과금 전에 명시적으로...
+- [x] 10-06-PLAN.md — Phase 10을 닫는 최종 게이트: 자동 회귀·보안 검사 + 실제 제공자/DB/브라우저 라이브 검증 + VALIDATION 문서 확정.
+- [x] 10-07-PLAN.md — BUG-03의 확정 정책을 서버 판정과 순수 피커 계약으로 보완한다. 기존 코덱·카탈로그·BYOK 로더를 재사용한다.
+- [x] 10-08-PLAN.md — 기존 피커의 모델·배지·그룹 렌더를 재사용할 전용 컴포넌트로 옮기고, 설정 화면에도 확정된 비활성 정책을 적용한다.
+- [x] 10-09-PLAN.md — 실제 호출 경계의 BUG-03 보완을 통합 검증하고 PROV-05 문구와 Phase 10 검증 문서를 고정 결정에 맞춘다.
+- [ ] 10-10-PLAN.md — 기존 성공 UAT를 재구현하지 않고 잔여 10/11과 BUG-03의 실화면·실DB 회귀를 검증한다.
 
 ### Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX
 **Goal**: 지갑 잔액이 0인 작가도 자기 키로 막힘없이 생성하고, 실패했을 때 원인별로 다른 안내를 받으며, 이번 달 자기 키의 제공자별 호출 수·토큰 수를 확인할 수 있다.
@@ -327,6 +396,11 @@ Plans:
 - [x] 11-06-PLAN.md — AI 패널 BYOK 전송·실패·명시 대체 UX
 - [x] 11-07-PLAN.md — 설정 카드 KST 월간 BYOK 사용량
 - [ ] 11-08-PLAN.md — 전체 자동·DB·live·브라우저 검증
+- [x] 11-09-PLAN.md — COST-02의 멱등 근거를 ai_usage로 옮길 DB 계약을 추가한다. 기존 0018 스키마와 0021 지갑 lease를 재사용한다.
+- [x] 11-10-PLAN.md — 서비스 재전송 차단을 ai_usage로 전환하고 기존 0원 원장 테스트를 갱신한다. 이미 구현된 BYOK 분기와 공통 호출 경로를 재사용한다.
+- [x] 11-11-PLAN.md — Reopen의 “classifyCappedReason 실패 UX 연결+테스트” 중 Phase 4에 선행하는 공유 helper와 일반 chat 결과를 보완한다. UI 연결·재생성 모달 전이 회귀...
+- [ ] 11-12-PLAN.md — 보완 코드 이후 실DB 검증과 11-08 Task 2의 UAT6을 함께 실행하는 최종 체크포인트를 둔다.
+- [x] 11-13-PLAN.md — 11-11의 기존 Task 2/3을 후행 회귀로 분리하여 실제 패널 상한 표시와 재생성 모달 전이를 검증한다.
 
 **UI hint**: yes
 **Notes**: 과금 모드는 **매 호출 서버에서 재도출**한다 — 클라이언트가 보낸 `byok: true`를 분기 입력으로 쓰지 않는다(TOCTOU). BYOK 경로는 "상한 0인 서비스 경로"가 아니라 cap 계산 블록 전체를 구조적으로 건너뛰는 별도 분기다. `ai_usage`에 "정산 무관" 명시 SQL 주석을 남겨 향후 작가 90/10 정산 쿼리를 오염시키지 않는다. 429 재시도는 Phase 8의 멱등 차감 수정이 선행된 뒤에만 붙이며, 바이트가 도착하기 전의 실패에만 한정한다(부분 응답 후 끊김은 사용자 재시도 대상). 핵심 회귀 테스트: 잔액 0 + BYOK 키 보유 사용자의 성공, 그리고 패널 로드와 전송 사이에 키를 삭제한 케이스.
@@ -414,6 +488,9 @@ Plans:
 
 
 ### Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)
+
+> **재개 표시 (2026-10-12)** — 청사진 갭으로 완료 취소: 검증 gaps_found·모바일 탭/설정 허브 결정 충돌. 갭 목록·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`의 Phase 16 절.
+
 **Goal**: 작가가 계정 설정에서 BYOK 등록 현황을 바로 확인하고, 회차뿐 아니라 설정 문서에서도 같은 AI 대화창을 쓰며, 로컬에서 작업한 .md/.txt를 한 번에 웹으로 옮기되(저장·대화 첨부·Jev 자동 분류), Jev의 제안은 기존 트리 위에서 드래그앤드롭으로 고치고 승인한 뒤에만 저장되며, 스튜디오를 모바일 세로 화면에서도 쓸 수 있다.
 **Depends on**: Phase 10 (BYOK 키 관리), Phase 15 (Jev 결정 계층 · 폴더 재검증), Phase 04.1 (KB 폴더 트리)
 **Requirements**: STUDIO-01, STUDIO-02, STUDIO-03, STUDIO-04
@@ -426,8 +503,13 @@ Plans:
   6. 스튜디오(작품 사이드바·편집기·AI 패널·계정/설정 페이지)가 모바일 세로 화면에서 가로 스크롤 없이 쓸 수 있다
 **Plans**: TBD. Implementation was outside the GSD plan flow; `16-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated.
 **UI hint**: yes
-**Status**: Complete (2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
+**Status**: Reopened (2026-10-12 청사진 갭; 최초 Complete 2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
 **Notes**: 설정 문서 AI 채팅에서도 BYOK 모델 전송은 Phase 11 전까지 막혀 있다. 업로드 자동 분류는 Jev 활성화 게이트(AIDOC-04)와 별개로 Jev 연결만 있으면 동작하므로, 정책 검토 전 실제 작품 본문 전송 허용 여부를 결정해야 한다. 독자 화면·admin 모바일 대응은 범위 밖. 결정 기록: `.planning/phases/16-studio-workflow-upload/16-CONTEXT.md`.
+
+Plans:
+- [x] 16-01-PLAN.md — D-06 개정의 모바일 하단 탭을 위한 최소 셸과 가시성 계약을 만든다.
+- [x] 16-02-PLAN.md — Phase 2의 공통 슬롯에 모바일 어댑터를 연결하고 기존 계약 검사 2개로 실제 호출부를 검증한다.
+- [ ] 16-03-PLAN.md — 모바일 하단 탭 구현 후 기존 Phase 16의 partial/blocked 갭과 실기기 검증을 한 번에 재실행한다.
 
 ### Phase 17: 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그)
 **Goal**: Phase 16 브라우저 UAT에서 나온 갭과 Phase 4·8·15에 흩어진 미해결 버그를 한 phase로 모아, AI 응답 잘림/소진 안내의 정확성, 문서 재생성·저장 정합성, 업로드 다이얼로그 UI 경고, 재시도 모델 반영, 테스트·린트 기준선을 정리한다. 수정은 각 버그의 원인 phase `bugs/` 문서(`/bug-plan` → `/bug-execute` → `/bug-complete`)로 추적한다.
@@ -442,7 +524,26 @@ Plans:
 **Plans**: TBD (`/gsd:plan-phase 17`로 분할)
 **UI hint**: yes
 **Source**: Phase 16 UAT 갭 4건 (`.planning/phases/16-studio-workflow-upload/16-UAT.md`) + Phase 8 BUG-04, Phase 15 BUG-03·04, Phase 8 기록의 eslint·테스트 기준선 이슈
-**Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. 수정 전 Phase 8 BUG-04(thinking 토큰 정책)는 사용자 결정이 필요하다.
+**Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. Phase 8 BUG-04(thinking 토큰 정책)는 2026-10-08 결정 완료(단계 A 먼저, 후보 4는 관측 후).
+
+### Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)
+**Goal**: 작가가 자기 작품의 세계관(설정집)을 복제해 If 가지·확장 가지 작품을 연재하고, 세계관 연표에 작품을 배치하며, 독자가 작품 상세의 `세계관` 탭에서 세계수(본가지·잔가지·열매)를 본다. 첫 버전은 **셀프 가지만** 다루고 스토어 구매 연동(WTREE-11~13)은 스토어 보류 해제 후로 미룬다.
+**Depends on**: Phase 2 (설정집 KB), Phase 3 (독자 작품 상세·세계관 탭·독자 지표). 스포일러 잠금 확장(WTREE-09)은 READ-06 Lore 위키 phase와 함께 별도 처리.
+**Requirements**: WTREE-01, WTREE-02, WTREE-03, WTREE-04, WTREE-05, WTREE-06, WTREE-07, WTREE-08, WTREE-10
+**Success Criteria** (what must be TRUE):
+  1. 작가가 세계관마다 연표(시대 구간 필수·연도 선택)를 만들고 작품을 배치하며, 같은 시기 작품을 `동시 진행`으로 표시한다. 잔가지는 분기 시점까지 본가지 연표를 이어받아(수정 불가) 이후 구간만 독립 편집하고 선택 메모를 적을 수 있다
+  2. 작가가 `이 세계관에서 가지 치기`로 If 가지(설정 1개 이상 수정·삭제·추가) 또는 확장 가지(새 설정 1개 이상 추가, 기존 수정·삭제 불가)를 확정할 수 있고, 변경 0건이면 확정이 막힌다. 확정한 가지는 스냅샷으로 고정되고 원작 변경은 알림만 간다
+  3. 독자는 작품 상세 `세계관` 탭의 `세계수` 보기(모바일 포함)에서 본가지·잔가지·열매를 시간순으로 보고 항목을 눌러 상세를 본다. 작가는 스튜디오 세계관 공개 설정에서 편집하며, 큰 화면용 단독 화면이 있다
+  4. 부모 작품은 발행 회차·설정 문서 기준을 채워야 가지를 칠 수 있고, 독자에게는 발행된 작품만 세계수에 보이며 비공개로 돌린 부모는 위치만 암시되는 부러진 가지로 표시되고 작가 본인·관리자에게는 전체가 보인다
+  5. 가지 굵기·열매 크기는 근접도와 독자 지표(작가 본인 조회 제외)로 계산되고, 하위 가지가 있는 가지·작품은 삭제할 수 없으며 비공개는 하위로 전파되지 않는다
+**Plans**: TBD (`/gsd:plan-phase 18`로 분할)
+**UI hint**: yes
+**Source**: `.planning/design/WORLD-TREE.md`(규칙 1~17), 목업 보드 40~43(`.planning/design/mockups/project/`)
+**Notes**: 근접도·크기 산식의 세부 계수는 phase 계획에서 정한다. 요구사항 WTREE-09(스포일러 잠금 가지 확장)·WTREE-11~13(스토어 편입·환불·운영 검토)은 이 phase 범위가 아니다. UI 계약 초안: `.planning/phases/18-world-tree/18-UI-SPEC.md`(checker 검증 전). 목업은 보드 40~43.
+
+## 미배정 청사진 영역 (phase 없음)
+
+청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있으나 요구사항 ID·phase가 없는 영역. 신규 phase로 만들지, 재개한 phase에 흡수할지는 논의 후 결정한다. 상세는 `.planning/gaps/2026-10-12-blueprint-reconcile.md` 마지막 표: 댓글, 완독 데이터(스크롤 진도·완독률·연독률), 독자 공간 화면(랭킹 창·연재 목록·내서재·검색·작가 페이지·명예의 전당), 결제 확장(대여·정주행·구독·결제 내역), 작가 허브(대시보드·경제 관리·정산·설정 허브·세계관 공개 설정), 관리자 확장(제재 이력·정산 보류), 에셋 스토어.
 
 ## Launch Gate (법무) — phase 아님
 
@@ -464,7 +565,7 @@ Plans:
 
 **Execution Order:**
 **v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
-**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 → 18 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -472,28 +573,46 @@ Plans:
 - **Complete** — 코드 완료 + 해당 phase 검증 통과.
 - **Complete (… pending)** — 코드는 끝났으나 괄호의 검증(live·브라우저·UAT)이 남음. 체크박스 `[x]`는 이 경우도 포함한다.
 - **Code complete (activation blocked)** — 코드 완료, 외부 조건(정책 검토·평가·키)이 풀려야 운영 활성화 (Phase 15).
+- **Reopened** — 완료됐던 phase가 청사진 필수 기능 누락으로 완료 취소됨. 기존 구현·검증은 유효하고 논의·research·plan을 이어간다. 근거·이어갈 단계는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`. 체크박스는 `[ ]`.
 - **Planned** — 계획·검증 완료, 실행 전. **In progress / Not started** — 문자 그대로.
 검증 대기 항목의 상세는 STATE.md Pending Todos와 `.planning/gaps/` 점검 문서에 둔다.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
-| 2. Studio Core (Writer Loop, No AI) | 6/6 | Complete   | 2026-08-29 |
-| 3. Reader Core (Reading Loop, No Payment) | 7/7 | Complete   | 2026-08-30 |
-| 4. AI Gateway (Mention-Based Generation) | 6/6 | Complete (live-key UAT pending) | 2026-08-30 |
+| 2. Studio Core (Writer Loop, No AI) | 13/13 | Complete (재개 보완 02-07~13 완료) | 2026-10-19 (보완), 2026-08-29 (최초) |
+| 3. Reader Core (Reading Loop, No Payment) | 18/20 | Code complete — 03-19(실DB·브라우저 독자 흐름, 수동)·03-20 대기. 2026-10-12 재개 보완 03-08~18 완료(0024·0025 미적용). 코드 완료이며 검증 완료 아님 | - |
+| 4. AI Gateway (Mention-Based Generation) | 11/12 | Code complete — 04-12(체크포인트, 수동) 대기. 2026-10-12 재개 보완 04-07~11 완료(0026 미적용, 실제 키·실DB 미검증) | - |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
-| 5. Real Payment Integration | 2/7 | In progress (05-03~07 미실행; 샌드박스 검증은 Toss keys 대기) | - |
-| 6. Paid Chapter Unlock | n/a (outside GSD) | Complete (live-DB/E2E verification pending) | 2026-10-01 |
-| 7. Admin Moderation Surface | 7/7 | Complete   | 2026-09-17 |
+| 5. Real Payment Integration | 7/8 | Code complete — 05-07(Toss 샌드박스·실DB, 수동) 대기. 05-03~06·05-08 완료(0027 미적용), 웹훅 전용 충전은 mock으로만 검증 | - |
+| 6. Paid Chapter Unlock | n/a (outside GSD) | Reopened — 대여·정주행·소장함·정산 화면 미구현(기존 소장·90/10은 유효, E2E 대기); discuss (이전: Complete (live-DB/E2E verification pending)) | 2026-10-01 (최초) |
+| 7. Admin Moderation Surface | 14/15 | Code complete — 07-15(실DB·브라우저, 수동) 대기. 2026-10-12 재개 보완 07-08~14 완료(0029 미적용) | - |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (BUG-03 빌드 실패는 07-03으로 수정) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
-| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 7/7 | Complete (UAT 10단계·11단계 일부 미확인) | 2026-09-30 |
-| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 7/8 | Code complete (11-VERIFICATION human_needed; 11-08 Task 2 브라우저 UAT 6건 대기) | - |
+| 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 10/11 | Code complete — 10-10(체크포인트, 수동) 대기. 재개 보완 10-07~09 완료(PROV-05 서버 키 가드), 실DB·UAT 미검증 | - |
+| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 미적용) | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
-| 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | n/a (outside GSD) | Complete (live Jev/browser/mobile verification pending) | 2026-10-02 |
+| 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 0/TBD | Not started | - |
+| 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 미적용, 단위 테스트만 통과) | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
+
+Plans:
+- [x] 18-01-PLAN.md — 기존 KB를 재사용하는 세계수 데이터 계약·초안 격리 기반
+- [x] 18-02-PLAN.md — 셀프 가지 초안·서버 diff·원자 확정·불변성
+- [x] 18-03-PLAN.md — 분기 시점 연표 상속과 독립 배치 저장
+- [x] 18-04-PLAN.md — 발행 기준 독자 투영·부러진 가지 stub·작가 조회 제외
+- [x] 18-05-PLAN.md — 단일 임시 피드 지표 어댑터·근접도·굵기
+- [x] 18-06-PLAN.md — 시간순 세계수 좌표·동시 진행·부러진 가지 레이아웃
+- [x] 18-07-PLAN.md — 작가 세계수 조회·관리 RPC·세션 액션 경계
+- [x] 18-08-PLAN.md — 기존 DnD·버튼으로 데스크톱 연표 편집 연결
+- [x] 18-09-PLAN.md — 5단계 셀프 가지 흐름·최소 세계관 공개 설정
+- [x] 18-10-PLAN.md — SVG 세계수·선택 상세·모바일 시트·목록 대체 보기
+- [x] 18-11-PLAN.md — Phase 3 세계관 슬롯·단독 화면·작가 작품 홈 진입 연결
+- [ ] 18-12-PLAN.md — 실DB·브라우저의 자격 게이트·부러진 가지 확정 정책 검증
+- [x] 18-13-PLAN.md — 규칙 22 가지 치기 자격의 단일 상수·순수 평가·서버 SQL 정책 생성 계약을 TDD로 만든다.
+- [x] 18-14-PLAN.md — 0032 기반 테이블 이후 0033에 자격 평가 DB와 공통 독자 공개 헬퍼를 독립 구현한다.

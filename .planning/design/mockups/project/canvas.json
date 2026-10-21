@@ -1,0 +1,523 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-10T12:00:00Z"
+ },
+ "title": "NovelScript 화면 맵",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 1240,
+   "title": "1. 전체 화면 맵"
+  },
+  "Header.dc.html": {
+   "x": 0,
+   "y": 1480,
+   "w": 1280,
+   "h": 1100,
+   "title": "2. 독자 글로벌 헤더 (2단 + 서브 행)"
+  },
+  "StudioShell.dc.html": {
+   "x": 1400,
+   "y": 1480,
+   "w": 1280,
+   "h": 700,
+   "title": "3. 스튜디오 3패널 IDE 셸"
+  },
+  "SettingsHub.dc.html": {
+   "x": 2800,
+   "y": 1480,
+   "w": 1280,
+   "h": 700,
+   "title": "4. 통합 설정 허브 (AI 섹션)"
+  },
+  "Home.dc.html": {
+   "x": 0,
+   "y": 2900,
+   "w": 1280,
+   "h": 1700,
+   "title": "5. 독자 홈 (데스크톱)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "HomeMobile.dc.html": {
+   "x": 1400,
+   "y": 2900,
+   "w": 390,
+   "h": 1500,
+   "title": "6. 독자 홈 (모바일)",
+   "is_interactive": true
+  },
+  "Ranking.dc.html": {
+   "x": 2100,
+   "y": 2900,
+   "w": 1280,
+   "h": 1500,
+   "title": "7. 랭킹 목록 창 (데스크톱)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "RankingMobile.dc.html": {
+   "x": 3480,
+   "y": 2900,
+   "w": 390,
+   "h": 1700,
+   "title": "8. 랭킹 목록 창 (모바일)",
+   "is_interactive": true
+  },
+  "WorkMobile.dc.html": {
+   "x": 0,
+   "y": 5000,
+   "w": 390,
+   "h": 2000,
+   "title": "9. 작품 상세 (모바일, 탭 전환 가능)",
+   "is_interactive": true
+  },
+  "WorkDesktop.dc.html": {
+   "x": 510,
+   "y": 5000,
+   "w": 1280,
+   "h": 1500,
+   "title": "10. 작품 상세 (데스크톱, 탭·페이지 전환 가능)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "ViewerMobile.dc.html": {
+   "x": 0,
+   "y": 6900,
+   "w": 390,
+   "h": 844,
+   "title": "11. 뷰어 (모바일, 탭하면 상하단 바)",
+   "is_interactive": true
+  },
+  "ViewerDesktop.dc.html": {
+   "x": 510,
+   "y": 6900,
+   "w": 1280,
+   "h": 800,
+   "title": "12. 뷰어 (데스크톱, 클릭하면 상하단 바)",
+   "is_interactive": true
+  },
+  "AdminComments.dc.html": {
+   "x": 0,
+   "y": 8000,
+   "w": 1280,
+   "h": 820,
+   "title": "13. 관리자 댓글 신고 처리 (탭 구조 반영)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "AccountSettings.dc.html": {
+   "x": 0,
+   "y": 9100,
+   "w": 1280,
+   "h": 900,
+   "title": "14. 독자 계정 설정 (닉네임 변경·자동 결제 방식)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "AccountSettingsMobile.dc.html": {
+   "x": 1400,
+   "y": 9100,
+   "w": 390,
+   "h": 844,
+   "title": "15. 독자 계정 설정 (모바일)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "EmptyStates.dc.html": {
+   "x": 0,
+   "y": 10300,
+   "w": 1280,
+   "h": 1500,
+   "title": "16. 빈 상태·볼 수 없음 모음",
+   "expand": "fill"
+  },
+  "TokenCharge.dc.html": {
+   "x": 0,
+   "y": 12200,
+   "w": 1280,
+   "h": 900,
+   "title": "17. 토큰 충전소 (선택·완료·실패)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Library.dc.html": {
+   "x": 1400,
+   "y": 12200,
+   "w": 1280,
+   "h": 1000,
+   "title": "18. 내서재 (이어 읽기·선호작·알림 구독·소장함)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Series.dc.html": {
+   "x": 0,
+   "y": 13500,
+   "w": 1280,
+   "h": 1500,
+   "title": "19. 무료·유료 연재 목록 (서브 행: 전체·신작·인기·완결)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "HallOfFame.dc.html": {
+   "x": 1400,
+   "y": 13500,
+   "w": 1280,
+   "h": 1500,
+   "title": "20. 명예의 전당 (리뷰 카드)·리뷰 작성 폼",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Search.dc.html": {
+   "x": 0,
+   "y": 15300,
+   "w": 1280,
+   "h": 1300,
+   "title": "21. 검색 결과 (작품·태그·작가)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "AuthorPage.dc.html": {
+   "x": 1400,
+   "y": 15300,
+   "w": 1280,
+   "h": 1100,
+   "title": "22. 작가 페이지 (작품 상세·검색 결과에서 진입)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Editor.dc.html": {
+   "x": 0,
+   "y": 16900,
+   "w": 1280,
+   "h": 820,
+   "title": "23. 스튜디오 에디터 (3패널, 회차·설정 문서 통합)",
+   "is_interactive": true
+  },
+  "EditorMobile.dc.html": {
+   "x": 1400,
+   "y": 16900,
+   "w": 390,
+   "h": 844,
+   "title": "24. 스튜디오 에디터 (모바일, 탭 전환)",
+   "is_interactive": true
+  },
+  "WorldSettings.dc.html": {
+   "x": 0,
+   "y": 17900,
+   "w": 1280,
+   "h": 900,
+   "title": "25. 세계관 공개 설정 (공개 여부·등장 회차·잠금·AI 에셋)",
+   "is_interactive": true
+  },
+  "Dashboard.dc.html": {
+   "x": 1400,
+   "y": 17900,
+   "w": 1280,
+   "h": 1000,
+   "title": "26. 작가 대시보드 (작품 그리드·통계·경제 관리)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Economy.dc.html": {
+   "x": 0,
+   "y": 19200,
+   "w": 1280,
+   "h": 1500,
+   "title": "27. 경제 관리 상세 (토큰 소모 분석·거래 내역)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Earnings.dc.html": {
+   "x": 1400,
+   "y": 19200,
+   "w": 1280,
+   "h": 1300,
+   "title": "28. 작가 정산·수익 (크레딧 내역)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "SettingsStudio.dc.html": {
+   "x": 0,
+   "y": 20800,
+   "w": 1280,
+   "h": 900,
+   "title": "29. 통합 설정 허브 (계정·지갑·작품)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "StudioEmptyStates.dc.html": {
+   "x": 1400,
+   "y": 20800,
+   "w": 1280,
+   "h": 2000,
+   "title": "30. 작가·관리자 빈 상태와 AI 호출 실패 모음",
+   "expand": "fill"
+  },
+  "AdminReports.dc.html": {
+   "x": 0,
+   "y": 23100,
+   "w": 1280,
+   "h": 820,
+   "title": "31. 관리자 작품·회차 신고 (큐·상세·조치)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "AdminReviews.dc.html": {
+   "x": 1400,
+   "y": 23100,
+   "w": 1280,
+   "h": 820,
+   "title": "32. 관리자 작가 재검토 (블라인드 해제·유지)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "AdminSanctions.dc.html": {
+   "x": 2800,
+   "y": 23100,
+   "w": 1280,
+   "h": 820,
+   "title": "33. 관리자 제재 이력 (경고·댓글 정지·계정 정지)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "WorkMobileTopBar.dc.html": {
+   "x": 0,
+   "y": 24300,
+   "w": 1760,
+   "h": 900,
+   "title": "34. 작품 상세 모바일 상단 바 비교 (잔액 칩·검색)",
+   "expand": "fill"
+  },
+  "Subscription.dc.html": {
+   "x": 0,
+   "y": 25700,
+   "w": 1280,
+   "h": 1100,
+   "title": "35. 구독 플랜·결제 내역 (영수증·환불)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "StoreMain.dc.html": {
+   "x": 0,
+   "y": 27100,
+   "w": 1280,
+   "h": 1500,
+   "title": "36. 에셋 스토어 메인 (추천 모음·필터·에셋 그리드)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "AssetDetail.dc.html": {
+   "x": 1400,
+   "y": 27100,
+   "w": 1280,
+   "h": 1900,
+   "title": "37. 에셋 상세 (무료 소개·AI 출력 미리보기·모듈 선택 구매·리뷰)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "StoreCart.dc.html": {
+   "x": 0,
+   "y": 29300,
+   "w": 1280,
+   "h": 900,
+   "title": "38. 장바구니 패널·일괄 결제·구매 완료",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "StoreSeller.dc.html": {
+   "x": 1400,
+   "y": 29300,
+   "w": 1280,
+   "h": 1500,
+   "title": "39. 에셋 판매자 대시보드 (내 에셋·패키징·수익 분석)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "WorldTree.dc.html": {
+   "x": 0,
+   "y": 31100,
+   "w": 1280,
+   "h": 820,
+   "title": "40. 세계수 보기 (본가지·잔가지·열매, 작가/독자 보기, 부러진 가지)",
+   "is_interactive": true
+  },
+  "WorldTimeline.dc.html": {
+   "x": 1400,
+   "y": 31100,
+   "w": 1280,
+   "h": 820,
+   "title": "41. 세계관 연표 편집 (작품 배치)",
+   "is_interactive": true
+  },
+  "BranchFlow.dc.html": {
+   "x": 2800,
+   "y": 31100,
+   "w": 1280,
+   "h": 820,
+   "title": "42. 가지 치기 흐름 (자격 현황·복제·수정·확정·새 작품)",
+   "is_interactive": true
+  },
+  "WorldTreeMobile.dc.html": {
+   "x": 0,
+   "y": 32100,
+   "w": 390,
+   "h": 844,
+   "title": "43. 세계수 보기 (모바일, 작품 상세 세계관 탭 안, 부러진 가지)",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Header.dc.html",
+  "StudioShell.dc.html",
+  "SettingsHub.dc.html",
+  "Home.dc.html",
+  "HomeMobile.dc.html",
+  "Ranking.dc.html",
+  "RankingMobile.dc.html",
+  "WorkMobile.dc.html",
+  "WorkDesktop.dc.html",
+  "ViewerMobile.dc.html",
+  "ViewerDesktop.dc.html",
+  "AdminComments.dc.html",
+  "AccountSettings.dc.html",
+  "AccountSettingsMobile.dc.html",
+  "EmptyStates.dc.html",
+  "TokenCharge.dc.html",
+  "Library.dc.html",
+  "Series.dc.html",
+  "HallOfFame.dc.html",
+  "Search.dc.html",
+  "AuthorPage.dc.html",
+  "Editor.dc.html",
+  "EditorMobile.dc.html",
+  "WorldSettings.dc.html",
+  "Dashboard.dc.html",
+  "Economy.dc.html",
+  "Earnings.dc.html",
+  "SettingsStudio.dc.html",
+  "StudioEmptyStates.dc.html",
+  "AdminReports.dc.html",
+  "AdminReviews.dc.html",
+  "AdminSanctions.dc.html",
+  "WorkMobileTopBar.dc.html",
+  "Subscription.dc.html",
+  "StoreMain.dc.html",
+  "AssetDetail.dc.html",
+  "StoreCart.dc.html",
+  "StoreSeller.dc.html",
+  "WorldTree.dc.html",
+  "WorldTimeline.dc.html",
+  "BranchFlow.dc.html",
+  "WorldTreeMobile.dc.html"
+ ],
+ "notes": {
+  "t1": {
+   "x": 0,
+   "y": 1255,
+   "text": "공간 공통 틀과 스튜디오",
+   "kind": "title1",
+   "maxW": 4080
+  },
+  "s1": {
+   "x": -640,
+   "y": 0,
+   "text": "초안입니다. 상태 칩은 2026-10-10 기준 코드·로드맵 상태이고, 신규는 청사진 결정으로 아직 요구사항 ID가 없는 화면입니다.",
+   "w": 520
+  },
+  "t2": {
+   "x": 0,
+   "y": 2650,
+   "text": "독자 홈 상세",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t3": {
+   "x": 0,
+   "y": 4700,
+   "text": "작품 상세",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t4": {
+   "x": 0,
+   "y": 6650,
+   "text": "독자 뷰어",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t5": {
+   "x": 0,
+   "y": 7750,
+   "text": "관리자",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t6": {
+   "x": 0,
+   "y": 8850,
+   "text": "독자 계정 설정",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t7": {
+   "x": 0,
+   "y": 10050,
+   "text": "빈 상태",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t8": {
+   "x": 0,
+   "y": 11950,
+   "text": "독자 영역 마무리",
+   "kind": "title1",
+   "maxW": 2680
+  },
+  "t9": {
+   "x": 0,
+   "y": 16650,
+   "text": "작가 영역 — 스튜디오 에디터",
+   "kind": "title1",
+   "maxW": 1790
+  },
+  "t10": {
+   "x": 0,
+   "y": 22850,
+   "text": "관리자 영역 정리",
+   "kind": "title1",
+   "maxW": 4080
+  },
+  "t11": {
+   "x": 0,
+   "y": 25450,
+   "text": "스토어 영역 — 구독·결제",
+   "kind": "title1",
+   "maxW": 1280
+  },
+  "t12": {
+   "x": 0,
+   "y": 26830,
+   "text": "스토어 영역 — 에셋 스토어",
+   "kind": "title1",
+   "maxW": 2680
+  },
+  "t13": {
+   "x": 0,
+   "y": 30850,
+   "text": "세계수 시스템 (셀프 가지)",
+   "kind": "title1",
+   "maxW": 4080
+  }
+ },
+ "designSystems": []
+}

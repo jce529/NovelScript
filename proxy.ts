@@ -26,5 +26,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // api/payments/toss/webhook is excluded: Toss calls it without a session cookie;
+  // it authenticates payment status by a secret-key Toss lookup (05-04).
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/payments/toss/webhook$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };

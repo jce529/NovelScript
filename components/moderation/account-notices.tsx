@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
-import { AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+import { AlertTriangle, BookOpenCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { acknowledgeWarningAction, getAccountNoticesAction } from '@/lib/moderation/actions';
+import {
+  acknowledgePublicationNotificationAction, acknowledgeWarningAction, getAccountNoticesAction,
+} from '@/lib/moderation/actions';
 import {
   NOTICE_ACK_ERROR, NOTICE_ACK_LABEL, NOTICE_LOAD_ERROR, NOTICE_TITLE,
-  type WarningNotice,
+  type PublicationNotice, type WarningNotice,
 } from '@/lib/moderation/user-actions';
 
 /*
@@ -20,7 +23,20 @@ import {
 type LoadState =
   | { status: 'idle' | 'loading' | 'anonymous' }
   | { status: 'error' }
-  | { status: 'ready'; warnings: WarningNotice[] };
+  | { status: 'ready'; warnings: WarningNotice[]; publicationNotices: PublicationNotice[] };
+
+export const PUBLICATION_NOTICE_TITLE = '공개 알림';
+
+/** Safe copy: title plus a plain "published" line; never mentions hiding, blinding or reasons. */
+export function publicationNoticeText(notice: Pick<PublicationNotice, 'title' | 'chapterId'>): string {
+  return notice.chapterId ? `${notice.title} 회차 공개` : `${notice.title} 공개`;
+}
+
+export function publicationNoticeHref(notice: Pick<PublicationNotice, 'workId' | 'chapterId'>): string {
+  return notice.chapterId
+    ? `/works/${notice.workId}/chapters/${notice.chapterId}`
+    : `/works/${notice.workId}`;
+}
 
 export function AccountNotices() {
   const pathname = usePathname();
@@ -32,7 +48,7 @@ export function AccountNotices() {
     try {
       const result = await getAccountNoticesAction();
       const next: LoadState = result.ok
-        ? { status: 'ready', warnings: result.warnings }
+        ? { status: 'ready', warnings: result.warnings, publicationNotices: result.publicationNotices }
         : result.code === 'unauthenticated' ? { status: 'anonymous' } : { status: 'error' };
       lastStatus.current = next.status;
       setState(next);
@@ -57,20 +73,70 @@ export function AccountNotices() {
       </div>
     );
   }
-  if (state.status !== 'ready' || state.warnings.length === 0) return null;
+  if (state.status !== 'ready' || (state.warnings.length === 0 && state.publicationNotices.length === 0)) return null;
 
   return (
-    <section aria-label={NOTICE_TITLE} className="flex flex-col gap-2 border-b border-border bg-muted px-4 py-3">
-      {state.warnings.map((warning) => (
-        <WarningItem
-          key={warning.id}
-          warning={warning}
-          onAcknowledged={() => setState((current) => current.status === 'ready'
-            ? { status: 'ready', warnings: current.warnings.filter((w) => w.id !== warning.id) }
-            : current)}
-        />
-      ))}
-    </section>
+    <>
+      {state.warnings.length > 0 && (
+        <section aria-label={NOTICE_TITLE} className="flex flex-col gap-2 border-b border-border bg-muted px-4 py-3">
+          {state.warnings.map((warning) => (
+            <WarningItem
+              key={warning.id}
+              warning={warning}
+              onAcknowledged={() => setState((current) => current.status === 'ready'
+                ? { ...current, warnings: current.warnings.filter((w) => w.id !== warning.id) }
+                : current)}
+            />
+          ))}
+        </section>
+      )}
+      {state.publicationNotices.length > 0 && (
+        <section aria-label={PUBLICATION_NOTICE_TITLE} className="flex flex-col gap-2 border-b border-border bg-muted px-4 py-3">
+          {state.publicationNotices.map((notice) => (
+            // Server-confirmed ack, then reload so the next pending notice (max 25 per load) appears.
+            <PublicationNoticeItem key={notice.id} notice={notice} onAcknowledged={() => void load()} />
+          ))}
+        </section>
+      )}
+    </>
+  );
+}
+
+export function PublicationNoticeItem({ notice, onAcknowledged }: { notice: PublicationNotice; onAcknowledged: () => void }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function acknowledge() {
+    startTransition(async () => {
+      setError(null);
+      try {
+        const result = await acknowledgePublicationNotificationAction(notice.id);
+        if (result.ok) onAcknowledged();
+        else setError(result.error);
+      } catch {
+        setError(NOTICE_ACK_ERROR);
+      }
+    });
+  }
+
+  return (
+    <div role="status" className="mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center">
+      <BookOpenCheck className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <Link href={publicationNoticeHref(notice)} className="text-sm font-medium break-words underline-offset-2 hover:underline">
+          {publicationNoticeText(notice)}
+        </Link>
+        {notice.createdAt && (
+          <time dateTime={notice.createdAt} className="text-xs text-muted-foreground">
+            {new Date(notice.createdAt).toLocaleString()}
+          </time>
+        )}
+        <p className="text-sm text-destructive" aria-live="polite">{error}</p>
+      </div>
+      <Button size="sm" variant="outline" disabled={pending} onClick={acknowledge} className="min-h-11 sm:min-h-7">
+        {pending ? '처리 중…' : NOTICE_ACK_LABEL}
+      </Button>
+    </div>
   );
 }
 
