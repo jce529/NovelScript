@@ -34,7 +34,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
     return (
       <>
         <SiteHeader />
-        <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
+        <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
           <div className="flex h-11 items-center">
             <Link href="/" aria-label="뒤로가기" className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-muted">
               <ArrowLeft className="size-4" />
@@ -69,7 +69,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
     <>
       {/* Desktop keeps the global header; mobile uses the compact action row below. */}
       <div className="hidden md:block"><SiteHeader /></div>
-      <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
+      <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
         {/* Fixed top area: report lives here once, outside the tabs, so it stays on every tab. */}
         <div className="flex h-11 items-center justify-between">
           <Link href="/" aria-label="뒤로가기" className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-muted">

@@ -312,7 +312,9 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('world-tree branching (PostgreSQL)
       await exec(`insert into chapters(work_id, title, content, order_index, is_published)
         select $1, 'C' || g, '', g, true from generate_series(1, $2::int) g`, [draft, T.minPublishedChapters]);
       const [b] = await exec('select id from world_branches where work_id = $1', [draft]);
-      await exec("insert into world_eras(branch_id, position, name) values ($1, 0, '가지 1기')", [b.id]);
+      // 0035: independent eras only come after the inherited span cloned at confirm.
+      await exec(`insert into world_eras(branch_id, position, name)
+        select $1, coalesce(max(position), -1) + 1, '가지 1기' from world_eras where branch_id = $1`, [b.id]);
       const grandchild = await begin('expand', undefined, writer, draft);
       const [g] = await exec('select parent_branch_id, depth from world_branches where work_id = $1', [grandchild]);
       expect(g).toMatchObject({ parent_branch_id: b.id, depth: 2 });
@@ -353,9 +355,10 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('world-tree branching (PostgreSQL)
       await asOwner();
       const [w] = await exec('select deleted_at is not null as gone from works where id = $1', [draft]);
       expect(w.gone).toBe(true);
-      await as(writer);
-      await exec('update works set deleted_at = now() where id = $1', [world.source]);
+      // works_owner_all's USING also gates the new row, so an owner-role soft delete is an RLS
+      // error by design; the guard trigger itself is exercised as the table owner.
       await asOwner();
+      await exec('update works set deleted_at = now() where id = $1', [world.source]);
       const [t] = await exec('select deleted_at is not null as gone from world_branches where id = $1', [trunk.id]);
       expect(t.gone).toBe(true);
     });

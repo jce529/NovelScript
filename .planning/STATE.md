@@ -31,7 +31,7 @@ Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·�
 
 **Phase 2:** 2026-10-19 완료(검증 포함). 일회용 DB(0001~0023)와 브라우저 UAT 통과, BUG-02·03 수정. 실제 터치 기기·AI 응답 진행 중 접기는 수용(미검증) 항목. 근거는 `02-13-SUMMARY.md`·`02-VERIFICATION.md`.
 
-**마이그레이션(미적용):** 0024·0025(Phase 3), 0026(4), 0027(5), 0029(7), 0030(11), 0032~0036(18)은 파일만 있고 어떤 DB에도 적용·실행하지 않았다. 0028·0031은 의도적 결번. 공유 프로젝트에는 적용 금지 — 일회용 DB에서 먼저 검증한다.
+**마이그레이션(일회용 DB 적용·DB suite 통과, 2026-10-19):** 0024·0025(Phase 3), 0026(4), 0027(5), 0029(7), 0030(11), 0032~0036(18)을 일회용 Supabase 프로젝트(`.env.disposable`, 공유 프로젝트와 ref 다름 확인)에 적용했다. 03-19·07-15·18-12의 실DB suite를 `READING_STATE_DB_TEST=1 COMPLETION_DB_TEST=1 WTREE_BRANCH_RACE_SCHEMA_COMMIT=1`로 skipped 0 실행해 통과(테스트 결함 3건 수정: timeline 픽스처 uuid 추론·`::text::jsonb`·단일 트랜잭션 deferred 복원, branching 상속 구간 위치·소유자 롤 soft delete). **공유 프로젝트에는 아직 미적용 — 적용 금지.** 브라우저 UAT는 일부 수행(결함 3건 수정, 범위·pending은 `.planning/gaps/2026-10-19-disposable-uat-results.md`) — 03-19 Task 2·07-15 15-02·18-12 Task 2는 pending 항목이 남아 승인 대기, Toss 키 gate(05-07)는 대기. 0028·0031은 의도적 결번. 0011은 UTF-8 BOM으로 시작해 `apply-migration.mjs` 단독 실행 시 구문 오류 가능.
 
 **실행 시 주의(이번 세션 발견):** vitest `--mode disposable`만으로는 공유 `.env.local` 값이 섞일 수 있다 → 실DB suite는 프로세스 환경변수로 일회용 DB를 고정하고 ref를 먼저 확인한다. `.env*` 읽기는 `.claude/settings.json`의 deny 규칙으로 막혀 있고, 키 존재 확인은 `node scripts/check-env.mjs`만 쓴다.
 

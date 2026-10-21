@@ -416,8 +416,15 @@ describe('/studio/[workId]/world settings page', () => {
     await expect(studio(SID, { draft: '00000000-0000-4000-8000-0000000000ff' })).rejects.toThrow('NEXT_NOT_FOUND');
   });
 
-  it('rejects a confirmed branch passed as a draft', async () => {
-    await expect(studio(SID, { draft: ids.ifWork })).rejects.toThrow('NEXT_NOT_FOUND');
+  it('renders without a resumable draft when ?draft= names a just-confirmed child of this world', async () => {
+    // The confirm action revalidates this URL; a 404 here would replace the wizard's completion step.
+    const tree = await studio(SID, { draft: ids.ifWork });
+    expect(findType(tree, WorldSettings)?.props?.resumeDraft).toBeNull();
+  });
+
+  it('still rejects a confirmed branch of another world passed as a draft', async () => {
+    m.getState.mockResolvedValue(ownerState({ work: { id: ids.ifWork, title: IF_TITLE } }));
+    await expect(studio(ids.ifWork, { draft: ids.ifWork })).rejects.toThrow('NEXT_NOT_FOUND');
   });
 
   it('rejects an owned draft of another source work', async () => {

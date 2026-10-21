@@ -31,18 +31,23 @@ async function resolveResumeDraft(
   ownerId: string,
   workId: string,
   raw: string,
-): Promise<ResumeDraft | 'invalid' | 'unavailable'> {
+): Promise<ResumeDraft | 'confirmed' | 'invalid' | 'unavailable'> {
   if (!UUID_RE.test(raw)) return 'invalid';
   const found = await getOwnedBranch(supabase, { ownerId, workId: raw });
   if (!found.ok) return found.code === 'unavailable' ? 'unavailable' : 'invalid';
   const draft = found.branch;
   if (!draft || draft.workId !== raw || draft.ownerId !== ownerId) return 'invalid';
-  if (draft.status !== 'draft' || draft.kind === 'trunk' || !draft.parentBranchId || !draft.requestId) return 'invalid';
+  if (draft.kind === 'trunk' || !draft.parentBranchId) return 'invalid';
+  if (draft.status !== 'draft' && draft.status !== 'confirmed') return 'invalid';
+  if (draft.status === 'draft' && !draft.requestId) return 'invalid';
 
   const parent = await getOwnedBranch(supabase, { ownerId, branchId: draft.parentBranchId });
   if (!parent.ok) return parent.code === 'unavailable' ? 'unavailable' : 'invalid';
   if (!parent.branch || parent.branch.workId !== workId || parent.branch.rootWorkId !== draft.rootWorkId) return 'invalid';
-  return { draftWorkId: raw, kind: draft.kind, requestId: draft.requestId };
+  // The confirm action revalidates this very URL, so a just-confirmed draft of this world must
+  // render the page (nothing left to resume) instead of 404ing the wizard's completion step.
+  if (draft.status === 'confirmed') return 'confirmed';
+  return { draftWorkId: raw, kind: draft.kind, requestId: draft.requestId! };
 }
 
 async function ownerMetrics(supabase: SupabaseClient, state: WorldTreeOwnerState): Promise<WorldTreePopularityResult | null> {
@@ -92,7 +97,7 @@ export default async function WorldSettingsPage({
     const resolved = await resolveResumeDraft(supabase, user.id, workId, rawDraft);
     if (resolved === 'invalid') notFound();
     if (resolved === 'unavailable') return <Unavailable message="가지 초안을 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />;
-    resumeDraft = resolved;
+    resumeDraft = resolved === 'confirmed' ? null : resolved;
   }
 
   const timelineHref = `/studio/${workId}/world/timeline`;

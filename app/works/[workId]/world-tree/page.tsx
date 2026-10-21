@@ -29,7 +29,7 @@ export default async function WorkWorldTreePage({ params }: { params: Promise<{ 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6">
         <div className="flex h-11 items-center">
           <Link href={`/works/${workId}`} aria-label="작품으로 돌아가기" className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-muted">
             <ArrowLeft className="size-4" />

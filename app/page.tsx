@@ -32,7 +32,7 @@ export default async function HomePage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex max-w-6xl min-w-0 flex-col gap-6 px-4 py-8">
+      <main className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-6 px-4 py-8">
         <RecentlyReadSection loggedIn={Boolean(user)} items={recentlyRead} />
         <Separator className="mt-8" />
         <section id="weekly-ranking" className="flex flex-col gap-1">

@@ -72,8 +72,11 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('world-tree timeline (PostgreSQL)'
     return row.r as { branch_id: string; root_work_id: string; created: boolean };
   }
   async function save(branch: string, eras: EraIn[], placements: PlacementIn[], user = writer) {
+    // save_world_timeline ends with SET CONSTRAINTS IMMEDIATE (one transaction per RPC in
+    // production); this suite shares one transaction, so restore the deferred state per call.
+    await exec('set constraints world_eras_live_position_excl, world_era_placements_live_order_excl deferred');
     await as(user);
-    const [row] = await exec('select save_world_timeline($1, $2::jsonb, $3::jsonb) as r',
+    const [row] = await exec('select save_world_timeline($1, $2::text::jsonb, $3::text::jsonb) as r',
       [branch, JSON.stringify(eras), JSON.stringify(placements)]);
     await asOwner();
     return row.r as { branch_id: string; eras: { id: string; position: number }[]; placementCount: number };
@@ -107,7 +110,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('world-tree timeline (PostgreSQL)'
     await asOwner();
     const draft = (b.r as { draft_work_id: string }).draft_work_id;
     await exec(`insert into kb_nodes(owner_id, work_id, scope, parent_id, node_type, category, name, content)
-      select $1, $2, 'work', r.id, 'file', '장소', 'new place', 'x' from kb_nodes r
+      select $1, $2, 'work', r.id, 'file', '장소', 'new place ' || gen_random_uuid()::text, 'x' from kb_nodes r
        where r.work_id = $2 and r.parent_id is null and r.category = '장소'`, [writer, draft]);
     await as(writer);
     const [c] = await exec('select confirm_world_branch($1, $2, $3) as r', [draft, 'Child', forkEra]);
@@ -124,7 +127,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('world-tree timeline (PostgreSQL)'
       ['세력', T.minSettingDocuments - m.인물 - m.장소 - m.사건]];
     for (const [category, count] of plan) {
       await exec(`insert into kb_nodes(owner_id, work_id, scope, parent_id, node_type, category, name, content)
-        select $1, $2, 'work', r.id, 'file', $3, $3 || '-' || g || '-' || $2, $5
+        select $1, $2, 'work', r.id, 'file', $3, $3 || '-' || g || '-' || $2::uuid, $5
           from kb_nodes r, generate_series(1, $4::int) g
          where r.work_id = $2 and r.parent_id is null and r.category = $3`,
       [writer, work, category, count, '가'.repeat(T.minDocumentBodyChars)]);

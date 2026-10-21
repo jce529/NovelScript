@@ -226,7 +226,7 @@ export function ViewerShell({
         </div>
       </header>
 
-      <main className="flex-1 py-8" onPointerDown={onBodyPointerDown} onClick={onBodyClick}>
+      <main className="flex-1 pt-8 pb-24" onPointerDown={onBodyPointerDown} onClick={onBodyClick}>
         <div
           ref={bodyRef}
           data-viewer-body=""
