@@ -12,7 +12,6 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 const ok = (balance: number, recentDebit = 0): WalletLoadResult => ({ ok: true, balance, recentDebit });
-const flush = () => new Promise((r) => setTimeout(r, 0));
 
 function setup() {
   const pending: ReturnType<typeof deferred<WalletLoadResult>>[] = [];

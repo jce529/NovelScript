@@ -56,7 +56,7 @@ describe('KB editor: my template / document save', () => {
     const s = loaded('kb:w:n', 'a');
     applyEdit(false, 'kb:w:n', 'ab', s.dispatch);
     expect(selectSaveStatus(s.get())).toBe('dirty');
-    const save = vi.fn(async (_c: string) => ({ ok: true }));
+    const save = vi.fn(async () => ({ ok: true }));
     const onSuccess = vi.fn();
     const outcome = await performSave({
       state: s.get(), readOnly: false, requestId: 'r1', dispatch: s.dispatch, save, onSuccess,
