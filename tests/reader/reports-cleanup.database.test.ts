@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import postgres from 'postgres';
 import { adminClient, createTestUser, deleteTestUser, deleteTestUserStrict, pgPool } from '../helpers/db';
 import { submitReport } from '../../lib/reader/reports';
+import { createRemovableWork } from '../helpers/work-fixture';
 import { deleteFixtures, deletionBlockers, planCleanup } from '../../scripts/lib/report-fixture-cleanup.mjs';
 
 // BUG-05 (Phase 7): fixtures created through PostgREST/Auth are visible to an independent
@@ -22,13 +23,10 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('reader report fixture cleanup', (
     const owner = await createTestUser();
     const reporter = await createTestUser();
     users.push(owner.id, reporter.id);
-    const { data: workId, error } = await admin.rpc('create_work', {
-      p_owner_id: owner.id, p_title: 'cleanup fixture', p_synopsis: null, p_cover_image_url: null, p_genre: null,
-    });
-    if (error) throw error;
-    const report = await submitReport(admin, { reporterId: reporter.id, workId: workId as string, chapterId: null, reasonCategory: '스팸/광고' });
+    const workId = await createRemovableWork(admin, owner.id, 'cleanup fixture');
+    const report = await submitReport(admin, { reporterId: reporter.id, workId: workId, chapterId: null, reasonCategory: '스팸/광고' });
     expect(report.ok).toBe(true);
-    return { workId: workId as string, reportId: report.reportId!, owner, reporter };
+    return { workId: workId, reportId: report.reportId!, owner, reporter };
   }
 
   const counts = (sql: postgres.Sql, ids: { workId: string; reportId: string }) => sql`
@@ -65,6 +63,37 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('reader report fixture cleanup', (
   });
 });
 
+// BUGFIX-05: the 0023 lock invariants stay intact. A work seeded by create_work (locked structure
+// folders) is refused up front, and a direct DELETE is still rejected by the trigger. Runs in a
+// rolled-back transaction so nothing is left behind.
+describe.skipIf(!process.env.SUPABASE_DB_URL)('cleanup vs locked kb nodes (0023 invariants)', () => {
+  const sql = pgPool(1);
+  let ownerId = '';
+
+  afterAll(async () => {
+    await sql.end();
+    if (ownerId) await deleteTestUser(ownerId);
+  });
+
+  it('refuses locked works in the plan and the trigger still rejects a direct delete', async () => {
+    const owner = await createTestUser();
+    ownerId = owner.id;
+    class Rollback extends Error {}
+    let blockers: string[] = [];
+    let directDelete: unknown;
+    await expect(sql.begin(async (tx) => {
+      const [{ id }] = await tx`select create_work(${owner.id}::uuid, 'locked probe', null, null, null) as id`;
+      blockers = deletionBlockers(await planCleanup(tx as unknown as postgres.Sql, { workIds: [id] }));
+      directDelete = await tx.savepoint(async (s) => {
+        await s`delete from kb_nodes where work_id = ${id}::uuid`;
+      }).catch((e: unknown) => e);
+      throw new Rollback('rollback');
+    })).rejects.toBeInstanceOf(Rollback);
+    expect(blockers).toContain('locked_kb_nodes');
+    expect((directDelete as Error).message).toContain('locked_node_immutable');
+  });
+});
+
 describe('deletionBlockers guard', () => {
   const empty = { reportIds: [] as string[], workIds: [] as string[], userIds: [] as string[], reports: [], kbNodes: [], works: [], users: [], audit: [], sanctions: [] };
 
@@ -79,6 +108,10 @@ describe('deletionBlockers guard', () => {
 
   it('refuses report ids that do not exist', () => {
     expect(deletionBlockers({ ...empty, reportIds: ['missing'] })).toContain('unknown_report_id');
+  });
+
+  it('refuses locked kb nodes and confirmed world branches', () => {
+    expect(deletionBlockers({ ...empty, workIds: ['w'], lockedNodes: [{ id: 'n' }], confirmedBranches: [{ id: 'b' }] })).toEqual(['locked_kb_nodes', 'confirmed_world_branch']);
   });
 
   it('accepts a clean plan of test accounts', () => {

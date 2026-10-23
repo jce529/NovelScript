@@ -33,7 +33,7 @@ try {
   const plan = await planCleanup(sql, { reportIds: list('reports'), workIds: list('works'), userIds: list('users') });
   console.log(`database host: ${host}`);
   console.log(JSON.stringify({
-    reports: plan.reports.length, kbNodes: plan.kbNodes.length, works: plan.works.length,
+    reports: plan.reports.length, kbNodes: plan.kbNodes.length, lockedKbNodes: plan.lockedNodes.length, confirmedBranches: plan.confirmedBranches.length, works: plan.works.length,
     users: plan.users.map((u) => u.email), auditLinked: plan.audit.length, sanctionsLinked: plan.sanctions.length,
   }, null, 2));
   const blockers = deletionBlockers(plan);

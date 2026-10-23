@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { createRemovableWork } from '../helpers/work-fixture';
 import { adminClient, createTestUser, deleteTestUser, deleteTestUserStrict, pgPool } from '../helpers/db';
 import { submitReport } from '../../lib/reader/reports';
 import { deleteFixtures, planCleanup } from '../../scripts/lib/report-fixture-cleanup.mjs';
@@ -52,11 +53,8 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('UAT account cleanup (database)', 
     const reporter = await createTestUser();
     const bystander = await accountWithLedger();
     leftovers.push(owner.id, reporter.id);
-    const { data: workId, error } = await admin.rpc('create_work', {
-      p_owner_id: owner.id, p_title: 'uat cleanup', p_synopsis: null, p_cover_image_url: null, p_genre: null,
-    });
-    if (error) throw error;
-    const report = await submitReport(admin, { reporterId: reporter.id, workId: workId as string, chapterId: null, reasonCategory: '스팸/광고' });
+    const workId = await createRemovableWork(admin, owner.id, 'uat cleanup');
+    const report = await submitReport(admin, { reporterId: reporter.id, workId: workId, chapterId: null, reasonCategory: '스팸/광고' });
     expect(report.ok).toBe(true);
 
     const plan = await planUatCleanup(writer, target(reporter));
@@ -67,7 +65,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('UAT account cleanup (database)', 
     expect((await reader`select count(*)::int as n from ledger_entries where wallet_id = ${bystander.id}`)[0].n).toBe(1);
 
     // The report fixtures themselves are cleaned by the BUG-05 helper, then the owner goes.
-    await deleteFixtures(writer, await planCleanup(writer, { reportIds: [], workIds: [workId as string], userIds: [owner.id] }));
+    await deleteFixtures(writer, await planCleanup(writer, { reportIds: [], workIds: [workId], userIds: [owner.id] }));
     await deleteTestUserStrict(owner.id);
     const stuck = await planUatCleanup(writer, target(bystander));
     await deleteUatAccounts(writer, admin, stuck, { expectCount: 1 });
@@ -76,17 +74,14 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('UAT account cleanup (database)', 
   it('refuses to delete an account that still owns a work, without touching anything', async () => {
     const owner = await createTestUser();
     leftovers.push(owner.id);
-    const { data: workId, error } = await admin.rpc('create_work', {
-      p_owner_id: owner.id, p_title: 'owned work', p_synopsis: null, p_cover_image_url: null, p_genre: null,
-    });
-    if (error) throw error;
+    const workId = await createRemovableWork(admin, owner.id, 'owned work');
 
     const plan = await planUatCleanup(writer, target(owner));
     expect(uatBlockers(plan, { expectCount: 1 })).toContain('unhandled_reference:works.owner_id(1)');
     await expect(deleteUatAccounts(writer, admin, plan, { expectCount: 1 })).rejects.toThrow(/cleanup_refused/);
     expect(await accountCount(owner.id)).toBe(1);
 
-    await deleteFixtures(writer, await planCleanup(writer, { reportIds: [], workIds: [workId as string], userIds: [owner.id] }));
+    await deleteFixtures(writer, await planCleanup(writer, { reportIds: [], workIds: [workId], userIds: [owner.id] }));
     await deleteTestUserStrict(owner.id);
   });
 
