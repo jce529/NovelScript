@@ -45,7 +45,7 @@ describe('paid generation lifecycle', () => {
     const route = { kind: 'byok' as const, selection: { providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const }, keyId: 'key-current', client: createMockProvider() };
     const pre = await preflightPaidGeneration(session(), { ownerId: OWNER, idempotencyKey: KEY, providerId: 'openai', model: 'gpt-4o-mini' }, route);
     expect(BYOK_MAX_OUTPUT_TOKENS).toBe(8192);
-    expect(PER_REQUEST_MAX_OUTPUT_TOKENS).toBe(2048);
+    expect(PER_REQUEST_MAX_OUTPUT_TOKENS).toBe(4096);
     expect(pre.ok).toBe(true);
     if (!pre.ok || pre.ctx.route.keySource !== 'byok') throw new Error('BYOK preflight failed');
     expect(pre.ctx.maxOutputTokens).toBe(8192);

@@ -113,6 +113,14 @@ related_fixed: .planning/fixed/08-04 사고 토큰 차감 누락 수정.md
 ### 후속 (Phase 11 이후, 단계 A-2)
 `PER_REQUEST_MAX_OUTPUT_TOKENS` 소폭 상향, 관측 로그(`wasCapped`·`cappedReason`·사고 비율), `thinking` 판정 기준 조정. 그 뒤 단계 B(`T/B`).
 
+## 단계 A-2 실행 기록 (2026-10-23, Phase 17-03 / bug-plan 보강 + bug-execute)
+
+- **A-1 완료 확인:** 원인별 안내(`classifyCappedReason`·`CAPPED_COPY`)는 chat 경로와 문서 기획 경로 모두 연결·테스트됐다(`tests/ai/capped-reason.test.ts`, `capped-ux.test.ts`). 잔액이 충분한 잘림은 소진 문구를 쓰지 않는다.
+- **상향폭 확정 (사용자, 2026-10-23):** `PER_REQUEST_MAX_OUTPUT_TOKENS` 2048 -> **4096**. BYOK 상한 8192와 `thinkingBudget`(미설정)은 그대로다. 근거: BUG-07 라이브 관측에서 사고 토큰이 2048의 약 96%(1964)를 먹어 본문 80토큰만 남았다. 4096이면 같은 사고량에서도 본문 여유가 생기고, 서비스 상한이 BYOK(8192) 아래에 머문다.
+- **적용:** `lib/ai/cost.ts` 상수 변경. 분류 경계(`maxOutputTokens < 상한` = balance)는 상수 참조라 코드 변경 없음. 테스트의 상한 고정값(2048)은 4096으로, 독립 비용 계산 사례(`candidatesTokenCount: 2048`)는 그대로 둔다.
+- **관측 로그(단계 A-2 나머지):** 17-03 Task 2에서 `paid-generation.ts` 공통 성공 경로에 추가한다.
+- **남은 일:** 실키 효과 확인은 17-06 수동 관측 항목. 단계 B(T/B 분리)는 이후 단계이며 그때 4096은 재조정 대상이다. 상태: 단계 A 구현 완료, 실키 검증 대기(`bug-complete`는 17-06 관측 후).
+
 ## 증상
 
 `maxOutputTokens`는 Gemini에서 "사고 토큰 + 본문 토큰"의 합계에 적용된다. 사고가 길면 본문이 그만큼 짧아지거나 아예 잘릴 수 있다(`finishReason: max_tokens`).

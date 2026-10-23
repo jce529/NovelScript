@@ -24,12 +24,12 @@ const usage = (outputTokens: number, thoughtsTokens: number | null | undefined) 
 
 describe('classifyCappedReason boundaries (existing classifier)', () => {
   it('a limit below the per-request cap is balance, even with heavy thinking', () => {
-    expect(classifyCappedReason({ maxOutputTokens: 2047, usage: usage(10, 5000) })).toBe('balance');
+    expect(classifyCappedReason({ maxOutputTokens: 4095, usage: usage(10, 5000) })).toBe('balance');
     expect(classifyCappedReason({ maxOutputTokens: 1, usage: usage(1, null) })).toBe('balance');
   });
 
-  it.each([2048, 8192])('at %i: thoughts >= output is thinking, otherwise request_limit', (max) => {
-    expect(PER_REQUEST_MAX_OUTPUT_TOKENS).toBe(2048);
+  it.each([4096, 8192])('at %i: thoughts >= output is thinking, otherwise request_limit', (max) => {
+    expect(PER_REQUEST_MAX_OUTPUT_TOKENS).toBe(4096);
     expect(BYOK_MAX_OUTPUT_TOKENS).toBe(8192);
     expect(classifyCappedReason({ maxOutputTokens: max, usage: usage(100, null) })).toBe('request_limit');
     expect(classifyCappedReason({ maxOutputTokens: max, usage: usage(100, undefined) })).toBe('request_limit');
@@ -41,16 +41,16 @@ describe('classifyCappedReason boundaries (existing classifier)', () => {
 
 describe('cappedCompletionFields', () => {
   it('only max_tokens is capped and carries a reason', () => {
-    expect(cappedCompletionFields({ maxOutputTokens: 2047, finishReason: 'max_tokens', usage: usage(10, null) }))
+    expect(cappedCompletionFields({ maxOutputTokens: 4095, finishReason: 'max_tokens', usage: usage(10, null) }))
       .toEqual({ wasCapped: true, cappedReason: 'balance' });
-    expect(cappedCompletionFields({ maxOutputTokens: 2048, finishReason: 'max_tokens', usage: usage(10, 10) }))
+    expect(cappedCompletionFields({ maxOutputTokens: 4096, finishReason: 'max_tokens', usage: usage(10, 10) }))
       .toEqual({ wasCapped: true, cappedReason: 'thinking' });
     expect(cappedCompletionFields({ maxOutputTokens: 8192, finishReason: 'max_tokens', usage: usage(10, 1) }))
       .toEqual({ wasCapped: true, cappedReason: 'request_limit' });
   });
 
   it.each(['stop', 'refusal', 'other'] as GenerateResult['finishReason'][])('%s is not capped and has no reason', (finishReason) => {
-    const fields = cappedCompletionFields({ maxOutputTokens: 2047, finishReason, usage: usage(10, 100) });
+    const fields = cappedCompletionFields({ maxOutputTokens: 4095, finishReason, usage: usage(10, 100) });
     expect(fields).toEqual({ wasCapped: false });
     expect('cappedReason' in fields).toBe(false);
   });
@@ -138,14 +138,14 @@ describe('chat() returns the shared capped fields (11-11)', () => {
     expect(res).toMatchObject({ wasCapped: true, cappedReason: 'balance' });
   });
 
-  it('service at 2048 with thoughts >= output → thinking', async () => {
+  it('service at 4096 with thoughts >= output → thinking', async () => {
     const { res, max } = await runService(100000, result('max_tokens', 300, 300));
     expect(max).toBe(PER_REQUEST_MAX_OUTPUT_TOKENS);
     expect(res).toMatchObject({ status: 'completed', wasCapped: true, cappedReason: 'thinking' });
   });
 
-  it('service at 2048 with little thinking → request_limit', async () => {
-    const { res, max } = await runService(100000, result('max_tokens', 2048, null));
+  it('service at 4096 with little thinking → request_limit', async () => {
+    const { res, max } = await runService(100000, result('max_tokens', 4096, null));
     expect(max).toBe(PER_REQUEST_MAX_OUTPUT_TOKENS);
     expect(res).toMatchObject({ status: 'completed', wasCapped: true, cappedReason: 'request_limit' });
     expect(cappedPresentation(res)).toEqual(CAPPED_COPY.request_limit);
