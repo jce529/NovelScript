@@ -1,7 +1,7 @@
 ---
 id: BUG-01
 title: 업로드 다이얼로그 파일 입력 기본 문구 노출 + 저장 폴더 Select 비제어 경고
-status: open
+status: fixed-pending-device-check
 severity: low
 found: 2026-10-23
 found_during: 16-UAT G2/G3 점검, Phase 17-02
@@ -41,3 +41,9 @@ files:
 
 - `npx vitest run --project unit tests/ai/upload-files-dialog.test.ts`
 - 실제 모바일 선택창·시각 확인은 17-06 checkpoint에서 수행.
+
+## 수정 결과 (bug-execute, Phase 17-02)
+
+- `UploadFilesDialog.tsx`: 두 입력에 `sr-only`·`tabIndex={-1}`·`aria-label`·ref 적용, "파일 선택"/"폴더째 선택" `type=button` 버튼이 `click()`으로 연다. 첨부 모드에서는 폴더 입력·버튼을 렌더하지 않는 기존 동작 유지.
+- 자동 검증: `tests/ai/upload-files-dialog.test.ts` 7개 통과, ESLint `--max-warnings=0`·tsc 통과.
+- 남은 일: 실제 모바일/브라우저 선택창·시각 확인은 17-06 checkpoint 후 `bug-complete`로 `.planning/fixed/16-NN ...`에 이관.
