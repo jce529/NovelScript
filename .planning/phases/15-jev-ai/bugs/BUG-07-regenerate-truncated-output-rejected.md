@@ -1,7 +1,7 @@
 ---
 id: BUG-07
 title: 문서 재생성이 응답 잘림을 "structure" 거부로 처리해 일반 실패 문구만 보임
-status: open (옵션 3 확정 2026-10-08 — 관측 로그만 먼저 추가, 본 수정은 BUG-04 단계 B와 함께)
+status: open (옵션 1 편입 2026-10-23 — Phase 17-03에서 잘림 거부·안내 구현, 실키 성공률 확인은 17-06 수동 관측 대기. 사고/본문 몫 분리는 BUG-04 단계 B)
 severity: medium (재생성 성공을 한 번도 못 봄 — 과금은 안 되지만 기능이 사실상 막힘)
 found: 2026-10-08
 found_during: UAT 브랜치(uat/pending-verification) Phase 15-09 Task 2 브라우저 UAT — 템플릿 변경 재생성
@@ -52,6 +52,20 @@ related:
 - `tests/ai/regenerate-document.test.ts`에 `finishReason: 'max_tokens'` 응답이 `structure`가 아닌 잘림 사유로 처리되고 무과금임을 확인하는 케이스 추가.
 - 브라우저: 템플릿 변경 재생성을 5회 이상 시도해 성공/실패 비율을 기록하고, 실패 시 원인 문구가 뜨는지 확인. (이번 UAT에서 재생성 **성공**은 미확인)
 - 로그에 `finishReason`이 찍혀 잘림 가설을 직접 확인.
+
+## 2026-10-23 방향 갱신 (사용자 편입 결정, Phase 17-03 / bug-plan 보강)
+
+기존 옵션 3 이력(관측 로그만 먼저)은 보존한다. 라이브 관측으로 원인이 확정됐고(`max_tokens`, 사고 1964/2048), 사용자가 BUG-07을 Phase 17에 편입하기로 결정했다. 방향은 **옵션 1(잘림 감지·안내) + BUG-04 단계 A-2의 상한 4096 상향**이다. 재생성 전용 상한 상향(옵션 2)과 사고/본문 몫 분리는 하지 않는다.
+
+- `finishReason === 'max_tokens'`이면 구조 검증 전에 `GenerationRejectedError(REGENERATION_TRUNCATED, 'truncated')`로 거부한다. 기존 정산 취소 흐름이라 무과금, 같은 키 재시도 가능.
+- 문구: "문서가 길어서 생성 도중 잘렸어요. 사용한 토큰은 차감되지 않았어요. 다시 시도해주세요."
+- 안전 거부(refusal)는 기존대로 먼저 처리한다.
+
+## 적용 내용 (bug-execute, 2026-10-23, Phase 17-03)
+- `lib/ai/document-regenerate.ts`: `REGENERATION_TRUNCATED` 추가, `max_tokens` 응답을 `truncated` 사유로 거부. 기존 `[ai] regenerate observed` 로그는 유지한다.
+- `lib/ai/paid-generation.ts`: 일반 생성 공통 성공 경로에 `[ai] generation observed` 로그(provider, keySource, finishReason, wasCapped, maxOutputTokens, outputTokens, thoughtsTokens, idempotencyKey). 본문·프롬프트·키 없음.
+- 테스트: `tests/ai/regenerate-document.test.ts`(truncated 거부·무과금), `tests/ai/paid-generation.test.ts`(로그 필드·본문 미포함).
+- **보류:** 실키로 재생성 5회 이상 성공/실패 비율 기록은 사람이 해야 하는 항목이라 17-06 수동 관측으로 남긴다(미수행). 따라서 `bug-complete`는 아직 하지 않는다.
 
 ## 부수 관찰 (이 버그 범위 밖)
 - 첫 생성은 구조 검증 없이 저장되어 "오지후" 문서 본문에 템플릿 제목이 없었다(불릿만). 재생성만 제목을 엄격히 검증하는 불일치 가능성 — 별도 확인 필요.

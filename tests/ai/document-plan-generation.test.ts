@@ -108,7 +108,7 @@ describe('active document planning strategy', () => {
     h.generate.mockResolvedValue(capped(null));
     await expect(chat({} as never, provider, input())).resolves.toMatchObject({ wasCapped: true, cappedReason: 'balance' });
 
-    h.preflight.mockResolvedValue({ ok: true, ctx: { admin: {}, walletBalance: 900, model: 'm', maxOutputTokens: 2048 } });
+    h.preflight.mockResolvedValue({ ok: true, ctx: { admin: {}, walletBalance: 900, model: 'm', maxOutputTokens: 4096 } });
     await expect(chat({} as never, provider, input())).resolves.toMatchObject({ wasCapped: true, cappedReason: 'request_limit' });
     h.generate.mockResolvedValue(capped(500));
     await expect(chat({} as never, provider, input())).resolves.toMatchObject({ wasCapped: true, cappedReason: 'thinking' });

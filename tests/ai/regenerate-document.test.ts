@@ -14,7 +14,7 @@ vi.mock('@/lib/kb/actions', async (importOriginal) => ({
 }));
 vi.mock('@/lib/ai/paid-generation', () => ({ preflightPaidGeneration: mocks.preflight, settlePaidGeneration: mocks.settle }));
 
-import { REGENERATION_FAILED, regenerateDocumentWithTemplate } from '@/lib/ai/document-regenerate';
+import { REGENERATION_FAILED, REGENERATION_TRUNCATED, regenerateDocumentWithTemplate } from '@/lib/ai/document-regenerate';
 import { GenerationRejectedError } from '@/lib/ai/generation-rejected';
 
 const workId = '11111111-1111-4111-8111-111111111111';
@@ -292,6 +292,17 @@ ${body}
       provider.generateContent = vi.fn(async () => generated(text));
       const result = await regenerateDocumentWithTemplate(db, provider, { ...input, proposal: prop });
       expect(result).toMatchObject({ ok: false, error: REGENERATION_FAILED, failureKind: 'rejected_output' });
+      expect(debits.count).toBe(0);
+    });
+
+    it('rejects a max_tokens response as truncated, not structure, without debiting (BUG-07)', async () => {
+      const cut = doc(`# 미라
+## 성격
+차분`);
+      provider.generateContent = vi.fn(async () => ({ ...generated(cut), finishReason: 'max_tokens' }) as GenerateResult);
+      const result = await regenerateDocumentWithTemplate(db, provider, input);
+      expect(result).toMatchObject({ ok: false, error: REGENERATION_TRUNCATED, failureKind: 'rejected_output' });
+      expect(REGENERATION_TRUNCATED).not.toBe(REGENERATION_FAILED);
       expect(debits.count).toBe(0);
     });
 

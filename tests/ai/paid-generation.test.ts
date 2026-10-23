@@ -201,6 +201,22 @@ describe('paid generation lifecycle', () => {
     expect(again.ok).toBe(true);
   });
 
+  it('logs generation observation fields without body or secrets (BUGFIX-01 A-2)', async () => {
+    setup({ balances: { [OWNER]: 100000 } });
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const pre = await preflightPaidGeneration(session(), identity);
+    if (!pre.ok) throw new Error('preflight failed');
+    const secretBody = 'SECRET-BODY-TEXT';
+    const capped = { ...okResult(secretBody, 10, 80, 1964), finishReason: 'max_tokens' as const };
+    await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, pre.ctx, { ...identity, ledgerReason: 'test' }, async () => capped);
+    const call = info.mock.calls.find(([tag]) => tag === '[ai] generation observed');
+    expect(call?.[1]).toEqual({
+      provider: 'gemini', keySource: 'service', finishReason: 'max_tokens', wasCapped: true,
+      maxOutputTokens: PER_REQUEST_MAX_OUTPUT_TOKENS, outputTokens: 80, thoughtsTokens: 1964, idempotencyKey: KEY,
+    });
+    expect(JSON.stringify(info.mock.calls)).not.toContain(secretBody);
+  });
+
   it('settles the original result once with the supplied ledger reason', async () => {
     const admin = setup({ balances: { [OWNER]: 100 } });
     const pre = await preflightPaidGeneration(session(), identity);

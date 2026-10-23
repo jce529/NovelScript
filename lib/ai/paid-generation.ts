@@ -232,6 +232,15 @@ async function settleInner(
     return { kind: 'terminal', chatResult: failed(failureKind, CHAT_COPY[failureKind]) };
   }
 
+  // BUGFIX-01 A-2 관측: 잘림·사고 토큰 비중 확인용. 응답 본문, 프롬프트, 키는 남기지 않는다.
+  console.info('[ai] generation observed', {
+    provider: client.provider, keySource: ctx.route.keySource,
+    finishReason: result.finishReason, wasCapped: result.finishReason === 'max_tokens',
+    maxOutputTokens: ctx.maxOutputTokens,
+    outputTokens: result.usage.outputTokens, thoughtsTokens: result.usage.thoughtsTokens,
+    idempotencyKey: id.idempotencyKey,
+  });
+
   if (ctx.route.keySource === 'byok') {
     // BYOK: best-effort observation only (D-12); never wallet, lease or settlement.
     await recordUsageBestEffort(client, ctx, id, result);

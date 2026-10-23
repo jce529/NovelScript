@@ -17,6 +17,8 @@ import type { GenerationRoute } from '@/lib/ai/providers/byok';
 import type { Selection } from '@/lib/ai/providers/selection';
 
 export const REGENERATION_FAILED = '문서를 다시 생성하지 못했어요. 다시 시도해주세요.';
+/** BUG-07: 응답이 출력 길이 한도에 닿아 잘린 경우. 구조 오류와 구분해 안내하며 차감하지 않는다. */
+export const REGENERATION_TRUNCATED = '문서가 길어서 생성 도중 잘렸어요. 사용한 토큰은 차감되지 않았어요. 다시 시도해주세요.';
 
 export type RegenerateResult =
   | { ok: true; content: string; name: string; remainingBalance?: number }
@@ -184,6 +186,8 @@ export async function regenerateDocumentWithTemplate(
         textLength: generated.text.length, idempotencyKey: input.idempotencyKey,
       });
       if (generated.refusal) return generated; // 안전 거부는 기존대로 사용량만큼 과금된다(D-05..D-08)
+      // BUG-07: 잘린 응답은 구조 검증 전에 별도 사유로 거부한다(무과금, 같은 키로 재시도 가능).
+      if (generated.finishReason === 'max_tokens') throw new GenerationRejectedError(REGENERATION_TRUNCATED, 'truncated');
       const rejection = await validateRegeneratedDocument(supabase, {
         text: generated.text, ownerId: input.ownerId, workId: input.workId, proposal: input.proposal,
         templateContent: targetTemplate.template.content,
