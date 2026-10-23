@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   createSendAttempt,
   createReplacementAttempt,
+  canRetryWithNewSelection,
+  createReselectedAttempt,
+  isSameSelection,
   createSendLock,
   resolveChatOutcome,
   thrownChatNotice,
@@ -275,5 +278,41 @@ describe('resolveChatOutcome', () => {
       expect(text).not.toContain('503');
       expect(text).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/);
     }
+  });
+});
+
+describe('selection-change retry policy (BUGFIX-04)', () => {
+  it.each(['rate_limited', 'credit_exhausted', 'unavailable', 'config'] as const)(
+    '%s + changed selection allows a new selection under a new key', (kind) => {
+      expect(canRetryWithNewSelection(kind, true)).toBe(true);
+      expect(canRetryWithNewSelection(kind, false)).toBe(false);
+    });
+
+  it.each(['settlement', 'unknown', 'generation_in_progress'] as const)(
+    '%s keeps the frozen snapshot even when the selection changed (double-debit risk)', (kind) => {
+      expect(canRetryWithNewSelection(kind, true)).toBe(false);
+    });
+
+  it('undefined kind never allows a new selection', () => {
+    expect(canRetryWithNewSelection(undefined, true)).toBe(false);
+  });
+
+  it('isSameSelection compares provider, model and key source (BYOK switch counts as a change)', () => {
+    const a = { providerId: 'gemini' as const, model: 'gemini-3.5-flash', keySource: 'service' as const };
+    expect(isSameSelection(a, { ...a })).toBe(true);
+    expect(isSameSelection(a, { ...a, keySource: 'byok' })).toBe(false);
+    expect(isSameSelection(a, { ...a, providerId: 'openai', model: 'gpt-4o-mini' })).toBe(false);
+  });
+
+  it('createReselectedAttempt keeps the snapshot, swaps selection, issues a new key and drops stale consent', () => {
+    const base = createSendAttempt({
+      userMessage: '이어줘', providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const,
+    }, () => 'key-1');
+    const consented = createReplacementAttempt(base, { providerId: 'anthropic', model: 'claude-sonnet-5', keySource: 'service' });
+    const next = createReselectedAttempt(consented, { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' }, () => 'key-2');
+    expect(next.idempotencyKey).toBe('key-2');
+    expect(next.payload).toEqual({ userMessage: '이어줘', providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' });
+    expect(Object.isFrozen(next.payload)).toBe(true);
+    expect(consented.idempotencyKey).toBe('key-1');
   });
 });
