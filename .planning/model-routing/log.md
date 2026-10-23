@@ -8,3 +8,4 @@
 2026-10-19 | 99-02-1 | trivial/low | T1 | gpt-6-luna (codex, low) | 통과 | 0 | 검증 없음 | - | 규칙 개정 후. P1=0.68 P2=0.06 → codex. unelevated 플래그, env오류 0
 2026-10-19 | 99-02-2 | routine/low | T2 | gpt-5.6-terra (codex, medium) | 통과(4/4) | 0 | 검증 없음 | - | 규칙 개정 후. P1=0.71 P2=0.05 → codex. 99-01에서는 sonnet(claude)으로 갔던 task
 2026-10-19 | 99-02-3,4 | - | T4,T3 | opus,sonnet (claude) | 미실행 | - | - | - | 개정 규칙에서도 Claude 채널(P1=0.37 / P1=0.05,P2=0.89). 결정만 확인
+2026-10-23 | 12-research | role-default | T3 | sonnet (claude) | 통과 | 0 | 검증 없음 | - | classifier: role-default. 웹 검색 필요로 Terra 대신 Claude. RESEARCH.md 산출, 확신도 MEDIUM
