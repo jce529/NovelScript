@@ -72,7 +72,7 @@ describe('getWorkKbNodes / getAccountSharedNodes (integration, lib/kb/actions.ts
       node_type: 'file',
       category: 'template',
       is_locked: false,
-      name: '인물',
+      name: '인물 커스텀',
       content: '# 계정 커스텀 인물 템플릿',
     });
     if (childErr) throw childErr;
@@ -94,7 +94,7 @@ describe('getWorkKbNodes / getAccountSharedNodes (integration, lib/kb/actions.ts
     const nodes = await getAccountSharedNodes(admin, { ownerId: userA.id });
     expect(nodes.every((n) => n.scope === 'account_template')).toBe(true);
     expect(nodes.some((n) => n.name === 'template' && n.node_type === 'folder')).toBe(true);
-    expect(nodes.some((n) => n.name === '인물' && n.node_type === 'file')).toBe(true);
+    expect(nodes.some((n) => n.name === '인물 커스텀' && n.node_type === 'file')).toBe(true);
   });
 
   it('getWorkKbNodes returns an empty result for a work belonging to a different owner (no cross-owner leakage)', async () => {
