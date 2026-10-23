@@ -28,3 +28,22 @@ npx eslint .
 npx tsc --noEmit
 npx vitest run --project unit
 ```
+
+## 17-05 일회용 DB 전체 suite (2026-10-23)
+
+환경: 사용자 허용 `env.disposable`(저장소 밖 아님, 미추적)을 프로세스 env로만 주입. 값 비출력 비교로 URL ref, DB URL ref, 선언된 ref가 서로 일치하고 공유 프로젝트(`.env.local`)와 다름을 확인. 게이트 3개(`READING_STATE_DB_TEST`, `COMPLETION_DB_TEST`, `WTREE_BRANCH_RACE_SCHEMA_COMMIT`) on. 공유 DB에는 어떤 적용도 하지 않았고, 일회용 DB에도 마이그레이션을 적용하지 않았다(개명만 했고 이력 테이블이 없음).
+
+| 시점 | 파일 | 테스트 |
+|------|------|------|
+| 수정 전 (`--project db`) | 4 실패 / 61 통과 / 1 skip | 6 실패 / 516 통과 / 5 skip (locked_node_immutable 5건 + world_branch_confirmed_immutable 1건 외 reports.test.ts afterAll) |
+| 수정 후 (전체, unit+db) | 1 실패 / 227 통과 / 1 skip (229) | 1 실패 / 3052 통과 / 5 skip (3058) |
+
+### 결정과 수정
+- 0022 중복: 사용자 결정으로 `0022_account_deletion_purge.sql` -> `0028_account_deletion_purge.sql`. backfill 0022는 유지, `numbering.test.ts` 가드는 엄격 그대로(통과).
+- 정리 7건: 원인은 `delete from kb_nodes`가 `create_work`의 잠금 폴더를 직접 지우려 한 것. `works -> kb_nodes` FK는 cascade가 아니고 제품에 작품 삭제 경로가 없어 트리거 약화 없이는 잠긴 노드를 지울 수 없다. 해법: fixture를 `tests/helpers/work-fixture.ts`(works + 비잠금 폴더 직접 insert)로 바꾸고, 정리 스크립트는 잠금 노드/확정 가지가 있는 작품을 `locked_kb_nodes`/`confirmed_world_branch`로 사전 거부한다. 0023/0034 불변식, GUC, trigger disable 변경 없음. 회귀: 롤백 트랜잭션에서 직접 DELETE가 여전히 `locked_node_immutable`로 거부됨.
+- BUGFIX-05 테스트 결함: `tests/ai/provider-fixture.test.ts`의 chatAction 2건이 Supabase env 없이 실패 -> 더미 env 스텁으로 hermetic화(env 없이 24/24 통과).
+
+### 남은 실패 1건 (목표 0 미달)
+`tests/kb/template-policy-migration.test.ts > historical: 0004 backfills ...`가 `world_branch_confirmed_immutable`로 실패. 이 테스트는 0004/0012를 DB 전체에 재실행하는데, 일회용 DB에 수동 UAT가 남긴 확정 가지 작품 3개(`UAT If Branch`, `UAT 확장 가지 작품`, `UAT 손자 가지`)가 있어 0034 불변식에 걸린다. 코드 결함이 아니라 DB 잔여물이다. 확정 가지는 불변식상 정리 경로가 없으므로 일회용 DB를 재생성하거나 해당 작품을 DB 소유자가 정리해야 한다(결정 필요). 그 밖에 일회용 DB에 과거 실행이 남긴 locked 작품 약 540개가 있다(새 fixture는 잔여물을 남기지 않음).
+skip 5건: `work-instructions.database.test.ts`(별도 opt-in 게이트) 등 환경 게이트.
+`tsc`: `LayoutProps` 1건만(환경). lint는 AiPanel 1경고(17-04 소유).
