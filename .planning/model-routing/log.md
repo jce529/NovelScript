@@ -9,3 +9,4 @@
 2026-10-19 | 99-02-2 | routine/low | T2 | gpt-5.6-terra (codex, medium) | 통과(4/4) | 0 | 검증 없음 | - | 규칙 개정 후. P1=0.71 P2=0.05 → codex. 99-01에서는 sonnet(claude)으로 갔던 task
 2026-10-19 | 99-02-3,4 | - | T4,T3 | opus,sonnet (claude) | 미실행 | - | - | - | 개정 규칙에서도 Claude 채널(P1=0.37 / P1=0.05,P2=0.89). 결정만 확인
 2026-10-23 | 12-research | role-default | T3 | sonnet (claude) | 통과 | 0 | 검증 없음 | - | classifier: role-default. 웹 검색 필요로 Terra 대신 Claude. RESEARCH.md 산출, 확신도 MEDIUM
+2026-10-23 | 12-plan | architectural/high | T3 | gpt-6-sol (codex, medium) | 통과(checker PASSED, 경고4) | 0 | 4(경고) | - | planner=model_overrides, checker=sonnet. PLAN 6개
