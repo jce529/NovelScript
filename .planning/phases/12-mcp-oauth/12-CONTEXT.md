@@ -42,6 +42,13 @@
 ### 검증용 도구
 - **D-16:** 이 phase의 MCP 엔드포인트에는 **whoami류 읽기 도구 1개**만 둔다. 연결·본인 범위·해제 차단을 실제 호출로 증명하는 최소 도구이며, 작품 도구는 Phase 13에서 추가한다. 읽기 annotation을 붙인다.
 
+### 리서치 후 확정 (2026-10-23, 12-RESEARCH.md OQ 결정)
+- **D-17 (OQ-1):** OAuth 토큰이 Supabase REST 전체에 닿는 문제 — `client_id is null` RESTRICTIVE RLS를 **민감 테이블(지갑·원장·BYOK·결제·mcp_connections)은 Phase 12 필수**, **전 `public` 테이블은 Phase 13 착수 전 필수 선행**으로 한다. 스파이크에서 토큰으로 `/rest/v1/wallets` 등을 실제로 쳐서 현황을 증명한다.
+- **D-18 (OQ-2):** 클라이언트 등록은 **DCR + redirect URI 호스트 허용목록**. Supabase가 CIMD를 지원하면(supabase/auth #2850) 재평가.
+- **D-19 (OQ-3, D-11 확정):** 토큰 수명은 **프로젝트 기본값(JWT 3600초) 유지**. 즉시 차단은 매 호출 RPC가 보장하므로 공유 프로젝트 설정을 바꾸지 않는다.
+- **D-20 (OQ-4):** 같은 작가가 같은 클라이언트로 재연결하면 **기존 연결을 자동 해제**한다.
+- **D-21 (OQ-7):** 탈퇴(`deleted_at`) 계정은 RPC에서 차단, 제재(정지) 계정의 읽기는 허용하며 쓰기는 Phase 14에서 기존 쓰기 권한 검사로 막는다.
+
 ### Claude's Discretion
 - 토큰 수명 구체 값, 터널 도구 선택(ngrok/cloudflared/Vercel 프리뷰), grant 테이블 스키마 세부, 동의 화면의 세부 레이아웃, '본문 직접 수정 불가' 명시 문구 포함 여부.
 
