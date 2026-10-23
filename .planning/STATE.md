@@ -4,8 +4,8 @@ milestone: v1.1
 milestone_name: Overview
 status: executing
 stopped_at: 자동 실행 가능한 재개 보완 plan 전부 완료 (18-11까지). 남은 plan 10개는 전부 실DB·브라우저가 필요한 수동 gate. Phase 12~14·17은 미시작
-last_updated: "2026-10-19T08:00:00.000Z"
-last_activity: 2026-10-19 -- 재개 phase 보완 plan 실행 완료 (Phase 2 UAT 통과·합병, 3·4·5·7·10·11·16·18 코드 완료), 문서 정합
+last_updated: "2026-10-23T07:00:00.000Z"
+last_activity: 2026-10-23 -- 수동 게이트 기능 점검(03-19·07-15·18-12·04-12·16-03, 에이전트 수행분·사람 승인 아님), Toss 키 종류 불일치 확인, 병합 후 테스트 결함 4건 수정
 progress:
   total_phases: 19
   completed_phases: 6
@@ -33,11 +33,15 @@ Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·�
 
 **마이그레이션(일회용 DB 적용·DB suite 통과, 2026-10-19):** 0024·0025(Phase 3), 0026(4), 0027(5), 0029(7), 0030(11), 0032~0036(18)을 일회용 Supabase 프로젝트(`.env.disposable`, 공유 프로젝트와 ref 다름 확인)에 적용했다. 03-19·07-15·18-12의 실DB suite를 `READING_STATE_DB_TEST=1 COMPLETION_DB_TEST=1 WTREE_BRANCH_RACE_SCHEMA_COMMIT=1`로 skipped 0 실행해 통과(테스트 결함 3건 수정: timeline 픽스처 uuid 추론·`::text::jsonb`·단일 트랜잭션 deferred 복원, branching 상속 구간 위치·소유자 롤 soft delete). **공유 프로젝트에는 아직 미적용 — 적용 금지.** 브라우저 UAT는 일부 수행(결함 3건 수정, 범위·pending은 `.planning/gaps/2026-10-19-disposable-uat-results.md`) — 03-19 Task 2·07-15 15-02·18-12 Task 2는 pending 항목이 남아 승인 대기, Toss 키 gate(05-07)는 대기. 0028·0031은 의도적 결번. 0011은 UTF-8 BOM으로 시작해 `apply-migration.mjs` 단독 실행 시 구문 오류 가능.
 
+**수동 게이트 기능 점검(2026-10-23, 일회용 DB + 3100):** 에이전트가 03-19·07-15·18-12·04-12·16-03의 기능 항목을 브라우저·DB로 점검했다 — 결과·pending·관찰은 `.planning/gaps/2026-10-23-manual-gate-results.md`. **사람 승인이 아니므로 각 plan의 상태·체크박스는 바꾸지 않았다.** 요약: 07-15(블라인드 중복 제출·재검토→해제·선호작 공개 알림·URL 보존)·03-19(마지막 화 구독·게스트 저장 0·뷰어 설정 쿠키·충전 모달 단일 host)·18-12(자격 미충족 차단·확장 가지 확정·원본 수정 알림·삭제 보호·비공개 root/중간/연속 부모·연표 저장)·04-12/16-03(프리셋·작품 시스템 지시·서비스 모델 실호출 원장 일치·설정 문서 대화·모바일 탭 상태 유지·Jev 자동 분류 승인/취소)의 기능 항목 통과. **미실행:** 10-10·11-08 Task 2·11-12 Task 2(BYOK 실제 키 입력 필요), 03-20. **차단:** 05-07 — `NEXT_PUBLIC_TOSS_CLIENT_KEY`가 결제위젯용 `test_gck_`인데 코드는 결제창용 `payment()`를 써서 SDK가 `NOT_SUPPORTED_WIDGET_KEY`로 거부한다. API 개별 연동 키(`test_ck_`/`test_sk_`) 한 쌍으로 `.env.local`을 바꾼 뒤 서버 재시작이 필요하다(2026-10-23 시점 `.env.local`은 아직 위젯 키). 03-19의 충전 후 잔액 갱신도 이 결과에 걸린다.
+
+**전체 vitest(2026-10-23, 일회용 DB, 게이트 3개 on):** 3,027개 중 12개 실패 — 이 중 4건(CRLF 정규식·`after()` mock·예약어 픽스처 이름·Toss 목 DONE 전환)은 테스트 코드만 고쳐 통과시켰다(미커밋). 남은 8건은 정리 스크립트(`scripts/lib/report-fixture-cleanup.mjs:44`)가 0023의 `locked_node_immutable`/`world_branch_confirmed_immutable`에 막히는 7건과 마이그레이션 번호 0022 중복(`0022_account_deletion_purge`·`0022_template_readonly_backfill`) 1건으로, 정리 방식·번호 결정 대기. 실패한 정리가 일회용 DB에 `테스트 작품`/`cleanup fixture` 신고를 남겼다.
+
 **실행 시 주의(이번 세션 발견):** vitest `--mode disposable`만으로는 공유 `.env.local` 값이 섞일 수 있다 → 실DB suite는 프로세스 환경변수로 일회용 DB를 고정하고 ref를 먼저 확인한다. `.env*` 읽기는 `.claude/settings.json`의 deny 규칙으로 막혀 있고, 키 존재 확인은 `node scripts/check-env.mjs`만 쓴다.
 
 **출시 게이트(법무):** ROADMAP "Launch Gate" 절·REQUIREMENTS LEGAL-01~04 — 변호사 자문·법령 원문 대조·AI기본법 고지·BYOK 국외 이전 고지. 공개 출시 전 조건 (Not started).
 
-**세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). 18-01~11·13·14 코드 완료(2026-10-19), 18-12(실DB·브라우저) 대기. 알려진 공백: `create_purchase_order`에 가지 초안 검사 없음, 로그아웃 상태 작가의 자기 조회는 조회수에 계속 집계.
+**세계수(Phase 18):** 설계 확정(2026-10-12) — 규칙 21개는 `.planning/design/WORLD-TREE.md`, 요구사항 WTREE-01~13(Phase 18에 01~08·10 배정, 09·11~13 보류). 18-01~11·13·14 코드 완료(2026-10-19), 18-12(실DB·브라우저) 대기(2026-10-23 기능 점검 통과분은 `gaps/2026-10-23-manual-gate-results.md`, 승인·성능·접근성·관리자 전체 보기 경로는 pending). 알려진 공백: `create_purchase_order`에 가지 초안 검사 없음, 로그아웃 상태 작가의 자기 조회는 조회수에 계속 집계.
 
 **청사진 재판정(2026-10-12):** Phase 2·3·4·6·7·10·16 완료 취소(Reopened, 5·11은 기존 미완료). 완료 유지: 1·04.1·8·9·15. 근거·이어갈 단계(discuss/research/plan)는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`. 어느 phase에도 속하지 않는 청사진 영역(댓글·완독 데이터·독자 공간 화면 등)은 ROADMAP "미배정 청사진 영역"에 모았다.
 
