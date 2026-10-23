@@ -34,6 +34,10 @@ Agent 도구는 Claude 모델(`opus`/`sonnet`/`haiku`/`fable`)만 받는다. `.p
 
 모델은 `config.json`의 `model_overrides`가 기준이다(현재 planner `gpt-6-sol`, researcher/executor `gpt-6-luna`, checker `sonnet`). 지원하지 않는 모델이면 임의 대체하지 말고 사용자에게 묻는다.
 
+# GSD manager · phase 세션 분리
+
+`/gsd:manager`가 phase를 dispatch하거나, 사용자가 승인한 phase를 각자 세션으로 돌리라고 할 때는 `phase-session-dispatch` 스킬(`/phase-session-dispatch`)을 따른다. 규칙 원본은 `.planning/skills/phase-session-dispatch.md`이고 `.claude/skills/`·`.codex/skills/`는 포인터다. 핵심: 사용자가 허용한 phase만 phase당 세션 1개로 만들고, 총괄 세션은 진행도(STATE·ROADMAP·SSOT·그래프)만 관리한다.
+
 # GSD 실행 후 로드맵 동기화
 
 executor(gsd-executor, `/gsd:execute-phase` 등)가 plan 실행을 끝낼 때마다, 반드시 `.planning/ROADMAP.md`를 실제 완료 상태와 일치시킨다:
