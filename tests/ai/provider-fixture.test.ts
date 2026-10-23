@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /*
  * 08-08 Development-only provider fixture: env gating (inert outside
@@ -178,6 +178,14 @@ describe('chatAction drop-response hook', () => {
       chatHistory: [{ role: 'user', content: 'hi' }],
       idempotencyKey: key,
     }) as unknown as Parameters<typeof chatAction>[0];
+
+  // BUGFIX-05: createAdminClient() throws without Supabase env, so keep this suite hermetic with dummy
+  // values (no network is touched: chat is mocked and the admin client is only constructed).
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://127.0.0.1:54321');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key');
+  });
 
   afterEach(() => {
     vi.unstubAllEnvs();
