@@ -103,6 +103,7 @@ describe.skipIf(!process.env.SUPABASE_SERVICE_ROLE_KEY)('payment flow boundary (
     expect((await order(created.orderId)).confirmed_at).not.toBeNull();
     expect(await balance()).toBe(before);
 
+    toss.status = 'READY'; // the mock flips to DONE on confirm; this step needs Toss to still report READY
     expect((await webhook(created.orderId)).status).toBe(200); // Toss still READY -> forged DONE body ignored
     expect(await balance()).toBe(before);
     expect(await topupRows(created.orderId)).toHaveLength(0);

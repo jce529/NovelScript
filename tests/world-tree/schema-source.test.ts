@@ -11,7 +11,7 @@ const FILE = `${DIR}/0032_world_tree_schema.sql`;
 const raw = readFileSync(FILE, 'utf8');
 /** SQL without line comments, whitespace collapsed, lower-cased. */
 const sql = raw
-  .split('\n')
+  .split(/\r?\n/)
   .map((line) => line.replace(/--.*$/, ''))
   .join('\n')
   .replace(/\s+/g, ' ')
