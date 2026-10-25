@@ -20,3 +20,4 @@
 2026-10-25 | 12-04-1,2 | multi_file/high | T4->gpt-6-sol 대체 | gpt-6-sol (codex, high) | 1차 BLOCKER 1(비로그인이 로그인 화면 미도달) → 수정 루프 1회 후 통과 | 1 | 1 BLOCKER+2 WARNING (sonnet) | routing_miss: 아님. UI-SPEC 판정 순서 자체가 결함 | 비고: 동시 실행 12-05와 파일 겹침 없음. 사용자 확인 대기: 비로그인 화면 중립 문구(UI-SPEC 갱신)
 2026-10-25 | 12-05-1 | multi_file(review)/high | T4->gpt-6-sol | gpt-6-sol (codex, high) | 통과(검증 BLOCKER 0, 서버 로직 PASS) | 0 | 0 (sonnet) | - | 비고: Task1 지적 없음
 2026-10-25 | 12-05-2 | multi_file/low | T2 | gpt-5.6-terra (codex, medium) | 1차 WARNING 5건(포커스·dl·색 등) → 수정 1회 | 1 | 6 WARNING (sonnet) | - | 비고: 수정 중 ChatGPT 사용 한도 초과(10:08 PM 재시도 가능)로 SUMMARY 기록 직전 중단, 코드는 적용 확인 후 오케스트레이터가 마무리
+2026-10-25 | 12-06-1(수정) | routine/medium | T3 | sonnet (claude, 폴백) | 통과(사용자 DB 실행 22 passed, skipped 0) | 0 | - | - | 비고: grants/sensitive-rls 토큰 빈틈 수정. Codex 한도 초과(10:08 PM)로 Claude 폴백. 사용자가 DB 테스트 직접 실행

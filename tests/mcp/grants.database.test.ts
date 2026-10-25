@@ -1,26 +1,31 @@
 import postgres from 'postgres';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import {
+  cleanupMcpOAuth, createWriter, decodeClaims, issueMcpToken, type Writer,
+} from '../helpers/mcp-oauth';
 
 /**
  * 12-02 DB contract. Run only at 12-06 against a disposable project with 0037/0038
- * applied and a real writer OAuth token. The entire fixture is rolled back.
+ * applied. beforeAll creates its own test writer and issues a real OAuth token
+ * (DCR -> PKCE -> consent -> token) plus that writer's browser session token; afterAll
+ * deletes them. The DB assertions run in a transaction that is rolled back.
  * SUPABASE_DB_URL marks this file for vitest's serialized db project.
  */
+const SHARED_PROJECT_REF_PREFIX = 'ymudwg';
 const ref = process.env.MCP_DISPOSABLE_PROJECT_REF?.trim();
 const dbUrl = process.env.SUPABASE_DB_URL;
 const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const oauthToken = process.env.MCP_TEST_OAUTH_ACCESS_TOKEN;
-const browserToken = process.env.MCP_TEST_BROWSER_ACCESS_TOKEN;
+const ready = Boolean(ref && dbUrl && apiUrl && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 type Claims = { sub: string; client_id?: string; session_id?: string };
-function tokenClaims(token: string): Claims {
-  return JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8')) as Claims;
-}
 
-describe.skipIf(!ref || !dbUrl || !oauthToken || !browserToken)('MCP grants on disposable Supabase', () => {
+describe.skipIf(!ready)('MCP grants on disposable Supabase', () => {
   let sql: ReturnType<typeof postgres>;
   let claims: Claims;
   let browser: Claims;
+  let writer: Writer;
+  const clientIds: string[] = [];
   const query = (text: string, params: unknown[] = []) =>
     sql.unsafe(text, params as postgres.ParameterOrJSON<never>[]);
 
@@ -52,8 +57,17 @@ describe.skipIf(!ref || !dbUrl || !oauthToken || !browserToken)('MCP grants on d
     if (!ref || ref !== urlRef || !(`${pg.hostname} ${decodeURIComponent(pg.username)}`.includes(ref))) {
       throw new Error('MCP disposable ref must match both Supabase API and DB URLs');
     }
-    claims = tokenClaims(oauthToken!);
-    browser = tokenClaims(browserToken!);
+    if (ref.startsWith(SHARED_PROJECT_REF_PREFIX)) throw new Error('Refusing to run on the shared Supabase project');
+    process.env.MCP_PUBLIC_ORIGIN ??= 'http://localhost:3000';
+    writer = await createWriter();
+    // connect: false keeps our mcp_connections row out of committed data; each test creates it
+    // inside the rolled-back transaction. Supabase-side consent and sessions are real.
+    const issued = await issueMcpToken(writer, { connect: false });
+    clientIds.push(issued.clientId);
+    const browserSession = (await writer.browser.auth.getSession()).data.session;
+    if (!browserSession) throw new Error('Expected a live browser session for the test writer');
+    claims = decodeClaims(issued.accessToken);
+    browser = decodeClaims(browserSession.access_token);
     if (!claims.sub || !claims.client_id || !claims.session_id
       || browser.sub !== claims.sub || !browser.session_id || browser.client_id) {
       throw new Error('Expected live OAuth and browser tokens for the same writer');
@@ -70,7 +84,11 @@ describe.skipIf(!ref || !dbUrl || !oauthToken || !browserToken)('MCP grants on d
     expect(live).toMatchObject({ session_ok: true, consent_ok: true, browser_ok: true });
   });
   afterAll(async () => {
-    if (sql) { try { await query('rollback'); } finally { await sql.end(); } }
+    try {
+      if (sql) { try { await query('rollback'); } finally { await sql.end(); } }
+    } finally {
+      if (writer) await cleanupMcpOAuth(clientIds, [writer]);
+    }
   });
   beforeEach(async () => {
     await query('savepoint fixture');
