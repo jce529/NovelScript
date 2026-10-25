@@ -28,5 +28,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // api/payments/toss/webhook is excluded: Toss calls it without a session cookie;
   // it authenticates payment status by a secret-key Toss lookup (05-04).
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/payments/toss/webhook$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // Exactly /mcp and /.well-known/oauth-protected-resource/mcp (optional trailing slash) are
+  // excluded: MCP clients send an OAuth bearer (no cookies) and lib/mcp/auth.ts verifies it
+  // per call (12-03). Sub-paths and look-alikes (/mcp/x, /mcpx, ...-evil) stay covered.
+  // /oauth/consent stays covered so the writer's browser session cookie keeps refreshing.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/payments/toss/webhook$|mcp/?$|\\.well-known/oauth-protected-resource/mcp/?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };
