@@ -25,8 +25,8 @@ requirements: [BUGFIX-01, BUGFIX-02, BUGFIX-03, BUGFIX-04, BUGFIX-05]
 | ID | 코드·자동 | 수동 UAT | 판정 |
 |---|---|---|---|
 | BUGFIX-01 | 상한 4096, 관측 로그, 원인별 안내(Phase 11 11-11)·BUG-07 truncated 거부 완료 (17-03) | B2 PASS(fixture 로그), B1·B3·B4 blocked (실키·잘림 재현 필요) | code-complete / UAT partial |
-| BUGFIX-02 | 재생성 이름 유지·BUG-03/04는 이미 fixed, BUG-07 편입 완료 (17-03) | C1~C6 pending (실키·시드) | code-complete / UAT pending |
-| BUGFIX-03 | 파일 입력 숨김+버튼, Select 경고는 `3b9ca0f`로 해결 (17-02) | A1·A2 PASS(자동 브라우저), A3~A5 pending (키보드·모바일) | code-complete / UAT partial |
+| BUGFIX-02 | 재생성 이름 유지·BUG-03/04는 이미 fixed, BUG-07 편입 완료 (17-03) | C5·C6 partial(미분류 그룹 표시·0012 데이터 이전 PASS, 툴팁 FAIL → Phase 2 BUG-04, 카테고리 이름 파일 이동은 트리거로 시드 불가), C2·C4 blocked(fixture 한계), C1·C3 blocked(실키) | code-complete / UAT partial |
+| BUGFIX-03 | 파일 입력 숨김+버튼, Select 경고는 `3b9ca0f`로 해결 (17-02) | A1~A5 PASS(자동 브라우저, A4는 모바일 에뮬레이션, 실기기 pending) | code-complete / UAT PASS (실기기 제외) |
 | BUGFIX-04 | 조건부 새 멱등 키 재시도 (17-04) | D1~D3 PASS (fixture + 일회용 DB, 네트워크·원장 대조) | PASS (자동 브라우저) |
 | BUGFIX-05 | 린트 경고 0, 0022→0028 개명, 정리 스크립트·provider-fixture 테스트 수정 (17-01·05) | E1·E2 사용자 확인 | partial: 일회용 DB 1건 실패(잔여물) |
 
@@ -47,6 +47,7 @@ requirements: [BUGFIX-01, BUGFIX-02, BUGFIX-03, BUGFIX-04, BUGFIX-05]
   - Phase 12 마이그레이션은 0037부터 사용 가능
   - 중단 브랜치 `check-stalled-plan-phases`를 병합하면 `AiPanel.tsx`·`chat-request.ts` 충돌
   - Phase 10 BUG-01은 BUGFIX 범위 밖, 별도 quick 대상
+  - Phase 2 BUG-04(미분류 툴팁 도달 불가, UAT C5에서 발견): 수정 방향 결정 대기
   - Phase 8 BUG-04: 단계 A-2 완료, 단계 B(사고/본문 몫 분리)는 관측 후 별도 결정
   - Phase 16 BUG-01·BUG-02는 `fixed-pending-device-check` (UAT 통과 후 `bug-complete`)
   - Phase 8 BUG-04·Phase 15 BUG-07은 실키 검증 후 `bug-complete`
