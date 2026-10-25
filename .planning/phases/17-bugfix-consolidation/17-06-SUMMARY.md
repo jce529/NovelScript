@@ -1,7 +1,7 @@
 ---
 phase: 17-bugfix-consolidation
 plan: "06"
-status: code-complete, manual-uat-pending
+status: code-complete, manual-uat-partial
 branch: claude/festive-swanson-cc07cc
 updated: 2026-10-25
 requirements: [BUGFIX-01, BUGFIX-02, BUGFIX-03, BUGFIX-04, BUGFIX-05]
@@ -24,10 +24,10 @@ requirements: [BUGFIX-01, BUGFIX-02, BUGFIX-03, BUGFIX-04, BUGFIX-05]
 
 | ID | 코드·자동 | 수동 UAT | 판정 |
 |---|---|---|---|
-| BUGFIX-01 | 상한 4096, 관측 로그, 원인별 안내(Phase 11 11-11)·BUG-07 truncated 거부 완료 (17-03) | B1~B4 pending (실키) | code-complete / UAT pending |
+| BUGFIX-01 | 상한 4096, 관측 로그, 원인별 안내(Phase 11 11-11)·BUG-07 truncated 거부 완료 (17-03) | B2 PASS(fixture 로그), B1·B3·B4 blocked (실키·잘림 재현 필요) | code-complete / UAT partial |
 | BUGFIX-02 | 재생성 이름 유지·BUG-03/04는 이미 fixed, BUG-07 편입 완료 (17-03) | C1~C6 pending (실키·시드) | code-complete / UAT pending |
-| BUGFIX-03 | 파일 입력 숨김+버튼, Select 경고는 `3b9ca0f`로 해결 (17-02) | A1~A5 pending (브라우저·모바일) | code-complete / UAT pending |
-| BUGFIX-04 | 조건부 새 멱등 키 재시도 (17-04) | D1~D3 pending | code-complete / UAT pending |
+| BUGFIX-03 | 파일 입력 숨김+버튼, Select 경고는 `3b9ca0f`로 해결 (17-02) | A1·A2 PASS(자동 브라우저), A3~A5 pending (키보드·모바일) | code-complete / UAT partial |
+| BUGFIX-04 | 조건부 새 멱등 키 재시도 (17-04) | D1~D3 PASS (fixture + 일회용 DB, 네트워크·원장 대조) | PASS (자동 브라우저) |
 | BUGFIX-05 | 린트 경고 0, 0022→0028 개명, 정리 스크립트·provider-fixture 테스트 수정 (17-01·05) | E1·E2 사용자 확인 | partial: 일회용 DB 1건 실패(잔여물) |
 
 ## plan 진행
