@@ -1,3 +1,4 @@
+import { josa } from '@/lib/text/josa';
 'use client';
 
 import { createContext, useContext, useId, useMemo, useState, useTransition } from 'react';
@@ -54,7 +55,7 @@ export async function performTreeMove(
   }
 }
 
-export const movedMessage = (name: string, targetName: string) => `‘${name}’을 ‘${targetName}’(으)로 옮겼어요.`;
+export const movedMessage = (name: string, targetName: string) => `‘${name}’${josa(name, 'eul')} ‘${targetName}’${josa(targetName, 'euro')} 옮겼어요.`;
 
 /** Mouse / pen only: touch keeps long-press for the row menu, so it never starts a drag. */
 class MousePenSensor extends PointerSensor {
@@ -128,7 +129,7 @@ export function TreeDndProvider({
 
   const nameOfOver = (over: { id: string | number } | null) => (over ? decideFor(item, String(over.id))?.targetName ?? '' : '');
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `‘${itemOf(active.data.current)?.name ?? ''}’을 들었어요. 화살표로 옮길 폴더를 고르고 Space로 놓으세요. Esc로 취소해요.`,
+    onDragStart: ({ active }) => `‘${itemOf(active.data.current)?.name ?? ''}’${josa(itemOf(active.data.current)?.name ?? '', 'eul')} 들었어요. 화살표로 옮길 폴더를 고르고 Space로 놓으세요. Esc로 취소해요.`,
     onDragOver: ({ over }) => {
       if (!over) return '옮길 폴더 밖이에요.';
       const decision = decideFor(item, String(over.id));

@@ -1,4 +1,5 @@
 import type { ChapterLeaf, TreeNode } from './tree';
+import { josa } from '@/lib/text/josa';
 
 /** Pure + client-safe (no server imports): the same rules drive drag-over highlighting, the
  * "이동…" dialog and the server actions (moveKbNode / moveChapter), so a target the UI offers is
@@ -25,7 +26,7 @@ export const MOVE_COPY = {
 } as const;
 
 export const nameConflictMessage = (targetName: string, name: string) =>
-  `‘${targetName}’ 폴더에 같은 이름의 ‘${name}’이 이미 있어요. 이름을 바꾼 뒤 옮겨 주세요.`;
+  `‘${targetName}’ 폴더에 같은 이름의 ‘${name}’${josa(name, 'i')} 이미 있어요. 이름을 바꾼 뒤 옮겨 주세요.`;
 
 export interface MoveNode {
   id: string;

@@ -59,7 +59,7 @@ describe('회차 이동 dialog', () => {
 
   it('uses the mockup copy, a 옮길 폴더 radiogroup and per-folder counts', () => {
     expect(html).toContain('<h2>회차 이동</h2>');
-    expect(html).toContain('‘1화’을 옮길 회차 폴더를 고르세요.');
+    expect(html).toContain('‘1화’를 옮길 회차 폴더를 고르세요.');
     expect(html).toContain('role="radiogroup" aria-label="옮길 폴더"');
     expect(html).toContain('회차 (최상위)');
     expect(html).toContain('회차 1개');
@@ -83,7 +83,7 @@ describe('폴더/문서 이동 dialog', () => {
   it('lists same-category folders and shows each disabled reason', () => {
     const html = inTree(createElement(MoveKbNodeDialog, { open: true, onOpenChange: () => {}, node: main }));
     expect(html).toContain('<h2>폴더 이동</h2>');
-    expect(html).toContain('‘주요’을 옮길 폴더를 고르세요. 같은 카테고리(인물) 안에서만 옮길 수 있어요.');
+    expect(html).toContain('‘주요’를 옮길 폴더를 고르세요. 같은 카테고리(인물) 안에서만 옮길 수 있어요.');
     expect(html).toContain(MOVE_COPY.self);
     expect(html).toContain('다른 영역');
     expect(html).toContain(MOVE_COPY.other_category);

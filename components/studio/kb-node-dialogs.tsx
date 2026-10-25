@@ -1,3 +1,4 @@
+import { josa } from '@/lib/text/josa';
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -524,7 +525,7 @@ function MoveTargetDialog({
               if (failure) setError(failure);
             })}
           >
-            {selected ? `‘${selected.name}’(으)로 이동` : '이동하기'}
+            {selected ? `‘${selected.name}’${josa(selected.name, 'euro')} 이동` : '이동하기'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -548,7 +549,7 @@ export function MoveChapterDialog({
   return (
     <MoveTargetDialog
       open={open} onOpenChange={onOpenChange} title="회차 이동"
-      subtitle={`‘${name}’을 옮길 회차 폴더를 고르세요.`} helper={CHAPTER_MOVE_HELPER} options={options}
+      subtitle={`‘${name}’${josa(name, 'eul')} 옮길 회차 폴더를 고르세요.`} helper={CHAPTER_MOVE_HELPER} options={options}
       onSubmit={async (option) => {
         const result = await performTreeMove(tree.workId, { kind: 'chapter', chapterId, name, folderId: currentFolderId }, option.id);
         if (!result.ok) return result.error ?? MOVE_COPY.failed;
@@ -577,7 +578,7 @@ export function MoveKbNodeDialog({
   return (
     <MoveTargetDialog
       open={open} onOpenChange={onOpenChange} title={node.node_type === 'folder' ? '폴더 이동' : '문서 이동'}
-      subtitle={`‘${node.name}’을 옮길 폴더를 고르세요. 같은 카테고리(${categoryLabel(node.category)}) 안에서만 옮길 수 있어요.`}
+      subtitle={`‘${node.name}’${josa(node.name, 'eul')} 옮길 폴더를 고르세요. 같은 카테고리(${categoryLabel(node.category)}) 안에서만 옮길 수 있어요.`}
       options={options}
       onSubmit={async (option) => {
         const result = await performTreeMove(tree.workId, { kind: 'kb', nodeId: node.id, name: node.name }, option.id);
