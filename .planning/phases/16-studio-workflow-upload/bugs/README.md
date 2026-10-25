@@ -6,6 +6,7 @@ Phase 16(스튜디오 작업 흐름 확장 · 파일 업로드) 코드에서 원
 |---|---|---|---|---|
 | [BUG-01](BUG-01-upload-dialog-input.md) | 업로드 다이얼로그 파일 입력 기본 문구 노출 + 저장 폴더 Select 비제어 경고(G2/G3) | low | 2026-10-23 (16-UAT) | 코드 수정·자동 검증 완료 (fixed-pending-device-check), 실기기 시각 확인은 17-06 |
 | [BUG-02](BUG-02-retry-selection.md) | 다시 시도가 모델 변경을 반영하지 않음(G4) — 실패 종류별 새 키 정책 | low | 2026-10-02 (16-UAT) | 코드 수정·자동 검증 완료 (fixed-pending-device-check) |
+| [BUG-03](BUG-03-ai-panel-overflow.md) | AI 패널 카드가 고정 높이인데 내용이 넘쳐 입력창이 카드 밖으로 튀어나옴 | low | 2026-10-25 (Phase 17 UAT) | open, Phase 17에서 수정 중 |
 
 ## 템플릿
 
