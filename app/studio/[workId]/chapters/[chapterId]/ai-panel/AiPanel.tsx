@@ -408,7 +408,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const modalMessage = messages.find((message) => message.id === modalMessageId);
 
   return (
-    <aside className="flex h-[85vh] w-full flex-col gap-4 rounded-lg border border-border bg-background p-4 lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-96 lg:shrink-0 lg:gap-6 lg:p-6">
+    <aside className="flex h-[85vh] w-full flex-col overflow-hidden rounded-lg border border-border bg-background lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-96 lg:shrink-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 lg:gap-6 lg:p-6">
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
       {defaultFallback && !fallbackResolved && (
@@ -534,7 +535,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         )}
       </div>
 
-      <div ref={chatLogRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <div ref={chatLogRef} className="flex min-h-48 flex-1 flex-col gap-3 overflow-y-auto">
         {messages.length === 0 ? (
           <p className="text-xs text-muted-foreground">AI에게 말을 걸어보세요 — 본문을 이어 써달라고 하거나, 인물/장소 같은 설정을 같이 정해달라고 요청할 수 있어요.</p>
         ) : (
@@ -602,6 +603,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         />
       )}
 
+      </div>
+
+      <div data-ai-panel-footer="" className="flex flex-col gap-4 border-t border-border p-4 lg:p-6 lg:pt-4">
       <div
         role={notice?.notice.variant === 'error' ? 'alert' : 'status'}
         aria-live={notice?.notice.variant === 'error' ? 'assertive' : 'polite'}
@@ -646,6 +650,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           {availabilityStatus !== 'loading' && <>{' '}<button type="button" className="underline" onClick={reloadAvailability}>다시 확인</button></>}
         </p>
       )}
+      </div>
     </aside>
   );
 }

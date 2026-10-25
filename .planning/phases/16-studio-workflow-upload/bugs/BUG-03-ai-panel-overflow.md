@@ -1,7 +1,7 @@
 ---
 id: BUG-03
 title: AI 패널 카드가 고정 높이인데 내용이 넘쳐 입력창이 카드 밖으로 튀어나옴
-status: open (수정 방향 확정, Phase 17에서 수정)
+status: fixed-pending-device-check (Phase 17에서 수정, 사용자 브라우저 확인 대기)
 severity: low (레이아웃, 기능 영향 없음)
 found: 2026-10-25
 found_during: Phase 17 수동 UAT 중 사용자 보고(스크린샷)
@@ -33,3 +33,11 @@ files:
 
 - 단위: 소스 레이아웃 불변식 테스트(`tests/ai/ai-panel-layout.test.ts`).
 - 브라우저: 1024×560 및 모바일 폭에서 카드 안에 입력창이 보이고 설정 영역이 스크롤되는지 확인.
+
+
+## 수정 결과 (2026-10-25)
+
+- `AiPanel.tsx`: `<aside>`는 고정 높이 + `overflow-hidden`. 안쪽에 스크롤 영역(`overflow-y-auto`, 패딩)과 하단 고정 영역(`data-ai-panel-footer`: 알림·토큰 막대·입력창, `border-t`)으로 분리. 채팅 로그는 `min-h-48`로 0 높이 방지.
+- `tests/ai/ai-panel-layout.test.ts` 4건 추가(수정 전 4건 실패 → 통과).
+- 브라우저 측정(일회용 DB·fixture 서버): 1024×560에서 입력창 624~656이 카드 185~681 안, 스크롤 영역 377px에 내용 968px(스크롤됨). 1600×900과 375 모바일에서도 입력창이 카드 안.
+- 남은 확인: 사용자 브라우저 확인 후 `bug-complete`.
