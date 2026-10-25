@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getChapterAccessState, readChapterContent, type ReaderAccessState } from '../access/actions';
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
+import { MOVE_COPY, normalizeChapterFolder } from '../kb/move-rules';
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
 
@@ -146,6 +147,40 @@ export async function unpublishChapter(
     .update({ is_published: false, unpublished_at: new Date().toISOString() })
     .eq('id', chapterId);
   if (error) return { ok: false, error: error.message };
+  return { ok: true, chapterId };
+}
+
+/** 17-07: moves a chapter between 회차 folders of its own work (D-05). Only folder_id changes —
+ * publish state, order_index and content are untouched. The 회차 root is stored as null (older rows
+ * may carry the root's own id; both count as "at the root" for the no-op check). */
+export async function moveChapter(
+  supabase: SupabaseClient,
+  { ownerId, workId, chapterId, targetFolderId }: { ownerId: string; workId: string; chapterId: string; targetFolderId: string | null }
+): Promise<ChapterMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
+  if (!(await assertWorkOwnership(supabase, { ownerId, workId }))) return { ok: false, error: '작품을 찾을 수 없어요.' };
+
+  const { data: chapter } = await supabase.from('chapters').select('id, folder_id')
+    .eq('id', chapterId).eq('work_id', workId).is('deleted_at', null).maybeSingle();
+  if (!chapter) return { ok: false, error: MOVE_COPY.chapter_missing };
+
+  const { data: root } = await supabase.from('kb_nodes').select('id')
+    .eq('work_id', workId).eq('category', '회차').eq('node_type', 'folder').is('parent_id', null).is('deleted_at', null)
+    .maybeSingle();
+  const rootId = (root?.id as string | undefined) ?? null;
+
+  if (targetFolderId !== null && targetFolderId !== rootId
+      && !(await assertChapterFolder(supabase, { workId, folderId: targetFolderId }))) {
+    return { ok: false, error: MOVE_COPY.chapter_only };
+  }
+  const target = normalizeChapterFolder(targetFolderId, rootId);
+  if (target === normalizeChapterFolder(chapter.folder_id as string | null, rootId)) return { ok: true, chapterId };
+
+  const { data, error } = await supabase.from('chapters').update({ folder_id: target })
+    .eq('id', chapterId).eq('work_id', workId).is('deleted_at', null).select('id').maybeSingle();
+  if (error) return { ok: false, error: MOVE_COPY.failed };
+  if (!data) return { ok: false, error: MOVE_COPY.chapter_missing };
   return { ok: true, chapterId };
 }
 

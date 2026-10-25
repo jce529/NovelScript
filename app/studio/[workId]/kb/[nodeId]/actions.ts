@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import {
-  createNode, renameNode, deleteNode, saveNodeContent, listTemplateOptions, createFolder, moveTemplateFile,
+  createNode, renameNode, deleteNode, saveNodeContent, listTemplateOptions, createFolder, moveTemplateFile, moveKbNode,
   copyTemplateFile, validateTargetFolder, validateTargetTemplate, listCategoryFolderCandidates,
   TEMPLATE_REVALIDATION_FAILED,
 } from '@/lib/kb/actions';
@@ -202,6 +202,17 @@ export async function moveTemplateFileAction(workId: string, nodeId: string, tar
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await moveTemplateFile(supabase, { ownerId: user.id, nodeId, targetCategoryFolderId });
+  if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
+  return result;
+}
+
+/** 17-07 "이동…" / drag: settings document or folder to another folder of the same area.
+ * `targetParentId: null` = the area top level (custom folders only). */
+export async function moveKbNodeAction(workId: string, nodeId: string, targetParentId: string | null) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: '로그인이 필요해요.' };
+  const result = await moveKbNode(supabase, { ownerId: user.id, workId, nodeId, targetParentId });
   if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
   return result;
 }

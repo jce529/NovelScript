@@ -4,6 +4,7 @@ import { buildSeedContent, readCanonicalSeed, type KbCategory } from './template
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 import { FOLDER_COPY } from './folder-copy';
 import { templateCategoryOf } from './template-tree';
+import { MAX_FOLDER_DEPTH, MOVE_COPY, kbMoveVerdict, nameConflictMessage, nodeMapOf, type MoveNode } from './move-rules';
 export { FOLDER_COPY } from './folder-copy';
 
 /** KB-04 §2 (RESEARCH.md): 작품 폴더 and 계정 공유 폴더 are two separate, explicit
@@ -186,7 +187,7 @@ export type FolderCandidatesResult =
   | { status: 'root_duplicate' }
   | { status: 'query_failed' };
 
-export const MAX_FOLDER_DEPTH = 32;
+export { MAX_FOLDER_DEPTH };
 
 type CategoryFolderRow = { id: string; name: string; parent_id: string | null };
 
@@ -462,6 +463,68 @@ export async function moveTemplateFile(
     return { ok: false, error: error.message };
   }
   if (!data) return { ok: false, error: '이동할 템플릿 파일을 찾을 수 없어요.' };
+  return { ok: true, nodeId: data.id };
+}
+
+type MoveRow = MoveNode & { name: string; owner_id: string };
+const MOVE_COLUMNS = 'id, parent_id, name, node_type, category, scope, is_locked, work_id, owner_id';
+
+/** 17-07: moves a settings document/folder (kb_nodes.parent_id only) inside its own area — same owner,
+ * same scope, same work (or both account-shared), same category. Every rule comes from the pure
+ * kbMoveVerdict the tree UI also uses; the nodes are re-read from the DB here, never trusted from the
+ * client. Name conflicts are reported, never auto-renamed. DB guards (locked 0023, world-branch 0034)
+ * still run on the UPDATE and are mapped to Korean copy. */
+export async function moveKbNode(
+  supabase: SupabaseClient,
+  { ownerId, workId, nodeId, targetParentId }: { ownerId: string; workId: string; nodeId: string; targetParentId: string | null }
+): Promise<NodeMutationResult> {
+  const access = await checkWriteAccess(supabase, ownerId);
+  if (!access.ok) return writeDenial(access);
+
+  const { data: sourceData, error: sourceError } = await supabase.from('kb_nodes').select(MOVE_COLUMNS)
+    .eq('id', nodeId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+  if (sourceError) return { ok: false, error: FRIENDLY_UNAVAILABLE };
+  const source = sourceData as MoveRow | null;
+  const inArea = source && (source.scope === 'work' ? source.work_id === workId
+    : source.scope === 'account_template' && source.work_id === null);
+  if (!source || !inArea) return { ok: false, error: FRIENDLY_NOT_FOUND };
+
+  // The source's whole area (for the descendant / depth walk) plus the target row wherever it lives,
+  // so a cross-area target is reported as such instead of "missing".
+  let areaQuery = supabase.from('kb_nodes').select(MOVE_COLUMNS)
+    .eq('owner_id', ownerId).eq('scope', source.scope).is('deleted_at', null);
+  areaQuery = source.work_id === null ? areaQuery.is('work_id', null) : areaQuery.eq('work_id', source.work_id);
+  const { data: areaData, error: areaError } = await areaQuery;
+  if (areaError) return { ok: false, error: FRIENDLY_UNAVAILABLE };
+  const nodes = nodeMapOf((areaData ?? []) as MoveRow[]);
+  let target: MoveRow | null = null;
+  if (targetParentId !== null) {
+    target = (nodes.get(targetParentId) as MoveRow | undefined) ?? null;
+    if (!target) {
+      const { data } = await supabase.from('kb_nodes').select(MOVE_COLUMNS)
+        .eq('id', targetParentId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();
+      target = (data as MoveRow | null) ?? null;
+      if (target) nodes.set(target.id, target);
+    }
+  }
+  nodes.set(source.id, source);
+
+  const verdict = kbMoveVerdict(source, targetParentId, nodes);
+  if (!verdict.ok) return { ok: false, error: verdict.message };
+  if (verdict.noop) return { ok: true, nodeId: source.id };
+
+  const { data, error } = await supabase.from('kb_nodes')
+    .update({ parent_id: targetParentId })
+    .eq('id', source.id).eq('owner_id', ownerId).is('deleted_at', null)
+    .select('id').maybeSingle();
+  if (error) {
+    if (error.code === '23505') return { ok: false, error: nameConflictMessage(target?.name ?? '최상위', source.name) };
+    if (isLockedGuardError(error)) return { ok: false, error: MOVE_COPY.locked };
+    if (dbMessageIncludes(error, 'world_branch_confirmed_immutable')) return { ok: false, error: MOVE_COPY.branch_confirmed };
+    if (dbMessageIncludes(error, 'world_branch_inherited_immutable')) return { ok: false, error: MOVE_COPY.branch_inherited };
+    return { ok: false, error: MOVE_COPY.failed };
+  }
+  if (!data) return { ok: false, error: FRIENDLY_NOT_FOUND };
   return { ok: true, nodeId: data.id };
 }
 
