@@ -1,15 +1,15 @@
 ---
 phase: 12-mcp-oauth
 plan: 01
-status: draft
-verdict: pending-human-approval
+status: complete
+verdict: pass (human-approved 2026-10-25)
 executed: 2026-10-25
 requirements: [MCP-01, MCP-08]
 ---
 
 # 12-01 스파이크 결과 (Supabase Auth OAuth 2.1 Server × Claude 커스텀 커넥터)
 
-> **판정은 사람이 남긴다.** 이 문서는 관측 기록이며 합격/불합격 판정란은 사용자 승인 전까지 비어 있다. 12-02 이후는 이 문서에 사용자 합격 판정이 기록돼야 시작한다.
+> **판정은 사람이 남긴다.** 이 문서는 관측 기록이며 합격/불합격은 아래 "판정" 절에 사용자 판정으로 기록한다. 12-02 이후는 이 문서에 사용자 합격 판정이 있어야 시작한다(현재 합격).
 
 ## 환경
 - 일회용 Supabase 프로젝트(`.env.disposable`의 ref `anzafn…`, 공유 프로젝트 `ymudwg…`와 다름) + cloudflared quick tunnel + 로컬 Next dev(3101).
@@ -60,10 +60,12 @@ requirements: [MCP-01, MCP-08]
 8. refresh token 발급·갱신은 이 스파이크에서 확인하지 못했다. 12-06 수동 게이트에서 수명 경과 후 호출로 확인한다.
 
 ## 판정 (사람 기록란)
-- [ ] 합격 — 12-02 이후 진행
+- [x] 합격 — 12-02 이후 진행
 - [ ] 불합격 — D-03에 따라 재논의
-- 사용자 판정/날짜: (미기록)
+- 사용자 판정/날짜: 사용자가 2026-10-25에 합격으로 판정했다. 단 S6의 refresh token 발급·갱신은 미확인이며 12-06 수동 게이트에서 수명 경과 후 호출로 확인한다(합격 조건 아님, 이월 항목).
 
-## 정리 상태
-- 스파이크 키트 정리와 일회용 DB의 스파이크 객체(`mcp_connections`, `mcp_connect`, `mcp_disconnect`, `mcp_authorize_call`) 삭제는 판정 후 진행한다. 12-02의 0037 마이그레이션과 이름이 겹치므로 삭제 전에는 이 DB에 0037을 적용하지 않는다.
-- 터널과 스파이크 서버는 실험 종료 때 종료한다.
+## 정리 상태 (2026-10-25)
+- 터널(cloudflared)과 스파이크 서버(3101)는 판정 직후 종료했다.
+- 일회용 DB의 스파이크 객체(`mcp_connections`, `mcp_connect`, `mcp_disconnect`, `mcp_authorize_call`) 삭제 SQL을 사용자에게 전달했다. 12-02의 0037 마이그레이션과 이름이 겹치므로 삭제 확인 전에는 이 DB에 0037을 적용하지 않는다. 삭제 실행 여부는 사용자가 확인한다.
+- Supabase 대시보드의 OAuth Server 설정(켜짐, DCR, Authorization Path `/oauth/consent`)은 일회용 프로젝트에 그대로 남아 있다. Site URL은 사용자가 터널 주소로 바꿨으므로 이 프로젝트를 다른 UAT에 다시 쓰기 전에 원래 값으로 되돌려야 한다.
+- 스파이크 브랜치 `spike/12-01-mcp-oauth`와 worktree `../spike-12`는 보관 중이다. 폐기는 사용자 요청 시 진행한다.
