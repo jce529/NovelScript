@@ -1,4 +1,4 @@
----
+---undefined 일회용 DB+fixture 서버(웹팩 dev)에서 다이얼로그를 열고 폴더 선택값 표시. 콘솔에 uncontrolled 경고·Next 오버레이 없음 (2026-10-25, 에이전트 자동) | PASS 화면에 "파일 선택"·"폴더째 선택" 버튼만 보임. file input 2개 모두 `sr-only`(약 1px), tabindex=-1, aria-label 있음, 기본 문구 비노출 | PASS accessibility 트리에서 버튼과 숨은 input이 분리됨(자동 테스트 7건 통과). 실제 키보드·선택창 오픈은 미확인 | pending 모바일 에뮬레이션·실기기 미확인 | pending 기존 제한은 단위 테스트로만 확인, 브라우저 미확인 | pending fixture 호출 성공 시 서버 로그 `[ai] generation observed`: provider=gemini, keySource=service, finishReason=stop, wasCapped=false, maxOutputTokens=4096, outputTokens=200, thoughtsTokens=null, idempotencyKey 있음. 본문·프롬프트·키 없음 (실키 아님, fixture) | PASS (fixture) fixture `rate_limited` 실패 후 모델을 GPT-4o mini로 바꿔 재시도: 요청 모델 gemini-3.5-flash→gpt-4o-mini, 멱등 키 24a5ba98…→18853705… (새 키). 원장 차감 없음 | PASS 같은 실패에서 모델 변경 없이 재시도: gemini-3.5-flash, 같은 키 24a5ba98…로 재전송 | PASS fixture `drop-response`(응답 유실=unknown 취급)로 모델을 바꾸고 재시도: 모델 gemini-3.5-flash, 같은 키 fcff109e…. 토스트 "이전 요청의 처리 여부가 확실하지 않아 처음 고른 모델로 다시 보내요. 바꾼 모델은 새 메시지부터 적용돼요." 서버는 "이미 처리된 요청" 응답. DB 원장에 해당 키 -1 한 건뿐, 잔액 20000→19999 | PASS 실키 필요, fixture에 max_tokens 응답 없음. 문구 분류는 단위 테스트(capped-reason·capped-ux)로만 확인 | blocked 실키 필요 | blocked 잔액 한도 잘림 재현에 max_tokens 응답 필요, 단위 테스트로만 확인 | blocked 실키 필요(fixture 응답은 문서 구조가 아님) | blocked 실키 필요 | blocked 실키·잘림 재현 필요, 단위 테스트(regenerate-document)로만 확인 | blocked 실키 필요 | blocked 미확인 | pending 일회용 DB 시드 필요, 미확인 | pending 사용자 확인 필요 | pending 사용자 결정 필요 | pending |undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|
 phase: 17-bugfix-consolidation
 status: pending
 created: 2026-10-23
@@ -79,10 +79,17 @@ created: 2026-10-23
 
 ## 결과 요약 (확인 후 채움)
 
-- PASS:
-- partial:
-- blocked:
-- pending:
-- FAIL:
+- PASS: A1, A2, B2(fixture), D1, D2, D3
+- partial: 없음
+- blocked(실키·잘림 재현 필요): B1, B3, B4, C1~C4
+- pending: A3, A4, A5, C5, C6, E1, E2
+- FAIL: 없음
+
+## 에이전트 자동 확인 환경 (2026-10-25)
+
+- 코드: 브랜치 `claude/festive-swanson-cc07cc` 그대로, Next dev `--webpack`, 포트 3199
+- DB: 일회용 DB(`env.disposable`), 공유 프로젝트와 ref 다름 확인. 테스트 계정 `uat17-*@novelscript.test`(작가, 잔액 20000)와 작품 `UAT17 작품`이 일회용 DB에 남아 있음
+- AI: `AI_PROVIDER_FIXTURE`(rate_limited / drop-response)와 더미 서비스 키. 실제 Gemini 호출 없음
+- 임시 설정(launch.json 항목, node_modules junction)은 모두 제거함
 
 발견한 새 결함은 원인 phase의 `bugs/`에 `BUG-NN`으로 추가한다(`bug-plan`).
