@@ -90,7 +90,7 @@ describe('template tree UI', () => {
       open: true, onOpenChange: () => {}, workId: 'work', parentId: 'people', category: '인물', onCreated: () => {},
     }));
     expect(html).toMatch(/<h3>작품 템플릿<\/h3>.*인물.*<h3>계정 템플릿<\/h3>.*인물.*<h3>기본 템플릿<\/h3>.*기본 인물 템플릿/);
-    expect(html).toContain('인물 (이 작품 전용) (기본)');
+    expect(html).toContain('인물 (이 작품 전용) · 기본값');
   });
 
   it('shows category names in the move dialog, including the selected value', () => {

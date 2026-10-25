@@ -258,7 +258,7 @@ export function CreateNodeDialog({
                       <SelectLabel>{label}</SelectLabel>
                       {options.map((option) => (
                         <SelectItem key={option.id ?? CANONICAL} value={option.id ?? CANONICAL}>
-                          {option.name} ({SCOPE_LABEL[option.scope]}){option.isDefault ? ' (기본)' : ''}
+                          {option.name} ({SCOPE_LABEL[option.scope]}){option.isDefault ? ' · 기본값' : ''}
                         </SelectItem>
                       ))}
                     </SelectGroup>

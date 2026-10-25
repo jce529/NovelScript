@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 
 // Phase 16 BUG-06: the popup is as wide as its trigger and clips overflow, so long item labels
-// (e.g. "기본 인물 템플릿 (기본) (기본)" in the new-document dialog) were cut off.
+// (e.g. "기본 인물 템플릿 (기본) · 기본값" in the new-document dialog) were cut off.
 const select = readFileSync('components/ui/select.tsx', 'utf8');
 const dialogs = readFileSync('components/studio/kb-node-dialogs.tsx', 'utf8');
 
