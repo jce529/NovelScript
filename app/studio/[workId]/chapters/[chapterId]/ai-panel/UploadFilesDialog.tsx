@@ -183,9 +183,9 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader><DialogTitle>파일 업로드</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-3">
-          <div role="radiogroup" aria-label="업로드 방식" className="flex flex-wrap gap-2">
+          <div role="radiogroup" aria-label="업로드 방식" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             {([['import', '설정 문서로 저장'], ['auto', 'AI 자동 분류'], ['attach', '이번 대화에만 첨부']] as const).map(([value, label]) => (
-              <Button key={value} type="button" role="radio" aria-checked={mode === value} size="sm" variant={mode === value ? 'default' : 'outline'} onClick={() => { setMode(value); resetReview(); }}>
+              <Button key={value} type="button" role="radio" aria-checked={mode === value} size="sm" variant={mode === value ? 'default' : 'outline'} className="w-full sm:w-auto" onClick={() => { setMode(value); resetReview(); }}>
                 {label}
               </Button>
             ))}

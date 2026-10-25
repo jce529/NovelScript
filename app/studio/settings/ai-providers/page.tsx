@@ -82,7 +82,7 @@ export default async function AiProvidersSettingsPage({
             <select
               id="providerModel" name="providerModel"
               defaultValue={encodeSelection(current)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="w-full min-w-0 truncate rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               {(Object.keys(PROVIDER_MODELS) as ProviderId[]).map((providerId) => (
                 <optgroup key={providerId} label={`${PROVIDER_LABEL[providerId]} · ${PROVIDER_MODELS[providerId].length}개`}>
