@@ -488,7 +488,7 @@ function MoveTargetDialog({
       {option.current ? (
         <span className="shrink-0 whitespace-nowrap rounded bg-muted px-1.5 text-xs">현재 위치</span>
       ) : option.aside ? (
-        <span className="max-w-[55%] shrink-0 truncate text-right text-xs text-muted-foreground" title={option.aside}>{option.aside}</span>
+        <span className="max-w-[55%] shrink-0 text-right text-xs leading-snug text-muted-foreground" title={option.aside}>{option.aside}</span>
       ) : null}
     </label>
   );

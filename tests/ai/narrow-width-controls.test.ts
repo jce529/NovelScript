@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 // Phase 16 BUG-05: at 375px the account default-model select clipped its label and the upload
 // dialog mode buttons wrapped 2+1.
 const settings = readFileSync('app/studio/settings/ai-providers/page.tsx', 'utf8');
+const moveDialogs = readFileSync('components/studio/kb-node-dialogs.tsx', 'utf8');
 const dialog = readFileSync('app/studio/[workId]/chapters/[chapterId]/ai-panel/UploadFilesDialog.tsx', 'utf8');
 
 describe('narrow width controls (BUG-05)', () => {
@@ -18,5 +19,11 @@ describe('narrow width controls (BUG-05)', () => {
     expect(group).toContain('flex-col');
     expect(group).toContain('sm:flex-row');
     expect(dialog).toMatch(/role="radio"[^>]*className="w-full sm:w-auto"/);
+  });
+
+  it('lets the move dialog show the full reason a target is disabled (wrap, no ellipsis)', () => {
+    const aside = moveDialogs.match(/<span className="([^"]+)" title={option.aside}>/)?.[1] ?? '';
+    expect(aside).not.toContain('truncate');
+    expect(aside).toContain('text-right');
   });
 });
