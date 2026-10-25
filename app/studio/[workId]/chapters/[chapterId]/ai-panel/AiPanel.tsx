@@ -475,9 +475,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
             <SelectTrigger className="w-full">
               <SelectValue>
                 {() => (
-                  <span className="flex flex-col items-start text-left">
-                    <span>{STYLE_PRESETS[styleId].name}</span>
-                    <span className="text-xs text-muted-foreground">{STYLE_PRESETS[styleId].description}</span>
+                  <span className="flex min-w-0 flex-1 items-baseline gap-2 text-left">
+                    <span className="shrink-0">{STYLE_PRESETS[styleId].name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{STYLE_PRESETS[styleId].description}</span>
                   </span>
                 )}
               </SelectValue>

@@ -97,7 +97,7 @@ export default async function WorkLayout({
     <StudioPanelProvider>
       <StudioWorkspace>
         {/* lg 미만은 탭 3개(설정집·회차 / 집필 / AI), lg 이상은 기존 desktop 셸 */}
-        <div className="flex h-dvh min-h-0 flex-col lg:h-auto lg:min-h-screen">
+        <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col max-lg:overflow-hidden lg:h-auto lg:min-h-screen">
           <div className="flex min-h-0 flex-1 flex-col md:flex-row">
             <div className="contents max-lg:hidden">
               <StudioSidebar>{sidebar}</StudioSidebar>

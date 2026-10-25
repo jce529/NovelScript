@@ -55,9 +55,9 @@ export function AiInstructionControls({
             <SelectTrigger id="ai-preset-select" className="w-full">
               <SelectValue>
                 {() => (
-                  <span className="flex flex-col items-start text-left">
-                    <span>{PRESET_LEVEL_META[presetLevel].label}</span>
-                    <span className="text-xs text-muted-foreground">{PRESET_LEVEL_META[presetLevel].description}</span>
+                  <span className="flex min-w-0 flex-1 items-baseline gap-2 text-left">
+                    <span className="shrink-0">{PRESET_LEVEL_META[presetLevel].label}</span>
+                    <span className="truncate text-xs text-muted-foreground">{PRESET_LEVEL_META[presetLevel].description}</span>
                   </span>
                 )}
               </SelectValue>

@@ -19,7 +19,7 @@ export function StudioStage({ children }: { children: ReactNode }) {
     : 'max-lg:relative max-lg:h-full max-lg:overflow-y-auto';
 
   return (
-    <div className="relative min-h-0 min-w-0 flex-1">
+    <div className="relative min-h-0 min-w-0 flex-1 max-lg:h-full">
       <main
         aria-hidden={isMobile && hidden ? true : undefined}
         inert={(isMobile && hidden) || undefined}
