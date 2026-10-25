@@ -12,3 +12,4 @@
 2026-10-23 | 12-plan | architectural/high | T3 | gpt-6-sol (codex, medium) | 통과(checker PASSED, 경고4) | 0 | 4(경고) | - | planner=model_overrides, checker=sonnet. PLAN 6개
 2026-10-25 | 12-02-1,2 | multi_file(review)/high | T4 | gpt-6.1-sol (codex, high) | 미실행 | - | - | - | 결정만 기록. jev-1.14.0 jev_choice/jev_noul 대체(jev_classify 도구 없음). P1=0.61 P2=0.12 P3=0.71 P4=0.89, 검증자 sonnet
 2026-10-25 | 12-02-1,2 | multi_file(review)/high | T4→T3(gpt-6.1-sol 미지원 계정) | gpt-6-sol (codex, high) | 통과(검증 WARNING 1건: 테스트 무효, 오케스트레이터 수정) | 0 | 1 (sonnet) | routing_miss: gpt-6.1-sol은 ChatGPT 계정에서 model_not_found | 비고: 첫 호출 즉시 실패 후 사용자 승인으로 gpt-6-sol 대체. models.md의 6.1 Sol 표시 갱신 필요
+2026-10-25 | 12-03-1,2,3 | multi_file/high (3 review 포함) | T4 | opus (claude) | 미실행 | - | - | - | 결정만 기록. jev-1.14.0. P1=0.79 P2=0.67 P3=0.94 P4=0.68 -> P2>0.3 Claude 채널(패키지 설치 네트워크). 위험도 task3은 low0.54/high0.36 conf0.31 review 규칙으로 high. 검증자 gpt-6-sol(codex)
