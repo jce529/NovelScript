@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MOVE_COPY, chapterMoveTargets, kbMoveTargets, kbMoveVerdict, nodeMapOf, normalizeChapterFolder, type MoveNode,
+  DROP, MOVE_COPY, chapterMoveTargets, kbMoveTargets, kbMoveVerdict, nodeMapOf, normalizeChapterFolder, resolveDrop, type MoveNode,
 } from '../../lib/kb/move-rules';
 import { MAX_FOLDER_DEPTH } from '../../lib/kb/actions';
 import type { TreeNode } from '../../lib/kb/tree';
@@ -138,6 +138,51 @@ describe('kbMoveTargets (dialog list)', () => {
       ['person', '인물', 0, false, 'other'],
     ]);
     expect(targets[1].current).toBe(true);
+  });
+});
+
+describe('resolveDrop (drag-over / drop decision)', () => {
+  const named = nodeMapOf([
+    ...nodes.map((x) => ({ ...x, name: x.id })),
+    { ...n('ch-2', 'ch-root', { category: '회차' }), name: '2부' },
+  ]);
+  const ctx = { nodes: named, chapterRootId: 'ch-root' };
+  const kb = (nodeId: string) => ({ kind: 'kb' as const, nodeId, name: nodeId });
+  const chapter = (folderId: string | null) => ({ kind: 'chapter' as const, chapterId: 'c1', name: '3화', folderId });
+
+  it('encodes drop ids per target kind', () => {
+    expect(DROP.kbFolder('a')).toBe('kb:a');
+    expect(DROP.kbTop('work')).toBe('kb-top:work');
+    expect(DROP.chapterFolder('ch-1')).toBe('ch:ch-1');
+    expect(DROP.chapterRoot).toBe('ch-root');
+  });
+
+  it('chapters drop only on 회차 folders; the root (either id) means folder null', () => {
+    expect(resolveDrop(chapter('ch-1'), DROP.chapterFolder('ch-2'), ctx)).toEqual({ ok: true, noop: false, targetId: 'ch-2', targetName: '2부', message: null });
+    expect(resolveDrop(chapter('ch-1'), DROP.chapterRoot, ctx)).toMatchObject({ ok: true, noop: false, targetId: null, targetName: '회차' });
+    expect(resolveDrop(chapter(null), DROP.chapterFolder('ch-root'), ctx)).toMatchObject({ ok: true, noop: true, targetId: null });
+    expect(resolveDrop(chapter('ch-1'), DROP.chapterFolder('ch-1'), ctx)).toMatchObject({ ok: true, noop: true });
+    expect(resolveDrop(chapter('ch-1'), DROP.kbFolder('c'), ctx)).toEqual({ ok: false, noop: false, targetId: null, targetName: 'c', message: MOVE_COPY.chapter_only });
+    expect(resolveDrop(chapter('ch-1'), DROP.kbTop('work'), ctx)).toMatchObject({ ok: false, message: MOVE_COPY.chapter_only });
+  });
+
+  it('settings items use kbMoveVerdict and never land in the 회차 area', () => {
+    expect(resolveDrop(kb('doc'), DROP.kbFolder('c'), ctx)).toEqual({ ok: true, noop: false, targetId: 'c', targetName: 'c', message: null });
+    expect(resolveDrop(kb('a'), DROP.kbFolder('b'), ctx)).toMatchObject({ ok: false, message: MOVE_COPY.descendant });
+    expect(resolveDrop(kb('doc'), DROP.chapterFolder('ch-1'), ctx)).toMatchObject({ ok: false, message: MOVE_COPY.settings_only });
+    expect(resolveDrop(kb('doc'), DROP.chapterRoot, ctx)).toMatchObject({ ok: false, message: MOVE_COPY.settings_only });
+  });
+
+  it('top-level drops only accept custom folders of the same scope', () => {
+    const local = { ...ctx, nodes: nodeMapOf([...named.values(), { ...n('csub', 'custom1', { category: 'custom' }), name: '하위' }]) };
+    expect(resolveDrop(kb('csub'), DROP.kbTop('work'), local)).toMatchObject({ ok: true, noop: false, targetId: null, targetName: '설정' });
+    expect(resolveDrop(kb('csub'), DROP.kbTop('account_template'), local)).toMatchObject({ ok: false, message: MOVE_COPY.other_scope });
+    expect(resolveDrop(kb('doc'), DROP.kbTop('work'), local)).toMatchObject({ ok: false });
+  });
+
+  it('unknown items or drop ids are rejected', () => {
+    expect(resolveDrop(kb('nope'), DROP.kbFolder('c'), ctx)).toMatchObject({ ok: false, message: MOVE_COPY.missing });
+    expect(resolveDrop(kb('doc'), 'weird', ctx)).toMatchObject({ ok: false });
   });
 });
 

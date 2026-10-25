@@ -11,6 +11,8 @@ import { TemplateSidebarEntry } from '@/components/studio/template-sidebar-entry
 import { partitionStudioSidebar } from '@/lib/kb/sidebar-sections';
 import { CreateRootFolderButton, KbTreeActions } from '@/components/studio/kb-node-dialogs';
 import { SidebarGroup } from '@/components/studio/sidebar-groups';
+import { TreeDndProvider } from '@/components/studio/tree-dnd';
+import { DROP } from '@/lib/kb/move-rules';
 import { StudioPanelProvider, StudioSidebar } from '@/components/studio/studio-panel-shell';
 import { StudioWorkspace, StudioMobileNavigation } from '@/components/studio/workspace/mobile-tabs';
 import { StudioPane } from '@/components/studio/workspace/StudioPane';
@@ -62,10 +64,11 @@ export default async function WorkLayout({
 
       <TemplateSidebarEntry workId={workId} areas={templateAreas} />
 
+      <TreeDndProvider workId={workId} workTree={workTree} accountTree={accountTree} chaptersByFolderId={chaptersByFolderId}>
       <nav aria-label="작품 트리" className="flex flex-col pb-6">
         <SidebarGroup id="work" kind="root" icon="work" label="작품 폴더" aside={work.title}>
           <SidebarGroup
-            id="work-chapters" label="회차" href={`/studio/${workId}/chapters`}
+            id="work-chapters" label="회차" href={`/studio/${workId}/chapters`} dropId={DROP.chapterRoot}
             actions={chapterRoot && <KbTreeActions workId={workId} node={chapterRoot} />}
           >
             {chapterRoot && (
@@ -83,7 +86,10 @@ export default async function WorkLayout({
             )}
           </SidebarGroup>
 
-          <SidebarGroup id="work-settings" label="설정" actions={<CreateRootFolderButton workId={workId} scope="work" />}>
+          <SidebarGroup
+            id="work-settings" label="설정" dropId={DROP.kbTop('work')}
+            actions={<CreateRootFolderButton workId={workId} scope="work" />}
+          >
             <KbTree nodes={sections.myFolders} chaptersByFolderId={{}} workId={workId} baseDepth={2} />
           </SidebarGroup>
 
@@ -97,7 +103,8 @@ export default async function WorkLayout({
 
         <SidebarGroup id="account" kind="root" icon="account" label="계정 폴더" aside="모든 작품 공용">
           <SidebarGroup
-            id="account-settings" label="설정" actions={<CreateRootFolderButton workId={workId} scope="account_template" />}
+            id="account-settings" label="설정" dropId={DROP.kbTop('account_template')}
+            actions={<CreateRootFolderButton workId={workId} scope="account_template" />}
           >
             {!hasCustomSharedFolders && (
               <div className="flex flex-col gap-1 py-4 pr-4 text-left" style={{ paddingLeft: 48 }}>
@@ -109,6 +116,7 @@ export default async function WorkLayout({
           </SidebarGroup>
         </SidebarGroup>
       </nav>
+      </TreeDndProvider>
     </>
   );
 

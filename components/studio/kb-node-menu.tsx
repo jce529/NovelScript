@@ -1,10 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { MoreHorizontal } from 'lucide-react';
 import {
-  CopyTemplateDialog, CreateNodeDialog, DeleteNodeDialog, MoveTemplateFileDialog, RenameNodeDialog,
+  CopyTemplateDialog, CreateNodeDialog, DeleteNodeDialog, MoveChapterDialog, MoveKbNodeDialog, MoveTemplateFileDialog,
+  RenameNodeDialog,
 } from '@/components/studio/kb-node-dialogs';
+import { useTreeMove } from '@/components/studio/tree-dnd';
 import type { TreeNode } from '@/lib/kb/tree';
 import {
   createNodeMenuController, menuActionsFor, type MenuActionId, type NodeMenuController, type Point,
@@ -14,29 +17,54 @@ const ACTION_LABEL: Record<MenuActionId, string> = {
   copy: '사본 만들기',
   'create-from-template': '이 템플릿으로 새 문서',
   move: '카테고리 폴더로 이동',
+  'tree-move': '이동…',
   rename: '이름 바꾸기',
   delete: '삭제',
 };
 
 type RowProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> & { [data: `data-${string}`]: string | boolean | undefined };
 
-/** Wraps a KB document / template row. Right-click, touch long-press (500ms) and Shift+F10 / ContextMenu all
- * open the same menu, whose actions open the same dialogs the row icon buttons use. */
-export function KbNodeMenu({
-  workId, node, categoryFolders = [], templateCategory = null, rowProps, children,
+/** Drag / drop bindings merged into a menu row (17-07): refs plus the dnd-kit listeners, composed with —
+ * never replacing — the row menu's own pointer and keyboard handlers. */
+export interface RowBindings {
+  ref?: (el: HTMLDivElement | null) => void;
+  listeners?: { onPointerDown?: (e: React.PointerEvent) => void; onKeyDown?: (e: React.KeyboardEvent) => void };
+  attributes?: Record<string, unknown>;
+  overlay?: React.ReactNode;
+}
+
+const RowMenuContext = createContext<{ openFrom: (el: HTMLElement) => void; label: string } | null>(null);
+
+/** Visible "…" trigger for the row menu (shown with the row actions; on mobile on the active row). */
+export function RowMenuButton() {
+  const menu = useContext(RowMenuContext);
+  if (!menu) return null;
+  return (
+    <button
+      type="button"
+      aria-label={menu.label}
+      aria-haspopup="menu"
+      className="flex h-6 w-6 items-center justify-center rounded hover:bg-accent max-lg:h-8 max-lg:w-8"
+      onClick={(e) => menu.openFrom(e.currentTarget)}
+    >
+      <MoreHorizontal size={14} />
+    </button>
+  );
+}
+
+/** Generic row with a context menu. Right-click, touch long-press (500ms), Shift+F10 / ContextMenu and the
+ * "…" button all open the same menu. */
+function RowMenuShell({
+  label, items, onSelect, rowProps, bindings, children,
 }: {
-  workId: string; node: TreeNode; categoryFolders?: TreeNode[]; templateCategory?: string | null;
-  rowProps?: RowProps; children: React.ReactNode;
+  label: string; items: { id: MenuActionId; enabled: boolean }[]; onSelect: (id: MenuActionId) => void;
+  rowProps?: RowProps; bindings?: RowBindings; children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const rowRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<NodeMenuController | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [point, setPoint] = useState<Point | null>(null);
-  const [dialog, setDialog] = useState<MenuActionId | null>(null);
-
-  const actions = menuActionsFor(node, { hasCategoryFolders: categoryFolders.length > 0, templateCategory });
 
   useEffect(() => {
     const controller = createNodeMenuController(
@@ -68,23 +96,45 @@ export function KbNodeMenu({
 
   const select = useCallback((id: MenuActionId) => {
     controllerRef.current?.close();
-    setDialog(id);
-  }, []);
+    onSelect(id);
+  }, [onSelect]);
 
-  if (actions.length === 0) {
-    return <div {...rowProps}>{children}</div>;
+  const bindRef = bindings?.ref;
+  const setRef = useCallback((el: HTMLDivElement | null) => {
+    rowRef.current = el;
+    bindRef?.(el);
+  }, [bindRef]);
+
+  if (items.length === 0) {
+    return (
+      <div {...rowProps} {...bindings?.attributes} ref={setRef} {...bindings?.listeners}>
+        {children}
+        {bindings?.overlay}
+      </div>
+    );
   }
 
-  const closeDialog = () => setDialog(null);
+  const menuContext = {
+    label: `${label} 메뉴`,
+    openFrom: (el: HTMLElement) => {
+      const rect = el.getBoundingClientRect();
+      controllerRef.current?.contextMenu({ x: rect.left, y: rect.bottom });
+    },
+  };
+
   return (
-    <>
+    <RowMenuContext.Provider value={menuContext}>
       <div
         {...rowProps}
-        ref={rowRef}
+        {...bindings?.attributes}
+        ref={setRef}
         onContextMenu={(e) => {
           if (controllerRef.current?.contextMenu({ x: e.clientX, y: e.clientY })) e.preventDefault();
         }}
-        onPointerDown={(e) => controllerRef.current?.pointerDown({ pointerType: e.pointerType, x: e.clientX, y: e.clientY })}
+        onPointerDown={(e) => {
+          controllerRef.current?.pointerDown({ pointerType: e.pointerType, x: e.clientX, y: e.clientY });
+          bindings?.listeners?.onPointerDown?.(e);
+        }}
         onPointerMove={(e) => controllerRef.current?.pointerMove({ x: e.clientX, y: e.clientY })}
         onPointerUp={() => controllerRef.current?.pointerUp()}
         onPointerCancel={() => controllerRef.current?.pointerCancel()}
@@ -94,35 +144,37 @@ export function KbNodeMenu({
         onKeyDown={(e) => {
           const rect = rowRef.current?.getBoundingClientRect();
           const handled = controllerRef.current?.keyDown(e, { x: rect?.left ?? 0, y: rect?.bottom ?? 0 });
-          if (handled) e.preventDefault();
+          if (handled) { e.preventDefault(); return; }
+          bindings?.listeners?.onKeyDown?.(e);
         }}
       >
         {children}
+        {bindings?.overlay}
       </div>
       {point && (
         <div
           ref={menuRef}
           role="menu"
-          aria-label={`${node.name} 메뉴`}
+          aria-label={`${label} 메뉴`}
           className="fixed z-50 min-w-40 rounded-lg bg-popover p-1 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10"
-          style={{ left: point.x, top: point.y }}
+          style={{ left: Math.max(8, Math.min(point.x, window.innerWidth - 176)), top: Math.min(point.y, window.innerHeight - 8 - items.length * 44) }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') { e.preventDefault(); controllerRef.current?.keyDown({ key: 'Escape' }, point); return; }
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
               e.preventDefault();
-              const items = [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
-              const at = items.indexOf(document.activeElement as HTMLElement);
-              items[(at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
+              const menuItems = [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+              const at = menuItems.indexOf(document.activeElement as HTMLElement);
+              menuItems[(at + (e.key === 'ArrowDown' ? 1 : -1) + menuItems.length) % menuItems.length]?.focus();
             }
           }}
         >
-          {actions.map((action) => (
+          {items.map((action) => (
             <button
               key={action.id}
               role="menuitem"
               type="button"
               disabled={!action.enabled}
-              className="flex w-full items-center rounded px-2 py-1.5 text-left hover:bg-accent focus:bg-accent disabled:opacity-50"
+              className="flex w-full items-center rounded px-2 py-1.5 text-left hover:bg-accent focus:bg-accent disabled:opacity-50 max-lg:min-h-11"
               onClick={() => select(action.id)}
             >
               {ACTION_LABEL[action.id]}
@@ -130,6 +182,30 @@ export function KbNodeMenu({
           ))}
         </div>
       )}
+    </RowMenuContext.Provider>
+  );
+}
+
+/** Wraps a KB document / folder / template row. Right-click, touch long-press (500ms) and Shift+F10 /
+ * ContextMenu all open the same menu, whose actions open the same dialogs the row icon buttons use.
+ * Inside the sidebar tree (TreeDndProvider) movable settings rows also get "이동…". */
+export function KbNodeMenu({
+  workId, node, categoryFolders = [], templateCategory = null, rowProps, bindings, children,
+}: {
+  workId: string; node: TreeNode; categoryFolders?: TreeNode[]; templateCategory?: string | null;
+  rowProps?: RowProps; bindings?: RowBindings; children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const treeMove = useTreeMove() !== null;
+  const [dialog, setDialog] = useState<MenuActionId | null>(null);
+  const actions = menuActionsFor(node, { hasCategoryFolders: categoryFolders.length > 0, templateCategory, treeMove });
+  const closeDialog = () => setDialog(null);
+
+  return (
+    <>
+      <RowMenuShell label={node.name} items={actions} onSelect={setDialog} rowProps={rowProps} bindings={bindings}>
+        {children}
+      </RowMenuShell>
       {dialog === 'copy' && (
         <CopyTemplateDialog open onOpenChange={(v) => !v && closeDialog()} workId={workId} nodeId={node.id} currentName={node.name} />
       )}
@@ -146,6 +222,9 @@ export function KbNodeMenu({
           currentParentId={node.parent_id} categoryFolders={categoryFolders} onMoved={() => router.refresh()}
         />
       )}
+      {dialog === 'tree-move' && (
+        <MoveKbNodeDialog open onOpenChange={(v) => !v && closeDialog()} node={node} />
+      )}
       {dialog === 'rename' && (
         <RenameNodeDialog open onOpenChange={(v) => !v && closeDialog()} workId={workId} nodeId={node.id} currentName={node.name} />
       )}
@@ -154,6 +233,27 @@ export function KbNodeMenu({
           open onOpenChange={(v) => !v && closeDialog()} workId={workId} nodeId={node.id} name={node.name}
           onDeleted={() => router.refresh()}
         />
+      )}
+    </>
+  );
+}
+
+/** Chapter row in the sidebar tree: its menu offers "이동…" (회차 이동 dialog). */
+export function ChapterRowMenu({
+  chapterId, name, folderId, rowProps, bindings, children,
+}: {
+  chapterId: string; name: string; folderId: string | null; rowProps?: RowProps; bindings?: RowBindings; children: React.ReactNode;
+}) {
+  const tree = useTreeMove();
+  const [open, setOpen] = useState(false);
+  const items = tree?.chapterRoot ? [{ id: 'tree-move' as const, enabled: true }] : [];
+  return (
+    <>
+      <RowMenuShell label={name} items={items} onSelect={() => setOpen(true)} rowProps={rowProps} bindings={bindings}>
+        {children}
+      </RowMenuShell>
+      {open && (
+        <MoveChapterDialog open onOpenChange={setOpen} chapterId={chapterId} name={name} currentFolderId={folderId} />
       )}
     </>
   );

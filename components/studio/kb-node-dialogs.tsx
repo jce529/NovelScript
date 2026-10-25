@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, FolderPlus, Pencil, Trash2, FolderInput, Copy, FilePlus } from 'lucide-react';
+import { toast } from 'sonner';
+import { Plus, FolderPlus, Pencil, Trash2, FolderInput, Copy, FilePlus, Folder } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { TreeNode } from '@/lib/kb/tree';
 import { KB_CATEGORIES } from '@/lib/kb/categories';
+import { MOVE_COPY, categoryLabel, chapterMoveTargets, kbMoveTargets } from '@/lib/kb/move-rules';
+import { movedMessage, performTreeMove, useTreeMove } from '@/components/studio/tree-dnd';
 import {
   createNodeAction, renameNodeAction, deleteNodeAction, listTemplateOptionsAction, createFolderAction, moveTemplateFileAction,
   copyTemplateFileAction, createDocumentFromTemplateAction,
@@ -436,6 +439,155 @@ export function MoveTemplateFileDialog({ open, onOpenChange, workId, nodeId, cur
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface MoveOption {
+  key: string;
+  id: string | null;
+  name: string;
+  depth: number;
+  group: 'same' | 'other';
+  current: boolean;
+  enabled: boolean;
+  /** Right-side text: a disabled reason or e.g. "회차 3개". */
+  aside: string | null;
+}
+
+/** Shared body of the 17-07 "이동…" dialogs: a radiogroup of destinations (current location disabled with
+ * "현재 위치", impossible ones disabled with their reason), a helper line, a role=alert error banner. */
+function MoveTargetDialog({
+  open, onOpenChange, title, subtitle, helper, options, onSubmit,
+}: {
+  open: boolean; onOpenChange: (v: boolean) => void; title: string; subtitle: string; helper?: string;
+  options: MoveOption[]; onSubmit: (option: MoveOption) => Promise<string | null>;
+}) {
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const selected = options.find((option) => option.key === selectedKey && option.enabled) ?? null;
+  const same = options.filter((option) => option.group === 'same');
+  const other = options.filter((option) => option.group === 'other');
+
+  const renderOption = (option: MoveOption) => (
+    <label
+      key={option.key}
+      className={`flex min-h-10 items-center gap-2 rounded-md px-2 text-sm ${
+        option.enabled ? 'cursor-pointer hover:bg-accent' : 'cursor-not-allowed text-muted-foreground'
+      } ${selectedKey === option.key ? 'bg-[#ede9fe] text-[#3f2fd0]' : ''}`}
+      style={{ paddingLeft: 8 + option.depth * 20 }}
+    >
+      <input
+        type="radio" name="tree-move-target" value={option.key} className="shrink-0"
+        disabled={!option.enabled} checked={selectedKey === option.key}
+        onChange={() => { setSelectedKey(option.key); setError(null); }}
+      />
+      <Folder size={14} className="shrink-0" />
+      <span className="min-w-0 flex-1 truncate">{option.name}</span>
+      {option.current ? (
+        <span className="shrink-0 whitespace-nowrap rounded bg-muted px-1.5 text-xs">현재 위치</span>
+      ) : option.aside ? (
+        <span className="max-w-[55%] shrink-0 truncate text-right text-xs text-muted-foreground" title={option.aside}>{option.aside}</span>
+      ) : null}
+    </label>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </DialogHeader>
+        <div role="radiogroup" aria-label="옮길 폴더" className="flex max-h-80 flex-col gap-0.5 overflow-y-auto">
+          {same.map(renderOption)}
+          {other.length > 0 && (
+            <div role="group" aria-label="다른 영역" className="mt-2 flex flex-col gap-0.5">
+              <p className="px-2 pt-1 text-xs font-medium text-muted-foreground">다른 영역</p>
+              {other.map(renderOption)}
+            </div>
+          )}
+        </div>
+        {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
+        {error && (
+          <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>취소</Button>
+          <Button
+            disabled={isPending || !selected}
+            onClick={() => startTransition(async () => {
+              if (!selected) return;
+              const failure = await onSubmit(selected);
+              if (failure) setError(failure);
+            })}
+          >
+            {selected ? `‘${selected.name}’(으)로 이동` : '이동하기'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export const CHAPTER_MOVE_HELPER = '이동해도 발행 상태와 회차 순서는 그대로예요. 회차는 회차 폴더 안으로만 옮길 수 있어요.';
+
+/** 회차 이동: the 회차 root and its folders, each with its chapter count. */
+export function MoveChapterDialog({
+  open, onOpenChange, chapterId, name, currentFolderId,
+}: { open: boolean; onOpenChange: (v: boolean) => void; chapterId: string; name: string; currentFolderId: string | null }) {
+  const tree = useTreeMove();
+  const router = useRouter();
+  if (!tree?.chapterRoot) return null;
+  const options: MoveOption[] = chapterMoveTargets(tree.chapterRoot, tree.chaptersByFolderId, currentFolderId).map((target) => ({
+    key: target.id ?? 'root', id: target.id, name: target.name, depth: target.depth, group: 'same',
+    current: target.current, enabled: !target.current, aside: `회차 ${target.count}개`,
+  }));
+  return (
+    <MoveTargetDialog
+      open={open} onOpenChange={onOpenChange} title="회차 이동"
+      subtitle={`‘${name}’을 옮길 회차 폴더를 고르세요.`} helper={CHAPTER_MOVE_HELPER} options={options}
+      onSubmit={async (option) => {
+        const result = await performTreeMove(tree.workId, { kind: 'chapter', chapterId, name, folderId: currentFolderId }, option.id);
+        if (!result.ok) return result.error ?? MOVE_COPY.failed;
+        onOpenChange(false);
+        toast.success(movedMessage(name, option.name));
+        router.refresh();
+        return null;
+      }}
+    />
+  );
+}
+
+/** 폴더 이동 / 문서 이동: folders of the same category area; other areas are listed disabled with a reason. */
+export function MoveKbNodeDialog({
+  open, onOpenChange, node,
+}: { open: boolean; onOpenChange: (v: boolean) => void; node: TreeNode }) {
+  const tree = useTreeMove();
+  const router = useRouter();
+  if (!tree) return null;
+  const sameScope = node.scope === 'account_template' ? tree.accountTree : tree.workTree;
+  const otherScope = node.scope === 'account_template' ? tree.workTree : tree.accountTree;
+  const options: MoveOption[] = kbMoveTargets(node, sameScope, otherScope).map((target) => ({
+    key: target.id ?? 'top', id: target.id, name: target.name, depth: target.depth, group: target.group,
+    current: target.current, enabled: target.enabled, aside: target.reason,
+  }));
+  return (
+    <MoveTargetDialog
+      open={open} onOpenChange={onOpenChange} title={node.node_type === 'folder' ? '폴더 이동' : '문서 이동'}
+      subtitle={`‘${node.name}’을 옮길 폴더를 고르세요. 같은 카테고리(${categoryLabel(node.category)}) 안에서만 옮길 수 있어요.`}
+      options={options}
+      onSubmit={async (option) => {
+        const result = await performTreeMove(tree.workId, { kind: 'kb', nodeId: node.id, name: node.name }, option.id);
+        if (!result.ok) return result.error ?? MOVE_COPY.failed;
+        onOpenChange(false);
+        toast.success(movedMessage(node.name, option.name));
+        router.refresh();
+        return null;
+      }}
+    />
   );
 }
 

@@ -48,8 +48,8 @@ const fail = (reason: KbMoveReason): KbMoveVerdict => ({ ok: false, reason, mess
 /** Areas the generic move never touches: templates keep their own "카테고리 폴더로 이동", chapters move as chapters. */
 export const isMoveExcludedCategory = (category: string) => category === 'template' || category === '회차';
 
-export function nodeMapOf(nodes: Iterable<MoveNode>): Map<string, MoveNode> {
-  const map = new Map<string, MoveNode>();
+export function nodeMapOf<T extends MoveNode>(nodes: Iterable<T>): Map<string, T> {
+  const map = new Map<string, T>();
   for (const node of nodes) map.set(node.id, node);
   return map;
 }
@@ -177,6 +177,70 @@ export function kbMoveTargets(source: TreeNode, sameScopeRoots: TreeNode[], othe
     .forEach((root) => targets.push(entry(root, 0, 'other')));
   otherScopeRoots.filter(listable).forEach((root) => targets.push(entry(root, 0, 'other')));
   return targets;
+}
+
+/** Drop target ids used by the tree's dnd-kit droppables. */
+export const DROP = {
+  kbFolder: (id: string) => `kb:${id}`,
+  kbTop: (scope: string) => `kb-top:${scope}`,
+  chapterFolder: (id: string) => `ch:${id}`,
+  chapterRoot: 'ch-root',
+} as const;
+
+export type DragItem =
+  | { kind: 'kb'; nodeId: string; name: string }
+  | { kind: 'chapter'; chapterId: string; name: string; folderId: string | null };
+
+export interface DropDecision {
+  ok: boolean;
+  noop: boolean;
+  /** Server action argument when ok (null = 회차 root / area top level). */
+  targetId: string | null;
+  targetName: string;
+  message: string | null;
+}
+
+type NamedNode = MoveNode & { name: string };
+
+/** One decision for drag-over highlighting and the drop itself, built on the same rules the server runs. */
+export function resolveDrop(
+  item: DragItem, dropId: string, ctx: { nodes: ReadonlyMap<string, NamedNode>; chapterRootId: string | null },
+): DropDecision {
+  const reject = (targetName: string, message: string): DropDecision => ({ ok: false, noop: false, targetId: null, targetName, message });
+  const accept = (targetId: string | null, targetName: string, noop: boolean): DropDecision => ({ ok: true, noop, targetId, targetName, message: null });
+  const nameOf = (id: string) => ctx.nodes.get(id)?.name ?? '';
+  const topLabel = (scope: string) => (scope === 'account_template' ? '계정 설정' : '설정');
+
+  let target: { kind: 'chapter'; id: string | null; name: string } | { kind: 'kb'; id: string; name: string }
+    | { kind: 'top'; scope: string; name: string } | null = null;
+  if (dropId === DROP.chapterRoot) target = { kind: 'chapter', id: null, name: '회차' };
+  else if (dropId.startsWith('ch:')) {
+    const id = dropId.slice(3);
+    target = id === ctx.chapterRootId ? { kind: 'chapter', id: null, name: '회차' } : { kind: 'chapter', id, name: nameOf(id) };
+  } else if (dropId.startsWith('kb-top:')) {
+    const scope = dropId.slice(7);
+    target = { kind: 'top', scope, name: topLabel(scope) };
+  } else if (dropId.startsWith('kb:')) {
+    const id = dropId.slice(3);
+    target = { kind: 'kb', id, name: nameOf(id) };
+  }
+  if (!target) return reject('', MOVE_COPY.missing);
+
+  if (item.kind === 'chapter') {
+    if (target.kind !== 'chapter') return reject(target.name, MOVE_COPY.chapter_only);
+    if (target.id !== null && !ctx.nodes.has(target.id)) return reject(target.name, MOVE_COPY.chapter_only);
+    const noop = normalizeChapterFolder(item.folderId, ctx.chapterRootId) === target.id;
+    return accept(target.id, target.name, noop);
+  }
+
+  const source = ctx.nodes.get(item.nodeId);
+  if (!source) return reject(target.name, MOVE_COPY.missing);
+  if (target.kind === 'chapter') return reject(target.name, MOVE_COPY.settings_only);
+  if (target.kind === 'top' && target.scope !== source.scope) return reject(target.name, MOVE_COPY.other_scope);
+  const targetId = target.kind === 'top' ? null : target.id;
+  const verdict = kbMoveVerdict(source, targetId, ctx.nodes);
+  if (!verdict.ok) return reject(target.name, verdict.message);
+  return accept(targetId, target.name, verdict.noop);
 }
 
 /** Chapters store folder_id = null for the 회차 root; older rows may hold the root's own id. */

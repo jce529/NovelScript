@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Folder, FileText, Lock, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { KbTreeActions } from '@/components/studio/kb-node-dialogs';
-import { KbNodeMenu } from '@/components/studio/kb-node-menu';
+import { ChapterRowMenu, KbNodeMenu, RowMenuButton, type RowBindings } from '@/components/studio/kb-node-menu';
+import { useDragDim, useTreeDrag, useTreeDrop } from '@/components/studio/tree-dnd';
+import { DROP, isMoveExcludedCategory, type DragItem } from '@/lib/kb/move-rules';
 import type { TreeNode, ChapterLeaf } from '@/lib/kb/tree';
 import { isTemplateRoot, templateCategoryOf } from '@/lib/kb/template-tree';
 import { folderPresentation, toggleCollapsed } from '@/lib/kb/kb-node-menu-controller';
@@ -20,6 +22,36 @@ export const rowPadding = (depth: number) => 8 + depth * INDENT_PX;
 const ROW_BASE = 'group/row relative flex items-center gap-1 h-8 max-lg:h-10 px-2 text-sm';
 const ACTIVE_ROW = 'bg-[#ede9fe] text-[#3f2fd0] font-medium';
 export const rowClass = (active: boolean) => `${ROW_BASE}${active ? ` ${ACTIVE_ROW}` : ''}`;
+
+/** Drag item for a settings row; template / 회차 / locked nodes never move this way. */
+const kbDragItem = (node: TreeNode): DragItem | null =>
+  node.is_locked || isMoveExcludedCategory(node.category) ? null : { kind: 'kb', nodeId: node.id, name: node.name };
+
+/** Drop id for a folder row: 회차 folders take chapters, other settings folders take settings rows. */
+const folderDropId = (node: TreeNode): string | null => {
+  if (node.node_type !== 'folder' || node.category === 'template') return null;
+  return node.category === '회차' ? DROP.chapterFolder(node.id) : DROP.kbFolder(node.id);
+};
+
+/** Merges a row's drag + drop bindings into one stable ref and the look while dragging. */
+function useRowDnd(item: DragItem | null, dropId: string | null) {
+  const drag = useTreeDrag(item);
+  const drop = useTreeDrop(dropId);
+  const dim = useDragDim(drag.isDragging);
+  const { setNodeRef: setDragRef, setActivatorNodeRef } = drag;
+  const { setNodeRef: setDropRef } = drop;
+  const ref = useCallback((el: HTMLDivElement | null) => {
+    setDragRef(el);
+    setActivatorNodeRef(el);
+    setDropRef(el);
+  }, [setDragRef, setActivatorNodeRef, setDropRef]);
+  const bindings = useMemo<RowBindings>(
+    () => ({ ref, listeners: drag.listeners, attributes: drag.attributes, overlay: drop.hint }),
+    [ref, drag.listeners, drag.attributes, drop.hint],
+  );
+  const look = drag.isDragging ? drag.className : dropId ? drop.className : dim;
+  return { bindings, look, title: drop.title };
+}
 
 export function KbTree({
   nodes, chaptersByFolderId, workId, baseDepth = 0, leaves = [], leavesFolderId = null,
@@ -61,6 +93,7 @@ function TreeRow({
   const parentTemplateCategory = node.category === 'template' && node.node_type === 'file'
     ? (categoryFolders.find((folder) => folder.id === node.parent_id)?.name ?? null)
     : null;
+  const dnd = useRowDnd(kbDragItem(node), folderDropId(node));
 
   return (
     <li>
@@ -69,9 +102,11 @@ function TreeRow({
         node={node}
         categoryFolders={categoryFolders}
         templateCategory={parentTemplateCategory}
+        bindings={dnd.bindings}
         rowProps={{
-          className: rowClass(isActive),
+          className: rowClass(isActive) + dnd.look,
           style: { paddingLeft: rowPadding(depth) },
+          title: dnd.title,
           'data-node-id': node.id,
           'data-node-type': node.node_type,
           'data-locked': node.is_locked,
@@ -126,6 +161,7 @@ function TreeRow({
         )}
         <RowActions active={isActive}>
           <KbTreeActions workId={workId} node={node} isTemplateCategoryFolder={isTemplateCategoryFolder} categoryFolders={categoryFolders} />
+          <RowMenuButton />
         </RowActions>
       </KbNodeMenu>
       {hasContent && (
@@ -149,16 +185,20 @@ function TreeRow({
   );
 }
 
-function ChapterLeafRow({ chapter, depth, workId }: { chapter: ChapterLeaf; depth: number; workId: string; folderId: string | null }) {
+function ChapterLeafRow({ chapter, depth, workId, folderId }: { chapter: ChapterLeaf; depth: number; workId: string; folderId: string | null }) {
   const params = useParams<{ chapterId?: string }>();
   const isActive = params?.chapterId === chapter.id;
+  const dnd = useRowDnd({ kind: 'chapter', chapterId: chapter.id, name: chapter.title, folderId }, null);
 
   return (
     <li>
-      <div
-        className={rowClass(isActive)}
-        style={{ paddingLeft: rowPadding(depth) }}
-        data-chapter-id={chapter.id}
+      <ChapterRowMenu
+        chapterId={chapter.id} name={chapter.title} folderId={folderId} bindings={dnd.bindings}
+        rowProps={{
+          className: rowClass(isActive) + dnd.look,
+          style: { paddingLeft: rowPadding(depth) },
+          'data-chapter-id': chapter.id,
+        }}
       >
         <span aria-hidden className="h-5 w-5 shrink-0" />
         <BookOpen size={16} className="shrink-0" />
@@ -169,7 +209,10 @@ function ChapterLeafRow({ chapter, depth, workId }: { chapter: ChapterLeaf; dept
         >
           {chapter.title}
         </Link>
-      </div>
+        <RowActions active={isActive}>
+          <RowMenuButton />
+        </RowActions>
+      </ChapterRowMenu>
     </li>
   );
 }

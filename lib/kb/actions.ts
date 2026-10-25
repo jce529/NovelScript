@@ -499,7 +499,7 @@ export async function moveKbNode(
   const nodes = nodeMapOf((areaData ?? []) as MoveRow[]);
   let target: MoveRow | null = null;
   if (targetParentId !== null) {
-    target = (nodes.get(targetParentId) as MoveRow | undefined) ?? null;
+    target = nodes.get(targetParentId) ?? null;
     if (!target) {
       const { data } = await supabase.from('kb_nodes').select(MOVE_COLUMNS)
         .eq('id', targetParentId).eq('owner_id', ownerId).is('deleted_at', null).maybeSingle();

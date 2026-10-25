@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, ChevronDown, ChevronRight, UserRound } from 'lucide-react';
 import { folderPresentation } from '@/lib/kb/kb-node-menu-controller';
+import { useTreeDrop } from '@/components/studio/tree-dnd';
 
 /** Tree-style keyboard: ArrowLeft collapses an open group, ArrowRight opens a closed one. */
 export function groupKeyAction(key: string, expanded: boolean): 'collapse' | 'expand' | null {
@@ -29,15 +30,19 @@ export function SidebarGroup({
   const expanded = presentation.visible;
   const setExpanded = (next: boolean) => setCollapsed(next ? new Set() : new Set([id]));
   const contentId = `sidebar-group-${id}`;
+  const { setNodeRef: setDropRef, className: dropLook, hint: dropHint, title: dropTitle } = useTreeDrop(dropId ?? null);
+  const dropClass = dropId ? dropLook : '';
   const Icon = icon ? ICONS[icon] : null;
   const isRoot = kind === 'root';
 
   return (
     <div data-sidebar-group={id} className="flex flex-col">
       <div
-        className="group/row relative flex h-8 items-center gap-1 pr-2 text-sm max-lg:h-10"
+        ref={setDropRef}
+        className={`group/row relative flex h-8 items-center gap-1 pr-2 text-sm max-lg:h-10${dropClass}`}
         style={{ paddingLeft: isRoot ? 8 : 28 }}
         data-drop-id={dropId}
+        title={dropTitle}
       >
         <button
           type="button"
@@ -60,7 +65,8 @@ export function SidebarGroup({
         {href && (
           <Link href={href} className="min-w-0 flex-1 truncate font-medium">{label}</Link>
         )}
-        {actions && <span className="flex shrink-0 items-center">{actions}</span>}
+        {dropHint}
+        {actions && <span className={`flex shrink-0 items-center${dropHint ? ' invisible' : ''}`}>{actions}</span>}
       </div>
       <div id={contentId} hidden={!expanded} role="group" aria-label={label}>
         {children}
