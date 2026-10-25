@@ -1,5 +1,5 @@
-import { josa } from '@/lib/text/josa';
 'use client';
+import { josa } from '@/lib/text/josa';
 
 import { createContext, useContext, useId, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
