@@ -131,7 +131,9 @@ describe('template tree UI', () => {
     expect(layout).toContain('partitionStudioSidebar(workTree, accountTree)');
     expect(layout).toContain('<TemplateSidebarEntry');
     expect(layout).toContain('<KbTemplateSection');
-    const order = ['<KbTemplateSection', 'nodes={sections.myFolders}', 'nodes={sections.sharedFolders}', 'nodes={sections.chapterRoots}'].map((m) => layout.indexOf(m));
+    // 17-07 tree: 작품 폴더 (회차 · 설정 · 템플릿) then 계정 폴더 (설정); 회차 renders the chapter root's children.
+    const order = ['nodes={chapterRoot.children}', 'nodes={sections.myFolders}', '<KbTemplateSection', 'nodes={sections.sharedFolders}'].map((m) => layout.indexOf(m));
+    expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(layout).not.toContain('useState');
     const entry = readFileSync('components/studio/template-sidebar-entry.tsx', 'utf8');

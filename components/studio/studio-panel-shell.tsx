@@ -139,7 +139,7 @@ export function StudioSidebar({ children }: { children: ReactNode }) {
     <>
       <div
         id={LEFT_PANEL_ID}
-        className={`hidden shrink-0 border-r bg-secondary md:block ${view.visible ? 'w-64' : 'w-64 lg:hidden'}`}
+        className={`hidden shrink-0 border-r bg-secondary md:block ${view.visible ? 'w-[296px]' : 'w-[296px] lg:hidden'}`}
       >
         <div className="hidden justify-end px-2 pt-2 lg:flex">
           <PanelToggleButton
