@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/server';
 import { saveDefaultAction } from './actions';
 import ByokKeyCards from './ByokKeyCards';
 import { BYOK_COPY, PROVIDER_LABEL } from '@/lib/ai/providers/byok-copy';
+import Link from 'next/link';
 
 export default async function AiProvidersSettingsPage({
   searchParams,
@@ -115,6 +116,7 @@ export default async function AiProvidersSettingsPage({
           </div>
           <ByokKeyCards cards={cards} />
         </section>
+        <Link href="/studio/settings/mcp-connections" className="self-start text-sm text-muted-foreground underline underline-offset-4 hover:underline">AI 커넥터 관리</Link>
       </main>
     </>
   );
