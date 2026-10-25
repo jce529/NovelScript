@@ -242,7 +242,7 @@ export function CreateNodeDialog({
           <div className="flex flex-col gap-1">
             <Label htmlFor="new-node-template">템플릿 선택</Label>
             <Select value={selectedTemplateId} onValueChange={(value) => setSelectedTemplateId(value ?? CANONICAL)}>
-              <SelectTrigger id="new-node-template">
+              <SelectTrigger id="new-node-template" className="w-full">
                 <SelectValue>
                   {(value: string) => {
                     const opt = templateOptions.find((o) => (o.id ?? CANONICAL) === value);

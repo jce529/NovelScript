@@ -9,6 +9,7 @@ Phase 16(스튜디오 작업 흐름 확장 · 파일 업로드) 코드에서 원
 | [BUG-03](BUG-03-ai-panel-overflow.md) | AI 패널 카드가 고정 높이인데 내용이 넘쳐 입력창이 카드 밖으로 튀어나옴 | low | 2026-10-25 (Phase 17 UAT) | 코드 수정·자동 검증 완료 (fixed-pending-device-check) |
 | [BUG-04](BUG-04-mobile-shell-bottom-overlap.md) | 모바일·태블릿 하단 탭 바가 화면 밖으로 밀리거나 긴 화면 내용과 겹침 | low | 2026-10-25 (Phase 17 UAT) | 코드 수정·자동 검증 완료 (fixed-pending-device-check) |
 | [BUG-05](BUG-05-narrow-width-controls.md) | 375px에서 AI 설정 모델 select 글자 잘림, 업로드 다이얼로그 모드 버튼 2+1 줄바꿈 | low | 2026-10-25 (Phase 17 UI 점검) | 코드 수정·자동 검증 완료 (fixed-pending-device-check) |
+| [BUG-06](BUG-06-select-item-clipped.md) | 새 문서 만들기 템플릿 선택 항목이 팝업에서 잘림(공용 SelectItem) | low | 2026-10-25 (사용자 보고) | 코드 수정·자동 검증 완료 (fixed-pending-device-check) |
 
 ## 템플릿
 
