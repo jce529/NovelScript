@@ -205,3 +205,7 @@ Accent reserved for:
 - [x] Dimension 6 Registry Safety: PASS
 
 **Approval:** checker VERIFIED 2026-11-01 (FLAG 2건: Dimension 1 CTA 문구 "열기 →", Dimension 4 글자 크기 간격. 시안 승인 문구를 유지하기로 하고 비차단 권고로 둔다)
+
+## 최종 목업
+
+- Artifact `https://claude.ai/artifact/FinbCDqDba8yQ3zszLRnVS` (비공개): 확정 화면 5개(가이드 진행 중·가이드 완료 후·빈 상태 데스크톱, 모바일 가이드 완료 후·빈 상태). 저장소 사본: `.planning/phases/19-studio-workid-ui/mockups-final/`. 시안 비교용 캔버스는 `mockups/`에 남겨 둔다.

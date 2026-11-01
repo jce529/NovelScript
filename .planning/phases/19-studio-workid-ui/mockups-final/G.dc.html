@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작품 홈 G 빈 상태</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+a:hover{color:#4338ca}
+</style>
+</helmet>
+<div style="width:1100px;height:700px;display:flex;background:#f7f7f9;color:#18181b">
+  <div style="width:240px;flex-shrink:0;box-sizing:border-box;background:#fff;border-right:1px solid #e4e4e7;padding:16px 0;display:flex;flex-direction:column;gap:2px">
+    <a href="#" style="padding:0 16px 10px;font-size:12px;color:#52525b">← 작품 목록</a>
+    <div style="padding:6px 16px;font-size:13px;font-weight:700;background:#eef2ff;color:#3730a3">작품 폴더 · 새 작품</div>
+    <div style="padding:6px 16px 6px 28px;font-size:13px;font-weight:600">회차</div>
+    <div style="padding:2px 16px 6px 44px;font-size:12px;color:#71717a">아직 회차가 없어요</div>
+    <div style="padding:6px 16px 6px 28px;font-size:13px;font-weight:600">설정</div>
+    <div style="padding:2px 16px 6px 44px;font-size:12px;color:#71717a">아직 설정 문서가 없어요</div>
+    <div style="padding:6px 16px 6px 28px;font-size:13px;font-weight:600">템플릿</div>
+    <div style="padding:10px 16px 6px;font-size:13px;font-weight:700;color:#52525b">계정 폴더</div>
+    <div style="padding:6px 16px 6px 28px;font-size:13px;font-weight:600">설정</div>
+  </div>
+  <div style="flex:1;box-sizing:border-box;padding:24px 28px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <h1 style="margin:0;font-size:22px;font-weight:700">새 작품</h1>
+      <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5">시놉시스가 아직 없어요. <a href="#" style="color:#4338ca;text-decoration:underline">작품 설정에서 추가</a></p>
+    </div>
+    <div style="background:#fff;border:1px solid #c7d2fe;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0;font-size:16px;font-weight:700">연재 시작 가이드</h2><span style="font-size:12px;color:#52525b">1 / 5 완료</span></div>
+      <div style="height:6px;border-radius:999px;background:#e4e4e7;overflow:hidden"><div style="width:20%;height:100%;background:#4f46e5"></div></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f4f4f5"><span style="width:20px;height:20px;border-radius:999px;background:#4f46e5;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">✓</span><span style="font-size:14px;color:#52525b;text-decoration:line-through">작품 만들기</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:#eef2ff"><span style="width:20px;height:20px;border-radius:999px;border:2px solid #4f46e5;box-sizing:border-box"></span><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:700">세계관 설정 문서 추가</span><span style="font-size:12px;color:#52525b">인물·장소를 적어 두면 AI가 설정에 맞게 도와줘요</span></div><a href="#" style="background:#4f46e5;color:#fff;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600">설정 추가</a></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #f4f4f5"><span style="width:20px;height:20px;border-radius:999px;border:2px solid #a1a1aa;box-sizing:border-box"></span><span style="font-size:14px;color:#52525b">첫 회차 쓰기</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #f4f4f5"><span style="width:20px;height:20px;border-radius:999px;border:2px solid #a1a1aa;box-sizing:border-box"></span><span style="font-size:14px;color:#52525b">첫 회차 공개하기</span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #f4f4f5"><span style="width:20px;height:20px;border-radius:999px;border:2px solid #a1a1aa;box-sizing:border-box"></span><span style="font-size:14px;color:#52525b">세계관 공개 심사 요청 <span style="font-size:12px;color:#71717a">(선택)</span></span></div>
+    </div>
+    <p style="margin:0;font-size:12px;color:#71717a">회차가 없으면 현황 4칸은 숨기고, 가이드를 마칠 때까지는 작업 화면 카드도 가이드 아래에 접어 둡니다.</p>
+    <p style="margin:auto 0 0;font-size:11px;color:#71717a">시안용 가짜 데이터입니다.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
