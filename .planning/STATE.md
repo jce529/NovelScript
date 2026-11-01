@@ -27,6 +27,8 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 Phase: 재개 phase 2·3·4·5·7·10·11·16·18 — 보완 plan 코드 완료
 Plan: 자동 실행 가능한 plan 전부 완료. 남은 plan 10개(전부 수동 gate): 03-19, 03-20, 04-12, 05-07, 07-15, 10-10, 11-08(Task 2 UAT), 11-12, 16-03, 18-12
 Status: Code complete — 실DB·브라우저 검증 대기 (단위 테스트 161개 파일 2,516개 통과, tsc·eslint 오류 0)
+**2026-11-01 병합:** Phase 12(12-01~05 완료, 12-06 Task 2 수동 대기)와 Phase 17(17-01~07 코드 완료, 수동 UAT 대기)을 master에 병합·push했다. 두 phase 모두 사람 검증 전이라 완료로 올리지 않았다. 남은 수동 항목은 `12-06-SUMMARY.md`·`17-UAT.md`의 '수동 확인 필요' 절. Phase 19(작가용 작품 홈 디자인)는 ROADMAP에만 등록, discuss 전.
+
 Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
 
 **Phase 2:** 2026-10-19 완료(검증 포함). 일회용 DB(0001~0023)와 브라우저 UAT 통과, BUG-02·03 수정. 실제 터치 기기·AI 응답 진행 중 접기는 수용(미검증) 항목. 근거는 `02-13-SUMMARY.md`·`02-VERIFICATION.md`.

@@ -607,12 +607,12 @@ Plans:
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 10/11 | Code complete — 10-10(체크포인트, 수동) 대기. 재개 보완 10-07~09 완료(PROV-05 서버 키 가드), 실DB·UAT 미검증 | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 미적용) | - |
-| 12. MCP OAuth 기반 · 연결/해제 | 0/TBD | Not started | - |
+| 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2(실제 Claude 커넥터 등록·Site URL 변경 등, 수동) 대기. 0037·0038 공유 DB 미적용. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 0/TBD | Not started | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
-| 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 0/TBD | Not started | - |
+| 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 7/7 | Code complete — 수동 UAT(실키·실기기·E1·E2 등 `17-UAT.md` M1~M13) 대기. 코드 완료이며 검증 완료 아님 | - |
 | 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 미적용, 단위 테스트만 통과) | - |
 | 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 0/TBD | Not started | - |
 
