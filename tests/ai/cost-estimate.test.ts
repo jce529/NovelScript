@@ -27,7 +27,7 @@ describe('lib/ai/cost.ts — wallet-token <-> Gemini-token conversion (Open Ques
 
   it('caps output at PER_REQUEST_MAX_OUTPUT_TOKENS for a healthy balance (request ceiling binds, not the balance)', () => {
     const cap = computeMaxOutputTokens({ walletBalance: 100, pricing: geminiPricing });
-    expect(cap).toBe(2048);
+    expect(cap).toBe(4096);
     expect(cap).toBe(PER_REQUEST_MAX_OUTPUT_TOKENS);
   });
 

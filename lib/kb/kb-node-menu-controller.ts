@@ -4,14 +4,18 @@
 export const LONG_PRESS_MS = 500;
 export const MOVE_TOLERANCE_PX = 8;
 
-export type MenuActionId = 'copy' | 'create-from-template' | 'move' | 'rename' | 'delete';
+export type MenuActionId = 'copy' | 'create-from-template' | 'move' | 'tree-move' | 'rename' | 'delete';
 export interface MenuAction { id: MenuActionId; enabled: boolean }
 
 interface MenuNode { node_type: string; category: string; is_locked: boolean }
 
-/** Actions a row offers. Locked defaults get 사본 만들기 only; chapters/folders are not menu rows. */
-export function menuActionsFor(node: MenuNode, opts: { hasCategoryFolders?: boolean; templateCategory?: string | null } = {}): MenuAction[] {
-  if (node.node_type !== 'file') return [];
+/** Actions a row offers. Locked defaults get 사본 만들기 only. With `treeMove` (17-07 sidebar tree) movable
+ * settings documents and folders get 이동… first; template / 회차 / locked nodes never do. */
+export function menuActionsFor(
+  node: MenuNode, opts: { hasCategoryFolders?: boolean; templateCategory?: string | null; treeMove?: boolean } = {},
+): MenuAction[] {
+  const treeMovable = Boolean(opts.treeMove) && !node.is_locked && node.category !== 'template' && node.category !== '회차';
+  if (node.node_type !== 'file') return treeMovable ? [{ id: 'tree-move', enabled: true }] : [];
   if (node.category === 'template') {
     if (node.is_locked) return [{ id: 'copy', enabled: true }];
     const actions: MenuAction[] = [{ id: 'copy', enabled: true }];
@@ -21,7 +25,7 @@ export function menuActionsFor(node: MenuNode, opts: { hasCategoryFolders?: bool
     return actions;
   }
   if (node.is_locked) return [];
-  return [{ id: 'rename', enabled: true }, { id: 'delete', enabled: true }];
+  return [...(treeMovable ? [{ id: 'tree-move' as const, enabled: true }] : []), { id: 'rename', enabled: true }, { id: 'delete', enabled: true }];
 }
 
 export interface Point { x: number; y: number }

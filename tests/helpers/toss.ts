@@ -65,7 +65,7 @@ type FetchReply = { status?: number; body: Record<string, unknown> } | Error;
 export function installTossFetch(...replies: FetchReply[]) {
   process.env.TOSS_SECRET_KEY = 'test_sk_unit_only';
   const queue = [...replies];
-  const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => {
+  const fetchMock = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(async () => {
     const reply = queue.length > 1 ? queue.shift()! : queue[0];
     if (!reply) throw new Error('no fake Toss reply configured');
     if (reply instanceof Error) throw reply;
@@ -133,7 +133,7 @@ function createFakeWebhookDb() {
 
   function ordersQuery() {
     return {
-      select(_columns: string) {
+      select() {
         const filters: Filter[] = [];
         const builder = {
           eq(column: string, value: unknown) {

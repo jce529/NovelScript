@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import { adminClient, createTestUser, deleteTestUserStrict, pgPool } from '../helpers/db';
 import { deleteFixtures, planCleanup } from '../../scripts/lib/report-fixture-cleanup.mjs';
+import { createRemovableWork } from '../helpers/work-fixture';
 import { submitReport } from '../../lib/reader/reports';
 
 describe('submitReport (READ-05/D-16)', () => {
@@ -24,16 +25,9 @@ describe('submitReport (READ-05/D-16)', () => {
   async function createWork() {
     const owner = await createTestUser();
     users.push(owner.id);
-    const { data: workId, error } = await admin.rpc('create_work', {
-      p_owner_id: owner.id,
-      p_title: '테스트 작품',
-      p_synopsis: null,
-      p_cover_image_url: null,
-      p_genre: null,
-    });
-    if (error) throw error;
-    works.push(workId as string);
-    return workId as string;
+    const workId = await createRemovableWork(admin, owner.id, '테스트 작품');
+    works.push(workId);
+    return workId;
   }
 
   it('succeeds with a non-기타 category and no detail', async () => {

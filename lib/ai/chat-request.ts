@@ -95,6 +95,45 @@ export function createReplacementAttempt<P extends { providerId: ProviderId; mod
   return Object.freeze({ idempotencyKey: attempt.idempotencyKey, payload });
 }
 
+/**
+ * Failure kinds where the provider call is known not to have been settled, so a retry may carry a
+ * different model selection under a NEW idempotency key without double-debit risk (BUGFIX-04).
+ * settlement / unknown / generation_in_progress are ambiguous: the first attempt may already have
+ * been charged or still be running, so those retries must replay the frozen snapshot and key.
+ */
+const NEW_SELECTION_RETRY_KINDS: ReadonlySet<ChatFailureKind> = new Set<ChatFailureKind>([
+  'rate_limited',
+  'credit_exhausted',
+  'unavailable',
+  'config',
+]);
+
+export interface RetrySelection { providerId: ProviderId; model: string; keySource: KeySource }
+
+export function isSameSelection(a: RetrySelection, b: RetrySelection): boolean {
+  return a.providerId === b.providerId && a.model === b.model && a.keySource === b.keySource;
+}
+
+/** True only when the writer changed the selection AND the failure is one that never settled. */
+export function canRetryWithNewSelection(kind: ChatFailureKind | undefined, selectionChanged: boolean): boolean {
+  return selectionChanged && kind !== undefined && NEW_SELECTION_RETRY_KINDS.has(kind);
+}
+
+/**
+ * New attempt for a safe selection change: same message/context snapshot, current selection,
+ * NEW idempotency key. Any earlier explicit service-key replacement consent is dropped because it
+ * applied to the previous selection. (createReplacementAttempt keeps the key — consent flow only.)
+ */
+export function createReselectedAttempt<P extends RetrySelection>(
+  attempt: SendAttempt<P>, selection: RetrySelection, newKey?: () => string,
+): SendAttempt<P> {
+  const payload = structuredClone(attempt.payload) as P & { replacementConsent?: unknown; replacementSelection?: unknown };
+  delete payload.replacementConsent;
+  delete payload.replacementSelection;
+  Object.assign(payload, { providerId: selection.providerId, model: selection.model, keySource: selection.keySource });
+  return createSendAttempt<P>(payload, newKey);
+}
+
 export function formatTokens(n: number): string {
   return n.toLocaleString('ko-KR');
 }

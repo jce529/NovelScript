@@ -18,6 +18,22 @@ describe('menuActionsFor', () => {
   });
 });
 
+describe('menuActionsFor with the 17-07 tree move', () => {
+  it('adds 이동… first for movable settings documents and folders', () => {
+    expect(menuActionsFor({ node_type: 'file', category: '인물', is_locked: false }, { treeMove: true }).map((a) => a.id))
+      .toEqual(['tree-move', 'rename', 'delete']);
+    expect(menuActionsFor({ node_type: 'folder', category: 'custom', is_locked: false }, { treeMove: true }).map((a) => a.id))
+      .toEqual(['tree-move']);
+  });
+
+  it('never offers 이동… on locked, template or 회차 nodes', () => {
+    expect(menuActionsFor({ node_type: 'folder', category: '인물', is_locked: true }, { treeMove: true })).toEqual([]);
+    expect(menuActionsFor({ node_type: 'folder', category: '회차', is_locked: false }, { treeMove: true })).toEqual([]);
+    const template = menuActionsFor({ node_type: 'file', category: 'template', is_locked: false }, { treeMove: true, hasCategoryFolders: true });
+    expect(template.map((a) => a.id)).not.toContain('tree-move');
+  });
+});
+
 type Controller = ReturnType<typeof createNodeMenuController>;
 
 describe('createNodeMenuController', () => {

@@ -53,7 +53,7 @@ vi.mock('@/components/ui/dropdown-menu', () => Object.fromEntries([
 ].map((name) => [name, ({ children }: { children?: ReactNode }) => createElement('div', null, children)])));
 vi.mock('@/app/studio/[workId]/chapters/[chapterId]/actions', () => ({ chatAction: vi.fn() }));
 
-import { AiPanel } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel';
+import { AiPanel, RETRY_KEEPS_FROZEN_MESSAGE } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel';
 import { ChatMessageBubble } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/ChatMessageBubble';
 import { AiPanelNotice } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanelNotice';
 import { AiInstructionControls } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/AiInstructionControls';
@@ -168,8 +168,8 @@ describe('AiPanel consumes the Phase 10 picker/availability contract (04-10 Task
     expect(panel.picker().props.value).toBe('openai:gpt-4o-mini:byok');
   });
 
-  it('retry checks the frozen attempt selection, not the current UI selection', async () => {
-    chatMock.mockResolvedValueOnce({ ok: false, status: 'failed', failureKind: 'unavailable' });
+  it('retry after an ambiguous failure checks the frozen attempt selection, not the current UI selection', async () => {
+    chatMock.mockResolvedValueOnce({ ok: false, status: 'failed', failureKind: 'settlement' });
     const panel = mountPanel({});
     panel.type('이어줘');
     panel.pressEnter();
@@ -191,6 +191,82 @@ describe('AiPanel consumes the Phase 10 picker/availability contract (04-10 Task
     await flush();
     expect(chatMock).toHaveBeenCalledTimes(2);
     expect(chatMock.mock.calls[1][0]).toMatchObject({ providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service', idempotencyKey: key });
+  });
+
+  it.each(['rate_limited', 'credit_exhausted', 'unavailable', 'config'] as const)(
+    '%s retry after a model change sends the CURRENT selection with a NEW idempotency key', async (failureKind) => {
+      chatMock.mockResolvedValueOnce({ ok: false, status: 'failed', failureKind });
+      const panel = mountPanel({});
+      panel.type('이어줘');
+      panel.pressEnter();
+      await flush();
+      const key = chatMock.mock.calls[0][0].idempotencyKey;
+      (panel.picker().props.onSelection as (s: unknown) => void)({ providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' });
+      chatMock.mockResolvedValueOnce(completed());
+      (panel.notice().props.onRetry as () => void)();
+      await flush();
+      expect(chatMock).toHaveBeenCalledTimes(2);
+      const second = chatMock.mock.calls[1][0];
+      expect(second).toMatchObject({ providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok', chatHistory: chatMock.mock.calls[0][0].chatHistory });
+      expect(second.idempotencyKey).not.toBe(key);
+    });
+
+  it.each(['settlement', 'generation_in_progress', 'unknown'] as const)(
+    '%s retry after a model change replays the frozen selection with the SAME key and shows guidance', async (failureKind) => {
+      chatMock.mockResolvedValueOnce({ ok: false, status: 'failed', failureKind });
+      const panel = mountPanel({});
+      panel.type('이어줘');
+      panel.pressEnter();
+      await flush();
+      const key = chatMock.mock.calls[0][0].idempotencyKey;
+      (panel.picker().props.onSelection as (s: unknown) => void)({ providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' });
+      chatMock.mockResolvedValueOnce(completed());
+      (panel.notice().props.onRetry as () => void)();
+      await flush();
+      expect(chatMock.mock.calls[1][0]).toMatchObject({ providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service', idempotencyKey: key });
+      expect(toast).toHaveBeenCalledWith(RETRY_KEEPS_FROZEN_MESSAGE);
+    });
+
+  it('a lost response (action threw) is ambiguous and keeps the frozen key after a model change', async () => {
+    chatMock.mockRejectedValueOnce(new Error('network'));
+    const panel = mountPanel({});
+    panel.type('이어줘');
+    panel.pressEnter();
+    await flush();
+    const key = chatMock.mock.calls[0][0].idempotencyKey;
+    (panel.picker().props.onSelection as (s: unknown) => void)({ providerId: 'openai', model: 'gpt-4o-mini', keySource: 'byok' });
+    chatMock.mockResolvedValueOnce(completed());
+    (panel.notice().props.onRetry as () => void)();
+    await flush();
+    expect(chatMock.mock.calls[1][0]).toMatchObject({ providerId: 'gemini', keySource: 'service', idempotencyKey: key });
+  });
+
+  it('unchanged selection retry keeps the same key even for a safe failure kind', async () => {
+    chatMock.mockResolvedValueOnce({ ok: false, status: 'failed', failureKind: 'rate_limited' });
+    const panel = mountPanel({});
+    panel.type('이어줘');
+    panel.pressEnter();
+    await flush();
+    const key = chatMock.mock.calls[0][0].idempotencyKey;
+    chatMock.mockResolvedValueOnce(completed());
+    (panel.notice().props.onRetry as () => void)();
+    await flush();
+    expect(chatMock.mock.calls[1][0].idempotencyKey).toBe(key);
+    expect(toast).not.toHaveBeenCalledWith(RETRY_KEEPS_FROZEN_MESSAGE);
+  });
+
+  it('safe retry with a changed selection still honors the availability guard for the NEW selection', async () => {
+    chatMock.mockResolvedValueOnce({ ok: false, status: 'failed', failureKind: 'unavailable' });
+    const panel = mountPanel({});
+    panel.type('이어줘');
+    panel.pressEnter();
+    await flush();
+    avail.availability = { gemini: true, openai: false, anthropic: true };
+    (panel.picker().props.onSelection as (s: unknown) => void)({ providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' });
+    (panel.notice().props.onRetry as () => void)();
+    await flush();
+    expect(chatMock).toHaveBeenCalledTimes(1);
+    expect(panel.blocked()).toBeDefined();
   });
 
   it('a frozen BYOK attempt still retries while the current UI service selection is unavailable', async () => {

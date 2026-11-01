@@ -13,13 +13,17 @@ export async function planCleanup(sql, { reportIds = /** @type {string[]} */ ([]
     ? await sql`select id, work_id, reporter_id from reports where id = any(${reportIds}::uuid[]) or work_id = any(${workIds}::uuid[])`
     : [];
   const kbNodes = workIds.length ? await sql`select id from kb_nodes where work_id = any(${workIds}::uuid[])` : [];
+  // Locked nodes (create_work's structure folders) cannot be hard-deleted: guard_kb_template_policy (0023) rejects it.
+  const lockedNodes = workIds.length ? await sql`select id, work_id, name from kb_nodes where work_id = any(${workIds}::uuid[]) and is_locked` : [];
+  // Confirmed non-trunk branches freeze their setting KB (0034 world_branch_confirmed_immutable).
+  const confirmedBranches = workIds.length ? await sql`select id, work_id from world_branches where work_id = any(${workIds}::uuid[]) and kind <> 'trunk' and status = 'confirmed' and deleted_at is null` : [];
   const works = workIds.length ? await sql`select id, owner_id, title from works where id = any(${workIds}::uuid[])` : [];
   const users = userIds.length ? await sql`select id, email from auth.users where id = any(${userIds}::uuid[])` : [];
   const audit = workIds.length || userIds.length || reportIds.length
     ? await sql`select id from admin_actions where target_work_id = any(${workIds}::uuid[]) or target_user_id = any(${userIds}::uuid[]) or report_ids && ${reportIds}::uuid[]`
     : [];
   const sanctions = userIds.length ? await sql`select id from user_sanctions where user_id = any(${userIds}::uuid[])` : [];
-  return { reportIds, workIds, userIds, reports, kbNodes, works, users, audit, sanctions };
+  return { reportIds, workIds, userIds, reports, kbNodes, lockedNodes, confirmedBranches, works, users, audit, sanctions };
 }
 
 /** Returns the reasons deletion must be refused (empty = safe). */
@@ -28,6 +32,9 @@ export function deletionBlockers(plan) {
   if (!plan.reportIds.length && !plan.workIds.length && !plan.userIds.length) blockers.push('no_ids_given');
   if (plan.audit.length) blockers.push('admin_audit_linked');
   if (plan.sanctions.length) blockers.push('sanction_history_linked');
+  // Never worked around (no trigger disable / GUC bypass): the 0023/0034 invariants stay intact, so such works are refused up front.
+  if (plan.lockedNodes?.length) blockers.push('locked_kb_nodes');
+  if (plan.confirmedBranches?.length) blockers.push('confirmed_world_branch');
   if (plan.users.some((u) => !String(u.email ?? '').endsWith(TEST_EMAIL_SUFFIX))) blockers.push('non_test_account');
   const foundReportIds = new Set(plan.reports.map((r) => r.id));
   if (plan.reportIds.some((id) => !foundReportIds.has(id))) blockers.push('unknown_report_id');

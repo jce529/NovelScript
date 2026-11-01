@@ -132,7 +132,7 @@ export function EraBoard({ initialState, onSave }: EraBoardProps) {
 
   const eras = useMemo(() => [...draft.eras].sort((a, b) => a.position - b.position), [draft.eras]);
   const lists = useMemo(() => {
-    const map = new Map<string, typeof draft.placements>(eras.map((e) => [e.id, []]));
+    const map = new Map<string, TimelineDraft['placements']>(eras.map((e) => [e.id, []]));
     const sorted = [...draft.placements].sort((a, b) => a.orderIndex - b.orderIndex);
     for (const p of sorted) map.get(p.eraId)?.push(p);
     return map;

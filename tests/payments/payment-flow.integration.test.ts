@@ -72,7 +72,7 @@ function orderQuery() {
     update(values: Row) {
       const builder = {
         eq: (c: string, v: unknown) => (eqs.push([c, v]), builder),
-        is: (c: string, _v: null) => (isNull.push(c), builder),
+        is: (c: string) => (isNull.push(c), builder),
         then: (resolve: (v: { error: null }) => unknown) => {
           for (const row of world.orders.values()) if (match(row)) Object.assign(row, values);
           return resolve({ error: null });

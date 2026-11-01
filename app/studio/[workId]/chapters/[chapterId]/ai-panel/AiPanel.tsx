@@ -27,9 +27,10 @@ import { OPENAI_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/openai/cost';
 import { ANTHROPIC_PRICING_USD_PER_MILLION } from '@/lib/ai/providers/anthropic/cost';
 import {
   createSendAttempt, createSendLock, resolveChatOutcome, thrownChatNotice, createReplacementAttempt,
+  canRetryWithNewSelection, createReselectedAttempt, isSameSelection,
   type ChatNotice, type SendAttempt,
 } from '@/lib/ai/chat-request';
-import { cappedPresentation, type CappedReason, type ChatResult } from '@/lib/ai/chat-result';
+import { cappedPresentation, type CappedReason, type ChatFailureKind, type ChatResult } from '@/lib/ai/chat-result';
 import type { KbCategory } from '@/lib/kb/categories';
 import { chatAction } from '../actions';
 import { loadAiWalletStatusAction } from '@/app/studio/ai-wallet-actions';
@@ -123,6 +124,8 @@ export function attemptSelection(p: Pick<SendPayload, 'providerId' | 'model' | '
   return p.replacementSelection ?? { providerId: p.providerId, model: p.model, keySource: p.keySource };
 }
 
+export const RETRY_KEEPS_FROZEN_MESSAGE = '이전 요청의 처리 여부가 확실하지 않아 처음 고른 모델로 다시 보내요. 바꾼 모델은 새 메시지부터 적용돼요.';
+
 export const SELECTION_UNAVAILABLE_MESSAGE = '선택한 모델의 서비스 키를 지금 쓸 수 없어요. 다른 모델을 고르거나 키 관리에서 확인해 주세요.';
 
 /** Why a selection cannot be sent right now (null = usable). BYOK never depends on service availability. */
@@ -163,6 +166,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const router = useRouter();
   const lockRef = useRef(createSendLock());
   const failedAttemptRef = useRef<SendAttempt<SendPayload> | null>(null);
+  // Why the stored attempt failed — decides whether a retry may carry a changed model selection.
+  const failedKindRef = useRef<ChatFailureKind>('unknown');
   const noticeSeqRef = useRef(0);
   const [notice, setNotice] = useState<{ id: string; notice: ChatNotice } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -189,7 +194,6 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       walletControllerRef.current?.dispose();
       walletControllerRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workId]);
 
   const currentSelectionBlockReason = selectionBlockReason(availabilityStatus, canUseSelection({ providerId, model, keySource }));
@@ -282,6 +286,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
       // Response lost / settlement error: the debit may or may not have happened — re-read, never resend.
       refreshWallet('settled');
       failedAttemptRef.current = attempt;
+      failedKindRef.current = 'unknown';
       if (p.keySource === 'byok') {
         const outcome = resolveChatOutcome({ ok: false, status: 'failed', failureKind: 'unavailable' }, p.providerId);
         if (outcome.kind === 'notice') showNotice(outcome.notice);
@@ -318,6 +323,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     if (n.removeUserTurn) setMessages([...p.history]);
     if (n.restoreInput) setChatInput(p.userMessage);
     failedAttemptRef.current = n.retryable || n.byokAction?.kind === 'replacement' ? attempt : null;
+    failedKindRef.current = result.failureKind ?? 'unknown';
     if (n.byokAction?.kind === 'invalid_key') router.refresh();
     if (n.refreshBalance) router.refresh();
     if (shouldRefreshWalletAfterChat(outcome)) refreshWallet('settled');
@@ -335,10 +341,19 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
     void runAttempt(createSendAttempt(buildPayload(trimmed, history)));
   }
 
-  /** 다시 시도: same key, same snapshot (UI-SPEC §1 row 2). */
+  /** 다시 시도: frozen snapshot + same key (UI-SPEC §1 row 2). Only when the selection changed AND the
+   * failure never settled (rate_limited / credit_exhausted / unavailable / config) does the retry carry
+   * the CURRENT selection under a NEW key; ambiguous kinds keep the old key (double-debit risk). */
   function handleRetry() {
     const attempt = failedAttemptRef.current;
     if (!attempt || isGenerating || lockRef.current.locked || consentPending) return;
+    const current: Selection = { providerId, model, keySource };
+    const changed = !isSameSelection(current, attemptSelection(attempt.payload));
+    if (canRetryWithNewSelection(failedKindRef.current, changed)) {
+      void runAttempt(createReselectedAttempt(attempt, current));
+      return;
+    }
+    if (changed) toast(RETRY_KEEPS_FROZEN_MESSAGE);
     void runAttempt(attempt);
   }
 
@@ -393,7 +408,8 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
   const modalMessage = messages.find((message) => message.id === modalMessageId);
 
   return (
-    <aside className="flex h-[85vh] w-full flex-col gap-4 rounded-lg border border-border bg-background p-4 lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-96 lg:shrink-0 lg:gap-6 lg:p-6">
+    <aside className="flex h-[85vh] w-full flex-col overflow-hidden rounded-lg border border-border bg-background lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-96 lg:shrink-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 lg:gap-6 lg:p-6">
       <h2 className="text-xl font-semibold">AI 어시스턴트</h2>
 
       {defaultFallback && !fallbackResolved && (
@@ -459,9 +475,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
             <SelectTrigger className="w-full">
               <SelectValue>
                 {() => (
-                  <span className="flex flex-col items-start text-left">
-                    <span>{STYLE_PRESETS[styleId].name}</span>
-                    <span className="text-xs text-muted-foreground">{STYLE_PRESETS[styleId].description}</span>
+                  <span className="flex min-w-0 flex-1 items-baseline gap-2 text-left">
+                    <span className="shrink-0">{STYLE_PRESETS[styleId].name}</span>
+                    <span className="truncate text-xs text-muted-foreground">{STYLE_PRESETS[styleId].description}</span>
                   </span>
                 )}
               </SelectValue>
@@ -519,7 +535,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         )}
       </div>
 
-      <div ref={chatLogRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <div ref={chatLogRef} className="flex min-h-48 flex-1 flex-col gap-3 overflow-y-auto">
         {messages.length === 0 ? (
           <p className="text-xs text-muted-foreground">AI에게 말을 걸어보세요 — 본문을 이어 써달라고 하거나, 인물/장소 같은 설정을 같이 정해달라고 요청할 수 있어요.</p>
         ) : (
@@ -587,6 +603,9 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         />
       )}
 
+      </div>
+
+      <div data-ai-panel-footer="" className="flex flex-col gap-4 border-t border-border p-4 lg:p-6 lg:pt-4">
       <div
         role={notice?.notice.variant === 'error' ? 'alert' : 'status'}
         aria-live={notice?.notice.variant === 'error' ? 'assertive' : 'polite'}
@@ -631,6 +650,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
           {availabilityStatus !== 'loading' && <>{' '}<button type="button" className="underline" onClick={reloadAvailability}>다시 확인</button></>}
         </p>
       )}
+      </div>
     </aside>
   );
 }

@@ -45,7 +45,7 @@ describe('paid generation lifecycle', () => {
     const route = { kind: 'byok' as const, selection: { providerId: 'openai' as const, model: 'gpt-4o-mini', keySource: 'byok' as const }, keyId: 'key-current', client: createMockProvider() };
     const pre = await preflightPaidGeneration(session(), { ownerId: OWNER, idempotencyKey: KEY, providerId: 'openai', model: 'gpt-4o-mini' }, route);
     expect(BYOK_MAX_OUTPUT_TOKENS).toBe(8192);
-    expect(PER_REQUEST_MAX_OUTPUT_TOKENS).toBe(2048);
+    expect(PER_REQUEST_MAX_OUTPUT_TOKENS).toBe(4096);
     expect(pre.ok).toBe(true);
     if (!pre.ok || pre.ctx.route.keySource !== 'byok') throw new Error('BYOK preflight failed');
     expect(pre.ctx.maxOutputTokens).toBe(8192);
@@ -199,6 +199,22 @@ describe('paid generation lifecycle', () => {
     // 같은 키로 다시 preflight해도 already_processed가 아니다
     const again = await preflightPaidGeneration(session(), identity);
     expect(again.ok).toBe(true);
+  });
+
+  it('logs generation observation fields without body or secrets (BUGFIX-01 A-2)', async () => {
+    setup({ balances: { [OWNER]: 100000 } });
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const pre = await preflightPaidGeneration(session(), identity);
+    if (!pre.ok) throw new Error('preflight failed');
+    const secretBody = 'SECRET-BODY-TEXT';
+    const capped = { ...okResult(secretBody, 10, 80, 1964), finishReason: 'max_tokens' as const };
+    await settlePaidGeneration(createMockProvider() as unknown as ProviderClient, pre.ctx, { ...identity, ledgerReason: 'test' }, async () => capped);
+    const call = info.mock.calls.find(([tag]) => tag === '[ai] generation observed');
+    expect(call?.[1]).toEqual({
+      provider: 'gemini', keySource: 'service', finishReason: 'max_tokens', wasCapped: true,
+      maxOutputTokens: PER_REQUEST_MAX_OUTPUT_TOKENS, outputTokens: 80, thoughtsTokens: 1964, idempotencyKey: KEY,
+    });
+    expect(JSON.stringify(info.mock.calls)).not.toContain(secretBody);
   });
 
   it('settles the original result once with the supplied ledger reason', async () => {

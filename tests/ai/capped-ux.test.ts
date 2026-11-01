@@ -157,7 +157,7 @@ describe('chat() capped result -> AiPanel bubble + toast (11-13 Task 1)', () => 
   it.each([
     ['service', 1, gen('max_tokens', 5, 50), 'balance'],
     ['service', 100000, gen('max_tokens', 300, 300), 'thinking'],
-    ['service', 100000, gen('max_tokens', 2048, null), 'request_limit'],
+    ['service', 100000, gen('max_tokens', 4096, null), 'request_limit'],
     ['byok', 0, gen('max_tokens', 8192, 0), 'request_limit'],
     ['byok', 0, gen('max_tokens', 100, 8000), 'thinking'],
   ] as const)('%s balance %i -> %s reaches the real bubble and reason-specific toast', async (kind, balance, result, reason: CappedReason) => {

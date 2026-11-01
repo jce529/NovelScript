@@ -41,6 +41,8 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
   const [isPending, setIsPending] = useState(false);
   const [folderState, dispatch] = useReducer(quickAddFoldersReducer, initialQuickAddFoldersState);
   const seqRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   /** 'auto' 모드 승인 단계: 기존 트리 + Jev 제안 배치. tree가 null이면 아직 분류 전. */
   const [tree, setTree] = useState<FlatKbNode[] | null>(null);
   const [placement, setPlacement] = useState<Record<string, string | null>>({});
@@ -181,9 +183,9 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader><DialogTitle>파일 업로드</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-3">
-          <div role="radiogroup" aria-label="업로드 방식" className="flex flex-wrap gap-2">
+          <div role="radiogroup" aria-label="업로드 방식" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             {([['import', '설정 문서로 저장'], ['auto', 'AI 자동 분류'], ['attach', '이번 대화에만 첨부']] as const).map(([value, label]) => (
-              <Button key={value} type="button" role="radio" aria-checked={mode === value} size="sm" variant={mode === value ? 'default' : 'outline'} onClick={() => { setMode(value); resetReview(); }}>
+              <Button key={value} type="button" role="radio" aria-checked={mode === value} size="sm" variant={mode === value ? 'default' : 'outline'} className="w-full sm:w-auto" onClick={() => { setMode(value); resetReview(); }}>
                 {label}
               </Button>
             ))}
@@ -196,23 +198,32 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
                 : `파일 내용을 이번 대화의 참고 자료로만 AI에게 전달해요. 저장되지 않고, 최대 ${MAX_ATTACHMENTS}개까지 첨부할 수 있어요.`}
           </p>
 
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="upload-files-input">파일 선택</Label>
-            <input
-              id="upload-files-input" type="file" multiple accept=".md,.markdown,.txt,text/plain,text/markdown"
-              className="text-sm" onChange={(e) => { void pickFiles(e.target.files); e.target.value = ''; }}
-            />
-            {mode !== 'attach' && (
-              <label className="mt-1 flex flex-col gap-1 text-xs text-muted-foreground">
-                또는 폴더째 선택
-                <input
-                  type="file" multiple className="text-sm text-foreground"
-                  // webkitdirectory is non-standard and has no React typing.
-                  {...({ webkitdirectory: '' } as Record<string, string>)}
-                  onChange={(e) => { void pickFiles(e.target.files); e.target.value = ''; }}
-                />
-              </label>
-            )}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">파일 선택</span>
+            <div className="flex flex-wrap gap-2">
+              {/* 네이티브 입력은 브라우저 기본 문구를 감추려고 시각적으로 숨기고, 버튼이 선택창을 연다. */}
+              <input
+                ref={fileInputRef} type="file" multiple accept=".md,.markdown,.txt,text/plain,text/markdown"
+                aria-label="파일 선택" tabIndex={-1} className="sr-only"
+                onChange={(e) => { void pickFiles(e.target.files); e.target.value = ''; }}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                파일 선택
+              </Button>
+              {mode !== 'attach' && (
+                <>
+                  <input
+                    ref={folderInputRef} type="file" multiple aria-label="폴더째 선택" tabIndex={-1} className="sr-only"
+                    // webkitdirectory is non-standard and has no React typing.
+                    {...({ webkitdirectory: '' } as Record<string, string>)}
+                    onChange={(e) => { void pickFiles(e.target.files); e.target.value = ''; }}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => folderInputRef.current?.click()}>
+                    폴더째 선택
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           {files.length > 0 && !inReview && (

@@ -90,7 +90,7 @@ describe('template tree UI', () => {
       open: true, onOpenChange: () => {}, workId: 'work', parentId: 'people', category: '인물', onCreated: () => {},
     }));
     expect(html).toMatch(/<h3>작품 템플릿<\/h3>.*인물.*<h3>계정 템플릿<\/h3>.*인물.*<h3>기본 템플릿<\/h3>.*기본 인물 템플릿/);
-    expect(html).toContain('인물 (이 작품 전용) (기본)');
+    expect(html).toContain('인물 (이 작품 전용) · 기본값');
   });
 
   it('shows category names in the move dialog, including the selected value', () => {
@@ -131,7 +131,9 @@ describe('template tree UI', () => {
     expect(layout).toContain('partitionStudioSidebar(workTree, accountTree)');
     expect(layout).toContain('<TemplateSidebarEntry');
     expect(layout).toContain('<KbTemplateSection');
-    const order = ['<KbTemplateSection', 'nodes={sections.myFolders}', 'nodes={sections.sharedFolders}', 'nodes={sections.chapterRoots}'].map((m) => layout.indexOf(m));
+    // 17-07 tree: 작품 폴더 (회차 · 설정 · 템플릿) then 계정 폴더 (설정); 회차 renders the chapter root's children.
+    const order = ['nodes={chapterRoot.children}', 'nodes={sections.myFolders}', '<KbTemplateSection', 'nodes={sections.sharedFolders}'].map((m) => layout.indexOf(m));
+    expect(order.every((i) => i >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(layout).not.toContain('useState');
     const entry = readFileSync('components/studio/template-sidebar-entry.tsx', 'utf8');

@@ -39,7 +39,7 @@ describe('chapter editor save state', () => {
     const s = store();
     applyEdit(false, 'chapter:w:c1', 'base1', s.dispatch);
     let release!: (v: { ok: boolean }) => void;
-    const save = vi.fn((_c: string) => new Promise<{ ok: boolean }>((r) => { release = r; }));
+    const save = vi.fn(() => new Promise<{ ok: boolean }>((r) => { release = r; }));
     const pending = performSave({ state: s.get(), readOnly: false, requestId: 'r1', dispatch: s.dispatch, save });
     expect(selectSaveStatus(s.get())).toBe('saving');
     expect(save).toHaveBeenCalledWith('base1');
