@@ -10,6 +10,30 @@ requirements-completed: []   # Task 2(Claude·브라우저 인수) 판정 후 �
 
 # 12-06 수동 게이트 결과 (진행 중)
 
+## 수동 확인 필요 (Task 2 — 상태: pending/blocked, PASS 아님)
+
+> 사용자가 모바일 원격이라 이번 세션에서 사람 검증을 하지 못했다. 아래는 **미확인**이며 PASS로 간주하지 않는다. MCP-01·MCP-08의 Claude 실왕복(성공 기준 1·3)과 UI-SPEC 인수는 이 절이 끝나야 완료다. 에이전트 수행분은 아래 "Task 2 진행 기록"에 있다. 서버·터널은 정리했다(무료 터널이라 다시 켜면 주소가 바뀐다).
+
+**준비물:** PC(Windows, PowerShell), 일회용 Supabase `anzafn…` 대시보드 접근, Claude에 로그인한 브라우저 1개(쿠키 심기용과 같은 브라우저), `D:\MyProject\NovelScript\.env.disposable`. 공유 프로젝트 `ymudwg…`는 쓰지 않는다.
+
+| # | 할 일 | 명령/방법 | 기대 결과 | 상태 |
+|---|---|---|---|---|
+| 0 | 환경 재기동 | 이 브랜치에서 `npm run build`(env 래퍼 사용) 후 `node <scratchpad>\run-with-env.mjs D:\MyProject\NovelScript\.env.disposable MCP_PUBLIC_ORIGIN=<터널 origin> -- node node_modules/next/dist/bin/next start -p 3100`, 별도 창에 `cloudflared tunnel --url http://localhost:3100` (포트 3100만) | 터널 경유 `POST <origin>/mcp` → 401 + `resource_metadata` | blocked(서버 내림) |
+| 1 | Site URL 변경 | 일회용 프로젝트 Authentication → URL Configuration → Site URL = 터널 origin, Redirect URLs 교체. 끝나면 원래 값 복구 | 저장됨 | pending |
+| 2 | 작가 세션 쿠키 | `node --env-file=D:\MyProject\NovelScript\.env.disposable <scratchpad>\mint-writer-session.mjs` → 브라우저 `<origin>/studio`에서 F12 콘솔에 붙여넣기 (유효 약 55분, 만료 시 반복) | `/studio` 진입, 로그인 상태 | pending |
+| 3 | Claude 커넥터 등록 | 기존 NovelScript 커넥터 삭제 → 커스텀 커넥터 URL `<origin>/mcp` → Connect | 동의 화면: 클라이언트명, "연결 요청 출처: claude.ai" 표시 | pending |
+| 4 | 승인 후 호출 | Claude에서 `whoami` | 승인한 작가 본인 정보만 반환 (성공 기준 1·2) | pending |
+| 5 | 관리 화면 | `<origin>/studio/settings/mcp-connections` | 연결 카드·마지막 사용 시각(성공 기준 3), 빈 상태, 복사 성공/실패 | pending |
+| 6 | 해제 후 차단 | 관리 화면에서 해제 → Claude에서 같은 연결로 `whoami` 재호출 | 호출 실패/재연결 요구 (성공 기준 4). 해제 다이얼로그·해제 후 포커스 이동 확인 | pending |
+| 7 | 동의 화면 상태 | 시크릿 창 `<origin>/oauth/consent?authorization_id=x` / 로그인 창에서 같은 URL / `$env:MINT_ROLE="reader"`로 독자 계정 쿠키 후 접근 | 비로그인: 중립 문구(확정 후 UI-SPEC 갱신), 만료 ID: 오류 상태, 독자: 작가 전용 안내 | pending |
+| 8 | 반응형·접근성 | 375px 폭, Tab/Shift+Tab/Esc, 스크린리더 status/alert | 가로 스크롤 없음, 버튼 전폭, 포커스 순서·Esc 정상 | pending |
+| 9 | refresh token | 연결 약 1시간 후 `whoami` 재호출 | 갱신 후 성공 (이월 미확인) | pending |
+| 10 | 정리 | 터널·서버 종료, Site URL 복구, 테스트 계정(`ui-accept-*@novelscript.test`) 삭제(선택) | 공유 프로젝트 변경 0 | pending |
+
+**Codex 한도로 못 끝낸 것:** 12-05 후반 수정은 Codex 한도 초과로 Claude가 폴백해 검증까지 마쳤다. `gpt-6.1-sol`은 이 계정에서 미지원이라 `.planning/model-routing/models.md` 갱신(사용자 승인 필요, 총괄 소관)만 남았다.
+
+**병합 참고(총괄용):** master 최신 마이그레이션은 0036이라 0037·0038과 현재 번호 충돌은 없다. Phase 17이 새 마이그레이션을 추가하면 겹칠 수 있으니 병합 직전 `supabase/migrations` 번호를 재확인한다. 이 브랜치가 수정한 공용 파일은 `proxy.ts`, `next.config.ts`, `package.json`/lock, `lib/auth/redirect.ts`, `app/login/page.tsx`, `app/auth/callback/route.ts`, `app/studio/settings/ai-providers/page.tsx`이며 현재 master는 이 파일들을 바꾸지 않았다. 0037·0038은 일회용 DB에만 적용했고 공유 DB 적용은 병합 후 별도 승인 대상이다.
+
 > 판정은 사람이 남긴다. 토큰·비밀·authorization_id 원문은 기록하지 않는다.
 
 ## Task 1: 일회용 DB 적용과 해제/교차 사용자 실증 — 합격
