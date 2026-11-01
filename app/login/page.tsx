@@ -3,15 +3,18 @@
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { safeReturnPath } from '@/lib/auth/redirect';
 
 function LoginForm() {
   const supabase = createClient();
-  const accountDeleted = useSearchParams().get('error') === 'account_deleted';
+  const searchParams = useSearchParams();
+  const accountDeleted = searchParams.get('error') === 'account_deleted';
+  const next = safeReturnPath(searchParams.get('next'));
 
   const handleLogin = async (provider: 'google' | 'kakao') => {
     await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback${next === '/' ? '' : `?${new URLSearchParams({ next })}`}` },
     });
   };
 

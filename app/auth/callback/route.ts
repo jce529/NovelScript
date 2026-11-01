@@ -3,11 +3,12 @@ import { createClient } from '@/lib/supabase/server';
 import { needsEmailCompletion } from '@/lib/auth/email-guard';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAccountActive, softDeleteAccount } from '@/lib/auth/account';
+import { safeReturnPath } from '@/lib/auth/redirect';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/';
+  const next = safeReturnPath(searchParams.get('next'));
 
   if (code) {
     const supabase = await createClient();
