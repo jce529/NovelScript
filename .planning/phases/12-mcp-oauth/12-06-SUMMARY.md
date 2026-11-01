@@ -43,3 +43,24 @@ requirements-completed: []   # Task 2(Claude·브라우저 인수) 판정 후 �
 - 375px: 가로 스크롤 없음, 버튼 전폭, 내용 접힘. 키보드 포커스·Esc·status/alert 읽기. 해제 성공 후 포커스 이동(첫 해제·마지막 카드·두 번째 이후 해제).
 
 이월 항목(12-01~12-05에서 넘어옴): refresh token 갱신(수명 경과 후 호출), `last_used_at` 스로틀 실측, 이미 동의된 요청이 동의 화면 없이 바로 이동할 때 연결 행 일치 여부, 해제 `partial` 이후 `revokeGrant` 재정리 경로, 로그인 필요 화면 중립 문구 확정(UI-SPEC 갱신).
+
+## Task 2 진행 기록 — 에이전트 수행분 (2026-11-01, 일회용 `anzafn…`, 프로덕션 빌드 3100 + 터널)
+
+환경: `next start -p 3100`(포트 3199 미사용), `MCP_PUBLIC_ORIGIN`=터널 origin. 공유 프로젝트 `ymudwg…` 미접촉.
+
+| 항목 | 결과 |
+|---|---|
+| S1 토큰 없는 `POST /mcp` | 401, `resource_metadata`가 터널 origin의 `/.well-known/oauth-protected-resource/mcp`를 가리킴 |
+| S1 잘못된 Bearer | 401 (fail closed) |
+| S2 PRM | `resource=<origin>/mcp`, `authorization_servers=[일회용 auth/v1]`, OPTIONS 200 |
+| AS 메타데이터 | 일회용 프로젝트 issuer·authorize·token·jwks 노출 |
+| 동의 화면 보안 헤더 | `frame-ancestors 'none'`, `X-Frame-Options: DENY` |
+| 동의 화면 로그아웃 상태 | 200, 중립 문구 "먼저 로그인해 주세요. 로그인하면 이 화면으로 돌아와요." + "로그인하고 계속" 링크가 `/login?next=<동의 경로>` |
+| 관리 화면 비로그인 | 307 `/login` |
+| 외부 `next` 콜백 | `https://evil…`로 가지 않고 `/auth/auth-code-error`로 이동 |
+| 유닛 `tests/mcp` | 77 passed |
+| 토큰 기준 해제 후 차단 | Task 1 실DB 22건(`revoke-blocks`, `cross-user`)으로 이미 증명 |
+
+관찰: `/auth/callback` 오류 리다이렉트가 터널 뒤에서 `https://localhost:3100/...`로 나간다(요청 origin 사용). 터널 환경 한정 증상일 수 있어 사람 확인 시 로그인 실패 경로에서 재확인.
+
+사람이 꼭 해야 하는 항목(남음): Site URL 변경, 작가 세션 쿠키 심기, Claude 커넥터 등록·동의·whoami·해제·재호출 차단, 로그인 상태 동의 화면/관리 화면 렌더(세션 필요), 만료 ID, 독자 전용, 375px·키보드·포커스, refresh token 갱신.
