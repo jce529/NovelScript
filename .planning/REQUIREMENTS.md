@@ -312,13 +312,13 @@ Explicitly excluded. Documented to prevent scope creep.
 | WTREE-11 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-12 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-13 | Deferred (스토어 보류 해제 후) | Defined |
-| WORKHOME-01 | Phase 19 | Mapped |
-| WORKHOME-02 | Phase 19 | Mapped |
-| WORKHOME-03 | Phase 19 | Mapped |
-| WORKHOME-04 | Phase 19 | Mapped |
-| WORKHOME-05 | Phase 19 | Mapped |
-| WORKHOME-06 | Phase 19 | Mapped |
-| WORKHOME-07 | Phase 19 | Mapped |
+| WORKHOME-01 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-02 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-03 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-04 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-05 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-06 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-07 | Phase 19 | Code complete (실화면 UAT pending) |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |

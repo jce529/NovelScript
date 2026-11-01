@@ -45,7 +45,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
 - [ ] **Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)** - 작가가 계정 설정에서 BYOK 현황을 보고, 설정 문서에서도 AI와 대화하며, 로컬 작업물을 업로드해 Jev가 제안한 배치를 트리에서 수정·승인해 저장하고, 모바일 세로 화면에서도 스튜디오를 쓴다 (completed 2026-10-02; shipped outside GSD, live Jev/browser/mobile verification pending — see Phase 16 detail) — **재개(청사진 갭, 2026-10-12): 검증 gaps_found·모바일 탭/설정 허브 결정 충돌**
 - [ ] **Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)** - 작가가 자기 세계관을 가지 쳐 If·확장 가지 작품을 연재하고, 연표로 작품을 배치하며, 독자가 작품 상세 세계관 탭에서 세계수를 본다
-- [ ] **Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)** - 제목·시놉시스·밑줄 링크 3개뿐인 작가용 작품 홈을 디자인한다 (UI phase — UI-SPEC → 예시 목업 Artifact까지)
+- [x] **Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)** - 제목·시놉시스·밑줄 링크 3개뿐인 작가용 작품 홈을 디자인한다 (UI phase — UI-SPEC → 예시 목업 Artifact까지)
 
 ## Phase Details
 
@@ -552,7 +552,7 @@ Plans:
   3. 새 작품(회차 0개)은 가이드만 크게 보이고 현황은 숨는다
   4. 모바일 `집필` 탭에서 가로 스크롤 없이 같은 내용을 쓸 수 있다
   5. 17-07 트리 사이드바 구조는 그대로다
-**Plans**: TBD
+**Plans**: 4 plans (19-01 홈 상태 계산, 19-02 홈 화면, 19-03 사이드바 빈 문구, 19-04 회귀·실화면 검증)
 **UI hint**: yes
 **Source**: Phase 17 세션이 사용자 요청으로 분리한 항목(Phase 17 범위 밖). 현재 상태·제안 범위는 `phase17-handover-author-work-home-phase.md`.
 **Notes**: UI phase라 UI-SPEC 승인만으로 끝내지 않고 예시 목업 Artifact 제공까지가 완료 조건이다(CLAUDE.md).
@@ -619,7 +619,7 @@ Plans:
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 7/7 | Code complete — 수동 UAT(실키·실기기·E1·E2 등 `17-UAT.md` M1~M13) 대기. 코드 완료이며 검증 완료 아님 | - |
 | 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 미적용, 단위 테스트만 통과) | - |
-| 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 0/TBD | Not started | - |
+| 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 4/4 | Complete (실화면 UAT pending) | 2026-11-01 |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
 

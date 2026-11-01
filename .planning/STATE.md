@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: completed
-stopped_at: Phase 19 planned (5 plans, checker passed)
-last_updated: "2026-11-01T04:22:09.603Z"
+stopped_at: Phase 19 executed (4 plans), awaiting user UAT
+last_updated: "2026-11-01T05:50:47.376Z"
 last_activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
 progress:
   total_phases: 20
-  completed_phases: 9
-  total_plans: 163
-  completed_plans: 150
-  percent: 45
+  completed_phases: 10
+  total_plans: 162
+  completed_plans: 154
+  percent: 50
 ---
 
 # Project State
@@ -175,13 +175,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-11-01T04:22:09.593Z
-Stopped at: Phase 19 planned (5 plans, checker passed)
+Last session: 2026-11-01T05:50:47.367Z
+Stopped at: Phase 19 executed (4 plans), awaiting user UAT
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
-Resume file: .planning/phases/19-studio-workid-ui/19-01-PLAN.md
+Resume file: .planning/phases/19-studio-workid-ui/19-04-SUMMARY.md
 
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.
