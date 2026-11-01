@@ -36,7 +36,7 @@ created: 2026-11-01
 
 ## Wave 0 Requirements
 
-- [ ] `tests/works/work-home.test.ts` — WORKHOME-01·02·03·05 계산 로직
+- [ ] `tests/works/work-home.test.ts` — WORKHOME-01·02·03·05 공유 설정 파일 판정·홈 상태 계산
 - [ ] `tests/works/work-home-page.test.ts` — WORKHOME-02·03·05·06 표시
 - [ ] `tests/studio/sidebar-empty-copy.test.ts` — WORKHOME-04·05 빈 폴더 문구
 - [ ] 기존 `tests/world-tree/entrypoints.test.ts` 홈 블록 수정 (R1: 새 페이지의 `listChapters`·심사 상태 목과 충돌)
@@ -45,9 +45,8 @@ created: 2026-11-01
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| 목업 대비 실화면 | WORKHOME-07 | 시각 비교 | 19-05 human-check: viewport 크기·스크린샷 경로를 SUMMARY에 기록 |
+| 목업 대비 실화면 | WORKHOME-07 | 시각 비교 | 19-04 human-check: viewport 크기·스크린샷 경로를 SUMMARY에 기록 |
 | 모바일 가로 스크롤 없음, 탭 전환 후 내용 유지 | WORKHOME-06 | 레이아웃 실측 | 390px에서 `집필` 탭 확인 |
-| 카드 열기 동작(심사 카드) | WORKHOME-03 | 상호작용 | 19-04 결정 후 키보드·클릭으로 확인 |
 
 ## Validation Sign-Off
 
