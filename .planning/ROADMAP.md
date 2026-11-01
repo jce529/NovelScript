@@ -45,6 +45,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택** - AI가 문서를 만들기 전에 작업·카테고리·폴더·템플릿을 계획하고, 작가가 결과와 저장 위치를 확인한 뒤 안전하게 저장한다 (code complete 2026-09-27 — activation blocked on data-policy review / real-vendor eval / shadow samples; browser UAT pending)
 - [ ] **Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)** - 작가가 계정 설정에서 BYOK 현황을 보고, 설정 문서에서도 AI와 대화하며, 로컬 작업물을 업로드해 Jev가 제안한 배치를 트리에서 수정·승인해 저장하고, 모바일 세로 화면에서도 스튜디오를 쓴다 (completed 2026-10-02; shipped outside GSD, live Jev/browser/mobile verification pending — see Phase 16 detail) — **재개(청사진 갭, 2026-10-12): 검증 gaps_found·모바일 탭/설정 허브 결정 충돌**
 - [ ] **Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)** - 작가가 자기 세계관을 가지 쳐 If·확장 가지 작품을 연재하고, 연표로 작품을 배치하며, 독자가 작품 상세 세계관 탭에서 세계수를 본다
+- [ ] **Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)** - 제목·시놉시스·밑줄 링크 3개뿐인 작가용 작품 홈을 디자인한다 (UI phase — UI-SPEC → 예시 목업 Artifact까지)
 
 ## Phase Details
 
@@ -541,6 +542,21 @@ Plans:
 **Source**: `.planning/design/WORLD-TREE.md`(규칙 1~17), 목업 보드 40~43(`.planning/design/mockups/project/`)
 **Notes**: 근접도·크기 산식의 세부 계수는 phase 계획에서 정한다. 요구사항 WTREE-09(스포일러 잠금 가지 확장)·WTREE-11~13(스토어 편입·환불·운영 검토)은 이 phase 범위가 아니다. UI 계약 초안: `.planning/phases/18-world-tree/18-UI-SPEC.md`(checker 검증 전). 목업은 보드 40~43.
 
+### Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)
+**Goal**: 작가가 `/studio/[workId]`에서 작품의 현황과 다음 할 일을 한눈에 보고 각 작업 화면으로 이동할 수 있다. 현재는 제목·시놉시스·밑줄 링크 3개뿐이다.
+**Depends on**: Phase 2 (스튜디오 코어)
+**Requirements**: TBD (`/gsd:ui-phase 19`에서 범위와 함께 정한다)
+**Success Criteria** (what must be TRUE): TBD
+**Plans**: TBD
+**UI hint**: yes
+**Source**: Phase 17 세션이 사용자 요청으로 분리한 항목(Phase 17 범위 밖). 현재 상태·제안 범위는 `phase17-handover-author-work-home-phase.md`.
+**Notes**: UI phase라 UI-SPEC 승인만으로 끝내지 않고 예시 목업 Artifact 제공까지가 완료 조건이다(CLAUDE.md).
+
+## 구현 목표 (phase 없음)
+
+- **설정 문서 변경분만 출력 (토큰 절감)**: 현재 재생성은 문서 전체를 다시 쓴다([document-regenerate.ts](../lib/ai/document-regenerate.ts)). 목표는 AI가 바뀐 부분만 출력하고, 서버가 원문에 적용하도록 바꾸는 것이다. 성공 기준: 문서 수정 1건의 출력 토큰이 문서 전체 길이가 아니라 변경 분량에 비례한다. 근거·산정 가정은 `.planning/business/토큰단가-산정.md`(작성 예정)에 정리한다. 대략 월 AI 원가를 절반 가까이 낮출 것으로 추정한다(추정치, 실측 전).
+- **AI 호출 토큰 차감 환산값 조정**: 충전 묶음(100토큰 1,000원, 550토큰 5,000원)의 순매출이 AI 원가 환산값(1토큰 = 10원)보다 낮아 AI 사용분에서 손실이 난다. `lib/ai/cost.ts`의 `KRW_PER_WALLET_TOKEN`을 10에서 7로 낮춰(2026-10-27 확정) 같은 AI 호출에 토큰을 더 차감한다. 충전 묶음 가격 인상은 대안이다. 환산값 변경 시 관련 테스트·화면 문구를 함께 고친다. 근거는 `.planning/business/토큰단가-산정.md` 8-10.
+
 ## 미배정 청사진 영역 (phase 없음)
 
 청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있으나 요구사항 ID·phase가 없는 영역. 신규 phase로 만들지, 재개한 phase에 흡수할지는 논의 후 결정한다. 상세는 `.planning/gaps/2026-10-12-blueprint-reconcile.md` 마지막 표: 댓글, 완독 데이터(스크롤 진도·완독률·연독률), 독자 공간 화면(랭킹 창·연재 목록·내서재·검색·작가 페이지·명예의 전당), 결제 확장(대여·정주행·구독·결제 내역), 작가 허브(대시보드·경제 관리·정산·설정 허브·세계관 공개 설정), 관리자 확장(제재 이력·정산 보류), 에셋 스토어.
@@ -598,6 +614,7 @@ Plans:
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 0/TBD | Not started | - |
 | 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 미적용, 단위 테스트만 통과) | - |
+| 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 0/TBD | Not started | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
 

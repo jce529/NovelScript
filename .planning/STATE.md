@@ -7,7 +7,7 @@ stopped_at: 자동 실행 가능한 재개 보완 plan 전부 완료 (18-11까�
 last_updated: "2026-10-23T07:00:00.000Z"
 last_activity: 2026-10-23 -- 수동 게이트 기능 점검(03-19·07-15·18-12·04-12·16-03, 에이전트 수행분·사람 승인 아님), Toss 키 종류 불일치 확인, 병합 후 테스트 결함 4건 수정
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 6
   total_plans: 145
   completed_plans: 135
