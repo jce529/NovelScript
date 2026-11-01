@@ -65,8 +65,18 @@ describe('template tree UI', () => {
     expect(rootRow).not.toContain('새 폴더 만들기');
     expect(categoryRow).toContain('하위 문서 추가');
     expect(categoryRow).not.toContain('새 폴더 만들기');
-    expect(html).toContain('카테고리 미지정');
-    expect(html).toContain('카테고리 폴더로 이동');
+  });
+
+  it('shows the uncategorized group with a visible hint in the live sidebar section', () => {
+    mock.skipEffects = true;
+    const html = renderToStaticMarkup(createElement(KbTemplateSection, {
+      workId: 'w',
+      defaults: [],
+      mine: [{ node: unclassified, category: null, categoryFolders: [category] }],
+    }));
+    expect(html).toContain('data-template-group="미분류"');
+    expect(html).toContain('카테고리 폴더로 옮기면 분류돼요');
+    expect(html).toContain('내 양식');
   });
 
   it('uses a distinct template dialog without loading or displaying template options', () => {

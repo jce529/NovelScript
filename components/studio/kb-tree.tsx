@@ -83,7 +83,6 @@ function TreeRow({
   const currentTemplateRoot = isRootTemplateFolder ? node : templateRoot;
   const isTemplateCategoryFolder = Boolean(currentTemplateRoot && templateCategoryOf(node, currentTemplateRoot));
   const categoryFolders = currentTemplateRoot?.children.filter((child) => templateCategoryOf(child, currentTemplateRoot)) ?? [];
-  const isUncategorizedTemplate = node.category === 'template' && node.node_type === 'file' && node.parent_id === currentTemplateRoot?.id;
   const isChapterRootFolder = node.category === '회차' && node.parent_id === null;
   const chapterLeaves = node.category === '회차' ? (chaptersByFolderId[node.id] ?? []) : [];
   const hasNoChapterContent = isChapterRootFolder && node.children.length === 0 && chapterLeaves.length === 0;
@@ -152,12 +151,6 @@ function TreeRow({
         )}
         {isRootTemplateFolder && node.scope === 'work' && (
           <Badge variant="secondary" className="shrink-0 whitespace-nowrap text-xs">이 작품 전용</Badge>
-        )}
-        {isUncategorizedTemplate && (
-          <Tooltip>
-            <TooltipTrigger render={<span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground" aria-label="카테고리 미지정">미분류</span>} />
-            <TooltipContent>카테고리 미지정 · 카테고리 폴더로 이동해 주세요</TooltipContent>
-          </Tooltip>
         )}
         <RowActions active={isActive}>
           <KbTreeActions workId={workId} node={node} isTemplateCategoryFolder={isTemplateCategoryFolder} categoryFolders={categoryFolders} />
@@ -272,6 +265,11 @@ export function KbTemplateSection({
               <Folder size={16} className="shrink-0" />
               <span className="truncate">{group.name}</span>
             </button>
+            {group.name === NO_CATEGORY && presentation.visible && (
+              <p className="py-1 text-xs text-muted-foreground" style={{ paddingLeft: rowPadding(baseDepth + 1) }}>
+                카테고리 폴더로 옮기면 분류돼요
+              </p>
+            )}
             <ul hidden={!presentation.visible}>
               {group.entries.map((entry) => <TemplateEntryRow key={entry.node.id} entry={entry} workId={workId} depth={baseDepth + 1} />)}
             </ul>
