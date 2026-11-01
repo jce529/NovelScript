@@ -545,8 +545,13 @@ Plans:
 ### Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)
 **Goal**: 작가가 `/studio/[workId]`에서 작품의 현황과 다음 할 일을 한눈에 보고 각 작업 화면으로 이동할 수 있다. 현재는 제목·시놉시스·밑줄 링크 3개뿐이다.
 **Depends on**: Phase 2 (스튜디오 코어)
-**Requirements**: TBD (`/gsd:ui-phase 19`에서 범위와 함께 정한다)
-**Success Criteria** (what must be TRUE): TBD
+**Requirements**: WORKHOME-01, WORKHOME-02, WORKHOME-03, WORKHOME-04, WORKHOME-05, WORKHOME-06, WORKHOME-07
+**Success Criteria** (what must be TRUE):
+  1. 작가가 작품 홈에서 전체 회차·공개·미공개·심사 상태를 한눈에 본다
+  2. 첫 연재를 마칠 때까지 5단계 가이드가, 마친 뒤에는 5개 바로가기 카드가 보인다
+  3. 새 작품(회차 0개)은 가이드만 크게 보이고 현황은 숨는다
+  4. 모바일 `집필` 탭에서 가로 스크롤 없이 같은 내용을 쓸 수 있다
+  5. 17-07 트리 사이드바 구조는 그대로다
 **Plans**: TBD
 **UI hint**: yes
 **Source**: Phase 17 세션이 사용자 요청으로 분리한 항목(Phase 17 범위 밖). 현재 상태·제안 범위는 `phase17-handover-author-work-home-phase.md`.
