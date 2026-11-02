@@ -1,6 +1,6 @@
 ---
 name: jev-model-routing
-description: GSD 워크플로우에서 에이전트 역할·plan·task를 어떤 모델(Claude Opus/Sonnet/Haiku, GPT 6.1 Sol/6 Sol/6 Luna/5.6 Terra/5.6 Luna)에 배정할지 Jev로 분류해 정한다. plan-phase·execute-phase·quick·bug-execute 등 모델을 고르는 모든 순간, 또는 "모델 배정", "어떤 모델로 돌릴까", "토큰 아끼면서" 같은 요청에 사용한다.
+description: GSD 워크플로우에서 에이전트 역할·plan·task를 어떤 모델(Claude Opus/Sonnet/Haiku, GPT 6.1 Sol/6 Sol/6 Luna/5.6 Terra/5.6 Luna, Gemini 4 Argon)에 배정할지 Jev로 분류해 정한다. plan-phase·execute-phase·quick·bug-execute 등 모델을 고르는 모든 순간, 또는 "모델 배정", "어떤 모델로 돌릴까", "토큰 아끼면서" 같은 요청에 사용한다.
 ---
 
 # Jev 기반 GSD 모델 라우팅
@@ -30,15 +30,19 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 
 - **티어 배치는 이름·세대에서 추정한 가설이다** (Sol > Terra > Luna, 6.1 > 6 > 5.6). 실제 격차는 §9 로그로 보정한다.
 - **Codex 모델 ID를 추측하지 않는다.** `gpt-6-sol`, `gpt-6-luna`는 이 레포에서 쓰는 값이고, `6.1 Sol`·`5.6 Terra/Luna`의 정확한 ID는 최초 1회 `codex exec --help`/모델 목록으로 확인해 `.planning/model-routing/models.md`에 적어 둔다. 지원하지 않는 ID면 임의 대체하지 말고 사용자에게 묻는다(AGENTS.md "외부 AI 호출 시 모델 명시").
+- **Antigravity 채널 (2026-11-02 추가, Gemini 4 Argon)**: Claude·GPT와 별개의 세 번째 계열이다. 티어 매핑은 `models.md`의 agy 표를 따른다(T4 `gemini-4-argon-high`, T3 `gemini-4-argon-medium`, T2 `gemini-4-argon-low`, 모두 가설). T0·T1 칸은 비어 있다.
+  - **작성자·검증자 계열 규칙 (원칙 3)**: Argon이 작성하면 검증자는 Claude 또는 GPT, Argon이 검증하면 작성자는 Claude 또는 GPT로 둔다. Argon끼리 작성·검증하지 않는다.
+  - 채널 결정(§4-③)의 GPT/Claude 이분법은 그대로 두고, Argon은 사용자가 지정하거나 `models.md`의 agy 호출 템플릿으로 명시적으로 고를 때만 쓴다. 자동 배정에는 아직 넣지 않는다(로그 5건 이상 쌓인 뒤 보정).
 - 호출 규칙은 AGENTS.md 그대로: Codex는 `-m`+`-c model_reasoning_effort`를 매번 명시하고 로그 첫머리 `model:` 줄을 확인, Agent 도구는 `model` 파라미터를 명시.
-- **Codex 호출 템플릿 (Windows, 2026-10-19 확인)**: `~/.codex/config.toml`에 `[windows] sandbox = "elevated"`가 있으면 비대화형 `codex exec`에서 쉘·`apply_patch`가 모두 `setup refresh had errors`로 실패한다. **호출마다 `-c 'windows.sandbox="unelevated"'`를 붙인다**(설정 파일은 고치지 않는다).
+- **Codex 호출 템플릿 (Windows, 2026-11-02 갱신)**: 기본값 `[windows] sandbox = "elevated"` 그대로 쉘·`apply_patch`·vitest가 정상 동작한다(codex-cli 0.166.0, 프로젝트 폴더 쓰기 포함 시험 통과). 이전(2026-10-19)에 `setup refresh had errors`로 실패해 붙이던 `-c 'windows.sandbox="unelevated"'`는 **더 이상 붙이지 않는다.** 설정 파일(`config.toml`)은 고치지 않는다.
   ```
-  codex exec -m <모델> -c model_reasoning_effort=<강도> -c 'windows.sandbox="unelevated"' \
+  codex exec -m <모델> -c model_reasoning_effort=<강도> \
     -s workspace-write -C <작업 폴더> --skip-git-repo-check - < 프롬프트파일 > 출력파일 2>&1
   ```
-  - unelevated는 폴더 경계 보호가 약하므로 `-C`로 작업 범위를 좁히고, 프롬프트에 "수정 허용 파일 목록"을 명시하고, 끝난 뒤 `git status`로 범위 밖 변경이 없는지 확인한다.
-  - 호출 후 출력에서 `setup refresh`/`Rejected` 건수가 0인지도 확인한다(0이 아니면 실패로 보고 Claude로 폴백).
-  - 읽기 전용 검증(`-s read-only`)도 같은 이유로 파일을 못 읽는다 — 검증자에게는 같은 플래그를 쓰거나 코드를 프롬프트에 직접 넣는다.
+  - 작성자와 검증자 모두 `-s workspace-write`를 쓴다. `read-only`는 쓰지 않는다: vitest 등이 시스템 Temp에 폴더를 만들다 `EPERM`으로 실패한다(2026-11-02 재현). 쓰기 권한을 주는 대신 `-C`로 작업 범위를 좁히고, 프롬프트에 "수정 허용 파일 목록"(검증자는 "수정 금지")을 명시하고, 끝난 뒤 `git status`로 범위 밖 변경이 없는지 확인한다.
+  - 테스트는 `npx vitest`가 아니라 `node node_modules/vitest/vitest.mjs run <파일>`로 호출하게 한다. Codex의 PowerShell에서 `npx.ps1`이 실행 정책에 막힌다.
+  - 호출 후 출력에서 `setup refresh`/`Rejected` 건수가 0인지 확인한다(0이 아니면 `-c 'windows.sandbox="unelevated"'`를 붙여 1회 재시도하고, 그래도 실패하면 Claude로 폴백한다).
+  - 조사 기록: `.planning/model-routing/codex-sandbox-findings.md`
 
 ### 채널 선택 (같은 티어 안에서 Claude vs GPT)
 
@@ -47,7 +51,17 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 | 현재 대화 문맥에 크게 의존, 브라우저·MCP·Artifact·네트워크/원격 DB 필요 | **Claude** (Codex 샌드박스는 네트워크 차단) |
 | 문서·파일 경로만으로 자족적인 구현·계획·테스트 작성 | **GPT (Codex)** — Claude 한도를 아끼고 병렬화 쉬움 |
 | 위 둘 다 아님 | 작성자와 검증자가 다른 계열이 되도록 배분 |
-| ChatGPT 사용 한도 초과 | Claude로 폴백하고 해제 시각을 사용자에게 알림 |
+| ChatGPT 사용 한도 초과 | Claude로 폴백하고 해제 시각을 사용자에게 알림 (절차: 아래 "한도 초과 폴백 절차") |
+
+### 한도 초과 폴백 절차 (ChatGPT/Codex)
+
+Codex 호출이 사용 한도 오류("usage limit", "try again at ..." 류 문구; 정확한 문구는 사례가 생길 때마다 로그 비고에 기록)로 끝나면 아래 순서로 처리한다.
+
+1. **해제 시각을 그대로 전달**: 오류 메시지의 재시도 가능 시각을 사용자에게 한 줄로 알린다(추측하지 않는다).
+2. **중단 지점 확인**: 폴백 전에 `git status`/`git diff --stat`으로 Codex가 어디까지 적용했는지 본다. 일부만 적용됐으면 그 상태에서 이어서 하고 처음부터 다시 쓰지 않는다. 수정 허용 파일 밖의 변경이 있으면 사용자에게 알린다.
+3. **Claude로 이어서**: 같은 티어의 Claude 모델(Claude에 칸이 없으면 한 칸 위)로 남은 부분만 수행한다. 한도는 모델 능력 문제가 아니므로 에스컬레이션 횟수(§5)에 넣지 않는다.
+4. **검증자였다면**: 작성자가 Claude였던 task의 GPT 검증은 해제 시각까지 보류하고 테스트 통과 + 오케스트레이터 diff 확인으로 임시 갈음한다. 위험도 `high`는 검증을 보류하고 사용자에게 알린다.
+5. **기록**: 로그 `비고`에 `codex 한도 → claude 폴백, 해제 시각 <시각>`을 남긴다.
 
 ## 2. 역할별 기본 티어 (Jev 신호를 반영하기 전의 출발점)
 
@@ -67,11 +81,13 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 
 `config.json`의 `model_overrides`는 **사용자가 박아 둔 값이 항상 우선**이다. 이 스킬은 override가 없는 곳과 executor의 task 단위만 채운다.
 
-## 3. Jev 분류 (plan 하나당 3회 호출)
+## 3. Jev 분류 (task당 `jev_ask` 1회)
 
-대상 task가 여러 개면 모두 한 호출에 배치한다(`jev_classify`는 최대 64개, 항목당 2000자). 텍스트는 task의 `<action>` 요약 + `files` 목록 + `<acceptance_criteria>` 요약으로 자른다. PLAN 전문을 넣지 않는다.
+`state`에는 task의 `<action>` 요약 + `files` 목록 + `<acceptance_criteria>` 요약만 넣는다. PLAN 전문을 넣지 않는다.
 
-### 3-a. 복잡도 — `jev_classify`
+**도구 (2026-11-02 통일)**: Claude Code 플러그인(claude-jev)의 공식 서버 `mcp__plugin_claude-jev_jev__*`(`jev_ask`, `jev_choice`, `jev_noul`, `jev_score`, `jev_doctor`)만 쓴다. 직접 등록한 `mcp__jev__*`(`jev_classify` 등)는 인증 문제(HTTP 401)가 있어 쓰지 않는다. task 하나당 `jev_ask`를 1회 호출하고, `questions` map에 `complexity`·`risk`(type `choice`, criteria는 §3-a/§3-b 클래스 정의)와 `P1`~`P4`(type `noul`, instructions는 §3-c 명제)를 담으면 6문항이 병렬로 판정된다. task가 여러 개면 task별 호출을 한 메시지에서 병렬로 보낸다. 각 답의 `gated.action`이 `auto`(신뢰도 ≥ 0.75)면 확정이고, `escalate`면 §4 ②1의 `review`와 같이 취급한다. 도구 스키마는 추측하지 않고 ToolSearch로 확인한다(deferred일 수 있다).
+
+### 3-a. 복잡도 — `jev_ask`(type `choice`)
 
 | class id | 정의 |
 |---|---|
@@ -80,7 +96,7 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 | `multi_file` | 여러 모듈을 가로지르는 구현, 기존 코드의 미묘한 상호작용 이해 필요 |
 | `architectural` | 구조·데이터 모델·API 계약 결정, 열린 설계 판단, 마이그레이션 설계 |
 
-### 3-b. 위험도 — `jev_classify`
+### 3-b. 위험도 — `jev_ask`(type `choice`)
 
 | class id | 정의 |
 |---|---|
@@ -88,20 +104,20 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 | `medium` | 사용자 데이터·공유 컴포넌트에 영향, 테스트가 일부만 덮음 |
 | `high` | 결제·인증·권한(RLS)·키/비밀·데이터 마이그레이션·삭제, 틀리면 조용히 깨짐 |
 
-### 3-c. 보조 신호 — `jev_noul` (명제 배치)
+### 3-c. 보조 신호 — `jev_ask`(type `noul`)
 
-task마다 아래 명제를 만들어 한 번에 보낸다.
+task마다 아래 명제를 같은 `jev_ask` 호출에 담는다.
 
 - P1 (자족성) "이 task는 task 설명과 지정된 파일만 있으면, 다른 대화 맥락이나 사용자 결정 없이 완수할 수 있다." — **참일수록 GPT 친화**. (2026-10-19 개정: 이전 문구 "대화 문맥을 모르면 수행할 수 없다"는 단순한 task도 0.83으로 나와 채널이 거의 항상 Claude로 갔다.)
 - P2 "이 task를 완수하거나 완료 조건을 확인하려면 네트워크, 원격 DB, 브라우저, MCP 같은 샌드박스 밖 자원이 필요하다."
 - P3 "이 task의 완료 조건은 grep/테스트로 기계적으로 검증할 수 있다."
 - P4 "이 task는 완료 조건이 모호해 구현 중 설계 판단이 필요하다."
 
-`auto_accept` 기본값(0.85)을 쓴다. 0.15~0.85 사이는 "불확실"로 취급한다.
+`noul`의 신뢰도는 확률이 0.5에서 떨어진 정도라, `auto`(신뢰도 ≥ 0.75)는 확률이 0.25 이하 또는 0.75 이상일 때다. 그 사이는 "불확실"로 취급한다.
 
-### 3-d. 애매한 경계에서만 — `jev_decide`
+### 3-d. 애매한 경계에서만 — `jev_choice`
 
-복잡도 상위 두 클래스의 확률 차(margin)가 0.15 미만이고 위험도가 `medium` 이상일 때만 쓴다. 후보는 "낮은 티어로 시도 후 검증"과 "높은 티어로 바로 실행"으로 놓고 evidence에 파일 수·검증 가능성(P3)을 담는다. 같은 입력으로 더 마음에 드는 답이 나올 때까지 반복 호출하지 않는다. `ask_user`/`investigate`가 우세하면 사용자에게 묻는다.
+복잡도 상위 두 클래스의 확률 차(margin)가 0.15 미만이고 위험도가 `medium` 이상일 때만 쓴다. `state`에 task 요약·파일 수·검증 가능성(P3)을 담고, criteria는 "낮은 티어로 시도 후 검증"과 "높은 티어로 바로 실행" 두 선택지로 놓는다. 같은 입력으로 더 마음에 드는 답이 나올 때까지 반복 호출하지 않는다. `gated.action`이 `escalate`면 사용자에게 묻는다.
 
 ## 4. 결정 규칙 (고정 표 — Jev 출력을 여기에 넣기만 한다)
 
@@ -125,7 +141,7 @@ task마다 아래 명제를 만들어 한 번에 보낸다.
 
 **④ 모델 결정**: ①~③ 결과의 (티어, 채널)을 §1 표에서 찾는다. 해당 칸이 비어 있으면(Claude T2·T0) 같은 채널의 한 칸 위 티어를 쓴다.
 
-**⑤ 검증자 결정**: 작성자 티어 −1 이상, 반대 계열. 위험도 `high`면 검증자도 T3 이상. 위험도 `low` + P3 참이면 별도 모델 검증 없이 테스트 통과 + 오케스트레이터 diff 확인으로 갈음한다(토큰 절약 구간).
+**⑤ 검증자 결정**: 작성자 티어 −1 이상, 반대 계열. 위험도 `high`면 검증자도 T3 이상. 위험도 `low` + P3 참이면 별도 모델 검증 없이 테스트 통과 + 오케스트레이터 diff 확인으로 갈음한다(토큰 절약 구간). 검증자 Codex도 `-s workspace-write`로 돌려 테스트를 직접 실행하게 한다(§1 템플릿, 프롬프트에 수정 금지 명시).
 
 ### 예시
 
@@ -151,7 +167,7 @@ task마다 아래 명제를 만들어 한 번에 보낸다.
 
 1. `.planning/model-routing/models.md`와 `config.json`의 `model_overrides`를 읽는다(override가 있으면 그 역할은 여기서 종료).
 2. 대상 plan의 task 요약을 만든다(PLAN 전문을 읽지 않고 frontmatter + task별 `<action>`/`files`/`<acceptance_criteria>` 첫머리).
-3. `mcp__jev__jev_classify`(복잡도) → `jev_classify`(위험도) → `jev_noul`(P1~P4)을 호출한다. 도구 이름·스키마는 추측하지 않고 도구 목록에서 확인한다.
+3. task마다 `mcp__plugin_claude-jev_jev__jev_ask`를 1회 호출해 복잡도·위험도·P1~P4를 한 번에 받는다(§3). 도구 스키마는 추측하지 않고 ToolSearch로 확인한다(deferred일 수 있다).
 4. §4 표로 task별 (모델, 채널, 검증자)를 계산한다.
 5. 결과를 PLAN.md frontmatter의 `routing:` 블록에 기록한다(§7). **기록 후에는 같은 입력에 Jev를 다시 부르지 않는다.**
 6. 사용자에게 한 줄로 알린다: `task 3개 → GPT 5.6 Terra ×2, GPT 6.1 Sol ×1 (결제 위험). 검증은 sonnet.` (AGENTS.md "호출 전 보고")
