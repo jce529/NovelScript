@@ -84,6 +84,8 @@ export const RESPONSE_PROTOCOL_INSTRUCTIONS = `당신의 응답은 항상 아래
 export interface ComposeSystemInstructionInput {
   presetLevel: PresetLevel;
   styleId: StylePresetId;
+  /** External context bundles may omit the app's response parser protocol. App default: true. */
+  includeAppResponseProtocol?: boolean;
   /** D-07: the active genre for this generation — defaults to the work's own
    * genre but is overridable per-generation. Always a plain string (one of
    * lib/works/genres.ts's GENRES), never absent. */
@@ -124,11 +126,11 @@ ${plan.templateContent}`;
  * (always first, never replaced) + 작품 추가 지시 (intermediate/freeform only)
  * + genre + 문체 프리셋 + AI-지시 프리셋 instruction (freeform uses the
  * author's customInstruction when non-blank) + optional documentPlan + the
- * REPLY/DRAFT/DOCUMENT response protocol (always last, not author-editable).
+ * REPLY/DRAFT/DOCUMENT response protocol (last by default, not author-editable).
  * The per-turn user message and prior conversation live in `contents`
  * (assembleUserContent). Without the two optional fields the output is
  * identical to the legacy composition. */
-export function composeSystemInstruction({ presetLevel, styleId, genre, documentPlan, customInstruction, workSystemInstruction }: ComposeSystemInstructionInput): string {
+export function composeSystemInstruction({ presetLevel, styleId, genre, documentPlan, customInstruction, workSystemInstruction, includeAppResponseProtocol = true }: ComposeSystemInstructionInput): string {
   const genreInstruction = `이 작품의 장르는 '${genre}'입니다. 장르 관습과 독자 기대에 맞게 작성하세요.`;
   const styleInstruction = STYLE_PRESETS[styleId].instruction;
   const custom = presetLevel === 'freeform' ? customInstruction?.trim() : undefined;
@@ -136,7 +138,7 @@ export function composeSystemInstruction({ presetLevel, styleId, genre, document
   const work = presetLevel === 'beginner' ? undefined : workSystemInstruction?.trim();
   const workBlock = work ? [`작품 추가 지시:\n${work}`] : [];
 
-  return [BASELINE_SYSTEM_PROMPT, ...workBlock, genreInstruction, styleInstruction, presetInstruction, ...(documentPlan ? [composeDocumentPlanDirective(documentPlan)] : []), RESPONSE_PROTOCOL_INSTRUCTIONS].join('\n\n');
+  return [BASELINE_SYSTEM_PROMPT, ...workBlock, genreInstruction, styleInstruction, presetInstruction, ...(documentPlan ? [composeDocumentPlanDirective(documentPlan)] : []), ...(includeAppResponseProtocol ? [RESPONSE_PROTOCOL_INSTRUCTIONS] : [])].join('\n\n');
 }
 
 /** One turn of the unified AI 패널 chat — browser-session-only (never
@@ -187,13 +189,15 @@ export interface AssembleUserContentInput {
   chatHistory: ChatTurn[];
   /** 'document' when the chat runs inside a 설정 문서 instead of a chapter. */
   contextKind?: 'chapter' | 'document';
+  /** Omit only the final app format directive when false. App default: true. */
+  includeAppResponseProtocol?: boolean;
 }
 
 /** Assembles the Gemini `contents` string: mentioned KB doc content (if any) +
  * the chat session so far + the preceding canvas text. Per 02-CONTEXT.md
  * D-13, `content` is injected verbatim — wiki-link `[[ ]]` syntax is inert
  * plain text, never resolved here. */
-export function assembleUserContent({ mentionedDocs, precedingText, chatHistory, contextKind }: AssembleUserContentInput): string {
+export function assembleUserContent({ mentionedDocs, precedingText, chatHistory, contextKind, includeAppResponseProtocol = true }: AssembleUserContentInput): string {
   const sections: string[] = [];
   if (mentionedDocs.length > 0) {
     const kbContext = mentionedDocs
@@ -208,6 +212,6 @@ export function assembleUserContent({ mentionedDocs, precedingText, chatHistory,
       .join('\n\n');
     sections.push(`다음은 이 세션에서 지금까지 나눈 대화입니다:\n\n${history}`);
   }
-  sections.push('가장 마지막 작가 메시지에 응답하세요. 위에서 지시한 [REPLY]/[DRAFT]/[DOCUMENT] 형식을 반드시 지키세요.');
+  if (includeAppResponseProtocol) sections.push('가장 마지막 작가 메시지에 응답하세요. 위에서 지시한 [REPLY]/[DRAFT]/[DOCUMENT] 형식을 반드시 지키세요.');
   return sections.join('\n\n---\n\n');
 }

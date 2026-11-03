@@ -171,8 +171,20 @@ export async function issueMcpToken(
 
 export type McpCallResult = { status: number; userId: string | null; isError: boolean; challenge: string | null };
 
-/** Calls the real /mcp route handler (verifyMcpToken + live RPC) with tools/call whoami. */
-export async function callWhoami(accessToken: string, args: Record<string, unknown> = {}): Promise<McpCallResult> {
+/**
+ * Result of any tools/call through the real route. `raw` is the whole HTTP response body and
+ * `text` the first content item; callers assert on them but must never print them.
+ * `jsonRpcError` is set when the call failed at the protocol level (e.g. unknown tool).
+ */
+export type McpToolCallResult = {
+  status: number; isError: boolean; challenge: string | null;
+  raw: string; text: string | null; data: unknown; jsonRpcError: boolean;
+};
+
+/** Calls the real /mcp route handler (verifyMcpToken + live RPC) with tools/call `name`. */
+export async function callTool(
+  accessToken: string, name: string, args: Record<string, unknown> = {},
+): Promise<McpToolCallResult> {
   const { POST } = await import('@/app/mcp/route');
   const origin = process.env.MCP_PUBLIC_ORIGIN ?? 'http://localhost:3000';
   const response = await POST(new Request(`${origin}/mcp`, {
@@ -183,18 +195,29 @@ export async function callWhoami(accessToken: string, args: Record<string, unkno
       accept: 'application/json, text/event-stream',
       'mcp-protocol-version': '2025-06-18',
     },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'whoami', arguments: args } }),
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: args } }),
   }));
   const challenge = response.headers.get('www-authenticate');
-  if (response.status !== 200) return { status: response.status, userId: null, isError: true, challenge };
-  const text = await response.text();
+  const raw = await response.text();
+  if (response.status !== 200) {
+    return { status: response.status, isError: true, challenge, raw, text: null, data: null, jsonRpcError: false };
+  }
   const payload = (response.headers.get('content-type') ?? '').includes('text/event-stream')
-    ? text.split('\n').filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trim()).at(-1) ?? '{}'
-    : text;
-  const body = JSON.parse(payload) as { result?: { isError?: boolean; content?: Array<{ text?: string }> } };
+    ? raw.split('\n').filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trim()).at(-1) ?? '{}'
+    : raw;
+  const body = JSON.parse(payload) as { result?: { isError?: boolean; content?: Array<{ text?: string }> }; error?: unknown };
   const isError = body.result?.isError === true || !body.result;
-  const userId = isError ? null : (JSON.parse(body.result?.content?.[0]?.text ?? '{}') as { userId?: string }).userId ?? null;
-  return { status: response.status, userId, isError, challenge };
+  const text = body.result?.content?.[0]?.text ?? null;
+  let data: unknown = null;
+  if (!isError && text !== null) data = JSON.parse(text);
+  return { status: response.status, isError, challenge, raw, text, data, jsonRpcError: body.error !== undefined };
+}
+
+/** Calls the real /mcp route handler (verifyMcpToken + live RPC) with tools/call whoami. */
+export async function callWhoami(accessToken: string, args: Record<string, unknown> = {}): Promise<McpCallResult> {
+  const result = await callTool(accessToken, 'whoami', args);
+  const userId = result.isError ? null : (result.data as { userId?: string } | null)?.userId ?? null;
+  return { status: result.status, userId, isError: result.isError, challenge: result.challenge };
 }
 
 /** REST read with an arbitrary bearer. Returns status and row count only (bodies may hold account data). */
