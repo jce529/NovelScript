@@ -1,15 +1,15 @@
 # Phase 13 — Nyquist 검증 초안
 
-`workflow.nyquist_validation=true` (`.planning/config.json`). 이 문서는 계획 시점 초안이며 아래 실행 결과는 아직 없다. 13-05에서 실제 명령 결과와 Claude 인수 관찰만 갱신한다.
+`workflow.nyquist_validation=true` (`.planning/config.json`). 이 문서는 계획 시점 초안이며, 13-05(2026-11-03)에서 자동·일회용 DB 실행 결과만 갱신했다. Claude 인수 관찰은 아직 없다(pending).
 
 일회용 DB 검증은 프로젝트 루트 `.env.disposable`이 있을 때만 한다. 파일이 없으면 즉시 중단하고 사용자에게 보고한다. 실행 전 API·DB URL의 프로젝트 ref 일치와 공유 프로젝트 ref와의 차이를 확인한다. 모든 DB 명령은 실제 실행 테스트 수 0 초과, skipped 0이 필수다. 공유 Supabase 프로젝트에서는 실행하지 않는다.
 
 | 요구사항 | 자동 검증 명령 | 일회용 DB 검증 명령 | 상태 |
 |---|---|---|---|
-| MCP-02 | `npx vitest run tests/mcp/tools-works.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/read-boundary.database.test.ts tests/mcp/tools.cross-user.database.test.ts --project db` | 미실행 |
-| MCP-03 | `npx vitest run tests/mcp/tools-kb.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/tools.cross-user.database.test.ts --project db` | 미실행 |
-| MCP-04 | `npx vitest run tests/mcp/writing-context.test.ts tests/ai/prompt.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/tools.cross-user.database.test.ts --project db` | 미실행 |
-| MCP-09 | `npx vitest run tests/mcp/tool-annotations.test.ts tests/mcp/route-auth.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/tools.cross-user.database.test.ts --project db` | 미실행 |
+| MCP-02 | `npx vitest run tests/mcp/tools-works.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/read-boundary.database.test.ts tests/mcp/tools.cross-user.database.test.ts --project db` | 자동 PASS — 단위 59/59, DB 16+12/28, skipped 0 |
+| MCP-03 | `npx vitest run tests/mcp/tools-kb.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/tools.cross-user.database.test.ts --project db` | 자동 PASS — 단위 85/85, DB 12/12, skipped 0 |
+| MCP-04 | `npx vitest run tests/mcp/writing-context.test.ts tests/ai/prompt.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/tools.cross-user.database.test.ts --project db` | 자동 PASS — 단위 69+18/87, DB 12/12, skipped 0 |
+| MCP-09 | `npx vitest run tests/mcp/tool-annotations.test.ts tests/mcp/route-auth.test.ts --project unit` | `node --env-file=.env.disposable node_modules/vitest/vitest.mjs run tests/mcp/tools.cross-user.database.test.ts --project db` | 자동 PASS — 단위 4+16/20, DB 12/12, skipped 0. 실제 Claude 무확인 호출은 pending |
 
 공통 정적 확인: `npx tsc --noEmit`, `npx vitest run tests/mcp/no-admin-client.test.ts --project unit`. D-17 카탈로그·RPC 감사 게이트: 13-01 및 13-01b의 일회용 DB 테스트 결과를 기록한다. grant 조회 장애의 fail closed는 13-01의 오류 주입 단위 테스트로 확인하며 실DB 장애 재현은 요구하지 않는다.
 
@@ -33,5 +33,12 @@ Claude 커넥터 인수: Phase 12의 실제 연결 성공 후 여섯 읽기 도�
 
 | 항목 | 결과 | 근거 |
 |---|---|---|
-| 자동·DB 테스트 | 미실행 | 13-05에서 갱신 |
-| 실제 Claude 커넥터 | pending | Phase 12 연결 인수 후 갱신 |
+| D-17 선행 경계 (13-01·13-01b) | PASS | Task 1 전에 `read-boundary.database.test.ts` 단독 실행 16/16 통과(skipped 0). 40개 테이블 카탈로그·네 테이블 소유자 SELECT·본문 RPC·노출 SECURITY DEFINER 37개 분류 포함 |
+| grant 조회 장애 fail closed | PASS | `tests/mcp/grant-fail-closed.test.ts` 12/12 (단위, 13-01 오류 주입). 실DB 재현은 요구하지 않음 |
+| 일회용 DB 전체 (`tests/mcp --project db`) | PASS — 50/50, failed 0, skipped 0 | 6개 파일: read-boundary 16, tools.cross-user 12(신규), cross-user 9, grants 6, revoke-blocks 4, sensitive-rls 3. 기존 38개 + 신규 12개. 같은 날 두 번 연속 실행해 모두 통과(JSON reporter: numPendingTests 0, numTodoTests 0) |
+| 여섯 도구 교차 사용자 (MCP-02/03/04) | PASS | `tools.cross-user.database.test.ts`: 먼저 A 토큰으로 A의 작품·초안/유료/공개 회차·작품/공유 문서·번들이 읽히는지 확인(음성 결과가 의미 있도록), 이어 B 토큰에 A의 ID를 주입. list_works는 B 행만, list_chapters·get_chapter·search_kb(A 작품)·get_kb_document·get_writing_context(A 작품·회차)는 고정 문구 "요청한 항목을 찾을 수 없습니다."만 반환하고 A ID를 되돌려주지 않음. B 작품에서 A 본문 문자열로 검색하면 빈 결과, 전체 목록 페이지에도 A 노드 없음. 응답 원문 어디에도 A 고유 표식 문자열·SQL/PostgREST 오류 조각(PGRST, permission denied, 42501 등) 없음 |
+| 혼합 번들 (MCP-04) | PASS | B 공유·작품 노드 + A 작품·공유·폴더 노드를 섞은 nodeIds에서 includedDocuments는 B 두 문서뿐(요청 순서 유지), missingNodeIds는 A 세 ID뿐, systemInstruction·userContext에 A 지시·본문 없음 |
+| 해제 후 차단 (MCP-02/03/04/09) | PASS | grant 해제 전에 발급한 B 토큰(만료 전)으로 해제 후 7개 도구 모두 HTTP 401 + Bearer challenge, 본문에 B 데이터·ID 없음. 별도 client의 B 토큰은 계속 동작 |
+| 정적 계약 (MCP-09) | PASS | `tool-annotations.test.ts` 4/4: 라우트가 등록하는 7개 도구(whoami 포함)의 네 annotation(true,false,true,false)·title·description·strict schema(userId/ownerId 추가 거부). `route-auth.test.ts` 16/16: tools/list 7개·`additionalProperties:false`, 토큰 없음·grant 0행 시 여섯 도구 401·DB 조회 0회, SQL 오류 주입 시 원문 미노출. `no-admin-client.test.ts` 11/11: `lib/mcp/**`·`app/mcp/**`에 admin client·service role 참조와 쿠키 기반 클라이언트(`next/headers`, `@/lib/supabase/server|client`) import가 없음. 상대·동적·require 경로 import도 정규식으로 잡는다(교차 리뷰 반영) |
+| 타입 검사 | 신규 오류 없음(통과 아님: 기존 오류 1건 남음) | `tsc --noEmit`: `app/layout.tsx`의 `LayoutProps` 오류 1건만 나온다. 이 파일은 Phase 13에서 수정하지 않았다. 이 오류를 해결하지 않았으므로 `tsc` 전체는 통과가 아니다 |
+| 실제 Claude 커넥터 (13-05 Task 3, 성공 기준 4) | pending | Phase 12 `12-06` Task 2의 실제 Claude 연결 인수가 아직 pending이라 관찰하지 않았다. 여섯 읽기 도구의 확인 프롬프트 유무와 해제 후 재호출 거부는 연결 성공 후 기록한다. 성공 기준 4는 완료가 아니다 |

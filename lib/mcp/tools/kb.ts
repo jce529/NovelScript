@@ -6,6 +6,7 @@ import {
   MCP_READ_ANNOTATIONS, McpToolError, withMcpReadTool,
   type McpPage, type McpToolRegistrar,
 } from '@/lib/mcp/tool-runtime';
+import { requireOwnedWork } from '@/lib/mcp/owned-work';
 
 export const searchKbInputSchema = z.strictObject({
   workId: z.string().uuid(), query: z.string().max(200),
@@ -30,16 +31,6 @@ export interface McpKbDocumentDto {
   id: string; workId: string; name: string; scope: Scope; category: string;
   content: string; offset: number; maxChars: number; totalChars: number;
   nextOffset: number | null; truncated: boolean;
-}
-
-// works.ts keeps its helper private. Preserve that exact error-aware ownership
-// contract locally while that file is outside this plan's permitted edit scope.
-async function requireOwnedWork(db: SupabaseClient, userId: string, workId: string): Promise<void> {
-  const { data, error } = await db.from('works').select('id, owner_id')
-    .eq('id', workId).eq('owner_id', userId).is('deleted_at', null).maybeSingle();
-  if (error) throw error;
-  if (data === null) throw new McpToolError('missing');
-  z.object({ id: z.literal(workId), owner_id: z.literal(userId) }).parse(data);
 }
 
 function escapeLike(query: string): string { return query.replace(/[\\%_]/g, '\\$&'); }

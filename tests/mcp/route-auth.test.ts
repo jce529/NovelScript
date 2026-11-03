@@ -12,18 +12,52 @@ const CLIENT = '33333333-3333-4333-8333-333333333333';
 const SESSION = '44444444-4444-4444-8444-444444444444';
 const TOKEN = 'unit.header.token';
 const METADATA_URL = `${ORIGIN}/.well-known/oauth-protected-resource/mcp`;
+const WORK = '55555555-5555-4555-8555-555555555555';
+const CHAPTER = '66666666-6666-4666-8666-666666666666';
+const NODE = '77777777-7777-4777-8777-777777777777';
+/** Phase 13 read tools registered next to whoami, with valid arguments for each. */
+const READ_TOOLS = [
+  'list_works', 'list_chapters', 'get_chapter', 'search_kb', 'get_kb_document', 'get_writing_context',
+] as const;
+const TOOL_ARGS: Record<(typeof READ_TOOLS)[number], Record<string, unknown>> = {
+  list_works: {},
+  list_chapters: { workId: WORK },
+  get_chapter: { workId: WORK, chapterId: CHAPTER },
+  search_kb: { workId: WORK, query: '' },
+  get_kb_document: { workId: WORK, nodeId: NODE },
+  get_writing_context: { workId: WORK, chapterId: CHAPTER, nodeIds: [NODE] },
+};
 
 const fake = vi.hoisted(() => ({
   claims: null as Record<string, unknown> | null,
   rpc: { data: null as unknown, error: null as unknown },
   createClient: [] as Array<{ url: string; key: string; authorization?: string }>,
   rpcCalls: [] as Array<{ fn: string; args: unknown }>,
+  // Result of every PostgREST table query a tool makes through the per-call data client.
+  query: { data: null as unknown, error: null as unknown },
+  fromCalls: [] as string[],
 }));
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: (url: string, key: string, options?: { global?: { headers?: Record<string, string> } }) => {
     fake.createClient.push({ url, key, authorization: options?.global?.headers?.Authorization });
+    // Chainable, thenable query builder: any filter/order/range call returns itself and
+    // awaiting it (or maybeSingle()) yields fake.query.
+    const builder: Record<string, unknown> = new Proxy({}, {
+      get(_target, prop) {
+        if (prop === 'then') {
+          return (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+            Promise.resolve(fake.query).then(resolve, reject);
+        }
+        if (prop === 'maybeSingle' || prop === 'single') return async () => fake.query;
+        return () => builder;
+      },
+    });
     return {
+      from: (table: string) => {
+        fake.fromCalls.push(table);
+        return builder;
+      },
       auth: {
         getClaims: async () => (fake.claims
           ? { data: { claims: fake.claims }, error: null }
@@ -60,7 +94,7 @@ function rpcRequest(method: string, params: Record<string, unknown> = {}, init: 
 }
 
 type RpcResult = {
-  tools?: Array<{ name: string; annotations?: Record<string, unknown>; inputSchema?: { properties?: Record<string, unknown> } }>;
+  tools?: Array<{ name: string; annotations?: Record<string, unknown>; inputSchema?: { properties?: Record<string, unknown>; additionalProperties?: unknown } }>;
   content?: Array<{ type: string; text: string }>;
   isError?: boolean;
 };
@@ -97,6 +131,8 @@ describe('/mcp route authentication', () => {
     fake.rpc = { data: [{ out_user_id: USER, out_scopes: ['read', 'propose_draft'] }], error: null };
     fake.createClient = [];
     fake.rpcCalls = [];
+    fake.query = { data: null, error: null };
+    fake.fromCalls = [];
   });
   afterEach(() => vi.unstubAllEnvs());
 
@@ -158,13 +194,49 @@ describe('/mcp route authentication', () => {
     expect(fake.rpcCalls).toEqual([{ fn: 'mcp_authorize_call', args: undefined }]);
   });
 
-  it('lists exactly one read-only tool, whoami, with no input properties', async () => {
+  it('lists exactly the seven read-only tools with full read annotations and closed input schemas', async () => {
     const { POST } = await loadRoute();
     const body = await jsonRpcBody(await POST(rpcRequest('tools/list', {}, { token: TOKEN })));
     const tools = body.result?.tools ?? [];
-    expect(tools.map((tool) => tool.name)).toEqual(['whoami']);
-    expect(tools[0].annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false });
-    expect(Object.keys(tools[0].inputSchema?.properties ?? {})).toEqual([]);
+    expect(tools.map((tool) => tool.name).sort()).toEqual([...READ_TOOLS, 'whoami'].sort());
+    for (const tool of tools) {
+      expect(tool.annotations, tool.name).toEqual({
+        readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false,
+      });
+      expect(tool.inputSchema?.additionalProperties, tool.name).toBe(false);
+    }
+    const whoami = tools.find((tool) => tool.name === 'whoami');
+    expect(Object.keys(whoami?.inputSchema?.properties ?? {})).toEqual([]);
+  });
+
+  it('runs no Phase 13 tool without a bearer or after the grant is gone', async () => {
+    const { POST } = await loadRoute();
+    for (const name of READ_TOOLS) {
+      const anonymous = await POST(rpcRequest('tools/call', { name, arguments: TOOL_ARGS[name] }));
+      expectChallenge(anonymous);
+    }
+    expect(fake.createClient).toEqual([]);
+    fake.rpc = { data: [], error: null };
+    for (const name of READ_TOOLS) {
+      const revoked = await POST(rpcRequest('tools/call', { name, arguments: TOOL_ARGS[name] }, { token: TOKEN }));
+      expectChallenge(revoked);
+    }
+    expect(fake.fromCalls).toEqual([]);
+  });
+
+  it('never forwards a raw SQL error from a tool to the client', async () => {
+    const { POST } = await loadRoute();
+    const secret = 'relation "public.works" permission denied for SECRET_COLUMN';
+    fake.query = { data: null, error: { message: secret, code: '42501', details: secret, hint: secret } };
+    for (const name of READ_TOOLS) {
+      const response = await POST(rpcRequest('tools/call', { name, arguments: TOOL_ARGS[name] }, { token: TOKEN }));
+      expect(response.status).toBe(200);
+      const raw = await response.text();
+      expect(raw, name).not.toContain('SECRET_COLUMN');
+      expect(raw, name).not.toContain('42501');
+      expect(raw, name).toContain('isError');
+    }
+    expect(fake.fromCalls.length).toBeGreaterThan(0);
   });
 
   it('whoami returns only the token owner ID', async () => {

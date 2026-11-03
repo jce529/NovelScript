@@ -1,10 +1,10 @@
 import 'server-only';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
   MCP_READ_ANNOTATIONS, McpToolError, withMcpReadTool,
   type McpPage, type McpToolRegistrar,
 } from '@/lib/mcp/tool-runtime';
+import { requireOwnedWork } from '@/lib/mcp/owned-work';
 
 const pageInput = {
   limit: z.number().int().min(1).max(50).default(20),
@@ -45,15 +45,6 @@ export interface McpChapterContentDto {
 
 function page<T>(rows: T[], offset: number, limit: number): McpPage<T> {
   return { items: rows.slice(0, limit), offset, limit, nextOffset: rows.length > limit ? offset + limit : null };
-}
-
-/** Unlike getWork/listChapters, never swallow errors during an ownership decision. */
-async function requireOwnedWork(db: SupabaseClient, userId: string, workId: string): Promise<void> {
-  const { data, error } = await db.from('works').select('id, owner_id')
-    .eq('id', workId).eq('owner_id', userId).is('deleted_at', null).maybeSingle();
-  if (error) throw error;
-  if (data === null) throw new McpToolError('missing');
-  if (!data || data.id !== workId || data.owner_id !== userId) throw new Error('Invalid ownership result');
 }
 
 /** Only exports registration; the /mcp route wires these tools in plan 13-05. */
