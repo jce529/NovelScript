@@ -41,4 +41,31 @@ Claude 커넥터 인수: Phase 12의 실제 연결 성공 후 여섯 읽기 도�
 | 해제 후 차단 (MCP-02/03/04/09) | PASS | grant 해제 전에 발급한 B 토큰(만료 전)으로 해제 후 7개 도구 모두 HTTP 401 + Bearer challenge, 본문에 B 데이터·ID 없음. 별도 client의 B 토큰은 계속 동작 |
 | 정적 계약 (MCP-09) | PASS | `tool-annotations.test.ts` 4/4: 라우트가 등록하는 7개 도구(whoami 포함)의 네 annotation(true,false,true,false)·title·description·strict schema(userId/ownerId 추가 거부). `route-auth.test.ts` 16/16: tools/list 7개·`additionalProperties:false`, 토큰 없음·grant 0행 시 여섯 도구 401·DB 조회 0회, SQL 오류 주입 시 원문 미노출. `no-admin-client.test.ts` 11/11: `lib/mcp/**`·`app/mcp/**`에 admin client·service role 참조와 쿠키 기반 클라이언트(`next/headers`, `@/lib/supabase/server|client`) import가 없음. 상대·동적·require 경로 import도 정규식으로 잡는다(교차 리뷰 반영) |
 | 타입 검사 | 신규 오류 없음(통과 아님: 기존 오류 1건 남음) | `tsc --noEmit`: `app/layout.tsx`의 `LayoutProps` 오류 1건만 나온다. 이 파일은 Phase 13에서 수정하지 않았다. 이 오류를 해결하지 않았으므로 `tsc` 전체는 통과가 아니다 |
-| 실제 Claude 커넥터 (13-05 Task 3, 성공 기준 4) | pending | Phase 12 `12-06` Task 2의 실제 Claude 연결 인수가 아직 pending이라 관찰하지 않았다. 여섯 읽기 도구의 확인 프롬프트 유무와 해제 후 재호출 거부는 연결 성공 후 기록한다. 성공 기준 4는 완료가 아니다 |
+| 실제 Claude 커넥터 (13-05 Task 3, 성공 기준 4) | 조건부 통과(일회용 환경, 2026-11-03) | 아래 "Task 3 실제 Claude 인수 기록" 참고. 도구 7개가 Claude에서 "읽기 전용 도구"로 분류됐고 해제 후 호출이 차단됐다. 단 Claude의 **기본 도구 권한은 "승인 필요"** 라서 기본 상태에서는 읽기 도구도 승인 카드가 나왔고, 그룹을 "항상 허용"으로 바꾼 뒤에야 무확인으로 실행됐다. 성공 기준 4를 완료로 볼지는 사용자 판단 대기 |
+
+## Task 3 실제 Claude 인수 기록 (2026-11-03, 일회용 Supabase `anzafn…` + 무료 터널 + `next start`)
+
+환경: 일회용 프로젝트에서 사용자가 Site URL·Redirect URLs를 터널 주소로 바꾸고, 임시 작가(`@novelscript.test`) 세션 쿠키로 동의 화면을 승인했다(소셜 로그인 없음). 실제 claude.ai(사용자 계정, Pro)에서 커스텀 커넥터로 연결했다. 공유 프로젝트 `ymudwg…`는 사용하지 않았다. Claude in Chrome으로 에이전트가 화면을 조작했다.
+
+| # | 확인 | 결과 | 관찰 |
+|---|---|---|---|
+| 1 | 연결 성립 (12-06 Task 2 #3·#4) | PASS | 동의 승인 후 커넥터 연결됨. DB `mcp_connections`: client `Claude`, 출처 `claude.ai`, 범위 `read`·`propose_draft`, `revoked_at` null |
+| 2 | 도구 목록·annotation 인식 (MCP-09) | PASS | Claude 도구 권한 화면이 7개 도구를 모두 **"읽기 전용 도구 7"** 그룹으로 분류(한국어 title 표시) |
+| 3 | 기본 권한에서의 호출 | **승인 필요** | 기본 권한이 "승인 필요"라 `연결된 작가 확인` 호출 시 승인 카드(`거부`/`항상 허용`/`한 번만 허용`)가 나타났다. `한 번만 허용` 후 정상 응답 |
+| 4 | 그룹을 "항상 허용"으로 변경 후 호출 | PASS | 승인 카드 없이 작품 목록·회차 목록·회차 본문·설정집 검색·설정 문서 읽기·집필 컨텍스트 묶음이 실행됨. 권한 변경은 Claude 설정(사용자 계정)에서 한 것이며 우리 코드로 바꿀 수 없다 |
+| 5 | 본인 데이터만 (MCP-02/03) | PASS | `whoami`가 승인한 작가의 사용자 ID 반환. 작품 목록은 작가 본인 작품 2개(시드 1 + 사용자가 직접 만든 1)만. 같은 DB의 다른 작가 작품 7개(`테스트 작품` 6, 총괄 계정 `전은재개패기`, 다른 작가 `타인의 비밀 작품`)는 나타나지 않음 |
+| 6 | 초안·미발행 회차 본문 (D-P13-03) | PASS | 1화(미발행 초안) 본문이 그대로 읽힘 |
+| 7 | 설정집 + 계정 공유 (D-P13-02) | PASS | 작품 설정집 `아린`·`무월`과 계정 공유 `문체 가이드`를 검색·읽기 |
+| 8 | 집필 컨텍스트 묶음 (MCP-04) | PASS(관찰 1건) | 포함 문서 2개, 누락 ID 없음, 작품 시스템 지시는 저장값, 프리셋·문체는 기본값(`intermediate`, `concise-hemingway`), 장르 기본값(`GENRES[0]`). **관찰:** `includeAppResponseProtocol`를 Claude가 **직접 `true`로 지정**했다. 입력 스키마에 설명(`.describe`)이 없어 이름과 "앱 조립 순서"라는 도구 설명만 보고 켠 것으로 보인다. 기본값(false)은 인자를 생략할 때만 적용된다 |
+| 9 | 격리 (두 사용자) | PASS | 다른 작가의 비밀 표식 `UAT-B-SECRET`을 설정집 검색과 회차 본문 전체 읽기로 찾게 했으나 어디에도 없음 |
+| 10 | 연결 관리 화면 (MCP-08, 12-06 #5) | PASS | `/studio/settings/mcp-connections`에 카드(`Claude · claude.ai`, 연결일, 마지막 사용 `방금 전`, `연결 해제`)와 커넥터 주소 표시 |
+| 11 | 해제 후 차단 (12-06 #6, 성공 기준 4의 해제 부분) | PASS | 확인창("다음 호출부터 이 커넥터의 접근이 차단돼요") 후 해제 → 같은 대화에서 `List works` 재호출 시 Claude가 "이 도구를 사용하려면 인증이 필요합니다"와 `연결` 버튼 표시. DB `revoked_at` 기록, `last_used_at`은 해제 이전 마지막 성공 호출 시각에서 갱신 안 됨 |
+
+미확인: 12-06 #7(동의 화면 상태 변형), #8(375px·접근성), #9(refresh token 1시간 후)은 이번에 수행하지 않았다.
+판정 보류: 성공 기준 4("읽기 호출에 불필요한 확인 없음")는 Claude 기본 권한이 "승인 필요"라서 기본 상태에서는 충족되지 않는다. annotation은 Claude가 인식(읽기 전용 그룹)하고 사용자가 그룹 단위로 한 번에 "항상 허용"할 수 있다는 점까지 확인했다.
+
+### 후속 조치 (인수 직후)
+
+- 관찰 8(`includeAppResponseProtocol`를 Claude가 직접 `true`로 지정): `get_writing_context` 입력 스키마의 모든 필드에 한국어 `.describe`를 추가했다. 특히 `includeAppResponseProtocol`는 "외부 AI 클라이언트에는 필요 없으므로 기본값은 false, 특별한 이유가 없으면 생략"이라고 적었다. 프리셋·문체·`customInstruction`·`nodeIds`도 의미와 생략 시 동작을 적었다. 테스트가 모든 필드에 설명이 있고 `includeAppResponseProtocol` 설명이 기본값·태그·생략을 언급하는지 검사한다. 같은 클라이언트에서 설명 추가 후 Claude가 이 옵션을 켜지 않는지는 다시 관찰하지 않았다(미검증).
+- 성공 기준 4: "조건부 통과"로 둔다. annotation 인식과 그룹 단위 "항상 허용"까지는 확인했고, 기본 권한이 "승인 필요"인 것은 Claude 클라이언트 정책이라 코드로 바꿀 수 없다. 완료 처리는 사용자·총괄 판정 사항이다.
+- 정리: 서버·터널 종료, 일회용 Supabase Site URL을 `http://localhost:3100`으로 복구(원래 값은 이력이 없어 사용자가 선택), Redirect URLs 비움, Claude의 NovelScript 커넥터 제거. 일회용 DB의 임시 작가 계정과 사용자가 만든 작품 1개는 `locked_node_immutable` 보호로 삭제하지 못해 남아 있고 살아있는 MCP 연결은 0이다.
