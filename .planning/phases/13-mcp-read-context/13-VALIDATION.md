@@ -40,8 +40,8 @@ Claude 커넥터 인수: Phase 12의 실제 연결 성공 후 여섯 읽기 도�
 | 혼합 번들 (MCP-04) | PASS | B 공유·작품 노드 + A 작품·공유·폴더 노드를 섞은 nodeIds에서 includedDocuments는 B 두 문서뿐(요청 순서 유지), missingNodeIds는 A 세 ID뿐, systemInstruction·userContext에 A 지시·본문 없음 |
 | 해제 후 차단 (MCP-02/03/04/09) | PASS | grant 해제 전에 발급한 B 토큰(만료 전)으로 해제 후 7개 도구 모두 HTTP 401 + Bearer challenge, 본문에 B 데이터·ID 없음. 별도 client의 B 토큰은 계속 동작 |
 | 정적 계약 (MCP-09) | PASS | `tool-annotations.test.ts` 4/4: 라우트가 등록하는 7개 도구(whoami 포함)의 네 annotation(true,false,true,false)·title·description·strict schema(userId/ownerId 추가 거부). `route-auth.test.ts` 16/16: tools/list 7개·`additionalProperties:false`, 토큰 없음·grant 0행 시 여섯 도구 401·DB 조회 0회, SQL 오류 주입 시 원문 미노출. `no-admin-client.test.ts` 11/11: `lib/mcp/**`·`app/mcp/**`에 admin client·service role 참조와 쿠키 기반 클라이언트(`next/headers`, `@/lib/supabase/server|client`) import가 없음. 상대·동적·require 경로 import도 정규식으로 잡는다(교차 리뷰 반영) |
-| 타입 검사 | 신규 오류 없음(통과 아님: 기존 오류 1건 남음) | `tsc --noEmit`: `app/layout.tsx`의 `LayoutProps` 오류 1건만 나온다. 이 파일은 Phase 13에서 수정하지 않았다. 이 오류를 해결하지 않았으므로 `tsc` 전체는 통과가 아니다 |
-| 실제 Claude 커넥터 (13-05 Task 3, 성공 기준 4) | 조건부 통과(일회용 환경, 2026-11-03) | 아래 "Task 3 실제 Claude 인수 기록" 참고. 도구 7개가 Claude에서 "읽기 전용 도구"로 분류됐고 해제 후 호출이 차단됐다. 단 Claude의 **기본 도구 권한은 "승인 필요"** 라서 기본 상태에서는 읽기 도구도 승인 카드가 나왔고, 그룹을 "항상 허용"으로 바꾼 뒤에야 무확인으로 실행됐다. 성공 기준 4를 완료로 볼지는 사용자 판단 대기 |
+| 타입 검사 | 신규 오류 없음 (실행 시점에 따라 결과가 다름) | 코드 변경 시점의 `tsc --noEmit`은 `app/layout.tsx`의 `LayoutProps` 오류 1건만 냈다(이 파일은 Phase 13에서 수정하지 않았다). 이후 실제 Claude 인수를 위해 `next build`를 돌려 Next가 타입을 생성한 뒤에는 `tsc --noEmit` 오류가 0건이다. 즉 이 오류는 생성 타입이 없을 때만 나오는 기존 환경 문제로 보이며 코드로 해결한 것이 아니다 |
+| 실제 Claude 커넥터 (13-05 Task 3, 성공 기준 4) | **충족(메모 남김)** — 일회용 환경, 2026-11-03, 사용자 판정(총괄 경유 전달) | 아래 "Task 3 실제 Claude 인수 기록" 참고. 판정 근거: 우리가 붙인 읽기 전용 annotation이 Claude에서 도구 7개를 "읽기 전용 도구" 그룹으로 인식시켰고, 사용자가 그룹 단위로 한 번에 "항상 허용"을 고를 수 있으며, 그 뒤 읽기 호출은 확인 없이 실행됐다. 해제 후 호출도 차단됐다. **메모:** Claude의 기본 도구 권한은 "승인 필요"라서 기본 상태에서는 읽기 도구도 승인 카드가 나온다. 이는 Claude 클라이언트 정책이라 우리 코드로 바꿀 수 없다 |
 
 ## Task 3 실제 Claude 인수 기록 (2026-11-03, 일회용 Supabase `anzafn…` + 무료 터널 + `next start`)
 
@@ -67,5 +67,5 @@ Claude 커넥터 인수: Phase 12의 실제 연결 성공 후 여섯 읽기 도�
 ### 후속 조치 (인수 직후)
 
 - 관찰 8(`includeAppResponseProtocol`를 Claude가 직접 `true`로 지정): `get_writing_context` 입력 스키마의 모든 필드에 한국어 `.describe`를 추가했다. 특히 `includeAppResponseProtocol`는 "외부 AI 클라이언트에는 필요 없으므로 기본값은 false, 특별한 이유가 없으면 생략"이라고 적었다. 프리셋·문체·`customInstruction`·`nodeIds`도 의미와 생략 시 동작을 적었다. 테스트가 모든 필드에 설명이 있고 `includeAppResponseProtocol` 설명이 기본값·태그·생략을 언급하는지 검사한다. 같은 클라이언트에서 설명 추가 후 Claude가 이 옵션을 켜지 않는지는 다시 관찰하지 않았다(미검증).
-- 성공 기준 4: "조건부 통과"로 둔다. annotation 인식과 그룹 단위 "항상 허용"까지는 확인했고, 기본 권한이 "승인 필요"인 것은 Claude 클라이언트 정책이라 코드로 바꿀 수 없다. 완료 처리는 사용자·총괄 판정 사항이다.
+- 성공 기준 4: 사용자가 **"충족, 메모 남김"** 으로 판정했다(총괄이 전달). 근거와 메모는 위 표의 해당 행에 있다. 12-06 Task 2의 미수행 항목 #7(동의 화면 상태 변형)·#8(375px·접근성)·#9(1시간 후 refresh)는 계속 pending이다.
 - 정리: 서버·터널 종료, 일회용 Supabase Site URL을 `http://localhost:3100`으로 복구(원래 값은 이력이 없어 사용자가 선택), Redirect URLs 비움, Claude의 NovelScript 커넥터 제거. 일회용 DB의 임시 작가 계정과 사용자가 만든 작품 1개는 `locked_node_immutable` 보호로 삭제하지 못해 남아 있고 살아있는 MCP 연결은 0이다.
