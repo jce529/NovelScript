@@ -91,14 +91,14 @@
 ### MCP 서버 (MCP)
 
 - [ ] **MCP-01**: 작가가 Claude에서 NovelScript를 커스텀 커넥터로 연결하고, OAuth 계정 연결로 자기 계정 데이터에만 접근하도록 승인할 수 있다
-- [ ] **MCP-02**: 연결된 AI가 작가의 작품 목록·회차 목록·회차 본문을 조회할 수 있다
-- [ ] **MCP-03**: 연결된 AI가 작가의 설정집 문서를 검색하고 내용을 읽을 수 있다
-- [ ] **MCP-04**: 연결된 AI가 멘션 방식 집필 컨텍스트 번들(설정집 + 프리셋 + 문체 조합)을 한 번에 받아 앱 안에서와 같은 구성으로 초안을 쓸 수 있다
+- [x] **MCP-02**: 연결된 AI가 작가의 작품 목록·회차 목록·회차 본문을 조회할 수 있다
+- [x] **MCP-03**: 연결된 AI가 작가의 설정집 문서를 검색하고 내용을 읽을 수 있다
+- [x] **MCP-04**: 연결된 AI가 멘션 방식 집필 컨텍스트 번들(설정집 + 프리셋 + 문체 조합)을 한 번에 받아 앱 안에서와 같은 구성으로 초안을 쓸 수 있다
 - [ ] **MCP-05**: 연결된 AI가 특정 회차에 '제안된 초안'을 저장할 수 있고, 기존 본문은 어떤 경우에도 덮어쓰이지 않는다 (본문 직접 수정 툴 자체를 제공하지 않는다)
 - [ ] **MCP-06**: 연결된 AI가 설정집 문서의 신규 생성안 또는 기존 문서 수정안을 제안할 수 있고, 수정안은 작가가 원문과 나란히 비교해 수락/거절한다
 - [ ] **MCP-07**: 작가가 스튜디오에서 MCP로 도착한 초안·제안을 출처(어느 클라이언트에서, 언제)와 함께 검토하고 수락 또는 거절할 수 있다
 - [ ] **MCP-08**: 작가가 NovelScript에서 연결된 클라이언트 목록과 마지막 사용 시각을 보고 연결을 해제할 수 있으며, 해제 후에는 해당 토큰의 접근이 즉시 차단된다
-- [ ] **MCP-09**: 모든 MCP 툴에 읽기/쓰기 성격 annotation이 붙어, 클라이언트가 읽기 툴에 불필요한 확인을 요구하지 않는다
+- [x] **MCP-09**: 모든 MCP 툴에 읽기/쓰기 성격 annotation이 붙어, 클라이언트가 읽기 툴에 불필요한 확인을 요구하지 않는다
 
 ### AI 문서 계획 · 저장 (AIDOC)
 
@@ -268,14 +268,14 @@ Explicitly excluded. Documented to prevent scope creep.
 | COST-01 | Phase 8 | Complete |
 | COST-02 | Phase 11 | Code complete (0030 미적용; 11-12 실DB 회귀 pending) |
 | MCP-01 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
-| MCP-02 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
-| MCP-03 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
-| MCP-04 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
+| MCP-02 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
+| MCP-03 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
+| MCP-04 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
 | MCP-05 | Phase 14 | Mapped |
 | MCP-06 | Phase 14 | Mapped |
 | MCP-07 | Phase 14 | Mapped |
 | MCP-08 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
-| MCP-09 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
+| MCP-09 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
 | AIDOC-01 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-02 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-03 | Phase 15 | Code complete (activation blocked; browser UAT pending) |

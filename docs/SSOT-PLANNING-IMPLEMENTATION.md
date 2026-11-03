@@ -81,7 +81,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | BYOK-01~04 (키 등록·검증·마스킹·삭제) | 완료 (Phase 10). Vault 보관, 계정 삭제 시 시크릿 정리(0015_byok_secret_cleanup) |
 | COST-01 | 완료 (Phase 8, 멱등 차감) |
 | PROV-06, BYOK-05~09, COST-02 | 부분 구현(COST-02는 서비스 경로 0원 원장 행으로 미충족, Phase 11 재개) — 코드 완료(Phase 11, 11-01~07, `0018_ai_usage`), `11-VERIFICATION` human_needed: 브라우저 UAT 6건·잔액 0 BYOK 실호출 확인 대기 |
-| MCP-01~09 | 부분 구현 — MCP-02·03·04·09(Phase 13)는 일회용 DB에서 실제 Claude 커넥터 인수까지 통과(브랜치 `claude/agitated-heyrovsky-1bf8a6` 미병합, 0039 공유 DB 미적용). MCP-01·08(Phase 12)은 실제 왕복 통과했으나 12-06 #7·#8·#9 pending. MCP-05~07은 Phase 14 미구현 |
+| MCP-01~09 | 부분 구현 — MCP-02·03·04·09(Phase 13)는 master 병합 완료, 일회용 DB에서 실제 Claude 커넥터 인수 통과(0039 공유 DB 미적용). MCP-01·08(Phase 12)은 실제 왕복 통과했으나 12-06 #7·#8·#9 pending. MCP-05~07은 Phase 14 미구현 |
 | AIDOC-01~04 | 코드 완료(Phase 15), 활성화 보류·브라우저 UAT 대기 |
 | STUDIO-01~04 (BYOK 요약·설정 문서 AI·파일 업로드·모바일) | 코드 완료(Phase 16, GSD 밖 구현), Jev·브라우저·모바일 실사용 검증 대기. Phase 16 재개: STUDIO-04는 청사진 모바일 하단 탭·통합 설정 허브와 16-CONTEXT 결정이 충돌 |
 | BUGFIX-01~05 | 미구현 — Phase 17 계획 전(`17-CONTEXT.md`만 존재) |
