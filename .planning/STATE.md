@@ -28,6 +28,7 @@ Phase: 재개 phase 2·3·4·5·7·10·11·16·18 — 보완 plan 코드 완료
 Plan: 자동 실행 가능한 plan 전부 완료. 남은 plan 10개(전부 수동 gate): 03-19, 03-20, 04-12, 05-07, 07-15, 10-10, 11-08(Task 2 UAT), 11-12, 16-03, 18-12
 Status: Code complete — 실DB·브라우저 검증 대기 (단위 테스트 161개 파일 2,516개 통과, tsc·eslint 오류 0)
 **2026-11-01 병합:** Phase 12(12-01~05 완료, 12-06 Task 2 수동 대기)와 Phase 17(17-01~07 코드 완료, 수동 UAT 대기)을 master에 병합·push했다. 두 phase 모두 사람 검증 전이라 완료로 올리지 않았다. 남은 수동 항목은 `12-06-SUMMARY.md`·`17-UAT.md`의 '수동 확인 필요' 절. Phase 19(작가용 작품 홈 디자인)는 ROADMAP에만 등록, discuss 전.
+**2026-11-03 Phase 13 코드 완료(미병합):** 6/6 plan(13-01, 13-01b, 13-02~05)이 브랜치 `claude/agitated-heyrovsky-1bf8a6`(마지막 975c459)에 plan별 커밋됐다. 일회용 DB `tests/mcp` 6개 파일 50/50(skipped 0), 단위 `tests/mcp`+`tests/ai` 1248개 통과, tsc는 기존 `app/layout.tsx` 오류 1건만. 13-05 Task 3(실제 Claude 커넥터 인수)은 12-06 Task 2와 같은 수동 인수라 pending이고, MCP-02·03·04·09는 완료로 올리지 않았다. 0039는 일회용 DB에만 적용(공유 DB는 0037·0038과 순서 적용, 병합 직전 번호 재확인). 번들의 앱 응답 프로토콜 기본 제외(`includeAppResponseProtocol=false`)는 계획 결정이며 사용자 확정 기록 없음. 병합 전 워크트리 `.env.disposable` 삭제, `.claude/launch.json`의 3101 구성(미커밋) 되돌림 필요.
 
 Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
 
@@ -137,6 +138,7 @@ Recent decisions affecting current work:
 - 2026-09-16: v1.1 로드맵 추가 — Phase 8~14 (7개), v1.1 요구사항 27개 전수 매핑. v1.0 잔여 Phase 5/6/7은 별도 트랙으로 그대로 남아 있으며 v1.1 범위가 아니다
 - 2026-09-22: Phase 4 BUG-01의 수정 범위가 Jev 평가·선계획, Gemini 템플릿 생성, 폴더/템플릿 선택 UI와 저장 권한 검증까지 확장되어 단일 버그 수정 단위를 초과함. v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04를 배정함
 - 로드맵 순서 고정 제약(편의로 재배열하지 않을 것): (1) 로컬 토큰 추정이 어댑터 시그니처의 선행 조건(원격 countTokens는 Gemini 전용), (2) 어댑터+Gemini 이관(P8) 이 OpenAI/Anthropic(P9)보다 먼저 회귀 증명돼야 함, (3) 멱등 차감(COST-01, P8)이 재시도/백오프 로직(P11)보다 먼저, (4) BYOK 키 검증과 모델 피커 배지는 같은 페이즈(P10), (5) MCP OAuth는 BYOK와 코드를 공유하지 않으므로 합치지 않음, (6) MCP 리뷰 큐 UI는 실제 스코프(축소 금지)
+- 2026-11-01: Phase 20 추가 — 최종 모바일 실기기 확인 (Phase 17 UAT 이월: M8 파일 선택, M9 터치 이동, A4 실기기). 데스크탑 웹 완료 후 마지막에 진행
 - 2026-10-02: Phase 17 추가 — 버그 수정 통합 (Phase 16 UAT 갭 4건 + Phase 4·8·15 미해결 버그). 범위·분류는 `.planning/phases/17-bugfix-consolidation/17-CONTEXT.md`.
 
 ### Pending Todos
