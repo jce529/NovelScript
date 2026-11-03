@@ -3,6 +3,7 @@ import {
   callWhoami, cleanupMcpOAuth, createWriter, issueMcpToken, restRows, secondsLeft,
   type IssuedToken, type Writer,
 } from '../helpers/mcp-oauth';
+import { assertDisposableRef } from '../helpers/disposable-ref';
 
 /**
  * Cross-user / cross-client isolation for /mcp with real Supabase OAuth tokens.
@@ -10,22 +11,11 @@ import {
  * Supabase OAuth server enabled. SUPABASE_DB_URL marks this file for vitest's serialized
  * db project.
  */
-const SHARED_PROJECT_REF_PREFIX = 'ymudwg';
 const ref = process.env.MCP_DISPOSABLE_PROJECT_REF?.trim();
 const dbUrl = process.env.SUPABASE_DB_URL;
 const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ready = Boolean(ref && dbUrl && apiUrl && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   && process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-/** Inline disposable-ref guard: any mismatch or the shared project fails immediately. */
-function assertDisposableRef() {
-  const apiRef = new URL(apiUrl!).hostname.match(/^([a-z0-9]+)\.supabase\.co$/)?.[1];
-  const pg = new URL(dbUrl!);
-  if (!ref || ref !== apiRef || !`${pg.hostname} ${decodeURIComponent(pg.username)}`.includes(ref)) {
-    throw new Error('MCP disposable ref must match both Supabase API and DB URLs');
-  }
-  if (ref.startsWith(SHARED_PROJECT_REF_PREFIX)) throw new Error('Refusing to run on the shared Supabase project');
-}
 
 describe.skipIf(!ready)('MCP cross-user and cross-client isolation', () => {
   let writerA: Writer;
