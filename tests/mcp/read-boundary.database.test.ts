@@ -42,6 +42,68 @@ const SENSITIVE_0038 = [
 ];
 const BLOCKED_TABLES = EXPECTED_PUBLIC_TABLES.filter((t) => !(READ_TABLES as readonly string[]).includes(t));
 
+/**
+ * 13-01b: every public SECURITY DEFINER function that anon, authenticated or PUBLIC may
+ * EXECUTE (37 on the disposable DB), with its 13-01b-SUMMARY classification. A new or
+ * re-granted definer RPC that is not listed here fails the catalog test, so it must be
+ * classified before MCP tools (13-05) are registered.
+ * - block: an OAuth bearer (JWT client_id) gets 42501 from mcp_reject_oauth_caller()
+ *   (current_user_can_write answers false instead, it sits inside write policies).
+ * - guard: live MCP grant (+ owner) re-checked inside the body.
+ * - keep: already browser-only, public visibility only, or trigger-only.
+ */
+type RpcClass = 'block' | 'guard' | 'keep';
+const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
+  'acknowledge_publication_notification(uuid)': 'block',
+  'acknowledge_warning(uuid)': 'block',
+  'begin_world_branch(uuid,text,uuid,uuid)': 'block',
+  'can_view(uuid,uuid)': 'block',
+  'complete_chapter(uuid,uuid,uuid)': 'block',
+  'confirm_world_branch(uuid,text,uuid)': 'block',
+  'create_chapter_atomic(uuid,uuid,text,uuid)': 'block',
+  'create_purchase_order(uuid[],uuid)': 'block',
+  'current_user_can_write()': 'block',
+  'ensure_world_tree(uuid)': 'block',
+  'get_chapter_access_state(uuid,uuid)': 'block',
+  'get_world_branch_diff(uuid)': 'block',
+  'get_world_branch_eligibility(uuid)': 'block',
+  'get_world_tree_metric_baseline()': 'block',
+  'get_world_tree(uuid,boolean)': 'block',
+  'get_write_access(uuid)': 'block',
+  'handle_new_user()': 'keep',
+  'increment_chapter_view(uuid)': 'block',
+  'list_chapter_access(uuid)': 'block',
+  'mark_branch_notice_read(uuid)': 'block',
+  'mcp_authorize_call()': 'guard',
+  'mcp_connect(uuid,text,text,text[])': 'keep',
+  'mcp_disconnect(uuid)': 'keep',
+  'mcp_grant_is_live()': 'guard',
+  'mcp_read_owned_chapter_content(uuid)': 'guard',
+  'open_chapter_reading(uuid,uuid,uuid)': 'block',
+  'pay_purchase_order(uuid)': 'block',
+  'read_chapter_content(uuid)': 'block',
+  'save_chapter_reading(uuid,uuid,uuid,bigint,numeric,bigint,integer)': 'block',
+  'save_world_timeline(uuid,jsonb,jsonb)': 'block',
+  'soft_delete_kb_node(uuid,uuid)': 'block',
+  'soft_delete_world_branch(uuid)': 'block',
+  'toggle_work_bookmarks(uuid)': 'block',
+  'toggle_work_likes(uuid)': 'block',
+  'toggle_work_subscriptions(uuid)': 'block',
+  'world_work_public_meta_visible(uuid)': 'keep',
+  'world_work_reader_visible(uuid)': 'keep',
+};
+const RAISING_BLOCKED_RPCS = Object.entries(EXPOSED_DEFINER_RPCS)
+  .filter(([sig, kind]) => kind === 'block' && sig !== 'current_user_can_write()')
+  .map(([sig]) => sig);
+const GUARD_MESSAGE = 'browser session required';
+
+/** `name(uuid,text)` -> `public.name($1::uuid, null::text)` with random uuids for uuid params. */
+function callSql(sig: string): string {
+  const [, name, list] = sig.match(/^(\w+)\((.*)\)$/)!;
+  const args = list ? list.split(',').map((type) => (type === 'uuid' ? `'${randomUUID()}'::uuid` : `null::${type}`)) : [];
+  return `select * from public.${name}(${args.join(', ')})`;
+}
+
 type Fixture = {
   wA: string; wA2: string; wAdel: string; wB: string;
   cDraft: string; cPaid: string; cFree: string; cBlind: string; cDeleted: string; cInDeletedWork: string;
@@ -436,6 +498,145 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       // The original live token is unaffected.
       expect(ids((await restRows('works', `id=eq.${f.wA}&select=id`, aTok.accessToken)).rows)).toEqual([f.wA]);
     }, 180_000);
+  });
+
+  describe('SECURITY DEFINER RPC bypass (13-01b)', () => {
+    const readContent = (bearer: string, chapterId: string) =>
+      rest('POST', 'rpc/read_chapter_content', bearer, { p_chapter_id: chapterId });
+
+    it('classifies every exposed public SECURITY DEFINER RPC and guards each blocked one', async () => {
+      const rows = await query(`select p.oid::regprocedure::text as sig, p.prosrc, l.lanname
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace join pg_language l on l.oid = p.prolang
+        where n.nspname = 'public' and p.prosecdef
+          and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
+          and (has_function_privilege('anon', p.oid, 'execute')
+            or has_function_privilege('authenticated', p.oid, 'execute')
+            or coalesce(p.proacl::text, '') ~ '[{,]=X')`);
+      const exposed = rows.map((row) => String(row.sig).replace(/^public\./, '')).sort();
+      // Unclassified (or newly exposed) definer RPCs fail here.
+      expect(exposed).toEqual(Object.keys(EXPOSED_DEFINER_RPCS).sort());
+
+      const src = (sig: string) => String(rows.find((row) => String(row.sig).replace(/^public\./, '') === sig)!.prosrc);
+      for (const sig of RAISING_BLOCKED_RPCS) expect(src(sig), sig).toContain('public.mcp_reject_oauth_caller()');
+      expect(src('current_user_can_write()')).toMatch(/client_id[\s\S]*is null/);
+      for (const sig of ['mcp_connect(uuid,text,text,text[])', 'mcp_disconnect(uuid)']) {
+        expect(src(sig), sig).toMatch(/client_id'\) is not null[\s\S]*42501/);
+      }
+      expect(src('mcp_authorize_call()')).toContain('oauth_consents');
+      expect(src('mcp_read_owned_chapter_content(uuid)')).toContain('mcp_grant_is_live()');
+      // plpgsql guards run first: nothing but declarations precede them.
+      for (const sig of RAISING_BLOCKED_RPCS) {
+        const row = rows.find((r) => String(r.sig).replace(/^public\./, '') === sig)!;
+        if (row.lanname !== 'plpgsql') continue;
+        const lines = String(row.prosrc).split('\n');
+        const first = lines.findIndex((line) => /\bbegin\b/i.test(line));
+        expect(lines[first]?.trim().toLowerCase(), sig).toBe('begin');
+        expect(lines[first + 1]?.trim(), sig).toMatch(/^perform public\.mcp_reject_oauth_caller\(\);/);
+      }
+
+      const helper = await query(`select p.prosecdef, has_function_privilege('anon', p.oid, 'execute') as anon_exec,
+          has_function_privilege('authenticated', p.oid, 'execute') as auth_exec,
+          has_function_privilege('service_role', p.oid, 'execute') as service_exec
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname = 'mcp_reject_oauth_caller'`);
+      expect(helper).toEqual([{ prosecdef: false, anon_exec: false, auth_exec: false, service_exec: false }]);
+    });
+
+    it('rejects every blocked RPC for OAuth claims before it reads or writes, and not for browser claims', async () => {
+      const oauthClaims = { ...aTok.claims, role: 'authenticated' };
+      const browserClaims = { ...decodeClaims(aBrowser), role: 'authenticated' };
+      const outcome = async (sig: string) => {
+        await query('savepoint rpc');
+        try {
+          await query(callSql(sig));
+          await query('release savepoint rpc');
+          return { code: 'ok', message: '' };
+        } catch (error) {
+          await query('rollback to savepoint rpc');
+          const { code, message } = error as { code?: string; message?: string };
+          return { code: code ?? 'unknown', message: message ?? '' };
+        }
+      };
+      const oauth = await asClaims(oauthClaims, async () => {
+        const result: Record<string, { code: string; message: string }> = {};
+        for (const sig of RAISING_BLOCKED_RPCS) result[sig] = await outcome(sig);
+        result.canWrite = { code: String((await query('select public.current_user_can_write() as v'))[0].v), message: '' };
+        return result;
+      });
+      for (const sig of RAISING_BLOCKED_RPCS) {
+        expect(oauth[sig], sig).toEqual({ code: '42501', message: GUARD_MESSAGE });
+      }
+      expect(oauth.canWrite.code).toBe('false');
+
+      const browser = await asClaims(browserClaims, async () => {
+        const result: Record<string, { code: string; message: string }> = {};
+        for (const sig of RAISING_BLOCKED_RPCS) result[sig] = await outcome(sig);
+        result.canWrite = { code: String((await query('select public.current_user_can_write() as v'))[0].v), message: '' };
+        return result;
+      });
+      for (const sig of RAISING_BLOCKED_RPCS) expect(browser[sig].message, sig).not.toBe(GUARD_MESSAGE);
+      expect(browser.canWrite.code).toBe('true');
+    }, 120_000);
+
+    it('OAuth cannot read public or own chapter bodies through read_chapter_content; browser and anon still can', async () => {
+      for (const chapter of [f.cB, f.cFree, f.cDraft, randomUUID()]) {
+        const result = await readContent(aTok.accessToken, chapter);
+        expect(result.status, chapter).toBe(403);
+        expect(result.json).toBeNull();
+      }
+      expect((await readContent(bTok.accessToken, f.cB)).status).toBe(403);
+
+      // Browser: another writer's public free chapter, own draft (owner branch), and paid is withheld.
+      expect(await readContent(aBrowser, f.cB)).toEqual({ status: 200, json: 'body-B' });
+      expect(await readContent(aBrowser, f.cDraft)).toEqual({ status: 200, json: 'body-draft' });
+      // Anonymous reader: public free chapter only.
+      expect(await readContent(anonKey!, f.cB)).toEqual({ status: 200, json: 'body-B' });
+      expect(await readContent(anonKey!, f.cFree)).toEqual({ status: 200, json: 'body-free' });
+      for (const chapter of [f.cPaid, f.cDraft, f.cBlind]) {
+        const result = await readContent(anonKey!, chapter);
+        expect(result.status, chapter).toBe(200);
+        expect(result.json, chapter).toBeNull();
+      }
+    });
+
+    it('OAuth cannot reach access, toggle or payment RPCs over REST; browser and anon keep them', async () => {
+      for (const [fn, body] of [
+        ['get_chapter_access_state', { p_work_id: f.wB, p_chapter_id: f.cB }],
+        ['list_chapter_access', { p_work_id: f.wB }],
+        ['can_view', { p_work_id: f.wB, p_chapter_id: f.cB }],
+        ['toggle_work_likes', { p_work_id: f.wB }],
+        ['create_purchase_order', { p_chapter_ids: [f.cPaid], p_idempotency_key: randomUUID() }],
+        ['pay_purchase_order', { p_order_id: randomUUID() }],
+        ['get_write_access', { p_user_id: writerA.id }],
+        ['get_world_tree', { p_work_id: f.wA }],
+      ] as const) {
+        const result = await rest('POST', `rpc/${fn}`, aTok.accessToken, body);
+        expect(result.status, fn).toBe(403);
+      }
+      expect(await query('select 1 from public.work_likes where work_id = $1 and user_id = $2', [f.wB, writerA.id])).toHaveLength(0);
+      expect(await query('select 1 from public.orders where user_id = $1', [writerA.id])).toHaveLength(0);
+      const canWrite = await rest('POST', 'rpc/current_user_can_write', aTok.accessToken, {});
+      expect(canWrite).toEqual({ status: 200, json: false });
+
+      // Browser and anon regressions on the same RPCs.
+      expect(await rest('POST', 'rpc/current_user_can_write', aBrowser, {})).toEqual({ status: 200, json: true });
+      const state = await rest('POST', 'rpc/get_chapter_access_state', aBrowser, { p_work_id: f.wB, p_chapter_id: f.cB });
+      expect(state.status).toBe(200);
+      expect(state.json).toMatchObject({ state: 'readable' });
+      const anonList = await rest('POST', 'rpc/list_chapter_access', anonKey!, { p_work_id: f.wB });
+      expect(anonList.status).toBe(200);
+      expect(anonList.json).toEqual([expect.objectContaining({ chapter_id: f.cB, allowed: true })]);
+      expect(await rest('POST', 'rpc/can_view', anonKey!, { p_work_id: f.wB, p_chapter_id: f.cB }))
+        .toEqual({ status: 200, json: true });
+      const liked = await rest('POST', 'rpc/toggle_work_likes', aBrowser, { p_work_id: f.wB });
+      expect(liked).toEqual({ status: 200, json: true });
+      expect(await rest('POST', 'rpc/toggle_work_likes', aBrowser, { p_work_id: f.wB })).toEqual({ status: 200, json: false });
+      // Browser purchase path still reaches its own input validation (invalid_items -> 400),
+      // without creating an order.
+      const order = await rest('POST', 'rpc/create_purchase_order', aBrowser, { p_chapter_ids: [], p_idempotency_key: randomUUID() });
+      expect(order.status).toBe(400);
+      expect(await query('select 1 from public.orders where user_id = $1', [writerA.id])).toHaveLength(0);
+    });
   });
 
   describe('mcp_read_owned_chapter_content', () => {
