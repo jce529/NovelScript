@@ -267,15 +267,15 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
 | COST-02 | Phase 11 | Code complete (0030 미적용; 11-12 실DB 회귀 pending) |
-| MCP-01 | Phase 12 | Mapped |
-| MCP-02 | Phase 13 | Code complete (Claude 커넥터 수동 인수 대기) |
-| MCP-03 | Phase 13 | Code complete (Claude 커넥터 수동 인수 대기) |
-| MCP-04 | Phase 13 | Code complete (Claude 커넥터 수동 인수 대기) |
+| MCP-01 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
+| MCP-02 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
+| MCP-03 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
+| MCP-04 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
 | MCP-05 | Phase 14 | Mapped |
 | MCP-06 | Phase 14 | Mapped |
 | MCP-07 | Phase 14 | Mapped |
-| MCP-08 | Phase 12 | Mapped |
-| MCP-09 | Phase 13 | Code complete (실제 무확인 동작은 12-06 Task 2 인수 뒤 확인) |
+| MCP-08 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
+| MCP-09 | Phase 13 | Verified (일회용 DB 실인수 통과, 병합 대기) |
 | AIDOC-01 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-02 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-03 | Phase 15 | Code complete (activation blocked; browser UAT pending) |

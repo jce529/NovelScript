@@ -432,7 +432,7 @@ Plans:
   2. 연결된 AI가 작가의 설정집 문서를 검색하고 내용을 읽을 수 있다
   3. 연결된 AI가 멘션 방식 집필 컨텍스트 번들(설정집 + 프리셋 + 문체 조합)을 한 번에 받아, 앱 안에서 생성한 것과 같은 구성으로 초안을 쓴다
   4. 읽기 도구를 호출할 때 클라이언트가 불필요한 확인 프롬프트를 띄우지 않는다 (모든 툴에 읽기/쓰기 성격 annotation이 붙는다)
-**Plans**: 6/6 코드 완료 (13-01, 13-01b, 13-02~05) — 13-05 Task 3(실제 Claude 커넥터 인수) 수동 대기. 브랜치 `claude/agitated-heyrovsky-1bf8a6` 미병합
+**Plans**: 6/6 코드·실제 Claude 인수 통과 (13-01, 13-01b, 13-02~05) — 브랜치 `claude/agitated-heyrovsky-1bf8a6`(94eadc1) 미병합, 0039 공유 DB 미적용
 **Notes**: 도구는 기본적으로 user-scoped 클라이언트를 쓴다 — Server Action에서 옳았던 `createAdminClient()` 관행을 그대로 복사하면 bearer 토큰 하나로 교차 사용자 읽기가 가능해지는 confused deputy가 된다. `createAdminClient` import는 그 자체로 추가 리뷰 대상. 모든 도구에 대해 **두 번째 사용자 토큰으로 첫 사용자 리소스를 찌르는 교차 사용자 테스트 스위트**를 통과시킨다. `get_writing_context`는 기존 `composeSystemInstruction`/`assembleUserContent`를 **재사용**한다(fork 금지) — 이 페이즈를 단순 CRUD API가 아니게 만드는 유일한 차별화 도구다.
 
 ### Phase 14: MCP 쓰기 도구 + 스튜디오 리뷰 큐
@@ -617,8 +617,8 @@ Plans:
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 10/11 | Code complete — 10-10(체크포인트, 수동) 대기. 재개 보완 10-07~09 완료(PROV-05 서버 키 가드), 실DB·UAT 미검증 | - |
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 미적용) | - |
-| 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2(실제 Claude 커넥터 등록·Site URL 변경 등, 수동) 대기. 0037·0038 공유 DB 미적용. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
-| 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 6/6 | Code complete — 13-05 Task 3(실제 Claude 커넥터 무확인 호출·해제 후 거부, 수동) 대기. 12-06 Task 2 인수 뒤 성공 기준 4 확인. 0039 공유 DB 미적용(0037·0038과 순서 적용). 브랜치 `claude/agitated-heyrovsky-1bf8a6`(975c459) 미병합. MCP-02·03·04·09는 아직 완료 아님 | - |
+| 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2는 #3~#6·#10(Claude 커넥터 등록·승인·호출·해제 후 차단·정리)이 일회용 DB 실인수에서 통과(Phase 13 세션 수행, 근거 `13-VALIDATION.md`). #7(동의 화면 상태)·#8(375px·접근성)·#9(1시간 후 refresh)는 pending. 0037·0038 공유 DB 미적용. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
+| 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 6/6 | Verified on disposable — 실제 Claude 커스텀 커넥터 인수 통과(연결·읽기 전용 그룹 인식·항상 허용 후 읽기 도구 무확인 실행·본인 데이터만 반환·해제 후 차단). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 브랜치 `claude/agitated-heyrovsky-1bf8a6`(94eadc1) 미병합·0039 공유 DB 미적용이라 체크박스 유지. 근거 `13-VALIDATION.md` | - |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
