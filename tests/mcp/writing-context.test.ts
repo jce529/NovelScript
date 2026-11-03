@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { McpServer, type AuthInfo } from '@modelcontextprotocol/server';
-import type { z } from 'zod';
+import { z } from 'zod';
 import * as mentions from '@/lib/ai/mentions';
 import * as instructions from '@/lib/ai/work-instructions';
 import { assembleUserContent, composeSystemInstruction, DEFAULT_STYLE_PRESET, PRESET_INSTRUCTIONS, STYLE_PRESETS } from '@/lib/ai/prompt';
@@ -127,6 +127,21 @@ describe('get_writing_context boundary', () => {
     const { config } = registered.get('get_writing_context')!;
     expect(config.title.length).toBeGreaterThan(0);
     expect(config.annotations).toEqual({ readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false });
+  });
+
+  it('describes every input field so clients do not guess optional app-specific settings', () => {
+    const { config } = tools().registered.get('get_writing_context')!;
+    const json = z.toJSONSchema(config.inputSchema) as { properties: Record<string, { description?: string }> };
+    expect(Object.keys(json.properties).sort()).toEqual([
+      'chapterId', 'customInstruction', 'includeAppResponseProtocol', 'nodeIds', 'presetLevel', 'styleId', 'workId',
+    ]);
+    for (const [name, property] of Object.entries(json.properties)) {
+      expect(property.description?.length ?? 0, `${name} has no description`).toBeGreaterThan(20);
+    }
+    const protocol = json.properties.includeAppResponseProtocol.description!;
+    expect(protocol).toContain('기본값은 false');
+    expect(protocol).toContain('[REPLY]');
+    expect(protocol).toContain('생략');
   });
 
   it.each([

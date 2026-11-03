@@ -15,12 +15,18 @@ import {
 } from '@/lib/mcp/tool-runtime';
 
 const writingContextInputSchema = z.strictObject({
-  workId: z.string().uuid(), chapterId: z.string().uuid(),
-  nodeIds: z.array(z.string().uuid()).max(20),
-  presetLevel: z.enum(Object.keys(PRESET_INSTRUCTIONS) as [PresetLevel, ...PresetLevel[]]).optional(),
-  styleId: z.enum(Object.keys(STYLE_PRESETS) as [StylePresetId, ...StylePresetId[]]).optional(),
-  customInstruction: z.string().max(CUSTOM_INSTRUCTION_MAX_LENGTH).optional(),
-  includeAppResponseProtocol: z.boolean().optional(),
+  workId: z.string().uuid().describe('집필할 작품의 ID (list_works 결과의 id).'),
+  chapterId: z.string().uuid().describe('이어 쓸 기준 회차의 ID (list_chapters 결과의 id). 이 회차의 본문 전체가 앞선 본문으로 포함됩니다.'),
+  nodeIds: z.array(z.string().uuid()).max(20)
+    .describe('컨텍스트에 포함할 설정집 문서 ID 목록 (search_kb 결과의 id, 최대 20개, 빈 배열 가능). 폴더나 접근할 수 없는 ID는 포함되지 않고 manifest의 missingNodeIds로만 알려 줍니다.'),
+  presetLevel: z.enum(Object.keys(PRESET_INSTRUCTIONS) as [PresetLevel, ...PresetLevel[]]).optional()
+    .describe('앱의 AI 지시 프리셋(beginner, intermediate, freeform). 생략하면 앱 기본값 intermediate를 씁니다. 작가가 따로 요청한 경우에만 지정하세요.'),
+  styleId: z.enum(Object.keys(STYLE_PRESETS) as [StylePresetId, ...StylePresetId[]]).optional()
+    .describe('앱의 문체 프리셋 ID. 생략하면 앱 기본 문체를 씁니다. 작가가 문체를 지정한 경우에만 지정하세요.'),
+  customInstruction: z.string().max(CUSTOM_INSTRUCTION_MAX_LENGTH).optional()
+    .describe(`작가의 자유 지시. presetLevel이 freeform일 때만 적용되고 그 외에는 무시됩니다 (최대 ${CUSTOM_INSTRUCTION_MAX_LENGTH}자).`),
+  includeAppResponseProtocol: z.boolean().optional()
+    .describe('NovelScript 앱 내부 채팅 화면이 응답을 파싱하는 형식 지시([REPLY]/[DRAFT]/[DOCUMENT] 태그)를 포함할지 여부. 외부 AI 클라이언트에는 이 태그가 필요 없으므로 기본값은 false입니다. 특별한 이유가 없으면 생략하세요.'),
 });
 
 const documentSchema = z.object({
