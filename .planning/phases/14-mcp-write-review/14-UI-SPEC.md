@@ -330,7 +330,7 @@ Destructive reserved for: Dialog 안 `거절하기` 확정 버튼, Dialog 안 `�
 
 ## 추가 계약 (discuss 이후 확정, 2026-11-04) — D-P14-10·11
 
-목업 Artifact: https://claude.ai/artifact/8zBNvn8jTMTP7fT6GjdkoW (보드별 화면이 본 계약의 시각 기준)
+목업 Artifact: https://claude.ai/artifact/8zBNvn8jTMTP7fT6GjdkoW (보드별 화면이 본 계약의 시각 기준) — 사용자 검토 완료, 수정 없이 승인(2026-11-04)
 
 **덩어리 거절 = A안:** 덩어리마다 체크박스 하나. 체크하지 않으면 반영되지 않고 별도 거절 버튼·상태는 없다. 하단 바 문구는 `선택한 변경 n개`, 확정 버튼 `선택한 n개 반영하기`, 보조 문구 `체크하지 않은 변경은 반영되지 않아요.`
 
