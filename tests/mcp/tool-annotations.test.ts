@@ -4,8 +4,8 @@ import type { z } from 'zod';
 /**
  * MCP-09 registration contract (13-05). The real app/mcp/route.ts module is imported with
  * createMcpHandler replaced by a recorder, so this checks exactly what the route registers:
- * seven read-only tools, each with a title, the four read annotations and a strict input
- * schema. No network, no Supabase.
+ * seven read-only tools plus the two Phase 14 proposal tools (14-02), each with a title, the
+ * four annotations and a strict input schema. No network, no Supabase.
  */
 type Registration = {
   name: string;
@@ -46,9 +46,13 @@ const VALID_ARGS: Record<string, Record<string, unknown>> = {
   search_kb: { workId: WORK, query: '' },
   get_kb_document: { workId: WORK, nodeId: NODE },
   get_writing_context: { workId: WORK, chapterId: CHAPTER, nodeIds: [NODE] },
+  save_draft: { workId: WORK, chapterId: CHAPTER, content: '초안' },
+  propose_kb_document: { mode: 'edit', workId: WORK, nodeId: NODE, content: '수정안' },
 };
+const WRITE_TOOLS = ['save_draft', 'propose_kb_document'];
 const EXPECTED_TOOLS = Object.keys(VALID_ARGS).sort();
 const READ_ANNOTATIONS = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
+const WRITE_ANNOTATIONS = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false };
 
 async function registrations(): Promise<Registration[]> {
   if (recorded.tools.length === 0) await import('@/app/mcp/route');
@@ -56,16 +60,26 @@ async function registrations(): Promise<Registration[]> {
 }
 
 describe('/mcp tool registrations', () => {
-  it('registers exactly the seven read tools, each once', async () => {
+  it('registers exactly nine tools (seven read + two proposal), each once', async () => {
     const tools = await registrations();
+    expect(tools).toHaveLength(9);
     expect(tools.map((tool) => tool.name).sort()).toEqual(EXPECTED_TOOLS);
     expect(new Set(tools.map((tool) => tool.name)).size).toBe(tools.length);
   });
 
-  it('gives every tool all four read annotations with exact values', async () => {
+  it('registers no direct body edit or chapter creation tool', async () => {
     for (const tool of await registrations()) {
-      expect(tool.config.annotations, tool.name).toEqual(READ_ANNOTATIONS);
+      expect(tool.name, tool.name).not.toMatch(/update|edit_chapter|create_chapter|delete|write_chapter|apply|accept/);
     }
+  });
+
+  it('gives read tools the read annotations and proposal tools the write annotations', async () => {
+    for (const tool of await registrations()) {
+      const expected = WRITE_TOOLS.includes(tool.name) ? WRITE_ANNOTATIONS : READ_ANNOTATIONS;
+      expect(tool.config.annotations, tool.name).toEqual(expected);
+    }
+    const writes = (await registrations()).filter((tool) => WRITE_TOOLS.includes(tool.name));
+    expect(writes.map((tool) => tool.config.annotations?.readOnlyHint)).toEqual([false, false]);
   });
 
   it('gives every tool a non-empty title and description and a handler', async () => {
@@ -86,5 +100,22 @@ describe('/mcp tool registrations', () => {
       expect(schema!.safeParse({ ...valid, userId: WORK }).success, `${tool.name} userId`).toBe(false);
       expect(schema!.safeParse({ ...valid, ownerId: WORK }).success, `${tool.name} ownerId`).toBe(false);
     }
+  });
+
+  it('proposal tools describe every field in Korean and accept both KB modes strictly', async () => {
+    const { z } = await import('zod');
+    const writes = (await registrations()).filter((tool) => WRITE_TOOLS.includes(tool.name));
+    for (const tool of writes) {
+      const json = z.toJSONSchema(tool.config.inputSchema!, { io: 'input' }) as Record<string, unknown>;
+      const variants = (json.oneOf ?? json.anyOf ?? [json]) as Array<{ properties: Record<string, { description?: string }>; additionalProperties?: unknown }>;
+      for (const variant of variants) {
+        expect(variant.additionalProperties, tool.name).toBe(false);
+        for (const [field, schema] of Object.entries(variant.properties)) expect(schema.description, `${tool.name}.${field}`).toMatch(/[가-힣]/);
+      }
+    }
+    const kb = writes.find((tool) => tool.name === 'propose_kb_document')!.config.inputSchema!;
+    expect(kb.safeParse({ mode: 'create', workId: WORK, category: '인물', name: '이름', content: '본문' }).success).toBe(true);
+    expect(kb.safeParse({ mode: 'create', workId: WORK, category: 'template', name: '이름', content: '본문' }).success).toBe(false);
+    expect(kb.safeParse({ mode: 'create', workId: WORK, category: '인물', name: '이름', content: '본문', userId: WORK }).success).toBe(false);
   });
 });

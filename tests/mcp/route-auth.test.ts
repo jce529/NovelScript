@@ -27,10 +27,19 @@ const TOOL_ARGS: Record<(typeof READ_TOOLS)[number], Record<string, unknown>> = 
   get_kb_document: { workId: WORK, nodeId: NODE },
   get_writing_context: { workId: WORK, chapterId: CHAPTER, nodeIds: [NODE] },
 };
+/** Phase 14 proposal tools (14-02): pending rows only, through the 0041 RPCs. */
+const WRITE_TOOLS = ['save_draft', 'propose_kb_document'] as const;
+const WRITE_ARGS: Record<(typeof WRITE_TOOLS)[number], Record<string, unknown>> = {
+  save_draft: { workId: WORK, chapterId: CHAPTER, content: '초안 본문' },
+  propose_kb_document: { mode: 'edit', workId: WORK, nodeId: NODE, content: '수정안' },
+};
+const PROPOSAL = '88888888-8888-4888-8888-888888888888';
 
 const fake = vi.hoisted(() => ({
   claims: null as Record<string, unknown> | null,
   rpc: { data: null as unknown, error: null as unknown },
+  // Answer of every non-authorization RPC (the proposal tools' 0041 calls).
+  writeRpc: { data: null as unknown, error: null as unknown },
   createClient: [] as Array<{ url: string; key: string; authorization?: string }>,
   rpcCalls: [] as Array<{ fn: string; args: unknown }>,
   // Result of every PostgREST table query a tool makes through the per-call data client.
@@ -65,7 +74,7 @@ vi.mock('@supabase/supabase-js', () => ({
       },
       rpc: async (fn: string, args?: unknown) => {
         fake.rpcCalls.push({ fn, args });
-        return fake.rpc;
+        return fn === 'mcp_authorize_call' ? fake.rpc : fake.writeRpc;
       },
     };
   },
@@ -131,6 +140,7 @@ describe('/mcp route authentication', () => {
     fake.rpc = { data: [{ out_user_id: USER, out_scopes: ['read', 'propose_draft'] }], error: null };
     fake.createClient = [];
     fake.rpcCalls = [];
+    fake.writeRpc = { data: null, error: null };
     fake.query = { data: null, error: null };
     fake.fromCalls = [];
   });
@@ -194,16 +204,20 @@ describe('/mcp route authentication', () => {
     expect(fake.rpcCalls).toEqual([{ fn: 'mcp_authorize_call', args: undefined }]);
   });
 
-  it('lists exactly the seven read-only tools with full read annotations and closed input schemas', async () => {
+  it('lists exactly seven read tools and two proposal tools with exact annotations and closed input schemas', async () => {
     const { POST } = await loadRoute();
     const body = await jsonRpcBody(await POST(rpcRequest('tools/list', {}, { token: TOKEN })));
     const tools = body.result?.tools ?? [];
-    expect(tools.map((tool) => tool.name).sort()).toEqual([...READ_TOOLS, 'whoami'].sort());
+    expect(tools).toHaveLength(9);
+    expect(tools.map((tool) => tool.name).sort()).toEqual([...READ_TOOLS, ...WRITE_TOOLS, 'whoami'].sort());
     for (const tool of tools) {
+      const write = (WRITE_TOOLS as readonly string[]).includes(tool.name);
       expect(tool.annotations, tool.name).toEqual({
-        readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false,
+        readOnlyHint: !write, destructiveHint: false, idempotentHint: true, openWorldHint: false,
       });
-      expect(tool.inputSchema?.additionalProperties, tool.name).toBe(false);
+      const schema = tool.inputSchema as { additionalProperties?: unknown; oneOf?: Array<{ additionalProperties?: unknown }>; anyOf?: Array<{ additionalProperties?: unknown }> };
+      const variants = schema.oneOf ?? schema.anyOf ?? [schema];
+      for (const variant of variants) expect(variant.additionalProperties, tool.name).toBe(false);
     }
     const whoami = tools.find((tool) => tool.name === 'whoami');
     expect(Object.keys(whoami?.inputSchema?.properties ?? {})).toEqual([]);
@@ -222,6 +236,55 @@ describe('/mcp route authentication', () => {
       expectChallenge(revoked);
     }
     expect(fake.fromCalls).toEqual([]);
+  });
+
+  it('runs no proposal tool without a bearer or after the grant is gone', async () => {
+    const { POST } = await loadRoute();
+    for (const name of WRITE_TOOLS) expectChallenge(await POST(rpcRequest('tools/call', { name, arguments: WRITE_ARGS[name] })));
+    expect(fake.createClient).toEqual([]);
+    fake.rpc = { data: [], error: null };
+    for (const name of WRITE_TOOLS) {
+      expectChallenge(await POST(rpcRequest('tools/call', { name, arguments: WRITE_ARGS[name] }, { token: TOKEN })));
+    }
+    expect(fake.rpcCalls.every((call) => call.fn === 'mcp_authorize_call')).toBe(true);
+  });
+
+  it('refuses proposal tools for a read-only grant without calling a proposal RPC', async () => {
+    fake.rpc = { data: [{ out_user_id: USER, out_scopes: ['read'] }], error: null };
+    const { POST } = await loadRoute();
+    for (const name of WRITE_TOOLS) {
+      const body = await jsonRpcBody(await POST(rpcRequest('tools/call', { name, arguments: WRITE_ARGS[name] }, { token: TOKEN })));
+      expect(body.result?.isError, name).toBe(true);
+    }
+    expect(fake.rpcCalls.every((call) => call.fn === 'mcp_authorize_call')).toBe(true);
+  });
+
+  it('saves a proposal through the route and returns the review link from the configured origin', async () => {
+    fake.writeRpc = { data: { id: PROPOSAL, status: 'pending', expires_at: '2026-12-04T00:00:00+00:00', superseded_id: null }, error: null };
+    const { POST } = await loadRoute();
+    const body = await jsonRpcBody(await POST(rpcRequest('tools/call', { name: 'save_draft', arguments: WRITE_ARGS.save_draft }, {
+      token: TOKEN, headers: { 'x-forwarded-host': 'evil.example' },
+    })));
+    expect(body.result?.isError).not.toBe(true);
+    const saved = JSON.parse(body.result?.content?.[0]?.text ?? 'null');
+    expect(saved).toMatchObject({ proposalId: PROPOSAL, status: 'pending', reviewUrl: `${ORIGIN}/studio/${WORK}/review/${PROPOSAL}` });
+    expect(fake.rpcCalls.at(-1)).toEqual({
+      fn: 'mcp_propose_chapter_draft', args: { p_work_id: WORK, p_chapter_id: CHAPTER, p_content: '초안 본문' },
+    });
+  });
+
+  it('never forwards a raw SQL error from a proposal tool to the client', async () => {
+    const { POST } = await loadRoute();
+    const secret = 'relation "public.mcp_proposals" permission denied for SECRET_COLUMN';
+    fake.writeRpc = { data: null, error: { message: secret, code: '42501', details: secret, hint: secret } };
+    for (const name of WRITE_TOOLS) {
+      const response = await POST(rpcRequest('tools/call', { name, arguments: WRITE_ARGS[name] }, { token: TOKEN }));
+      expect(response.status).toBe(200);
+      const raw = await response.text();
+      expect(raw, name).not.toContain('SECRET_COLUMN');
+      expect(raw, name).not.toContain('42501');
+      expect(raw, name).toContain('isError');
+    }
   });
 
   it('never forwards a raw SQL error from a tool to the client', async () => {
