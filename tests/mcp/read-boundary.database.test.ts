@@ -8,11 +8,13 @@ import {
 } from '../helpers/mcp-oauth';
 
 /**
- * 13-01 D-17 boundary on a disposable Supabase project with 0037 -> 0038 -> 0039 applied.
+ * 13-01 D-17 boundary on a disposable Supabase project with 0037 -> 0038 -> 0039 -> 0041 applied.
  * - Every permanent public table is closed to OAuth bearers (JWT carries client_id),
  *   except works / chapters / kb_nodes / work_ai_instructions, which allow SELECT of the
  *   bearer's own rows while its MCP grant is live, and never DML.
  * - mcp_read_owned_chapter_content(uuid) returns the owner's chapter body in every state.
+ * - 14-01: mcp_proposals is blocked like every other table; only the three bearer-only propose
+ *   RPCs (guard) create rows, and browsers have no direct DML either.
  * - Browser sessions (no client_id) and anonymous readers keep their behavior.
  * SUPABASE_DB_URL marks this file for vitest's serialized db project. This suite never
  * applies migrations and never prints tokens or response bodies.
@@ -24,13 +26,13 @@ const ready = Boolean(process.env.MCP_DISPOSABLE_PROJECT_REF?.trim() && dbUrl &&
   && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 const READ_TABLES = ['works', 'chapters', 'kb_nodes', 'work_ai_instructions'] as const;
-/** 13-PLAN-NOTES catalog (40 permanent public tables), confirmed against the disposable DB. */
+/** 13-PLAN-NOTES catalog (40 permanent public tables) + 14-01 mcp_proposals = 41, confirmed against the disposable DB. */
 const EXPECTED_PUBLIC_TABLES = [
   'admin_actions', 'admin_users', 'ai_doc_activation_approvals', 'ai_doc_activation_evidence',
   'ai_doc_plan_decision_log', 'ai_doc_plan_shadow_log', 'ai_generation_locks', 'ai_usage',
   'byok_keys', 'byok_validation_log', 'chapter_reading_state', 'chapters', 'entitlements',
   'kb_nodes', 'kb_template_backfill_copies', 'kb_template_seed_catalog', 'ledger_entries',
-  'mcp_connections', 'moderation_review_requests', 'order_items', 'orders', 'payment_orders',
+  'mcp_connections', 'mcp_proposals', 'moderation_review_requests', 'order_items', 'orders', 'payment_orders',
   'payment_topup_tiers', 'profiles', 'publication_notifications', 'reading_progress', 'reports',
   'user_sanctions', 'wallets', 'warning_acknowledgements', 'work_ai_instructions',
   'work_bookmarks', 'work_likes', 'work_subscriptions', 'works', 'world_branch_docs',
@@ -44,7 +46,7 @@ const BLOCKED_TABLES = EXPECTED_PUBLIC_TABLES.filter((t) => !(READ_TABLES as rea
 
 /**
  * 13-01b: every public SECURITY DEFINER function that anon, authenticated or PUBLIC may
- * EXECUTE (37 on the disposable DB), with its 13-01b-SUMMARY classification. A new or
+ * EXECUTE (37 on the disposable DB after 0039, 40 after 0041), with its 13-01b-SUMMARY classification. A new or
  * re-granted definer RPC that is not listed here fails the catalog test, so it must be
  * classified before MCP tools (13-05) are registered.
  * - block: an OAuth bearer (JWT client_id) gets 42501 from mcp_reject_oauth_caller()
@@ -78,6 +80,10 @@ const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
   'mcp_connect(uuid,text,text,text[])': 'keep',
   'mcp_disconnect(uuid)': 'keep',
   'mcp_grant_is_live()': 'guard',
+  // 14-01 (0041): bearer-only proposal RPCs; live grant + propose_draft scope + write access + owner inside.
+  'mcp_propose_chapter_draft(uuid,uuid,text)': 'guard',
+  'mcp_propose_kb_create(uuid,text,text,text)': 'guard',
+  'mcp_propose_kb_edit(uuid,uuid,text)': 'guard',
   'mcp_read_owned_chapter_content(uuid)': 'guard',
   'open_chapter_reading(uuid,uuid,uuid)': 'block',
   'pay_purchase_order(uuid)': 'block',
@@ -96,6 +102,11 @@ const RAISING_BLOCKED_RPCS = Object.entries(EXPOSED_DEFINER_RPCS)
   .filter(([sig, kind]) => kind === 'block' && sig !== 'current_user_can_write()')
   .map(([sig]) => sig);
 const GUARD_MESSAGE = 'browser session required';
+const PROPOSE_RPCS = [
+  'mcp_propose_chapter_draft(uuid,uuid,text)',
+  'mcp_propose_kb_edit(uuid,uuid,text)',
+  'mcp_propose_kb_create(uuid,text,text,text)',
+] as const;
 
 /** `name(uuid,text)` -> `public.name($1::uuid, null::text)` with random uuids for uuid params. */
 function callSql(sig: string): string {
@@ -107,7 +118,7 @@ function callSql(sig: string): string {
 type Fixture = {
   wA: string; wA2: string; wAdel: string; wB: string;
   cDraft: string; cPaid: string; cFree: string; cBlind: string; cDeleted: string; cInDeletedWork: string;
-  cB: string; kA: string; kAcct: string; kB: string;
+  cB: string; kA: string; kAcct: string; kB: string; pA: string;
 };
 
 describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', () => {
@@ -180,7 +191,7 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
 
     Object.assign(f, Object.fromEntries([
       'wA', 'wA2', 'wAdel', 'wB', 'cDraft', 'cPaid', 'cFree', 'cBlind', 'cDeleted', 'cInDeletedWork',
-      'cB', 'kA', 'kAcct', 'kB',
+      'cB', 'kA', 'kAcct', 'kB', 'pA',
     ].map((key) => [key, randomUUID()])));
     // Fixtures are inserted directly (superuser connection) so RLS does not shape them.
     await query(`insert into public.works (id, owner_id, title, deleted_at) values
@@ -206,6 +217,12 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
     await query(`insert into public.work_ai_instructions (work_id, instruction) values ($1, 'A rule'), ($2, 'B rule')`,
       [f.wA, f.wB]);
     await query('insert into public.work_likes (work_id, user_id) values ($1, $2)', [f.wB, writerB.id]);
+    await query(`insert into public.mcp_proposals
+        (id, owner_id, work_id, kind, chapter_id, content, content_hash, base_content, base_hash,
+         source_client_id, source_client_name, source_host)
+      values ($1, $2, $3, 'chapter_draft', $4, 'proposal-A', encode(sha256(convert_to('proposal-A', 'UTF8')), 'hex'),
+              'body-draft', encode(sha256(convert_to('body-draft', 'UTF8')), 'hex'), $5, $6, 'claude.ai')`,
+    [f.pA, writerA.id, f.wA, f.cDraft, aTok.clientId, aTok.clientName]);
   }, 180_000);
 
   afterAll(async () => {
@@ -217,6 +234,7 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
           ? await query('select id from public.works where owner_id = any($1::uuid[])', [owners])
           : [];
         const works = [...new Set([f.wA, f.wA2, f.wAdel, f.wB, ...owned.map((row) => row.id as string)])].filter(Boolean);
+        await query('delete from public.mcp_proposals where owner_id = any($1::uuid[]) or work_id = any($2::uuid[])', [owners, works]);
         await query('delete from public.work_likes where work_id = any($1::uuid[]) or user_id = any($2::uuid[])', [works, owners]);
         await query('delete from public.work_ai_instructions where work_id = any($1::uuid[])', [works]);
         await query('delete from public.chapters where work_id = any($1::uuid[])', [works]);
@@ -230,11 +248,12 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
   }, 180_000);
 
   describe('catalog', () => {
-    it('classifies every permanent public table (40) into blocked or owner-read', async () => {
+    it('classifies every permanent public table (41) into blocked or owner-read', async () => {
       const tables = await query(`select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
         where n.nspname = 'public' and c.relkind in ('r', 'p') and c.relpersistence = 'p' order by 1`);
       expect(tables.map((row) => row.relname as string).sort()).toEqual(EXPECTED_PUBLIC_TABLES);
-      expect(BLOCKED_TABLES).toHaveLength(36);
+      expect(BLOCKED_TABLES).toHaveLength(37);
+      expect(BLOCKED_TABLES).toContain('mcp_proposals');
       for (const table of SENSITIVE_0038) expect(BLOCKED_TABLES).toContain(table);
 
       const policies = await query(`select tablename, policyname, permissive, cmd, roles::text as roles, qual, with_check
@@ -290,10 +309,72 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       expect(rpc.prosrc).toMatch(/c\.deleted_at is null/);
       expect(rpc.prosrc).toMatch(/w\.deleted_at is null/);
     });
+
+    it('locks down the three propose RPCs (14-01) and their private helpers', async () => {
+      const rows = await query(`select p.oid::regprocedure::text as sig, p.prosecdef, coalesce(p.proconfig, array[]::text[]) as config,
+          p.prosrc, p.proacl::text as acl,
+          has_function_privilege('anon', p.oid, 'execute') as anon_exec,
+          has_function_privilege('authenticated', p.oid, 'execute') as auth_exec,
+          has_function_privilege('service_role', p.oid, 'execute') as service_exec
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname like 'mcp_propos%'`);
+      const bySig = new Map(rows.map((row) => [String(row.sig).replace(/^public\./, ''), row]));
+      for (const sig of PROPOSE_RPCS) {
+        const fn = bySig.get(sig);
+        expect(fn, sig).toBeDefined();
+        expect(fn!.prosecdef, sig).toBe(true);
+        expect(fn!.config, sig).toContain('search_path=""');
+        expect(fn!.anon_exec, sig).toBe(false);
+        expect(fn!.auth_exec, sig).toBe(true);
+        expect(fn!.service_exec, sig).toBe(false);
+        expect(String(fn!.acl), sig).not.toMatch(/[{,]=X/);
+        expect(String(fn!.prosrc), sig).toContain('public.mcp_proposal_caller()');
+        expect(String(fn!.prosrc), sig).toContain('mcp_not_found');
+        expect(String(fn!.prosrc), sig).toContain('mcp_proposal_check_cap');
+      }
+      const caller = bySig.get('mcp_proposal_caller()');
+      expect(caller).toBeDefined();
+      expect(caller!.prosecdef).toBe(false);
+      for (const needle of ['mcp_grant_is_live()', "'propose_draft'", 'user_can_write', 'revoked_at is null',
+        'pg_advisory_xact_lock', "status = 'expired'"]) {
+        expect(String(caller!.prosrc), needle).toContain(needle);
+      }
+      // Helpers are callable only from the definer bodies (owner postgres).
+      for (const [sig, fn] of bySig) {
+        if ((PROPOSE_RPCS as readonly string[]).includes(sig)) continue;
+        expect([fn.anon_exec, fn.auth_exec, fn.service_exec], sig).toEqual([false, false, false]);
+      }
+      const index = await query(
+        "select indexdef from pg_indexes where schemaname = 'public' and indexname = 'mcp_proposals_one_pending_draft'");
+      expect(String(index[0]?.indexdef)).toMatch(/UNIQUE INDEX[\s\S]*\(chapter_id\)[\s\S]*chapter_draft[\s\S]*pending/);
+    });
+
+    it('propose RPCs refuse browser claims and reach input checks only for live OAuth claims', async () => {
+      const run = (claims: Record<string, unknown>) => asClaims(claims, async () => {
+        const result: Record<string, string> = {};
+        for (const sig of PROPOSE_RPCS) {
+          await query('savepoint rpc');
+          try {
+            await query(callSql(sig));
+            await query('release savepoint rpc');
+            result[sig] = 'ok';
+          } catch (error) {
+            await query('rollback to savepoint rpc');
+            result[sig] = String((error as { message?: string }).message);
+          }
+        }
+        return result;
+      });
+      const browser = await run({ ...decodeClaims(aBrowser), role: 'authenticated' });
+      for (const sig of PROPOSE_RPCS) expect(browser[sig], sig).toBe('live MCP grant required');
+      // Null content and random ids: a live bearer passes the grant checks and fails on input.
+      const oauth = await run({ ...aTok.claims, role: 'authenticated' });
+      for (const sig of PROPOSE_RPCS) expect(oauth[sig], sig).toBe('mcp_invalid_content');
+    });
   });
 
   describe('blocked tables', () => {
-    it('OAuth claims see 0 rows (or are denied) on all 36 blocked tables while browser claims see own rows', async () => {
+    it('OAuth claims see 0 rows (or are denied) on all 37 blocked tables while browser claims see own rows', async () => {
       const oauthClaims = { ...aTok.claims, role: 'authenticated' };
       const browserClaims = { ...decodeClaims(aBrowser), role: 'authenticated' };
       const oauthCounts = await asClaims(oauthClaims, async () => {
@@ -308,10 +389,40 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
         profiles: await visibleCount('profiles'),
         mcp_connections: await visibleCount('mcp_connections'),
         work_likes: await visibleCount('work_likes'),
+        mcp_proposals: await visibleCount('mcp_proposals'),
       }));
       expect(browserCounts.profiles).toBeGreaterThan(0);
       expect(browserCounts.mcp_connections).toBeGreaterThan(0);
       expect(browserCounts.work_likes).toBeGreaterThan(0);
+      expect(browserCounts.mcp_proposals).toBe(1);
+    });
+
+    it('mcp_proposals: OAuth REST SELECT/INSERT/UPDATE/DELETE and browser DML are refused; browsers read own rows', async () => {
+      const snapshot = () => query(
+        'select id, status, content, source_client_name from public.mcp_proposals where owner_id = $1 order by id', [writerA.id]);
+      const before = await snapshot();
+      expect(before).toHaveLength(1);
+      const row = {
+        owner_id: writerA.id, work_id: f.wA, kind: 'kb_create', proposed_category: '인물', proposed_name: 'rest insert',
+        content: 'x', content_hash: 'a'.repeat(64), source_client_id: aTok.clientId, source_client_name: 'Forged', source_host: 'evil',
+      };
+      const read = await restRows('mcp_proposals', 'select=id', aTok.accessToken);
+      expect([200, 401, 403]).toContain(read.status);
+      if (read.status === 200) expect(read.rows).toEqual([]);
+      for (const [label, bearer] of [['oauth', aTok.accessToken], ['browser', aBrowser]] as const) {
+        const insert = await rest('POST', 'mcp_proposals', bearer, row);
+        expect([401, 403], `${label} insert`).toContain(insert.status);
+        for (const [method, body] of [['PATCH', { status: 'accepted' }], ['DELETE', undefined]] as const) {
+          const result = await rest(method, `mcp_proposals?id=eq.${f.pA}`, bearer, body);
+          expect([401, 403], `${label} ${method}`).toContain(result.status);
+        }
+      }
+      expect(await snapshot()).toEqual(before);
+      // Browser owner read works; another writer's browser sees nothing.
+      expect(ids((await restRows('mcp_proposals', 'select=id', aBrowser)).rows)).toEqual([f.pA]);
+      const bSession = (await writerB.browser.auth.getSession()).data.session;
+      if (!bSession) throw new Error('Expected a live browser session for writer B');
+      expect((await restRows('mcp_proposals', 'select=id', bSession.access_token)).rows).toEqual([]);
     });
 
     it('OAuth REST reads and writes on blocked tables are refused; the browser path still works', async () => {
