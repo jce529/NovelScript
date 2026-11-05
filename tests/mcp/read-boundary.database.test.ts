@@ -94,7 +94,7 @@ const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
   'pay_purchase_order(uuid)': 'block',
   'read_chapter_content(uuid)': 'block',
   'reject_mcp_proposal(uuid)': 'block',
-  'revert_mcp_proposal(uuid,boolean)': 'block',
+  'revert_mcp_proposal(uuid,boolean,text)': 'block',
   'save_chapter_reading(uuid,uuid,uuid,bigint,numeric,bigint,integer)': 'block',
   'save_world_timeline(uuid,jsonb,jsonb)': 'block',
   'soft_delete_kb_node(uuid,uuid)': 'block',

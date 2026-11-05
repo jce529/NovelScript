@@ -425,23 +425,44 @@ $$;
 
 -- 7) revert_mcp_proposal: once, within undo_until, not suspended. Chapter /
 --    document edits get their pre-accept text back; a created document is
---    soft-deleted (not locked). If the target changed after the accept
---    (hash <> applied_hash) nothing is restored unless p_confirm is true: the
---    result {status:'accepted', confirm_required:true, changed_since_accept:true}
---    is the warning the UI shows before asking again.
-create or replace function public.revert_mcp_proposal(p_proposal_id uuid, p_confirm boolean default false)
+--    soft-deleted (not locked).
+--    Change detection (under FOR UPDATE of the target):
+--      chapter / kb_edit: sha256(content) <> applied_hash
+--      kb_create: content hash <> applied_hash, or the name / parent folder /
+--        lock state differs from what accept created (proposed_name,
+--        decision.folder_id, unlocked)
+--    If changed, nothing is restored unless p_confirm is true AND p_seen_hash
+--    equals the target's current state hash (current_hash below), which the
+--    writer saw in the previous confirm_required answer. A mismatch (the writer
+--    edited again in between) returns a fresh confirm_required and restores
+--    nothing, so a later edit is never overwritten silently.
+--    current_hash: chapter / kb_edit = sha256(content);
+--      kb_create = sha256(jsonb_build_array(name, parent_id, is_locked, content)::text).
+--    p_confirm = true without p_seen_hash -> mcp_invalid_decision.
+--    0042 drafts had revert_mcp_proposal(uuid, boolean); dropped here (never merged).
+drop function if exists public.revert_mcp_proposal(uuid, boolean);
+
+create or replace function public.revert_mcp_proposal(
+  p_proposal_id uuid, p_confirm boolean default false, p_seen_hash text default null)
 returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   v_user_id uuid;
   v_proposal public.mcp_proposals%rowtype;
   v_current text;
+  v_name text;
+  v_parent uuid;
+  v_locked boolean;
   v_changed boolean;
+  v_state_hash text;
 begin
   perform public.mcp_reject_oauth_caller();
   v_user_id := public.mcp_decision_caller(true);
   if not public.user_can_write(auth.uid()) then
     raise exception 'mcp_suspended' using errcode = '42501';
+  end if;
+  if coalesce(p_confirm, false) and p_seen_hash is null then
+    raise exception 'mcp_invalid_decision' using errcode = '22023';
   end if;
 
   select * into v_proposal from public.mcp_proposals as p
@@ -475,12 +496,12 @@ begin
       and n.deleted_at is null and w.deleted_at is null
     for update of n;
   else
-    select n.content into v_current
+    select n.content, n.name, n.parent_id, n.is_locked into v_current, v_name, v_parent, v_locked
     from public.kb_nodes as n
     join public.works as w on w.id = n.work_id
     where n.id = v_proposal.created_node_id and n.work_id = v_proposal.work_id
       and n.owner_id = v_user_id and w.owner_id = v_user_id
-      and n.node_type = 'file' and not n.is_locked
+      and n.node_type = 'file'
       and n.deleted_at is null and w.deleted_at is null
     for update of n;
   end if;
@@ -489,9 +510,20 @@ begin
   end if;
 
   v_changed := public.mcp_proposal_sha256(coalesce(v_current, '')) is distinct from v_proposal.applied_hash;
-  if v_changed and not coalesce(p_confirm, false) then
+  if v_proposal.kind = 'kb_create' then
+    v_changed := v_changed
+      or v_name is distinct from v_proposal.proposed_name
+      or v_parent is distinct from (v_proposal.decision ->> 'folder_id')::uuid
+      or v_locked;
+    v_state_hash := public.mcp_proposal_sha256(
+      pg_catalog.jsonb_build_array(v_name, v_parent, v_locked, coalesce(v_current, ''))::text);
+  else
+    v_state_hash := public.mcp_proposal_sha256(coalesce(v_current, ''));
+  end if;
+
+  if v_changed and (not coalesce(p_confirm, false) or p_seen_hash is distinct from v_state_hash) then
     return pg_catalog.jsonb_build_object('id', v_proposal.id, 'status', 'accepted',
-      'confirm_required', true, 'changed_since_accept', true);
+      'confirm_required', true, 'changed_since_accept', true, 'current_hash', v_state_hash);
   end if;
 
   if v_proposal.kind = 'chapter_draft' then
@@ -503,6 +535,10 @@ begin
        set content = v_proposal.undo_content, updated_at = pg_catalog.now()
      where n.id = v_proposal.node_id;
   else
+    if v_locked then
+      -- A locked node cannot be soft-deleted (locked_node_immutable).
+      raise exception 'mcp_not_revertible' using errcode = 'P0001';
+    end if;
     update public.kb_nodes as n
        set deleted_at = pg_catalog.now(), updated_at = pg_catalog.now()
      where n.id = v_proposal.created_node_id;
@@ -514,7 +550,7 @@ begin
            || pg_catalog.jsonb_build_object('reverted_at', pg_catalog.now(), 'changed_since_accept', v_changed)
    where p.id = v_proposal.id;
   return pg_catalog.jsonb_build_object('id', v_proposal.id, 'status', 'reverted',
-    'confirm_required', false, 'changed_since_accept', v_changed);
+    'confirm_required', false, 'changed_since_accept', v_changed, 'current_hash', null);
 end;
 $$;
 
@@ -523,12 +559,12 @@ revoke all on function public.accept_mcp_chapter_draft(uuid, text, text, jsonb) 
 revoke all on function public.accept_mcp_kb_edit(uuid, text, text, jsonb) from public, anon, service_role;
 revoke all on function public.accept_mcp_kb_create(uuid, uuid, text) from public, anon, service_role;
 revoke all on function public.reject_mcp_proposal(uuid) from public, anon, service_role;
-revoke all on function public.revert_mcp_proposal(uuid, boolean) from public, anon, service_role;
+revoke all on function public.revert_mcp_proposal(uuid, boolean, text) from public, anon, service_role;
 grant execute on function public.accept_mcp_chapter_draft(uuid, text, text, jsonb) to authenticated;
 grant execute on function public.accept_mcp_kb_edit(uuid, text, text, jsonb) to authenticated;
 grant execute on function public.accept_mcp_kb_create(uuid, uuid, text) to authenticated;
 grant execute on function public.reject_mcp_proposal(uuid) to authenticated;
-grant execute on function public.revert_mcp_proposal(uuid, boolean) to authenticated;
+grant execute on function public.revert_mcp_proposal(uuid, boolean, text) to authenticated;
 
 notify pgrst, 'reload schema';
 commit;
