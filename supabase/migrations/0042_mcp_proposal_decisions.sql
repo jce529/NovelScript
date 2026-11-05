@@ -297,10 +297,238 @@ begin
 end;
 $$;
 
+-- 5) accept_mcp_kb_create: the writer picked the folder (D-P14-03). The folder
+--    is re-validated here like lib/kb/actions.ts validateTargetFolder: owned,
+--    this work, scope 'work', a live folder of the proposal's category, whose
+--    parent chain reaches the single live category root (depth <= 32, no
+--    cycle), and whose root->folder 'id:name' chain equals p_folder_version.
+--    Any mismatch is an error; the file is never saved to another folder.
+create or replace function public.accept_mcp_kb_create(
+  p_proposal_id uuid, p_folder_id uuid, p_folder_version text)
+returns jsonb
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_user_id uuid;
+  v_proposal public.mcp_proposals%rowtype;
+  v_folder record;
+  v_chain text := '';
+  v_cursor uuid;
+  v_seen uuid[] := array[]::uuid[];
+  v_depth int := 0;
+  v_root uuid;
+  v_node_id uuid;
+  v_applied text;
+  v_undo_until timestamptz;
+begin
+  perform public.mcp_reject_oauth_caller();
+  v_user_id := public.mcp_decision_caller(true);
+  if not public.user_can_write(auth.uid()) then
+    raise exception 'mcp_suspended' using errcode = '42501';
+  end if;
+
+  select * into v_proposal from public.mcp_proposals as p
+  where p.id = p_proposal_id and p.owner_id = v_user_id and p.kind = 'kb_create'
+  for update;
+  if not found then
+    raise exception 'mcp_not_found' using errcode = 'P0001';
+  end if;
+  perform public.mcp_decision_check_pending(v_proposal.status, v_proposal.expires_at);
+  if not exists (select 1 from public.works as w
+                 where w.id = v_proposal.work_id and w.owner_id = v_user_id and w.deleted_at is null) then
+    raise exception 'mcp_not_found' using errcode = 'P0001';
+  end if;
+
+  -- Walk folder -> root; every hop must satisfy the same predicate. Rows are
+  -- locked FOR SHARE so a concurrent rename / move / delete waits for us.
+  v_cursor := p_folder_id;
+  loop
+    select n.id, n.name, n.parent_id into v_folder
+    from public.kb_nodes as n
+    where n.id = v_cursor and n.owner_id = v_user_id and n.work_id = v_proposal.work_id
+      and n.scope = 'work' and n.node_type = 'folder' and n.category = v_proposal.proposed_category
+      and n.deleted_at is null
+    for share;
+    if not found or v_cursor = any (v_seen) or v_depth > 32 then
+      raise exception 'mcp_folder_invalid' using errcode = 'P0001';
+    end if;
+    v_seen := v_seen || v_cursor;
+    v_chain := case when v_chain = '' then v_folder.id::text || ':' || v_folder.name
+                    else v_folder.id::text || ':' || v_folder.name || '/' || v_chain end;
+    exit when v_folder.parent_id is null;
+    v_cursor := v_folder.parent_id;
+    v_depth := v_depth + 1;
+  end loop;
+  v_root := v_folder.id;
+  -- The single structural root (0010 unique index) must be this one.
+  if (select pg_catalog.count(*) from public.kb_nodes as n
+      where n.work_id = v_proposal.work_id and n.owner_id = v_user_id and n.scope = 'work'
+        and n.node_type = 'folder' and n.parent_id is null and n.deleted_at is null
+        and n.category = v_proposal.proposed_category) <> 1 then
+    raise exception 'mcp_folder_invalid' using errcode = 'P0001';
+  end if;
+  if p_folder_version is null or v_chain <> p_folder_version then
+    raise exception 'mcp_folder_changed' using errcode = 'P0001';
+  end if;
+
+  begin
+    insert into public.kb_nodes as n
+      (owner_id, work_id, scope, parent_id, node_type, category, is_locked, name, content)
+    values (v_user_id, v_proposal.work_id, 'work', p_folder_id, 'file', v_proposal.proposed_category,
+      false, v_proposal.proposed_name, v_proposal.content)
+    returning n.id into v_node_id;
+  exception when unique_violation then
+    -- Sibling name taken: the UI offers another folder or rejecting (no rename).
+    raise exception 'mcp_name_collision' using errcode = 'P0001';
+  end;
+
+  v_applied := public.mcp_proposal_sha256(v_proposal.content);
+  v_undo_until := pg_catalog.now() + interval '7 days';
+  update public.mcp_proposals as p
+     set status = 'accepted', decided_at = pg_catalog.now(),
+         decision = pg_catalog.jsonb_build_object('folder_id', p_folder_id, 'folder_version', v_chain,
+           'root_id', v_root),
+         undo_content = null, undo_until = v_undo_until, applied_hash = v_applied,
+         created_node_id = v_node_id
+   where p.id = v_proposal.id;
+
+  return pg_catalog.jsonb_build_object('id', v_proposal.id, 'status', 'accepted',
+    'undo_until', v_undo_until, 'created_node_id', v_node_id);
+end;
+$$;
+
+-- 6) reject_mcp_proposal: pending -> rejected. Nothing else changes, so a
+--    suspended writer (and a demoted reader cleaning up) may reject too.
+create or replace function public.reject_mcp_proposal(p_proposal_id uuid)
+returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_user_id uuid;
+  v_proposal public.mcp_proposals%rowtype;
+begin
+  perform public.mcp_reject_oauth_caller();
+  v_user_id := public.mcp_decision_caller(false);
+
+  select * into v_proposal from public.mcp_proposals as p
+  where p.id = p_proposal_id and p.owner_id = v_user_id
+  for update;
+  if not found then
+    raise exception 'mcp_not_found' using errcode = 'P0001';
+  end if;
+  perform public.mcp_decision_check_pending(v_proposal.status, v_proposal.expires_at);
+
+  update public.mcp_proposals as p
+     set status = 'rejected', decided_at = pg_catalog.now()
+   where p.id = v_proposal.id;
+  return pg_catalog.jsonb_build_object('id', v_proposal.id, 'status', 'rejected');
+end;
+$$;
+
+-- 7) revert_mcp_proposal: once, within undo_until, not suspended. Chapter /
+--    document edits get their pre-accept text back; a created document is
+--    soft-deleted (not locked). If the target changed after the accept
+--    (hash <> applied_hash) nothing is restored unless p_confirm is true: the
+--    result {status:'accepted', confirm_required:true, changed_since_accept:true}
+--    is the warning the UI shows before asking again.
+create or replace function public.revert_mcp_proposal(p_proposal_id uuid, p_confirm boolean default false)
+returns jsonb
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_user_id uuid;
+  v_proposal public.mcp_proposals%rowtype;
+  v_current text;
+  v_changed boolean;
+begin
+  perform public.mcp_reject_oauth_caller();
+  v_user_id := public.mcp_decision_caller(true);
+  if not public.user_can_write(auth.uid()) then
+    raise exception 'mcp_suspended' using errcode = '42501';
+  end if;
+
+  select * into v_proposal from public.mcp_proposals as p
+  where p.id = p_proposal_id and p.owner_id = v_user_id
+  for update;
+  if not found then
+    raise exception 'mcp_not_found' using errcode = 'P0001';
+  end if;
+  if v_proposal.status <> 'accepted' then
+    raise exception 'mcp_not_revertible' using errcode = 'P0001';
+  end if;
+  if v_proposal.undo_until is null or v_proposal.undo_until <= pg_catalog.now()
+     or (v_proposal.kind <> 'kb_create' and v_proposal.undo_content is null) then
+    raise exception 'mcp_undo_expired' using errcode = 'P0001';
+  end if;
+
+  if v_proposal.kind = 'chapter_draft' then
+    select c.content into v_current
+    from public.chapters as c
+    join public.works as w on w.id = c.work_id
+    where c.id = v_proposal.chapter_id and c.work_id = v_proposal.work_id
+      and w.owner_id = v_user_id and c.deleted_at is null and w.deleted_at is null
+    for update of c;
+  elsif v_proposal.kind = 'kb_edit' then
+    select n.content into v_current
+    from public.kb_nodes as n
+    join public.works as w on w.id = n.work_id
+    where n.id = v_proposal.node_id and n.work_id = v_proposal.work_id
+      and n.owner_id = v_user_id and w.owner_id = v_user_id
+      and n.scope = 'work' and n.node_type = 'file' and not n.is_locked
+      and n.deleted_at is null and w.deleted_at is null
+    for update of n;
+  else
+    select n.content into v_current
+    from public.kb_nodes as n
+    join public.works as w on w.id = n.work_id
+    where n.id = v_proposal.created_node_id and n.work_id = v_proposal.work_id
+      and n.owner_id = v_user_id and w.owner_id = v_user_id
+      and n.node_type = 'file' and not n.is_locked
+      and n.deleted_at is null and w.deleted_at is null
+    for update of n;
+  end if;
+  if not found then
+    raise exception 'mcp_not_found' using errcode = 'P0001';
+  end if;
+
+  v_changed := public.mcp_proposal_sha256(coalesce(v_current, '')) is distinct from v_proposal.applied_hash;
+  if v_changed and not coalesce(p_confirm, false) then
+    return pg_catalog.jsonb_build_object('id', v_proposal.id, 'status', 'accepted',
+      'confirm_required', true, 'changed_since_accept', true);
+  end if;
+
+  if v_proposal.kind = 'chapter_draft' then
+    update public.chapters as c
+       set content = v_proposal.undo_content, updated_at = pg_catalog.now()
+     where c.id = v_proposal.chapter_id;
+  elsif v_proposal.kind = 'kb_edit' then
+    update public.kb_nodes as n
+       set content = v_proposal.undo_content, updated_at = pg_catalog.now()
+     where n.id = v_proposal.node_id;
+  else
+    update public.kb_nodes as n
+       set deleted_at = pg_catalog.now(), updated_at = pg_catalog.now()
+     where n.id = v_proposal.created_node_id;
+  end if;
+
+  update public.mcp_proposals as p
+     set status = 'reverted', undo_content = null,
+         decision = coalesce(p.decision, '{}'::jsonb)
+           || pg_catalog.jsonb_build_object('reverted_at', pg_catalog.now(), 'changed_since_accept', v_changed)
+   where p.id = v_proposal.id;
+  return pg_catalog.jsonb_build_object('id', v_proposal.id, 'status', 'reverted',
+    'confirm_required', false, 'changed_since_accept', v_changed);
+end;
+$$;
+
+-- 8) EXECUTE: authenticated only (browser sessions; OAuth is refused in-body).
 revoke all on function public.accept_mcp_chapter_draft(uuid, text, text, jsonb) from public, anon, service_role;
 revoke all on function public.accept_mcp_kb_edit(uuid, text, text, jsonb) from public, anon, service_role;
+revoke all on function public.accept_mcp_kb_create(uuid, uuid, text) from public, anon, service_role;
+revoke all on function public.reject_mcp_proposal(uuid) from public, anon, service_role;
+revoke all on function public.revert_mcp_proposal(uuid, boolean) from public, anon, service_role;
 grant execute on function public.accept_mcp_chapter_draft(uuid, text, text, jsonb) to authenticated;
 grant execute on function public.accept_mcp_kb_edit(uuid, text, text, jsonb) to authenticated;
+grant execute on function public.accept_mcp_kb_create(uuid, uuid, text) to authenticated;
+grant execute on function public.reject_mcp_proposal(uuid) to authenticated;
+grant execute on function public.revert_mcp_proposal(uuid, boolean) to authenticated;
 
 notify pgrst, 'reload schema';
 commit;
