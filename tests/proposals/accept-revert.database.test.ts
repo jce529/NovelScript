@@ -140,8 +140,8 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
       const { id } = await seedChapterProposal(chapter, wA, 'atomic draft');
       const claims = { ...decodeClaims(fx.aBrowser), role: 'authenticated' };
       const observed = await fx.asClaims(claims, async () => {
-        const call = await fx.outcome('select public.accept_mcp_chapter_draft($1, $2, $3, $4::jsonb) as r',
-          [id, hashContent('atomic original'), 'atomic accepted', JSON.stringify({ selections: [0] })]);
+        const call = await fx.outcome('select public.accept_mcp_chapter_draft($1, $2, $3, null::jsonb) as r',
+          [id, hashContent('atomic original'), 'atomic accepted']);
         await fx.query('reset role');
         const [chapterRow] = await fx.query('select content from public.chapters where id = $1', [chapter]);
         const [proposal] = await fx.query('select status, undo_content from public.mcp_proposals where id = $1', [id]);
