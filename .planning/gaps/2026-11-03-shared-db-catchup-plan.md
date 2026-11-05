@@ -183,3 +183,9 @@
 - 최종 점검: preflight 0001~0040 전부 n/n, `oauth_browser_only` 36개 테이블(0038 대상 10개 각 1개), mcp_connections 있음, 가드 SECURITY DEFINER 함수 28개, RLS 꺼진 public 테이블 없음. 지문 1,209줄(해시 6708a076).
 - 사용자가 `--execute`를 두 번 실행한 파일이 있었으나 두 번째는 `already exists, skipping`으로 무해했다.
 - 열린 것: 앱 호환·브라우저 스모크(배포된 앱 없음, 앱 연결 후), 공유 지문과 리허설 지문의 diff, 적용 전 함수 스냅샷 소실(점검 스크립트가 같은 파일명으로 덮어씀), 공유 환경 MCP 연결(공개 HTTPS 배포·OAuth 서버 설정).
+
+## 15. 스모크 결과 (2026-11-05)
+
+- 로그인 화면·소셜 로그인(구글·카카오) 성공, 로그인 후 스튜디오·설정집 트리·AI 커넥터 화면 정상.
+- **홈 피드 anon 500 (statement timeout):** 공유 DB에서 anon으로 works+chapters 쿼리를 `EXPLAIN ANALYZE`(읽기 전용) 한 결과 1.44초, works 511개·chapters 625개가 보이고 buffers 36,421. 회차 정책의 `world_work_public_meta_visible(work_id)`가 행마다 평가된다. 로그인 상태에서는 렌더된다(제한시간이 더 길다). 작품 수에 비례해 느려져 공개 규모에서도 재현될 수 있다.
+- 처리: `bug-plan`으로 Phase 18 `bugs/`에 기록하고 정책 함수 평가 비용을 줄이는 방안을 정한다(이 문서는 마이그레이션 적용 기록이라 수정 방안은 거기서 다룬다).
