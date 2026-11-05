@@ -232,7 +232,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | READ-01 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
 | READ-02 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
 | READ-03 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
-| READ-04 | Phase 3 | Code complete (0024·0025 미적용; 03-19 실DB·브라우저 pending) |
+| READ-04 | Phase 3 | Code complete (0024·0025 공유 DB 적용 2026-11-05; 03-19 실DB·브라우저 pending) |
 | READ-05 | Phase 3 | Complete |
 | READ-07 | Phase 3 | Complete |
 | READ-08 | Phase 3 | Complete |
@@ -241,8 +241,8 @@ Explicitly excluded. Documented to prevent scope creep.
 | PAY-02 | Phase 6 | Reopened (청사진 갭: 대여·정주행·소장함 없음; 이전: Complete (DB tests passed 2026-10-01; browser E2E pending)) |
 | PAY-03 | Phase 5 | Code complete (05-07 Toss 샌드박스·실DB pending) |
 | ADMIN-01 | Phase 7 | Code complete (07-15 실DB·브라우저 pending) |
-| ADMIN-02 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
-| ADMIN-03 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
+| ADMIN-02 | Phase 7 | Code complete (0029 공유 DB 적용 2026-11-05; 07-15 실DB·브라우저 pending) |
+| ADMIN-03 | Phase 7 | Code complete (0029 공유 DB 적용 2026-11-05; 07-15 실DB·브라우저 pending) |
 | ADMIN-04 | Phase 7 | Complete |
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
@@ -266,16 +266,16 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-08 | Phase 11 | Code complete (browser UAT pending) |
 | BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
-| COST-02 | Phase 11 | Code complete (0030 미적용; 11-12 실DB 회귀 pending) |
+| COST-02 | Phase 11 | Code complete (0030 공유 DB 적용 2026-11-05; 11-12 실DB 회귀 pending) |
 | MCP-01 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
-| MCP-02 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
-| MCP-03 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
-| MCP-04 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
+| MCP-02 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
+| MCP-03 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
+| MCP-04 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | MCP-05 | Phase 14 | Mapped |
 | MCP-06 | Phase 14 | Mapped |
 | MCP-07 | Phase 14 | Mapped |
 | MCP-08 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
-| MCP-09 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
+| MCP-09 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | AIDOC-01 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-02 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-03 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
@@ -289,16 +289,16 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
-| WTREE-01 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-02 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-03 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-04 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-05 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-06 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-07 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-08 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-01 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-02 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-03 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-04 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-05 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-06 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-07 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-08 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
 | WTREE-09 | Deferred (READ-06 Lore 위키·스포일러 잠금 phase에서 함께) | Defined |
-| WTREE-10 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-10 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
 | WTREE-11 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-12 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-13 | Deferred (스토어 보류 해제 후) | Defined |

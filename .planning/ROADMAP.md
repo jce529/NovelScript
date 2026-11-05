@@ -432,7 +432,7 @@ Plans:
   2. 연결된 AI가 작가의 설정집 문서를 검색하고 내용을 읽을 수 있다
   3. 연결된 AI가 멘션 방식 집필 컨텍스트 번들(설정집 + 프리셋 + 문체 조합)을 한 번에 받아, 앱 안에서 생성한 것과 같은 구성으로 초안을 쓴다
   4. 읽기 도구를 호출할 때 클라이언트가 불필요한 확인 프롬프트를 띄우지 않는다 (모든 툴에 읽기/쓰기 성격 annotation이 붙는다)
-**Plans**: 6/6 완료 (13-01, 13-01b, 13-02~05) — 2026-11-03 master 병합(6d69b29). 0039는 공유 DB 미적용
+**Plans**: 6/6 완료 (13-01, 13-01b, 13-02~05) — 2026-11-03 master 병합(6d69b29). 0037~0040은 공유 DB에 2026-11-05 적용
 **Notes**: 도구는 기본적으로 user-scoped 클라이언트를 쓴다 — Server Action에서 옳았던 `createAdminClient()` 관행을 그대로 복사하면 bearer 토큰 하나로 교차 사용자 읽기가 가능해지는 confused deputy가 된다. `createAdminClient` import는 그 자체로 추가 리뷰 대상. 모든 도구에 대해 **두 번째 사용자 토큰으로 첫 사용자 리소스를 찌르는 교차 사용자 테스트 스위트**를 통과시킨다. `get_writing_context`는 기존 `composeSystemInstruction`/`assembleUserContent`를 **재사용**한다(fork 금지) — 이 페이즈를 단순 CRUD API가 아니게 만드는 유일한 차별화 도구다.
 
 ### Phase 14: MCP 쓰기 도구 + 스튜디오 리뷰 큐
@@ -607,23 +607,23 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Wallet Infrastructure | 5/5 | Complete   | 2026-08-29 |
 | 2. Studio Core (Writer Loop, No AI) | 13/13 | Complete (재개 보완 02-07~13 완료) | 2026-10-19 (보완), 2026-08-29 (최초) |
-| 3. Reader Core (Reading Loop, No Payment) | 18/20 | Code complete — 03-19(실DB·브라우저 독자 흐름, 수동)·03-20 대기. 2026-10-12 재개 보완 03-08~18 완료(0024·0025 미적용). 코드 완료이며 검증 완료 아님 | - |
-| 4. AI Gateway (Mention-Based Generation) | 11/12 | Code complete — 04-12(체크포인트, 수동) 대기. 2026-10-12 재개 보완 04-07~11 완료(0026 미적용, 실제 키·실DB 미검증) | - |
+| 3. Reader Core (Reading Loop, No Payment) | 18/20 | Code complete — 03-19(실DB·브라우저 독자 흐름, 수동)·03-20 대기. 2026-10-12 재개 보완 03-08~18 완료(0024·0025 공유 DB 적용 2026-11-05). 코드 완료이며 검증 완료 아님 | - |
+| 4. AI Gateway (Mention-Based Generation) | 11/12 | Code complete — 04-12(체크포인트, 수동) 대기. 2026-10-12 재개 보완 04-07~11 완료(0026 공유 DB 적용 2026-11-05, 실제 키·실DB 미검증) | - |
 | 04.1. 사용자 정의 폴더 기능 (KB 커스텀 폴더 + 회차 폴더 트리) | 5/5 | Complete    | 2026-08-31 |
-| 5. Real Payment Integration | 7/8 | Code complete — 05-07(Toss 샌드박스·실DB, 수동) 대기. 05-03~06·05-08 완료(0027 미적용), 웹훅 전용 충전은 mock으로만 검증 | - |
+| 5. Real Payment Integration | 7/8 | Code complete — 05-07(Toss 샌드박스·실DB, 수동) 대기. 05-03~06·05-08 완료(0027 공유 DB 적용 2026-11-05), 웹훅 전용 충전은 mock으로만 검증 | - |
 | 6. Paid Chapter Unlock | n/a (outside GSD) | Reopened — 대여·정주행·소장함·정산 화면 미구현(기존 소장·90/10은 유효, E2E 대기); discuss (이전: Complete (live-DB/E2E verification pending)) | 2026-10-01 (최초) |
-| 7. Admin Moderation Surface | 14/15 | Code complete — 07-15(실DB·브라우저, 수동) 대기. 2026-10-12 재개 보완 07-08~14 완료(0029 미적용) | - |
+| 7. Admin Moderation Surface | 14/15 | Code complete — 07-15(실DB·브라우저, 수동) 대기. 2026-10-12 재개 보완 07-08~14 완료(0029 공유 DB 적용 2026-11-05) | - |
 | 8. 프로바이더 어댑터 기반 · 멱등 차감 수정 | 9/9 | Complete (BUG-03 빌드 실패는 07-03으로 수정) | 2026-09-18 |
 | 9. OpenAI · Anthropic 어댑터 + 제공자별 단가 | 6/6 | Complete (라이브 키·브라우저 UAT 통과; Gemini 라이브는 Phase 4 UAT) | 2026-09-29 |
 | 10. BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 | 10/11 | Code complete — 10-10(체크포인트, 수동) 대기. 재개 보완 10-07~09 완료(PROV-05 서버 키 가드), 실DB·UAT 미검증 | - |
-| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 미적용) | - |
-| 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2는 #3~#6·#10(Claude 커넥터 등록·승인·호출·해제 후 차단·정리)이 일회용 DB 실인수에서 통과(Phase 13 세션 수행, 근거 `13-VALIDATION.md`). #7(동의 화면 상태)·#8(375px·접근성)·#9(1시간 후 refresh)는 pending. 0037·0038 공유 DB 미적용. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
-| 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 6/6 | Complete (2026-11-03 master 병합 6d69b29) — 일회용 DB에서 실제 Claude 커스텀 커넥터 인수 통과(연결·읽기 전용 그룹 인식·항상 허용 후 읽기 도구 무확인 실행·본인 데이터만 반환·해제 후 차단). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 0039 공유 DB 미적용(0037·0038과 순서 적용, 별도 승인). 근거 `13-VALIDATION.md` | 2026-11-03 |
+| 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 공유 DB 적용 2026-11-05) | - |
+| 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2는 #3~#6·#10(Claude 커넥터 등록·승인·호출·해제 후 차단·정리)이 일회용 DB 실인수에서 통과(Phase 13 세션 수행, 근거 `13-VALIDATION.md`). #7(동의 화면 상태)·#8(375px·접근성)·#9(1시간 후 refresh)는 pending. 0037·0038 공유 DB 적용 2026-11-05. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
+| 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 6/6 | Complete (2026-11-03 master 병합 6d69b29) — 일회용 DB에서 실제 Claude 커스텀 커넥터 인수 통과(연결·읽기 전용 그룹 인식·항상 허용 후 읽기 도구 무확인 실행·본인 데이터만 반환·해제 후 차단). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 0037~0040 공유 DB 적용 2026-11-05(백업 없이, 테스트 데이터만 있음). 근거 `13-VALIDATION.md` | 2026-11-03 |
 | 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 7/7 | Code complete — 수동 UAT(실키·실기기·E1·E2 등 `17-UAT.md` M1~M13) 대기. 코드 완료이며 검증 완료 아님 | - |
-| 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 미적용, 단위 테스트만 통과) | - |
+| 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 공유 DB 적용 2026-11-05, 단위 테스트만 통과) | - |
 | 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 0/TBD | Not started | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
