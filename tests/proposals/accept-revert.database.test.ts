@@ -266,23 +266,213 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
     });
   });
 
+  describe('accept_mcp_kb_create', () => {
+    const acceptCreate = (bearer: string, id: string, folderId: string, version: string | null) =>
+      fx.rpc('accept_mcp_kb_create', bearer, { p_proposal_id: id, p_folder_id: folderId, p_folder_version: version });
+
+    it('creates the file in the folder the writer picked (root or nested) and records created_node_id', async () => {
+      const root = await seedKbCreateProposal(wA, '인물', '새 인물', '이름: 도윤\n');
+      const result = await acceptCreate(fx.aBrowser, root.id, people, `${people}:인물`);
+      expect(result.status, String(result.message)).toBe(200);
+      const data = result.json as Decided;
+      expect(data).toMatchObject({ id: root.id, status: 'accepted' });
+      expect(data.created_node_id).toEqual(expect.any(String));
+      const node = await nodeRow(data.created_node_id!);
+      expect(node).toMatchObject({ parent_id: people, category: '인물', name: '새 인물', content: '이름: 도윤\n', is_locked: false, deleted_at: null });
+      const row = await proposalRow(root.id);
+      expect(row).toMatchObject({ status: 'accepted', created_node_id: data.created_node_id, undo_content: null, applied_hash: sha256('이름: 도윤\n') });
+      expect(row.decision).toMatchObject({ folder_id: people, folder_version: `${people}:인물` });
+
+      const nested = await seedKbCreateProposal(wA, '인물', '조연 신규', 'side');
+      const nestedResult = await acceptCreate(fx.aBrowser, nested.id, peopleSub, `${people}:인물/${peopleSub}:조연`);
+      expect(nestedResult.status, String(nestedResult.message)).toBe(200);
+      expect((await nodeRow((nestedResult.json as Decided).created_node_id!)).parent_id).toBe(peopleSub);
+    });
+
+    it('never saves to another folder: wrong category, stale version, other work, account_template, deleted or foreign folders', async () => {
+      const a = fx.writerA.id;
+      const wA2 = await insertWork(fx, a, 'proposal decide A2');
+      const otherWorkPeople = await insertKbNode(fx, { ownerId: a, workId: wA2, nodeType: 'folder', category: '인물', name: '인물', locked: true });
+      const acct = await insertKbNode(fx, { ownerId: a, workId: null, scope: 'account_template', nodeType: 'folder', category: 'custom', name: '공유' });
+      const deletedSub = await insertKbNode(fx, { ownerId: a, workId: wA, parentId: people, nodeType: 'folder', category: '인물', name: '지운 폴더', deleted: true });
+      const bPeople = await insertKbNode(fx, { ownerId: fx.writerB.id, workId: wB, nodeType: 'folder', category: '인물', name: '인물', locked: true });
+      const { id } = await seedKbCreateProposal(wA, '인물', '갈 곳 없는 인물', 'nowhere');
+      const count = async () => (await fx.query('select count(*)::int as n from public.kb_nodes where owner_id = any($1::uuid[])',
+        [[a, fx.writerB.id]]))[0].n as number;
+      const before = await count();
+
+      for (const [folder, version, message] of [
+        [places, `${places}:장소`, 'mcp_folder_invalid'],
+        [customRoot, `${customRoot}:메모`, 'mcp_folder_invalid'],
+        [otherWorkPeople, `${otherWorkPeople}:인물`, 'mcp_folder_invalid'],
+        [acct, `${acct}:공유`, 'mcp_folder_invalid'],
+        [deletedSub, `${people}:인물/${deletedSub}:지운 폴더`, 'mcp_folder_invalid'],
+        [bPeople, `${bPeople}:인물`, 'mcp_folder_invalid'],
+        [randomUUID(), 'x', 'mcp_folder_invalid'],
+        [peopleSub, `${people}:인물/${peopleSub}:옛 이름`, 'mcp_folder_changed'],
+        [peopleSub, null, 'mcp_folder_changed'],
+      ] as const) {
+        const result = await acceptCreate(fx.aBrowser, id, folder, version);
+        expect(result, `${folder} ${version}`).toMatchObject({ status: 400, message });
+      }
+      expect(await count()).toBe(before);
+      expect(await proposalRow(id)).toMatchObject({ status: 'pending', created_node_id: null });
+      // B cannot accept A's proposal into B's own folder either.
+      expect(await acceptCreate(fx.bBrowser, id, bPeople, `${bPeople}:인물`)).toMatchObject({ status: 400, message: 'mcp_not_found' });
+    });
+
+    it('maps a sibling name collision to mcp_name_collision and keeps the proposal pending', async () => {
+      await insertKbNode(fx, { ownerId: fx.writerA.id, workId: wA, parentId: places, category: '장소', name: '왕궁', content: 'existing' });
+      const { id } = await seedKbCreateProposal(wA, '장소', '왕궁', 'duplicate');
+      const result = await acceptCreate(fx.aBrowser, id, places, `${places}:장소`);
+      expect(result).toMatchObject({ status: 400, message: 'mcp_name_collision' });
+      expect(await proposalRow(id)).toMatchObject({ status: 'pending', created_node_id: null });
+      expect((await fx.query("select count(*)::int as n from public.kb_nodes where parent_id = $1 and name = '왕궁'", [places]))[0].n).toBe(1);
+    });
+  });
+
+  describe('reject_mcp_proposal', () => {
+    it('rejects pending proposals only, for the owner only, without touching the original', async () => {
+      const chapter = await insertChapter(fx, wA, 'reject original', { orderIndex: 40 });
+      const { id } = await seedChapterProposal(chapter, wA, 'reject draft');
+      expect(await fx.rpc('reject_mcp_proposal', fx.bBrowser, { p_proposal_id: id })).toMatchObject({ status: 400, message: 'mcp_not_found' });
+      const result = await fx.rpc('reject_mcp_proposal', fx.aBrowser, { p_proposal_id: id });
+      expect(result).toMatchObject({ status: 200, json: { id, status: 'rejected' } });
+      expect((await proposalRow(id))).toMatchObject({ status: 'rejected', undo_content: null });
+      expect((await chapterBody(chapter)).content).toBe('reject original');
+      expect(await fx.rpc('reject_mcp_proposal', fx.aBrowser, { p_proposal_id: id })).toMatchObject({ status: 400, message: 'mcp_not_pending' });
+      expect((await acceptChapter(fx.aBrowser, id, hashContent('reject original'), 'reject draft')).message).toBe('mcp_not_pending');
+    });
+  });
+
+  describe('revert_mcp_proposal', () => {
+    const revert = (bearer: string, id: string, confirm?: boolean) =>
+      fx.rpc('revert_mcp_proposal', bearer, confirm === undefined ? { p_proposal_id: id } : { p_proposal_id: id, p_confirm: confirm });
+
+    it('restores the chapter once: reverted, undo cleared, no second revert and no re-accept', async () => {
+      const chapter = await insertChapter(fx, wA, 'revert original', { orderIndex: 50 });
+      const { id } = await seedChapterProposal(chapter, wA, 'revert draft');
+      expect((await acceptChapter(fx.aBrowser, id, hashContent('revert original'), 'revert draft')).status).toBe(200);
+      expect(await revert(fx.bBrowser, id)).toMatchObject({ status: 400, message: 'mcp_not_found' });
+      const result = await revert(fx.aBrowser, id);
+      expect(result).toMatchObject({ status: 200, json: { id, status: 'reverted', changed_since_accept: false } });
+      expect((await chapterBody(chapter)).content).toBe('revert original');
+      const row = await proposalRow(id);
+      expect(row).toMatchObject({ status: 'reverted', undo_content: null });
+      expect(row.decision).toMatchObject({ changed_since_accept: false });
+      expect(await revert(fx.aBrowser, id)).toMatchObject({ status: 400, message: 'mcp_not_revertible' });
+      expect((await acceptChapter(fx.aBrowser, id, hashContent('revert original'), 'again')).message).toBe('mcp_not_pending');
+      expect((await chapterBody(chapter)).content).toBe('revert original');
+    });
+
+    it('warns when the target changed after the accept and restores only when confirmed', async () => {
+      const chapter = await insertChapter(fx, wA, 'warn original', { orderIndex: 51 });
+      const { id } = await seedChapterProposal(chapter, wA, 'warn draft');
+      expect((await acceptChapter(fx.aBrowser, id, hashContent('warn original'), 'warn draft')).status).toBe(200);
+      await fx.query("update public.chapters set content = 'warn draft + later edit' where id = $1", [chapter]);
+      const warn = await revert(fx.aBrowser, id);
+      expect(warn).toMatchObject({ status: 200, json: { id, status: 'accepted', confirm_required: true, changed_since_accept: true } });
+      expect((await chapterBody(chapter)).content).toBe('warn draft + later edit');
+      expect((await proposalRow(id)).status).toBe('accepted');
+      const confirmed = await revert(fx.aBrowser, id, true);
+      expect(confirmed).toMatchObject({ status: 200, json: { status: 'reverted', changed_since_accept: true } });
+      expect((await chapterBody(chapter)).content).toBe('warn original');
+    });
+
+    it('restores a document edit and soft-deletes a created document', async () => {
+      const node = await insertKbNode(fx, { ownerId: fx.writerA.id, workId: wA, parentId: people, category: '인물', name: '되돌릴 인물', content: 'kb before' });
+      const edit = await seedKbEditProposal(node, wA, 'kb after');
+      expect((await acceptKbEdit(fx.aBrowser, edit.id, hashContent('kb before'), 'kb after')).status).toBe(200);
+      expect((await revert(fx.aBrowser, edit.id)).status).toBe(200);
+      expect((await nodeRow(node)).content).toBe('kb before');
+      expect((await proposalRow(edit.id)).status).toBe('reverted');
+
+      const created = await seedKbCreateProposal(wA, '인물', '되돌릴 신규', 'created doc');
+      const accepted = await fx.rpc('accept_mcp_kb_create', fx.aBrowser,
+        { p_proposal_id: created.id, p_folder_id: people, p_folder_version: `${people}:인물` });
+      expect(accepted.status, String(accepted.message)).toBe(200);
+      const nodeId = (accepted.json as Decided).created_node_id!;
+      expect((await revert(fx.aBrowser, created.id)).status).toBe(200);
+      const gone = await nodeRow(nodeId);
+      expect(gone.deleted_at).not.toBeNull();
+      expect(gone.is_locked).toBe(false);
+      expect(await proposalRow(created.id)).toMatchObject({ status: 'reverted', created_node_id: nodeId });
+    });
+
+    it('refuses after the 7-day window and drops expired undo snapshots opportunistically', async () => {
+      const chapter = await insertChapter(fx, wA, 'window original', { orderIndex: 52 });
+      const { id } = await seedChapterProposal(chapter, wA, 'window draft');
+      expect((await acceptChapter(fx.aBrowser, id, hashContent('window original'), 'window draft')).status).toBe(200);
+      await fx.query("update public.mcp_proposals set undo_until = now() - interval '1 second' where id = $1", [id]);
+      expect(await revert(fx.aBrowser, id)).toMatchObject({ status: 400, message: 'mcp_undo_expired' });
+      expect((await chapterBody(chapter)).content).toBe('window draft');
+      // The raised error rolled the cleanup back; any successful decision call drops the snapshot.
+      expect((await proposalRow(id)).undo_content).toBe('window original');
+      const other = await insertChapter(fx, wA, 'cleanup original', { orderIndex: 53 });
+      const otherP = await seedChapterProposal(other, wA, 'cleanup draft');
+      expect((await fx.rpc('reject_mcp_proposal', fx.aBrowser, { p_proposal_id: otherP.id })).status).toBe(200);
+      expect(await proposalRow(id)).toMatchObject({ status: 'accepted', undo_content: null });
+    });
+  });
+
+  describe('browser session only', () => {
+    it('OAuth bearers get 42501 on all five decision RPCs and nothing changes; anon is refused', async () => {
+      const chapter = await insertChapter(fx, wA, 'bearer original', { orderIndex: 60 });
+      const { id } = await seedChapterProposal(chapter, wA, 'bearer draft');
+      const create = await seedKbCreateProposal(wA, '인물', '토큰 신규', 'bearer doc');
+      const calls: Array<[string, Record<string, unknown>]> = [
+        ['accept_mcp_chapter_draft', { p_proposal_id: id, p_expected_hash: hashContent('bearer original'), p_new_content: 'bearer draft', p_decision: {} }],
+        ['accept_mcp_kb_edit', { p_proposal_id: id, p_expected_hash: hashContent('bearer original'), p_new_content: 'x', p_decision: {} }],
+        ['accept_mcp_kb_create', { p_proposal_id: create.id, p_folder_id: people, p_folder_version: `${people}:인물` }],
+        ['reject_mcp_proposal', { p_proposal_id: id }],
+        ['revert_mcp_proposal', { p_proposal_id: id }],
+      ];
+      for (const [fn, body] of calls) {
+        for (const token of [fx.aTok.accessToken, fx.bTok.accessToken]) {
+          const result = await fx.rpc(fn, token, body);
+          expect(result, fn).toMatchObject({ status: 403, message: 'browser session required' });
+        }
+        const anon = await fx.rpc(fn, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, body);
+        expect([401, 403, 404], fn).toContain(anon.status);
+      }
+      expect((await chapterBody(chapter)).content).toBe('bearer original');
+      expect(await proposalRow(id)).toMatchObject({ status: 'pending', decision: null });
+      expect(await proposalRow(create.id)).toMatchObject({ status: 'pending', created_node_id: null });
+    });
+  });
+
   describe('suspended and demoted accounts', () => {
-    it('suspended writers cannot accept', async () => {
+    it('suspended writers cannot accept or revert, but can reject', async () => {
       const chapter = await insertChapter(fx, wA, 'suspended original', { orderIndex: 20 });
       const pending = await seedChapterProposal(chapter, wA, 'suspended draft');
       const node = await insertKbNode(fx, { ownerId: fx.writerA.id, workId: wA, parentId: people, category: '인물', name: '정지 인물', content: 'kb v1' });
       const kbPending = await seedKbEditProposal(node, wA, 'kb v2');
+      const create = await seedKbCreateProposal(wA, '인물', '정지 신규', 'new doc');
+      // An accepted proposal to try reverting while suspended.
+      const acceptedChapter = await insertChapter(fx, wA, 'accepted original', { orderIndex: 21 });
+      const accepted = await seedChapterProposal(acceptedChapter, wA, 'accepted draft');
+      expect((await acceptChapter(fx.aBrowser, accepted.id, hashContent('accepted original'), 'accepted draft')).status).toBe(200);
 
       await withSuspendedA(async () => {
         const chapterTry = await acceptChapter(fx.aBrowser, pending.id, hashContent('suspended original'), 'suspended draft');
         expect(chapterTry).toMatchObject({ status: 403, message: 'mcp_suspended' });
         const kbTry = await acceptKbEdit(fx.aBrowser, kbPending.id, hashContent('kb v1'), 'kb v2');
         expect(kbTry).toMatchObject({ status: 403, message: 'mcp_suspended' });
+        const createTry = await fx.rpc('accept_mcp_kb_create', fx.aBrowser,
+          { p_proposal_id: create.id, p_folder_id: people, p_folder_version: `${people}:인물` });
+        expect(createTry).toMatchObject({ status: 403, message: 'mcp_suspended' });
+        const revertTry = await fx.rpc('revert_mcp_proposal', fx.aBrowser, { p_proposal_id: accepted.id, p_confirm: true });
+        expect(revertTry).toMatchObject({ status: 403, message: 'mcp_suspended' });
+        const reject = await fx.rpc('reject_mcp_proposal', fx.aBrowser, { p_proposal_id: pending.id });
+        expect(reject.status, String(reject.message)).toBe(200);
       });
       expect((await chapterBody(chapter)).content).toBe('suspended original');
       expect((await nodeRow(node)).content).toBe('kb v1');
-      expect((await proposalRow(pending.id)).status).toBe('pending');
+      expect((await chapterBody(acceptedChapter)).content).toBe('accepted draft');
+      expect((await proposalRow(pending.id)).status).toBe('rejected');
       expect((await proposalRow(kbPending.id)).status).toBe('pending');
+      expect(await proposalRow(create.id)).toMatchObject({ status: 'pending', created_node_id: null });
+      expect((await proposalRow(accepted.id)).status).toBe('accepted');
     });
 
     it('a writer demoted to reader: the old bearer cannot propose, the browser cannot accept or revert', async () => {
@@ -306,11 +496,21 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
         }
         const acceptTry = await acceptChapter(fx.aBrowser, pending.id, hashContent('demoted original'), 'demoted draft');
         expect(acceptTry).toMatchObject({ status: 403, message: 'active writer required' });
+        const revertTry = await fx.rpc('revert_mcp_proposal', fx.aBrowser, { p_proposal_id: accepted.id, p_confirm: true });
+        expect(revertTry).toMatchObject({ status: 403, message: 'active writer required' });
+        const createP = await seedKbCreateProposal(wA, '인물', '강등 신규', 'demoted new');
+        const createTry = await fx.rpc('accept_mcp_kb_create', fx.aBrowser,
+          { p_proposal_id: createP.id, p_folder_id: people, p_folder_version: `${people}:인물` });
+        expect(createTry).toMatchObject({ status: 403, message: 'active writer required' });
+        // Rejecting changes no original, so a demoted account may still clear its queue.
+        const reject = await fx.rpc('reject_mcp_proposal', fx.aBrowser, { p_proposal_id: createP.id });
+        expect(reject, String(reject.message)).toMatchObject({ status: 200, json: { status: 'rejected' } });
       } finally {
         await fx.query("update public.profiles set role = 'writer' where id = $1", [fx.writerA.id]);
       }
+      // Only the seeded (then rejected) create proposal was added: the bearer created nothing.
       expect((await fx.query('select count(*)::int as n from public.mcp_proposals where owner_id = $1', [fx.writerA.id]))[0].n)
-        .toBe(proposalsBefore);
+        .toBe(proposalsBefore + 1);
       expect((await chapterBody(chapter)).content).toBe('demoted original');
       expect((await chapterBody(acceptedChapter)).content).toBe('demoted accepted draft');
       expect((await proposalRow(pending.id)).status).toBe('pending');

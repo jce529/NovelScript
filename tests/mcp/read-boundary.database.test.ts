@@ -8,13 +8,14 @@ import {
 } from '../helpers/mcp-oauth';
 
 /**
- * 13-01 D-17 boundary on a disposable Supabase project with 0037 -> 0038 -> 0039 -> 0041 applied.
+ * 13-01 D-17 boundary on a disposable Supabase project with 0037 -> 0038 -> 0039 -> 0041 -> 0042 applied.
  * - Every permanent public table is closed to OAuth bearers (JWT carries client_id),
  *   except works / chapters / kb_nodes / work_ai_instructions, which allow SELECT of the
  *   bearer's own rows while its MCP grant is live, and never DML.
  * - mcp_read_owned_chapter_content(uuid) returns the owner's chapter body in every state.
  * - 14-01: mcp_proposals is blocked like every other table; only the three bearer-only propose
  *   RPCs (guard) create rows, and browsers have no direct DML either.
+ * - 14-04: the five decision RPCs (0042) are browser-only ('block'): OAuth gets 42501 first.
  * - Browser sessions (no client_id) and anonymous readers keep their behavior.
  * SUPABASE_DB_URL marks this file for vitest's serialized db project. This suite never
  * applies migrations and never prints tokens or response bodies.
@@ -46,7 +47,7 @@ const BLOCKED_TABLES = EXPECTED_PUBLIC_TABLES.filter((t) => !(READ_TABLES as rea
 
 /**
  * 13-01b: every public SECURITY DEFINER function that anon, authenticated or PUBLIC may
- * EXECUTE (37 on the disposable DB after 0039, 40 after 0041), with its 13-01b-SUMMARY classification. A new or
+ * EXECUTE (37 on the disposable DB after 0039, 40 after 0041, 45 after 0042), with its 13-01b-SUMMARY classification. A new or
  * re-granted definer RPC that is not listed here fails the catalog test, so it must be
  * classified before MCP tools (13-05) are registered.
  * - block: an OAuth bearer (JWT client_id) gets 42501 from mcp_reject_oauth_caller()
@@ -56,6 +57,10 @@ const BLOCKED_TABLES = EXPECTED_PUBLIC_TABLES.filter((t) => !(READ_TABLES as rea
  */
 type RpcClass = 'block' | 'guard' | 'keep';
 const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
+  // 14-04 (0042): writer decisions, browser session only (OAuth guard is the first statement).
+  'accept_mcp_chapter_draft(uuid,text,text,jsonb)': 'block',
+  'accept_mcp_kb_create(uuid,uuid,text)': 'block',
+  'accept_mcp_kb_edit(uuid,text,text,jsonb)': 'block',
   'acknowledge_publication_notification(uuid)': 'block',
   'acknowledge_warning(uuid)': 'block',
   'begin_world_branch(uuid,text,uuid,uuid)': 'block',
@@ -88,6 +93,8 @@ const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
   'open_chapter_reading(uuid,uuid,uuid)': 'block',
   'pay_purchase_order(uuid)': 'block',
   'read_chapter_content(uuid)': 'block',
+  'reject_mcp_proposal(uuid)': 'block',
+  'revert_mcp_proposal(uuid,boolean)': 'block',
   'save_chapter_reading(uuid,uuid,uuid,bigint,numeric,bigint,integer)': 'block',
   'save_world_timeline(uuid,jsonb,jsonb)': 'block',
   'soft_delete_kb_node(uuid,uuid)': 'block',
@@ -102,6 +109,7 @@ const RAISING_BLOCKED_RPCS = Object.entries(EXPOSED_DEFINER_RPCS)
   .filter(([sig, kind]) => kind === 'block' && sig !== 'current_user_can_write()')
   .map(([sig]) => sig);
 const GUARD_MESSAGE = 'browser session required';
+const DECISION_RPCS = Object.keys(EXPOSED_DEFINER_RPCS).filter((sig) => /^(accept|reject|revert)_mcp_/.test(sig));
 const PROPOSE_RPCS = [
   'mcp_propose_chapter_draft(uuid,uuid,text)',
   'mcp_propose_kb_edit(uuid,uuid,text)',
@@ -335,8 +343,10 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       const caller = bySig.get('mcp_proposal_caller()');
       expect(caller).toBeDefined();
       expect(caller!.prosecdef).toBe(false);
+      // 0042 replaced the body (active writer check); hardening and ACL must be unchanged.
+      expect(caller!.config).toContain('search_path=""');
       for (const needle of ['mcp_grant_is_live()', "'propose_draft'", 'user_can_write', 'revoked_at is null',
-        'pg_advisory_xact_lock', "status = 'expired'"]) {
+        'pg_advisory_xact_lock', "status = 'expired'", "pr.role = 'writer'", 'active writer required']) {
         expect(String(caller!.prosrc), needle).toContain(needle);
       }
       // Helpers are callable only from the definer bodies (owner postgres).
@@ -347,6 +357,38 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       const index = await query(
         "select indexdef from pg_indexes where schemaname = 'public' and indexname = 'mcp_proposals_one_pending_draft'");
       expect(String(index[0]?.indexdef)).toMatch(/UNIQUE INDEX[\s\S]*\(chapter_id\)[\s\S]*chapter_draft[\s\S]*pending/);
+    });
+
+    it('locks down the five decision RPCs (14-04) and their private helpers', async () => {
+      expect(DECISION_RPCS).toHaveLength(5);
+      const rows = await query(`select p.oid::regprocedure::text as sig, p.prosecdef, coalesce(p.proconfig, array[]::text[]) as config,
+          p.prosrc, p.proacl::text as acl,
+          has_function_privilege('anon', p.oid, 'execute') as anon_exec,
+          has_function_privilege('authenticated', p.oid, 'execute') as auth_exec,
+          has_function_privilege('service_role', p.oid, 'execute') as service_exec
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and (p.proname ~ '^(accept|reject|revert)_mcp_' or p.proname like 'mcp_decision_%')`);
+      const bySig = new Map(rows.map((row) => [String(row.sig).replace(/^public\./, ''), row]));
+      for (const sig of DECISION_RPCS) {
+        const fn = bySig.get(sig);
+        expect(fn, sig).toBeDefined();
+        expect(fn!.prosecdef, sig).toBe(true);
+        expect([fn!.anon_exec, fn!.auth_exec, fn!.service_exec], sig).toEqual([false, true, false]);
+        expect(String(fn!.acl), sig).not.toMatch(/[{,]=X/);
+        expect((fn!.config as string[]).some((c) => /^search_path=/.test(c)), sig).toBe(true);
+        // Fixed path: '' or 'public, pg_temp' (kb guard triggers), never the caller-controlled "$user".
+        expect((fn!.config as string[]).join(' '), sig).not.toContain('$user');
+        expect(String(fn!.prosrc), sig).toContain('public.mcp_decision_caller(');
+        expect(String(fn!.prosrc), sig).toContain('owner_id = v_user_id');
+      }
+      const helpers = [...bySig.keys()].filter((sig) => sig.startsWith('mcp_decision_'));
+      expect(helpers.length).toBeGreaterThanOrEqual(4);
+      for (const sig of helpers) {
+        const fn = bySig.get(sig)!;
+        expect(fn.prosecdef, sig).toBe(false);
+        expect(fn.config, sig).toContain('search_path=""');
+        expect([fn.anon_exec, fn.auth_exec, fn.service_exec], sig).toEqual([false, false, false]);
+      }
     });
 
     it('propose RPCs refuse browser claims and reach input checks only for live OAuth claims', async () => {
