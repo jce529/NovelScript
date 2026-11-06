@@ -179,6 +179,27 @@ Sign in as the work's owner (writer). To create proposals, use the MCP tools (`s
 - `AI와 다듬기` (14-08) is not built. The chunk header leaves room next to `직접 고치기`.
 - High-risk plan: a Codex read-only cross-review of 14-06 is recommended (14-HANDOVER §5).
 
+## Codex cross-review follow-up (gpt-6-sol: PASS, 0 blockers, 3 warnings fixed)
+
+Commit **0a1acbf** `fix(14-06): completed view matches applied chunks, shows 직접 고침 text, focuses dialog alerts`
+
+1. **Completed view vs. applied chunks after a stale refresh.**
+   - Before: on accept success the view fell back to the original server detail, which did not match the indexes the writer submitted against the refreshed hunks.
+   - Fix: the new pure `acceptedOutcome(shown, chosen, edits, result, folderName)` freezes the detail that was on screen (including the stale re-compare). It keeps only the indexes actually submitted (non-applicable ones are never reported as applied), the edited indexes and the submitted 직접 고침 texts.
+   - The component renders `outcome.snapshot` after accept, and after a revert that follows an accept in the same session.
+2. **직접 고침 text in the read-only result.**
+   - Same session: `completedChunkText(hunk, decision, submittedTexts)` shows the submitted text, with panel label `직접 고친 내용` and the `직접 고침` badge.
+   - After a reload: the server keeps only `edited_indexes`, not the per-chunk text. The view shows the AI text with the note `직접 고친 내용으로 반영했어요. 반영된 글은 원문에서 확인해 주세요.`
+3. **Focus for in-dialog alerts.**
+   - The reject error, revert error and revert `confirm_required` warning are now `tabIndex={-1}` with refs.
+   - A tick counter, together with the pure `dialogAlertTarget(dialog, error, warning)`, moves focus to whichever of them appeared, including the same message appearing again.
+
+**Tests:**
+- `review-ui` grew from 38 to 43 tests. New coverage: stale-snapshot outcome, submitted/reload text, reload note render, the focus-target helper, and a source check that the three alerts are focusable `role="alert"` elements.
+- `tests/proposals tests/mcp --project unit`: 18 files, **504 passed, 0 failed, 0 skipped**.
+- eslint on the changed files: clean. `tsc`: only the known `LayoutProps` error.
+- Focus movement itself was not exercised in a browser. It needs the 14-09 / orchestrator browser check.
+
 ## Self-Check: PASSED
 
 - Files exist:
