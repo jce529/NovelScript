@@ -7,7 +7,7 @@
 | 항목 | 상태 |
 |---|---|
 | discuss / UI-SPEC / 목업 / research / plan | 완료 (14-CONTEXT, 14-UI-SPEC(승인), 14-RESEARCH, 14-VALIDATION, PLAN 9개) |
-| 구현 plan | **14-01 ~ 14-04 완료**, 14-05 ~ 14-09 미착수 |
+| 구현 plan | **14-01 ~ 14-05 완료**, 14-06 ~ 14-09 미착수 |
 | 요구사항 | MCP-05·06·07 아직 미충족(서버 경계·도구·결정 RPC까지 끝, 서버 액션·UI·수동 인수 남음) |
 | 일회용 DB(`anzafn…`) | 0041·0042 적용됨. 직접 재실행 DB 스위트 110/110 통과 |
 | 공유 DB(`ymudwg…`) | **미적용·미접촉**. 0022~0039도 미적용 상태(백업 없음, STATE Blockers 참조) |
@@ -48,11 +48,11 @@
 
 ## 5. 남은 plan과 다음 시작점
 
-다음 시작점: **14-05** (`.planning/phases/14-mcp-write-review/14-05-PLAN.md`, Wave 4).
+다음 시작점: **14-06** (`.planning/phases/14-mcp-write-review/14-06-PLAN.md`, Wave 5). 14-05는 끝남(아래 14-05 메모).
 
 | plan | wave | 내용 | 배정(14-ROUTING.md) |
 |---|---|---|---|
-| 14-05 | 4 | 큐·배지 조회, 서버 액션(`lib/proposals/**`), 서버 재계산 | opus |
+| 14-05 | 4 | **완료** — 큐·배지 조회, 결정 로직(`lib/proposals/queries.ts`, `actions.ts`), 커밋 0efb82a 92fe47b ca6e1f5 7813902 a45474d | opus |
 | 14-06 | 5 | 리뷰 큐·상세 UI (목업 보드 기준), UI-SPEC에 이름 충돌 카피 1줄 추가 | opus |
 | 14-07 | 6 | 홈·사이드바·회차·문서 대기 배지 | sonnet |
 | 14-08 | 7 | 덩어리별 `AI와 다듬기` (`refineChunkAction`) | opus |
@@ -147,3 +147,11 @@
 - `propose_kb_document` 스키마 호환성(위 §5 기타).
 - 다른 탭 에디터 덮어쓰기 한계(알려진 한계) 확인과 후속 과제 기록.
 - 이 세션에서 만든 일회용 DB의 테스트 데이터(합성 작가 계정·작품·제안 행)가 남아 있다. 일부는 `locked_node_immutable` 보호로 지워지지 않는다.
+
+## 13. 14-05 완료 메모 (2026-11-06)
+
+- 직접 재실행: `tests/proposals tests/mcp --project unit` 17개 파일 **461/461 통과**. DB 코드·마이그레이션은 바꾸지 않아 DB 스위트는 재실행하지 않음.
+- Codex 교차 검증(gpt-6-sol, 읽기 전용) **VERDICT: PASS, 블로커 0**. 경고 2건은 미수정 후속 항목: (a) '처리됨' 목록이 생성 시각 최신 200행을 먼저 자른 뒤 결정 시각으로 정렬함, (b) 병합 비교자가 끝 공백을 무시해 끝 공백만 바꾼 제안은 덩어리가 0개가 되어 수락 불가(거절만 가능). NIT: 연결 조회 실패 시 모든 출처가 '연결됨'으로 표시됨, 정지 계정 거절 테스트가 정지 상태를 모델링하지 않음.
+- lib 함수 시그니처는 `(supabase, userId, ...)`이고 lib에는 'use server'가 없다. createClient·getUser·revalidatePath를 하는 얇은 서버 액션 래퍼는 **14-06이 `app/studio/[workId]/review/` 아래에 만든다.**
+- 서버 액션 입력: acceptProposal은 strict(index, 선택적 editedText만), seenHash는 chapter/kb_edit에서 필수(없으면 invalid_request), kb_create는 folderId+folderVersion 둘 다 필수. 수락한 덩어리가 0개면 invalid_selection. 직접 고침 텍스트는 CRLF→LF 정규화 후 NUL·길이 재검사.
+- 14-06 주의: 병합 모듈이 문서 끝 추가 덩어리를 줄바꿈 하나로만 이어붙이고, 줄바꿈으로 끝나는 직접 고침 텍스트는 원래 문단의 빈 줄 꼬리를 유지하지 않는다. 직접 고치기 입력란을 hunk.after(꼬리 포함)로 미리 채우면 문제없다. 목록은 200행 상한(페이지네이션 없음).
