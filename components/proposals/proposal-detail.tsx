@@ -13,7 +13,8 @@ import {
 import type { DetailHunk, ProposalDetail, ProposalStatus } from '@/lib/proposals/queries';
 import { acceptProposalAction, rejectProposalAction, revertProposalAction } from '@/app/studio/[workId]/review/[proposalId]/actions';
 import {
-  buildAcceptInput, canEditChunk, cardTitle, detailHeading, fallbackTitle, folderOptionLabel, formatKstDate, isEdited, isFoldable,
+  acceptedOutcome, buildAcceptInput, canEditChunk, cardTitle, completedChunkText, detailHeading, dialogAlertTarget, fallbackTitle,
+  folderOptionLabel, formatKstDate, isEdited, isFoldable,
   isMutedStatus, queueHref, selectAll, selectableIndexes, selectionStatus, statusLabel, toggleSelection,
 } from './review-model';
 
@@ -25,9 +26,8 @@ import {
  * 14-08 adds `AI와 다듬기` next to `직접 고치기`.
  */
 
-type Outcome =
-  | { kind: 'accepted'; appliedCount: number; indexes: number[]; edited: number[]; undoUntil: string | null; createdNodeId: string | null; folderName: string | null }
-  | { kind: 'reverted' };
+type AcceptedOutcome = ReturnType<typeof acceptedOutcome<ProposalDetail>>;
+type Outcome = AcceptedOutcome | { kind: 'reverted'; prev: AcceptedOutcome | null };
 
 type Flash = { tone: 'status' | 'alert'; message: string } | null;
 
@@ -52,8 +52,11 @@ const targetHref = (d: ProposalDetail, createdNodeId: string | null) => {
 export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewProps) {
   const router = useRouter();
   const [stale, setStale] = useState<ProposalDetail | null>(null);
-  const view = stale ?? detail;
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  // After a decision in this session, keep rendering the exact detail the writer submitted
+  // against (incl. a stale re-compare) so the completed view matches what was applied.
+  const accepted: AcceptedOutcome | null = outcome?.kind === 'accepted' ? outcome : outcome?.kind === 'reverted' ? outcome.prev : null;
+  const view = accepted?.snapshot ?? stale ?? detail;
   const [selected, setSelected] = useState<number[]>([]);
   const [editing, setEditing] = useState<Record<number, boolean>>({});
   const [edits, setEdits] = useState<Record<number, string>>({});
@@ -71,13 +74,25 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
   const rejectTriggerRef = useRef<HTMLButtonElement>(null);
   const revertTriggerRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const rejectErrorRef = useRef<HTMLParagraphElement>(null);
+  const revertErrorRef = useRef<HTMLParagraphElement>(null);
+  const revertWarningRef = useRef<HTMLParagraphElement>(null);
   const [focusTarget, setFocusTarget] = useState<'flash' | 'stale' | null>(null);
+  // Bumped whenever an in-dialog alert (error or a new confirm_required warning) appears,
+  // so the same message appearing again still moves focus.
+  const [dialogAlertTick, setDialogAlertTick] = useState(0);
 
   useEffect(() => { headingRef.current?.focus(); }, []);
   useEffect(() => {
     if (focusTarget === 'flash') flashRef.current?.focus();
     if (focusTarget === 'stale') staleRef.current?.focus();
   }, [focusTarget, flash, stale]);
+  useEffect(() => {
+    if (dialogAlertTick === 0) return;
+    const target = dialogAlertTarget(dialog, dialogError, revertConfirmHash !== null);
+    const ref = target === 'reject-error' ? rejectErrorRef : target === 'revert-error' ? revertErrorRef : target === 'revert-warning' ? revertWarningRef : null;
+    ref?.current?.focus();
+  }, [dialogAlertTick]); // eslint-disable-line react-hooks/exhaustive-deps -- runs once per new alert
 
   const status: ProposalStatus = outcome?.kind ?? view.status;
   const pending = status === 'pending';
@@ -90,7 +105,8 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
   const chosen = selected.filter((i) => selectable.includes(i));
   const folders = view.folders?.status === 'ok' ? view.folders : null;
   const folder = folders?.candidates.find((c) => c.id === folderId) ?? null;
-  const decision = outcome?.kind === 'accepted' ? { acceptedIndexes: outcome.indexes, editedIndexes: outcome.edited } : view.decision;
+  const decision = accepted ? { acceptedIndexes: accepted.indexes, editedIndexes: accepted.edited } : view.decision;
+  const submittedTexts = accepted?.texts ?? null;
   const partial = status === 'accepted' && !isCreate && decision !== null && view.hunks.length > 0 && decision.acceptedIndexes.length < view.hunks.length;
   const undoUntil = outcome?.kind === 'accepted' ? outcome.undoUntil : view.undoUntil;
   const canRevert = status === 'accepted' && (outcome?.kind === 'accepted' ? outcome.undoUntil !== null : view.canRevert);
@@ -119,13 +135,8 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
     try {
       const result = await acceptProposalAction(buildAcceptInput(view, chosen, edits, folder ? { id: folder.id, version: folder.version } : null));
       if (result.ok) {
-        const appliedIdx = isCreate ? [] : chosen;
-        setOutcome({
-          kind: 'accepted', appliedCount: result.appliedCount, indexes: appliedIdx,
-          edited: appliedIdx.filter((i) => { const h = view.hunks.find((x) => x.index === i); return h ? isEdited(h, edits) : false; }),
-          undoUntil: result.undoUntil, createdNodeId: result.createdNodeId, folderName: folder ? folderOptionLabel(folder, folders?.root.name ?? '') : null,
-        });
-        setStale(null);
+        // Freeze the detail that was on screen (possibly the stale re-compare) with what was submitted.
+        setOutcome(acceptedOutcome(view, chosen, edits, result, folder ? folderOptionLabel(folder, folders?.root.name ?? '') : null));
         const message = isCreate
           ? `${folder ? folderOptionLabel(folder, folders?.root.name ?? '') : ''} 폴더에 새 문서를 저장했어요.`
           : isChapter ? `${result.appliedCount}개를 본문에 반영했어요.` : `${result.appliedCount}개를 설정집에 반영했어요.`;
@@ -165,8 +176,10 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
         return;
       }
       setDialogError(result.error);
+      setDialogAlertTick((t) => t + 1);
     } catch {
       setDialogError('거절하지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+      setDialogAlertTick((t) => t + 1);
     } finally {
       setBusy(null);
     }
@@ -180,7 +193,7 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
         ? { workId: view.workId, proposalId: view.id, confirm: true, seenHash: revertConfirmHash }
         : { workId: view.workId, proposalId: view.id });
       if (result.ok) {
-        setOutcome({ kind: 'reverted' });
+        setOutcome({ kind: 'reverted', prev: accepted });
         setDialog(null);
         setRevertConfirmHash(null);
         setFlash({ tone: 'status', message: '이 제안을 반영하기 전 본문으로 되돌렸어요.' });
@@ -188,12 +201,15 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
       } else if (result.status === 'confirm_required') {
         // The original changed after accept (or again): warn, keep the dialog, send this hash next.
         setRevertConfirmHash(result.confirmHash);
+        setDialogAlertTick((t) => t + 1);
       } else {
         setDialogError(result.error);
+        setDialogAlertTick((t) => t + 1);
         if (result.code === 'undo_expired' || result.code === 'not_revertible') router.refresh();
       }
     } catch {
       setDialogError('되돌리지 못했어요. 본문은 지금 그대로예요. 잠시 뒤 다시 시도해 주세요.');
+      setDialogAlertTick((t) => t + 1);
     } finally {
       setBusy(null);
     }
@@ -340,7 +356,7 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
                 onToggleExpand={() => setExpanded((x) => ({ ...x, [h.index]: !x[h.index] }))}
                 disabled={busy !== null}
                 decision={decision && (status === 'accepted' || status === 'reverted')
-                  ? { accepted: decision.acceptedIndexes.includes(h.index), edited: decision.editedIndexes.includes(h.index) }
+                  ? { accepted: decision.acceptedIndexes.includes(h.index), ...completedChunkText(h, decision, submittedTexts) }
                   : null}
               />
             ))}
@@ -408,7 +424,7 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
             <span className="block">AI에게 새 초안을 다시 요청하면 새 제안이 도착해요.</span>
           </DialogDescription>
           {busy === 'reject' && <p role="status" className="text-sm">거절하는 중…</p>}
-          {dialogError && <p role="alert" className="text-sm text-destructive">{dialogError}</p>}
+          {dialogError && <p ref={rejectErrorRef} tabIndex={-1} role="alert" className="text-sm text-destructive outline-none">{dialogError}</p>}
           <DialogFooter>
             <DialogClose render={<Button ref={cancelRef} type="button" variant="outline" className="min-h-11" disabled={busy !== null}>제안 유지하기</Button>} />
             <Button type="button" variant="destructive" className="min-h-11" aria-label={`${cardName} 거절 확인`} disabled={busy !== null} onClick={reject}>거절하기</Button>
@@ -420,7 +436,7 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
         <DialogContent initialFocus={cancelRef} finalFocus={finalFocus} showCloseButton={false}>
           <DialogHeader><DialogTitle>반영을 되돌릴까요?</DialogTitle></DialogHeader>
           {revertConfirmHash && (
-            <p role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/40 p-3 text-sm text-destructive">
+            <p ref={revertWarningRef} tabIndex={-1} role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/40 p-3 text-sm text-destructive outline-none">
               <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
               {isChapter ? '반영한 뒤 본문이 다시 바뀌었어요. 되돌리면 그 수정도 사라져요.' : '반영한 뒤 문서가 다시 바뀌었어요. 되돌리면 그 수정도 사라져요.'}
             </p>
@@ -436,7 +452,7 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
             <span className="block">반영한 뒤에 직접 고친 내용이 있으면 함께 사라질 수 있어요. 되돌리기는 한 번만 할 수 있어요.</span>
           </DialogDescription>
           {busy === 'revert' && <p role="status" className="text-sm">되돌리는 중…</p>}
-          {dialogError && <p role="alert" className="text-sm text-destructive">{dialogError}</p>}
+          {dialogError && <p ref={revertErrorRef} tabIndex={-1} role="alert" className="text-sm text-destructive outline-none">{dialogError}</p>}
           <DialogFooter>
             <DialogClose render={<Button ref={cancelRef} type="button" variant="outline" className="min-h-11" disabled={busy !== null}>닫기</Button>} />
             <Button type="button" variant="destructive" className="min-h-11" disabled={busy !== null} onClick={revert}>반영 되돌리기</Button>
@@ -463,7 +479,8 @@ interface ChunkRowProps {
   expanded: boolean;
   onToggleExpand: () => void;
   disabled: boolean;
-  decision: { accepted: boolean; edited: boolean } | null;
+  /** Read-only result: accepted flag plus the text actually shown (submitted 직접 고침 or AI text + note). */
+  decision: { accepted: boolean; edited: boolean; text: string; note: string | null } | null;
 }
 
 function ChunkRow(props: ChunkRowProps) {
@@ -479,7 +496,8 @@ function ChunkRow(props: ChunkRowProps) {
   const hasDraft = h.kind !== '삭제' && h.after !== '';
   const foldable = isFoldable(h) && !showEditor;
   const clamp = foldable && !expanded ? 'max-md:line-clamp-6' : '';
-  const draftText = mode === 'select' && edited ? value : h.after;
+  const draftText = mode === 'select' ? (edited ? value : h.after) : (decision?.text ?? h.after);
+  const showsSubmittedEdit = mode === 'readonly' && !!decision?.edited && decision.note === null;
 
   return (
     <li
@@ -528,7 +546,7 @@ function ChunkRow(props: ChunkRowProps) {
         )}
         {hasDraft ? (
           <div className="flex min-w-0 flex-col gap-1 border-l-4 border-foreground/40 pl-3">
-            <p className="text-xs font-semibold text-muted-foreground">{labels.draft}</p>
+            <p className="text-xs font-semibold text-muted-foreground">{showsSubmittedEdit ? '직접 고친 내용' : labels.draft}</p>
             {showEditor ? (
               <div id={editId} className="flex flex-col gap-2">
                 <label htmlFor={`${editId}-text`} className="text-xs font-semibold text-muted-foreground">반영할 내용을 직접 고쳐요</label>
@@ -539,7 +557,10 @@ function ChunkRow(props: ChunkRowProps) {
                 </div>
               </div>
             ) : (
-              <p className={`whitespace-pre-wrap break-words text-sm leading-7 ${clamp}`}>{draftText}</p>
+              <>
+                <p className={`whitespace-pre-wrap break-words text-sm leading-7 ${clamp}`}>{draftText}</p>
+                {mode === 'readonly' && decision?.note && <p className="text-xs text-muted-foreground">{decision.note}</p>}
+              </>
             )}
           </div>
         ) : (

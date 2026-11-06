@@ -51,7 +51,7 @@ import { ProposalQueue } from '@/components/proposals/proposal-queue';
 import ReviewQueuePage from '@/app/studio/[workId]/review/page';
 import { ProposalDetailView } from '@/components/proposals/proposal-detail';
 import ProposalReviewPage from '@/app/studio/[workId]/review/[proposalId]/page';
-import { buildAcceptInput } from '@/components/proposals/review-model';
+import { acceptedOutcome, buildAcceptInput, completedChunkText, dialogAlertTarget } from '@/components/proposals/review-model';
 import type { ProposalDetail } from '@/lib/proposals/queries';
 
 const WORK = '33333333-3333-4333-8333-333333333333';
@@ -468,6 +468,63 @@ describe('ProposalDetailView: kb_create', () => {
     expect(buildAcceptInput(createDetail(), [], {}, { id: SUB, version: `${ROOT}:인물/${SUB}:조연` })).toEqual({
       workId: WORK, proposalId: P1, selections: [], folderId: SUB, folderVersion: `${ROOT}:인물/${SUB}:조연`,
     });
+  });
+});
+
+describe('completed view follows what was actually applied (cross-review fixes)', () => {
+  const STALE_HUNKS: ProposalDetail['hunks'] = [
+    { index: 0, kind: '바뀜', before: '첫 문단\n\n', after: '첫 문단 고침\n\n', applicable: false, anchor: null, currentText: '첫 문단\n\n' },
+    { index: 1, kind: '삭제', before: '셋째 문단\n\n', after: '', applicable: true, anchor: { start: 3, end: 4 }, currentText: '셋째 문단\n\n' },
+    { index: 2, kind: '추가', before: '', after: '다섯째 문단\n', applicable: true, anchor: { start: 5, end: 5 }, currentText: '' },
+  ];
+  const result = { appliedCount: 2, undoUntil: '2026-11-13T00:00:00Z', createdNodeId: null };
+
+  it('freezes the stale re-compare that was on screen, with the submitted indexes and texts', () => {
+    const shown = detail({ isStale: true, hunks: STALE_HUNKS });
+    const outcome = acceptedOutcome(shown, [0, 1, 2], { 2: '작가가 쓴 마지막 문단\n', 1: 'ignored on 삭제' }, result, null);
+    expect(outcome.snapshot).toBe(shown);
+    expect(outcome.snapshot.hunks).toBe(STALE_HUNKS);
+    // index 0 is not applicable in the refreshed comparison -> never reported as applied
+    expect(outcome.indexes).toEqual([1, 2]);
+    expect(outcome.edited).toEqual([2]);
+    expect(outcome.texts).toEqual({ 2: '작가가 쓴 마지막 문단\n' });
+    expect(outcome.undoUntil).toBe(result.undoUntil);
+    expect(acceptedOutcome(createDetail(), [0], {}, { ...result, createdNodeId: NODE }, '인물 / 조연'))
+      .toMatchObject({ indexes: [], edited: [], texts: {}, createdNodeId: NODE, folderName: '인물 / 조연' });
+  });
+
+  it('shows the submitted 직접 고침 text, or the AI text with a note after a reload', () => {
+    const decision = { acceptedIndexes: [0, 2], editedIndexes: [2] };
+    expect(completedChunkText(STALE_HUNKS[2], decision, { 2: '작가 문장\n' })).toEqual({ text: '작가 문장\n', edited: true, note: null });
+    const reloaded = completedChunkText(STALE_HUNKS[2], decision, null);
+    expect(reloaded).toMatchObject({ text: '다섯째 문단\n', edited: true });
+    expect(reloaded.note).toContain('직접 고친 내용으로 반영했어요.');
+    expect(completedChunkText(STALE_HUNKS[0], decision, { 2: 'x' })).toEqual({ text: '첫 문단 고침\n\n', edited: false, note: null });
+    expect(completedChunkText(STALE_HUNKS[0], null, null)).toEqual({ text: '첫 문단 고침\n\n', edited: false, note: null });
+  });
+
+  it('renders the reload note next to the 직접 고침 badge on an accepted proposal', () => {
+    const html = detailHtml(detail({ status: 'accepted', seenHash: null, canRevert: true, undoUntil: '2026-11-13T00:00:00Z', decision: { acceptedIndexes: [2], editedIndexes: [2] } }));
+    expect(html).toContain('직접 고침');
+    expect(html).toContain('직접 고친 내용으로 반영했어요. 반영된 글은 원문에서 확인해 주세요.');
+  });
+
+  it('picks the in-dialog alert that must receive focus', () => {
+    expect(dialogAlertTarget('reject', '거절하지 못했어요.', false)).toBe('reject-error');
+    expect(dialogAlertTarget('reject', '', false)).toBeNull();
+    expect(dialogAlertTarget('revert', '', true)).toBe('revert-warning');
+    expect(dialogAlertTarget('revert', '되돌리지 못했어요.', true)).toBe('revert-error');
+    expect(dialogAlertTarget('revert', '', false)).toBeNull();
+    expect(dialogAlertTarget('accept', 'x', true)).toBeNull();
+    expect(dialogAlertTarget(null, 'x', true)).toBeNull();
+  });
+
+  it('makes the in-dialog revert alerts focusable targets', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('components/proposals/proposal-detail.tsx', 'utf8');
+    for (const ref of ['rejectErrorRef', 'revertErrorRef', 'revertWarningRef']) {
+      expect(src).toMatch(new RegExp(`ref=\\{${ref}\\} tabIndex=\\{-1\\} role="alert"`));
+    }
   });
 });
 

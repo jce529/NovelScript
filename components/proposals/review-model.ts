@@ -196,6 +196,59 @@ export function buildAcceptInput(
   };
 }
 
+/**
+ * What the completed (read-only) view shows for one chunk. Right after an accept in this
+ * session the submitted 직접 고침 text is known and shown; after a reload the server only
+ * keeps edited_indexes (the merged text lives in the chapter / document), so the AI text
+ * is shown with a note that the writer's own text was applied.
+ */
+export function completedChunkText(
+  h: { index: number; after: string },
+  decision: { acceptedIndexes: number[]; editedIndexes: number[] } | null,
+  submittedTexts: Record<number, string> | null,
+): { text: string; edited: boolean; note: string | null } {
+  const edited = decision?.editedIndexes.includes(h.index) ?? false;
+  if (!edited) return { text: h.after, edited: false, note: null };
+  const submitted = submittedTexts?.[h.index];
+  if (submitted !== undefined) return { text: submitted, edited: true, note: null };
+  return { text: h.after, edited: true, note: '직접 고친 내용으로 반영했어요. 반영된 글은 원문에서 확인해 주세요.' };
+}
+
+/**
+ * Accept success -> outcome that freezes the exact detail (hunks) the writer saw and
+ * submitted against (incl. a stale re-compare), the accepted indexes and the 직접 고침 texts,
+ * so the completed view matches what was applied even before / after the server refresh.
+ */
+export function acceptedOutcome<T extends { kind: ProposalKind; hunks: ChunkLike[] }>(
+  shown: T, chosen: number[], edits: Record<number, string>,
+  result: { appliedCount: number; undoUntil: string | null; createdNodeId: string | null },
+  folderName: string | null,
+) {
+  const selections = shown.kind === 'kb_create' ? [] : buildSelections(shown.hunks, chosen, edits);
+  const texts: Record<number, string> = {};
+  for (const s of selections) if (s.editedText !== undefined) texts[s.index] = s.editedText;
+  return {
+    kind: 'accepted' as const,
+    snapshot: shown,
+    appliedCount: result.appliedCount,
+    indexes: selections.map((s) => s.index),
+    edited: selections.filter((s) => s.editedText !== undefined).map((s) => s.index),
+    texts,
+    undoUntil: result.undoUntil,
+    createdNodeId: result.createdNodeId,
+    folderName,
+  };
+}
+
+export type DialogAlertTarget = 'reject-error' | 'revert-error' | 'revert-warning' | null;
+
+/** Which in-dialog alert should receive focus when it appears (UI-SPEC Interaction 20). */
+export function dialogAlertTarget(dialog: 'accept' | 'reject' | 'revert' | null, error: string, revertWarning: boolean): DialogAlertTarget {
+  if (dialog === 'reject') return error ? 'reject-error' : null;
+  if (dialog === 'revert') return error ? 'revert-error' : revertWarning ? 'revert-warning' : null;
+  return null;
+}
+
 export function selectionStatus(selectedCount: number, total: number): string {
   return `${selectedCount}/${total}개 선택`;
 }
