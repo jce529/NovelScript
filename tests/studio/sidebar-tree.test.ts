@@ -117,7 +117,8 @@ describe('studio layout tree structure (source)', () => {
     expect(layout).toContain('<CreateRootFolderButton workId={workId} scope="work"');
     expect(layout).toContain('<CreateRootFolderButton workId={workId} scope="account_template"');
     expect(layout).toContain('<KbTreeActions');
-    expect(layout).toContain('첫 회차를 써볼까요?');
+    expect(layout).toContain('아직 회차가 없어요');
+    expect(layout).toContain('아직 설정 문서가 없어요');
     expect(layout).toContain('공유 폴더가 아직 없어요');
   });
 

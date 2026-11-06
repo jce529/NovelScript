@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: executing
-stopped_at: 자동 실행 가능한 재개 보완 plan 전부 완료 (18-11까지). 남은 plan 10개는 전부 실DB·브라우저가 필요한 수동 gate. Phase 12~14·17은 미시작
-last_updated: "2026-10-23T07:00:00.000Z"
-last_activity: 2026-10-23 -- 수동 게이트 기능 점검(03-19·07-15·18-12·04-12·16-03, 에이전트 수행분·사람 승인 아님), Toss 키 종류 불일치 확인, 병합 후 테스트 결함 4건 수정
+status: completed
+stopped_at: Phase 19 executed (4 plans), awaiting user UAT
+last_updated: "2026-11-01T05:50:47.376Z"
+last_activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
 progress:
   total_phases: 20
-  completed_phases: 6
-  total_plans: 145
-  completed_plans: 135
+  completed_phases: 10
+  total_plans: 162
+  completed_plans: 154
+  percent: 50
 ---
 
 # Project State
@@ -177,13 +178,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-13T06:40:01.358Z
-Stopped at: Completed 02-07-PLAN.md (DB gate pending 02-13)
+Last session: 2026-11-01T05:50:47.367Z
+Stopped at: Phase 19 executed (4 plans), awaiting user UAT
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
-Resume file: None
+Resume file: .planning/phases/19-studio-workid-ui/19-04-SUMMARY.md
 
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.

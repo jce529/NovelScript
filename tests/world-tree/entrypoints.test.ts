@@ -16,6 +16,8 @@ const m = vi.hoisted(() => ({
   loadPopularity: vi.fn(),
   work: vi.fn(),
   getWork: vi.fn(),
+  listChapters: vi.fn(),
+  getWorkKbNodes: vi.fn(),
   getState: vi.fn(),
   getOwnedBranch: vi.fn(),
   reviewState: vi.fn(),
@@ -59,7 +61,8 @@ vi.mock('@/lib/world-tree/metric-adapter', async (orig) => ({
 }));
 // Work detail page dependencies (03-08 shell), same doubles as tests/reader/work-detail-shell.
 vi.mock('@/lib/works/actions', () => ({ getPublicWork: m.work, getWork: m.getWork }));
-vi.mock('@/lib/chapters/actions', () => ({ listPublicChapters: async () => [] }));
+vi.mock('@/lib/chapters/actions', () => ({ listPublicChapters: async () => [], listChapters: m.listChapters }));
+vi.mock('@/lib/kb/actions', () => ({ getWorkKbNodes: m.getWorkKbNodes }));
 vi.mock('@/lib/reader/subscriptions', () => ({ getSubscriptionState: async () => false }));
 vi.mock('@/lib/reader/bookmarks', () => ({ getBookmarkState: async () => false }));
 vi.mock('@/lib/reader/progress', () => ({ getReadingProgress: async () => null }));
@@ -452,22 +455,36 @@ describe('/studio/[workId] work home entry links', () => {
   beforeEach(() => {
     m.getUser.mockResolvedValue({ data: { user: { id: ids.owner } }, error: null });
     m.getWork.mockResolvedValue({ id: SID, title: ROOT_TITLE, synopsis: '소개' });
-    m.reviewState.mockResolvedValue({ status: 'none' });
+    m.listChapters.mockResolvedValue([{ is_published: true }]);
+    m.getWorkKbNodes.mockResolvedValue([{ node_type: 'file', category: 'setting' }]);
+    m.reviewState.mockResolvedValue({ target: { ok: true, state: { blinded: false, blindReason: null, latestRequest: null } }, writeDenied: null });
   });
 
-  it('keeps the existing home and adds world settings / branch links', async () => {
+  it('shows the four owner shortcuts while hiding the ordinary review panel', async () => {
     const html = renderToStaticMarkup(await WorkHomePage({ params: Promise.resolve({ workId: SID }) }));
-    expect(html).toContain('data-review-panel');
+    expect(html).not.toContain('data-review-panel');
     expect(html).toContain(`href="/studio/${SID}/chapters"`);
     expect(html).toContain(`href="/studio/${SID}/world"`);
     expect(html).toContain('세계관 설정');
+    expect(html).toContain(`href="/studio/${SID}/world/timeline"`);
     expect(html).toContain(`href="/studio/${SID}/world#world-branching"`);
-    expect(html).toContain('이 세계관에서 가지 치기');
+    expect(html).toContain('이 세계관에서 새 작품');
   });
 
-  it('shows no world links for a work the user does not own', async () => {
+  it('shows the existing panel only for a blinded work or open request', async () => {
+    m.reviewState.mockResolvedValueOnce({ target: { ok: true, state: { blinded: true, blindReason: '검토 중', latestRequest: null } }, writeDenied: null });
+    expect(renderToStaticMarkup(await WorkHomePage({ params: Promise.resolve({ workId: SID }) }))).toContain('data-review-panel');
+    m.reviewState.mockResolvedValueOnce({ target: { ok: true, state: { blinded: false, blindReason: null, latestRequest: { id: 'r', status: 'open', createdAt: '2026-11-01', resolvedAt: null } } }, writeDenied: null });
+    expect(renderToStaticMarkup(await WorkHomePage({ params: Promise.resolve({ workId: SID }) }))).toContain('data-review-panel');
+  });
+
+  it('shows no work links or review data for a work the user does not own', async () => {
     m.getWork.mockResolvedValue(null);
     const html = renderToStaticMarkup(await WorkHomePage({ params: Promise.resolve({ workId: SID }) }));
+    expect(html).toContain('작품을 찾을 수 없어요');
     expect(html).not.toContain('/world');
+    expect(m.listChapters).not.toHaveBeenCalled();
+    expect(m.getWorkKbNodes).not.toHaveBeenCalled();
+    expect(m.reviewState).not.toHaveBeenCalled();
   });
 });

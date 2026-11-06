@@ -1,0 +1,25 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-01T09:00:00Z" },
+  "title": "Phase 19 작품 홈 — 다음 할 일 시안",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 960, "h": 700, "title": "A. 상태 기반 카드 1~2개" },
+    "B.dc.html": { "x": 1040, "y": 0, "w": 960, "h": 700, "title": "B. 고정 바로가기 모음" },
+    "C.dc.html": { "x": 2080, "y": 0, "w": 960, "h": 700, "title": "C. 체크리스트형 시작 가이드" },
+    "D.dc.html": { "x": 0, "y": 940, "w": 1100, "h": 700, "title": "D. 홈=개요, 트리=탐색" },
+    "E.dc.html": { "x": 1180, "y": 940, "w": 1100, "h": 700, "title": "E. D + 최근 작업 목록" },
+    "F.dc.html": { "x": 2360, "y": 940, "w": 1100, "h": 700, "title": "F. 홈이 사이드바를 대체" },
+    "G.dc.html": { "x": 0, "y": 1900, "w": 1100, "h": 700, "title": "G. 빈 상태 (새 작품, 회차 0개) — D 기준" },
+    "H.dc.html": { "x": 1180, "y": 1900, "w": 390, "h": 844, "title": "H. 모바일 — 집필 탭, 연재 시작 후" },
+    "I.dc.html": { "x": 1650, "y": 1900, "w": 390, "h": 844, "title": "I. 모바일 — 새 작품 빈 상태" }
+  },
+  "order": ["Main.dc.html", "B.dc.html", "C.dc.html", "D.dc.html", "E.dc.html", "F.dc.html", "G.dc.html", "H.dc.html", "I.dc.html"],
+  "notes": {
+    "t2": { "x": 0, "y": 680, "text": "사이드바와 홈의 역할 나누기 3가지 (연재 가이드를 마친 뒤 상태, 샘플 데이터)", "kind": "title1", "maxW": 3460 },
+    "t3": { "x": 0, "y": 1640, "text": "D안 기준: 빈 상태와 모바일 (샘플 데이터)", "kind": "title1", "maxW": 2040 },
+    "t1": { "x": 0, "y": -260, "text": "작품 홈 '다음 할 일' 3가지 방식 (샘플 데이터)", "kind": "title1", "maxW": 3040 }
+  },
+  "designSystems": []
+}

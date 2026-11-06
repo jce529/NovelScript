@@ -1,4 +1,5 @@
 import { KB_CATEGORIES } from './categories';
+import { isSettingDocument } from './setting-document';
 import { isTemplateRoot, templateCategoryOf } from './template-tree';
 import type { TreeNode } from './tree';
 
@@ -32,6 +33,13 @@ export interface StudioSidebarSections {
 }
 
 const isChapterRoot = (node: TreeNode) => node.category === '회차' && node.parent_id === null;
+
+/** True when the work settings tree contains an authored (non-template) document at any depth. */
+export function hasSettingDocument(nodes: TreeNode[]): boolean {
+  return nodes.some((node) =>
+    (node.category !== '회차' && isSettingDocument(node)) || hasSettingDocument(node.children)
+  );
+}
 
 function collectFiles(node: TreeNode, out: TreeNode[]): void {
   for (const child of node.children) {

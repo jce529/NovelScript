@@ -8,7 +8,7 @@ import { listChapters } from '@/lib/chapters/actions';
 import { buildTree, groupChaptersByFolder } from '@/lib/kb/tree';
 import { KbTree, KbTemplateSection } from '@/components/studio/kb-tree';
 import { TemplateSidebarEntry } from '@/components/studio/template-sidebar-entry';
-import { partitionStudioSidebar } from '@/lib/kb/sidebar-sections';
+import { hasSettingDocument, partitionStudioSidebar } from '@/lib/kb/sidebar-sections';
 import { CreateRootFolderButton, KbTreeActions } from '@/components/studio/kb-node-dialogs';
 import { SidebarGroup } from '@/components/studio/sidebar-groups';
 import { TreeDndProvider } from '@/components/studio/tree-dnd';
@@ -49,6 +49,7 @@ export default async function WorkLayout({
   );
   const rootChapters = chapterRoot ? (chaptersByFolderId[chapterRoot.id] ?? []) : [];
   const hasNoChapterContent = !chapterRoot || (chapterRoot.children.length === 0 && rootChapters.length === 0);
+  const hasNoSettingDocument = !hasSettingDocument(sections.myFolders);
   const hasCustomSharedFolders = sections.sharedFolders.length > 0;
   const templateAreas = sections.templateRoots.map((root) => ({ scope: root.scope, rootId: root.id, folders: root.folders }));
 
@@ -79,9 +80,7 @@ export default async function WorkLayout({
             )}
             {chapterRoot && hasNoChapterContent && (
               <div className="flex h-8 items-center text-xs text-muted-foreground" style={{ paddingLeft: 48 }}>
-                <Link href={`/studio/${workId}/chapters/new?folderId=${chapterRoot.id}`} className="hover:text-foreground">
-                  첫 회차를 써볼까요?
-                </Link>
+                아직 회차가 없어요
               </div>
             )}
           </SidebarGroup>
@@ -90,6 +89,11 @@ export default async function WorkLayout({
             id="work-settings" label="설정" dropId={DROP.kbTop('work')}
             actions={<CreateRootFolderButton workId={workId} scope="work" />}
           >
+            {hasNoSettingDocument && (
+              <p className="py-2 text-xs text-muted-foreground" style={{ paddingLeft: 48 }}>
+                아직 설정 문서가 없어요
+              </p>
+            )}
             <KbTree nodes={sections.myFolders} chaptersByFolderId={{}} workId={workId} baseDepth={2} />
           </SidebarGroup>
 

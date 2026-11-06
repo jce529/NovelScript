@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>작품 홈 H 모바일</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f7f7f9}
+a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+<div style="width:390px;height:844px;display:flex;flex-direction:column;background:#f7f7f9;color:#18181b">
+  <div style="height:48px;flex-shrink:0;background:#fff;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;padding:0 16px;gap:8px;box-sizing:border-box"><a href="#" style="font-size:13px;color:#52525b">← 작품 목록</a></div>
+  <div style="flex:1;overflow:hidden;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <h1 style="margin:0;font-size:20px;font-weight:700">달빛 아래의 서재</h1>
+      <p style="margin:0;font-size:13px;color:#52525b;line-height:1.5">폐관을 앞둔 고서점에서 밤마다 책 속 인물이 걸어 나온다.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:12px 14px"><div style="font-size:12px;color:#52525b">전체 회차</div><div style="font-size:20px;font-weight:700">12</div></div>
+      <div style="background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:12px 14px"><div style="font-size:12px;color:#52525b">공개</div><div style="font-size:20px;font-weight:700">9</div></div>
+      <div style="grid-column:span 2;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:12px 14px"><div style="font-size:12px;color:#52525b">미공개</div><div style="font-size:20px;font-weight:700">3</div></div>
+    </div>
+    <h2 style="margin:0;font-size:14px;font-weight:700">작업 화면</h2>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <a href="#" style="min-height:44px;box-sizing:border-box;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">회차 목록</span><span style="font-size:12px;color:#52525b">12개 ›</span></a>
+      <a href="#" style="min-height:44px;box-sizing:border-box;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">세계관 설정</span><span style="font-size:12px;color:#52525b">›</span></a>
+      <a href="#" style="min-height:44px;box-sizing:border-box;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">타임라인</span><span style="font-size:12px;color:#52525b">›</span></a>
+      <a href="#" style="min-height:44px;box-sizing:border-box;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">가지 치기</span><span style="font-size:12px;color:#52525b">›</span></a>
+    </div>
+  </div>
+  <div style="height:56px;flex-shrink:0;background:#fff;border-top:1px solid #e4e4e7;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+    <a href="#" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:#52525b">설정집·회차</a>
+    <a href="#" style="display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#4338ca;border-top:2px solid #4f46e5">집필</a>
+    <a href="#" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:#52525b">AI</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
