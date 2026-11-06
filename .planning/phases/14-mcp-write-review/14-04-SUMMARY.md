@@ -150,6 +150,17 @@ metrics:
   - 이름만 또는 폴더만 바뀐 신규 문서는 확인 요청을 거쳐 확정할 때만 soft-delete된다.
 - 일회용 DB에 다시 적용한 뒤 accept-revert 24건이 통과했다.
 
+**8. [Codex 재검토 후속 수정] 되돌리기 기한 재검사, 카테고리, 잠긴 신규 문서 (커밋 3b56e4c)**
+- BLOCKER: 대상 행 `FOR UPDATE`를 잡은 뒤 `undo_until <= clock_timestamp()`를 다시 검사해 `mcp_undo_expired`를 낸다. 앞쪽 `now()` 사전 검사는 빠른 거절용으로 남겼다. 이전에는 트랜잭션 시작 시각에 고정된 `now()`만 봐서, 잠금을 기다리는 동안 기한이 지나도 복원·삭제됐다.
+- WARNING: 신규 문서 변경 판정에 카테고리(`proposed_category`와 비교)를 추가했다. 상태 해시는 `sha256(jsonb_build_array(name, parent_id, category, coalesce(content,''))::text)`이고, 응답의 `current_hash`와 확정 비교는 같은 변수(`v_state_hash`)를 쓴다. 잠금 여부는 아래 규칙으로 처리하므로 해시에서 뺐다.
+- WARNING: 생성된 노드가 잠겨 있으면 확인 흐름으로 보내지 않고 첫 호출에서 바로 `mcp_not_revertible`을 낸다.
+- 추가한 테스트:
+  - 카테고리만 바뀐 신규 문서는 confirm_required를 받고 삭제되지 않는다. 확정하면 soft-delete된다.
+  - 잠긴 신규 문서는 첫 호출부터, 해시를 붙여 확정해도 `mcp_not_revertible`이고 노드는 그대로다.
+  - 기한 경계: 기한 안(+10초)이면 복원되고, 기한이 지나면(−1ms) `mcp_undo_expired`이며 대상이 그대로다.
+  - 잠금 대기 중 만료는 정적으로 확인한다: 함수 본문에서 `for update of n;` 뒤에 `clock_timestamp()` 재검사가 있다.
+- 일회용 DB에 다시 적용한 뒤 accept-revert 26건과 read-boundary 20건, 합계 46건이 통과했고 skipped는 0이다.
+
 ## Deferred Issues
 
 - 14-01에서 이어진 `tsc --noEmit`의 `LayoutProps` 오류와 vitest config 경고는 이번 범위가 아니다.
