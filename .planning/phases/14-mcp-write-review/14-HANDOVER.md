@@ -7,7 +7,7 @@
 | 항목 | 상태 |
 |---|---|
 | discuss / UI-SPEC / 목업 / research / plan | 완료 (14-CONTEXT, 14-UI-SPEC(승인), 14-RESEARCH, 14-VALIDATION, PLAN 9개) |
-| 구현 plan | **14-01 ~ 14-05 완료**, 14-06 ~ 14-09 미착수 |
+| 구현 plan | **14-01 ~ 14-08 완료**(코드), **14-09 수동 인수만 남음** (§14 참고) |
 | 요구사항 | MCP-05·06·07 아직 미충족(서버 경계·도구·결정 RPC까지 끝, 서버 액션·UI·수동 인수 남음) |
 | 일회용 DB(`anzafn…`) | 0041·0042 적용됨. 직접 재실행 DB 스위트 110/110 통과 |
 | 공유 DB(`ymudwg…`) | **미적용·미접촉**. 0022~0039도 미적용 상태(백업 없음, STATE Blockers 참조) |
@@ -48,7 +48,7 @@
 
 ## 5. 남은 plan과 다음 시작점
 
-다음 시작점: **14-06** (`.planning/phases/14-mcp-write-review/14-06-PLAN.md`, Wave 5). 14-05는 끝남(아래 14-05 메모).
+다음 시작점: **14-09** (`.planning/phases/14-mcp-write-review/14-09-PLAN.md`, Wave 8, 수동 인수). 14-05~14-08은 끝남(§13, §14 참고).
 
 | plan | wave | 내용 | 배정(14-ROUTING.md) |
 |---|---|---|---|
@@ -155,3 +155,54 @@
 - lib 함수 시그니처는 `(supabase, userId, ...)`이고 lib에는 'use server'가 없다. createClient·getUser·revalidatePath를 하는 얇은 서버 액션 래퍼는 **14-06이 `app/studio/[workId]/review/` 아래에 만든다.**
 - 서버 액션 입력: acceptProposal은 strict(index, 선택적 editedText만), seenHash는 chapter/kb_edit에서 필수(없으면 invalid_request), kb_create는 folderId+folderVersion 둘 다 필수. 수락한 덩어리가 0개면 invalid_selection. 직접 고침 텍스트는 CRLF→LF 정규화 후 NUL·길이 재검사.
 - 14-06 주의: 병합 모듈이 문서 끝 추가 덩어리를 줄바꿈 하나로만 이어붙이고, 줄바꿈으로 끝나는 직접 고침 텍스트는 원래 문단의 빈 줄 꼬리를 유지하지 않는다. 직접 고치기 입력란을 hunk.after(꼬리 포함)로 미리 채우면 문제없다. 목록은 200행 상한(페이지네이션 없음).
+
+## 14. 14-06 ~ 14-08 완료 메모 (2026-11-06)
+
+### 커밋과 직접 재실행 결과
+
+| plan | 내용 | 커밋 |
+|---|---|---|
+| 14-06 | 리뷰 큐·상세 UI, 서버 액션 래퍼, UI-SPEC 이름 충돌 카피 1줄 | 1c6148e 27fea9e df2f2d5 1d4572d efc5740, 수정 0a1acbf 4533599 |
+| 14-07 | 홈 카드·사이드바 배지, 회차·문서 `대기 제안 n건` 줄 | d90557d 35e8c90 0aeef97 |
+| 14-08 | 덩어리별 `AI와 다듬기`(refineChunkAction, prompt `contextKind: 'refine'`), 패널 UI | ff96b25 ef0718b fb8046a 3c3a113 f1ea8e8, 수정 3805e9f cf527d1 |
+
+- 세션이 직접 재실행: **전체 단위 `--project unit` 194개 파일 3204/3204 통과**, eslint(변경 영역) 경고 0, `tsc --noEmit`은 기존 `LayoutProps` 1건뿐. 14-06~14-08은 DB 코드·마이그레이션을 바꾸지 않았다. DB 스위트의 마지막 직접 재실행은 14-04 수정 후 110/110(§3)이다.
+- Codex 교차 검증(gpt-6-sol, 읽기 전용): 14-06 PASS(경고 3건 수정 반영), 14-08 ISSUES(경고 2건 수정 반영, 블로커 1건은 아래 "알려진 한계"로 기록), 14-07은 위험도 low라 생략.
+
+### 만든 라우트와 컴포넌트
+
+- `/studio/[workId]/review` (`?status=pending|done|all`, 거절 직후 `?notice=rejected`), `/studio/[workId]/review/[proposalId]`.
+- 서버 액션: `app/studio/[workId]/review/[proposalId]/actions.ts`(수락·거절·되돌리기), `refine-actions.ts`(AI와 다듬기), `app/studio/[workId]/review/target-actions.ts`(회차·문서 대기 줄).
+- 순수 헬퍼: `components/proposals/review-model.ts`, `refine-model.ts`; 배지: `components/proposals/pending-badges.tsx`; 상세: `proposal-detail.tsx`. SUMMARY(14-06)의 "Browser check guide" 표에 상태별 화면을 띄우는 방법이 있다.
+
+### 14-05~14-08 사이 결정
+
+- 신규 생성안 폴더 선택은 UI-SPEC D의 Select 대신 승인 목업(KbNew)대로 **라디오 목록**, 기본 선택 없음.
+- 하단 결정 바는 모바일에서도 `sticky`(fixed는 모바일 하단 탭 바를 가림). 도착 시각은 1시간 미만이면 `n분 전`.
+- 완료 화면은 수락 시점에 화면에 있던 detail을 고정해 그린다(stale 새로고침 뒤에도 적용된 덩어리와 일치). 직접 고친 텍스트는 같은 세션에서만 보이고, 새로고침 후에는 서버가 덩어리별 텍스트를 저장하지 않으므로 안내 문구로 대신한다.
+- 구현하지 않은 것: UI-SPEC B의 `변경 없는 문단 {k}개` 접힌 줄(승인 목업에도 없음), 대기 50건 상한 안내 문구(작가 전체 대기 건수 조회 함수 없음), 설정 문서에 대기 제안이 여러 건일 때 해당 문서로 거른 큐 링크(큐에 대상 필터 없어 일반 대기 큐로 연결).
+- 모바일 `전체 보기` 접기는 길이(240자 초과 또는 6줄 초과)만 보고 판단하며 실제 렌더 높이를 재지 않는다.
+- AI와 다듬기: 입력은 ID·seenHash·메시지(≤1000자)·이력(≤6턴)·UUID 멱등성 키만(추가 필드는 거부), 덩어리는 서버가 저장된 제안과 현재 원문에서 재계산(대기·미만료·본인 소유, 바뀜/추가 덩어리, 잠기거나 삭제된 대상 제외, kb_create 제외). 덩어리당 6회 상한, 대화 비저장. 모델을 못 정하면 사이드 채팅만 숨는다. 패널에 모델 선택·서비스 키 대체 동의 흐름은 없다. 후보에서 프로토콜 태그를 모두 제거하고 비면 `empty_answer`(재시도 버튼 없음: 같은 키 재전송은 already_processed), 후보 상한은 꼬리 줄바꿈을 포함한 삽입 길이 기준.
+- **`createAdminClient` 결정**: `refine-actions.ts`가 `resolveGenerationRoute`에만 `createAdminClient()`를 넘긴다(작가 본인의 BYOK 키 복호화, 기존 `chatAction`과 동일한 방식). 제안·작품 읽기는 모두 세션 클라이언트. 이 phase의 금지 범위는 bearer 토큰 경로(`lib/mcp/**`, `app/mcp/**`)이며 `no-admin-client` 테스트가 그것을 계속 지킨다. 병합 리뷰에서 이 한 곳을 확인할 것.
+- `lib/ai/chat.ts`는 `contextKind` 전달을 위해 한 줄과 타입 확장, `lib/ai/prompt.ts`는 `contextKind:'refine'`과 `stripProtocolTags` 추가. 전체 단위 3204건으로 회귀 확인.
+
+### 알려진 한계 (미수정, 후속 후보)
+
+1. **BYOK 재시도 중복 호출(공용 게이트웨이)**: `lib/ai/paid-generation.ts`의 BYOK 분기는 Phase 11부터 멱등성 키의 완료 확인과 생성 임대를 건너뛴다. 응답이 유실된 뒤 같은 키로 재시도하면 BYOK 제공자가 두 번 호출될 수 있다(서비스 키 경로는 정상 중복 방지). 스튜디오 AI 패널·문서 재생성과 공통 동작이고 비용은 작가 본인의 키로 나간다. 이 phase에서 고치지 않았다. Codex가 14-08에서 블로커로 표시한 항목.
+2. 끝 공백만 바꾼 제안은 덩어리가 0개라 수락 불가(거절만 가능).
+3. '처리됨' 목록이 생성 시각 최신 200행을 자른 뒤 결정 시각으로 정렬.
+4. 다른 탭의 에디터가 열려 있으면 이후 "회차 저장"이 수락한 내용을 덮어쓸 수 있음(에디터에 버전 검사 없음).
+5. 프롬프트 주입 방어는 설계 판단이며 실제 모델로 시험하지 않았다. 14-09에서 실제 호출로 확인할 것.
+6. 되돌리기 기한 재검사와 UPDATE 사이의 수 ms 간극(구조상 제거 불가, §4).
+
+### 아직 브라우저로 보지 못한 것 (14-09에서 확인)
+
+- 화면 전부: 이 세션의 executor에는 브라우저가 없었고, 일회용 DB의 로그인된 작가 세션과 시드된 제안이 있어야 볼 수 있다. 데스크톱과 375px, 44px 터치 타깃, 키보드 순서, 대화상자 초기 포커스·닫힌 뒤 포커스 복귀, role=status/alert의 포커스 이동(특히 14-06 수정의 대화상자 오류 포커스), 배지·줄 위치.
+- 실제 AI 호출(사이드 채팅)의 지갑 차감 또는 BYOK 정산과 실패 문구, 프롬프트 주입 시도에 대한 실제 모델 반응.
+- 실제 claude.ai 커넥터의 쓰기 도구 흐름과 `propose_kb_document`의 `oneOf` 스키마 호환(§5 기타).
+
+### 14-09 시작 전 체크
+
+1. 새 환경 준비(§7), 일회용 DB 스위트 2회 연속 green 확인(§3 gate, 한도 주의 §8). 코드가 바뀌었으므로 14-09 전에 `tests/mcp tests/proposals --project db`를 먼저 돌린다.
+2. 14-09-PLAN.md의 Task 구성과 `autonomous: false` 체크포인트를 따른다. 사람이 판정하는 항목은 12-06 #7·#8·#9를 포함해 한 번의 일회용 환경에서 묶는다. #9(연결 1시간 후 refresh)는 시간이 걸리므로 인수 시작과 동시에 연결을 만들어 둔다.
+3. 판정은 사람이 남긴다(13-05 Task 3 형식: 표 + 관찰 + 후속 조치). FAIL이나 pending을 완료로 기록하지 않는다.
