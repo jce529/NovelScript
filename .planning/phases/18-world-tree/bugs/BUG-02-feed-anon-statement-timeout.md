@@ -75,3 +75,13 @@ from works w where w.deleted_at is null and w.admin_blinded = false order by w.i
 - 성능: 발행 회차 500개 규모의 합성 데이터를 일회용 DB에서 만든 뒤 위 `EXPLAIN` 재측정. 목표는 anon으로 홈 피드 전체 경로가 제한시간의 절반 이하(1.5초 미만).
 - 회귀: 비로그인 홈 렌더, 작품 상세·뷰어의 공개 읽기, admin blind 작품의 메타 노출(0009 계약), 세계수 독자 화면.
 - 적용: 수정은 새 마이그레이션이 되므로 공유 DB에도 같은 방식(파일 단위, 정지점)으로 적용한다.
+
+## 적용 기록 (진행 중, 2026-11-06 저장 시점)
+
+사용자가 A+D로 확정해 `bug-execute`를 시작했고, 사용자 요청으로 중간에 멈추고 저장했다. **미완료·미검증 상태**다.
+
+- 작성됨: `supabase/migrations/0050_feed_public_read_cost.sql`(번호는 Phase 14의 0041·0042와 겹치지 않게 0050으로 잡았으며 병합 때 재조정 가능), `tests/world-tree/public-read-cost.database.test.ts`.
+  - 0050: `world_work_base_visible`(회차 정책용 한 번 조회 헬퍼) 추가, `world_work_public_meta_visible`을 중첩 호출 없이 한 질의로 재작성(의미는 0036과 동일), `chapters_public_read`를 새 헬퍼로 교체, 부분 인덱스 `chapters_work_published_idx` 추가.
+- D 중 **캐싱·피드 페이지 크기 축소는 하지 않았다.** 인덱스만 포함했고, A 적용 후 측정으로 부족할 때 추가한다.
+- 검증은 끝나지 않았다. 테스트를 먼저 썼고(마이그레이션 없이 실행하면 `ENOENT`로 실패, 의도한 red), 0050을 넣은 뒤 실행했으나 그 실행은 PC가 중간에 절전 상태가 되어 소요 시간이 86,400초로 기록되고 `ECONNRESET`이 섞여 **결과를 믿을 수 없다**(BUG-02 테스트 6개 실패 포함, 기존 `visibility.database`의 1건도 같은 오류). 같은 조건에서 다시 실행해야 한다.
+- 남은 작업: ① `tests/world-tree/public-read-cost.database` + `visibility.database` 재실행(일회용 DB, 한도 간섭을 피해 Phase 14 세션이 DB 테스트를 돌리지 않을 때) ② 발행 회차 약 500개 합성 데이터로 `EXPLAIN` 재측정 ③ `tsc`·`eslint` ④ 일회용 DB에 0050 적용 후 비로그인 홈 렌더 확인 ⑤ 공유 DB 적용(파일 단위, 승인) ⑥ 수정 완료 후 `/bug-complete`.
