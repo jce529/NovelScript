@@ -11,7 +11,7 @@ dependency_graph:
     - accept_mcp_kb_edit(uuid,text,text,jsonb)
     - accept_mcp_kb_create(uuid,uuid,text)
     - reject_mcp_proposal(uuid)
-    - revert_mcp_proposal(uuid,boolean)
+    - revert_mcp_proposal(uuid,boolean,text)
     - mcp_proposal_caller() active-writer check (cross-review fix)
   affects: [14-05 server actions (acceptProposal/rejectProposal/revertProposal), 14-06 review UI copy]
 tech_stack:
@@ -25,7 +25,7 @@ key_files:
     - tests/mcp/read-boundary.database.test.ts
 decisions:
   - "Error contract: 42501 browser session required / active writer required / mcp_suspended; P0001 mcp_not_found, mcp_not_pending, mcp_expired, mcp_stale, mcp_folder_invalid, mcp_folder_changed, mcp_name_collision, mcp_not_revertible, mcp_undo_expired; 22023 mcp_invalid_content, mcp_invalid_decision"
-  - "revert_mcp_proposal takes p_confirm boolean default false: if the target changed since accept it returns {status:'accepted', confirm_required:true, changed_since_accept:true} without restoring; with p_confirm=true it restores"
+  - "revert_mcp_proposal(p_proposal_id uuid, p_confirm boolean default false, p_seen_hash text default null): if the target changed since accept it returns {status:'accepted', confirm_required:true, changed_since_accept:true, current_hash}; it restores only when p_confirm=true and p_seen_hash equals the current state hash under FOR UPDATE (else a fresh confirm_required). p_confirm without p_seen_hash -> mcp_invalid_decision. kb_create: name/parent/lock changes also count as changed"
   - "Accept stores p_new_content byte-for-byte (no CRLF rewrite) so unselected paragraphs keep their bytes; empty result allowed; length cap 100000 chapter / 50000 kb"
   - "Accept/revert require profiles.role='writer' and user_can_write; reject requires only a live profile (suspended writers and demoted readers may clear their queue)"
   - "kb-writing RPCs (accept_mcp_kb_edit, accept_mcp_kb_create, revert_mcp_proposal) use search_path 'public, pg_temp' because the 0002/0004 kb_nodes guard triggers reference kb_nodes unqualified; chapter accept, reject and all helpers keep search_path ''"
@@ -63,14 +63,14 @@ metrics:
   발행된 회차도 수락할 수 있다.
 - `accept_mcp_kb_create(uuid,uuid,text)`: 폴더에서 루트까지 거슬러 올라가며 각 단계가 소유·작품·`scope='work'`·folder·`category = proposed_category`·미삭제인지 확인한다. 이 행들은 `FOR SHARE`로 잠그고, 깊이는 32 이하로 제한하며 순환을 막는다. 루트가 하나뿐인지도 확인한다. 그다음 계산한 `id:name` 체인을 `p_folder_version`과 비교하고 file을 삽입한다. 이름 충돌(`23505`)은 `mcp_name_collision`으로 바꾸고, 제안은 pending으로 남는다. 성공하면 `created_node_id`를 기록한다.
 - `reject_mcp_proposal(uuid)`: pending 제안만 rejected로 바꾼다. 정지 계정이나 강등된 reader도 거절할 수 있다.
-- `revert_mcp_proposal(uuid, boolean default false)`: accepted 상태이고 `undo_until > now()`이며 정지 계정이 아닐 때 한 번만 된다.
+- `revert_mcp_proposal(uuid, boolean default false, text default null)`: accepted 상태이고 `undo_until > now()`이며 정지 계정이 아닐 때 한 번만 된다.
   - 회차와 문서는 `undo_content`로 되돌리고, 신규 문서는 `created_node_id`를 소프트 삭제한다(잠그지 않는다).
-  - 수락 뒤 내용이 바뀌었으면 확인 요청만 돌려준다. `p_confirm=true`로 다시 부르면 복원한다.
+  - 수락 뒤 대상이 바뀌었으면(신규 문서는 이름·부모 폴더·잠금 변경 포함) 복원하지 않고 `current_hash`가 담긴 확인 요청을 돌려준다. `p_confirm=true`와 그 `p_seen_hash`가 잠금 아래 현재 해시와 같을 때만 복원하고, 다르면 새 `current_hash`로 다시 확인을 요청한다.
   - 복원 후 상태는 `reverted`, `undo_content`는 null이고, decision에 `reverted_at`과 `changed_since_accept`를 덧붙인다.
 - EXECUTE는 다섯 함수 모두 authenticated에게만 열었다(public·anon·service_role은 revoke).
 
 ### Tests (일회용 DB `anzafn…` 전용)
-- `tests/proposals/accept-revert.database.test.ts` (21건)
+- `tests/proposals/accept-revert.database.test.ts` (24건)
   - 해시: SQL `mcp_proposal_sha256`·`encode(sha256(convert_to()))`와 `hashContent`가 같은 값을 낸다(한글, 이모지·ZWJ 가족, 국기, CRLF/CR, 조합형 é, 빈 문자열, 개행만 있는 문자열).
   - 원자성: 성공하면 본문·상태·decision·undo·7일·applied_hash가 함께 반영된다. 제안 UPDATE에 실패 트리거를 걸면 본문과 제안이 함께 롤백된다.
   - 실패 경로: stale(편집기에서 바뀐 원문, null 해시), 타 작가 제안, kind 불일치, 이중 수락, 만료, 삭제된 회차, 길이·decision 형식 오류.
@@ -96,6 +96,9 @@ metrics:
 | run-db.mjs `tests/proposals/accept-revert.database.test.ts --project db` (Task 1) | 1 file, 12 passed, 0 skipped |
 | run-db.mjs `tests/proposals/accept-revert.database.test.ts tests/mcp/read-boundary.database.test.ts --project db` (Task 2) | 2 files, 41 passed, 0 failed, 0 skipped |
 | run-db.mjs `tests/mcp tests/proposals --project db` (full regression, once) | 11 files, 105 passed, 0 failed, 0 skipped |
+| run-db.mjs `accept-revert --project db` (cc8f27c 수정 후) | 1 file, 24 passed, 0 skipped |
+| run-db.mjs `tests/mcp tests/proposals --project db` (cc8f27c 수정 후 전체 1회) | 8 files 통과, 97 passed. 나머지 3 files는 DCR HTTP 429로 4 failed, 7 skipped(코드 결함 아님) |
+| 10분 대기 후 429가 난 3 files만 재실행 (sensitive-rls, source-snapshot, revoke-blocks) | 3 files, 11 passed, 0 skipped. 합계 108/108 passed |
 | `vitest run tests/proposals tests/mcp --project unit` | 15 files, 404 passed |
 | eslint `--max-warnings=0` on both changed test files | clean |
 
@@ -115,8 +118,8 @@ metrics:
 **1. [Cross-review WARNING - Security] Active writer check in `mcp_proposal_caller()` and the decision RPCs**
 - 오케스트레이터가 지시한 수정이다. 0041 caller를 `create or replace`해 0037과 같은 조건을 추가했다. 수락·되돌리기도 같은 조건을 요구하고, 거절은 live profile만 확인한다. 강등된 reader 시나리오 DB 테스트를 추가했다. 커밋 5acfd1e, 6468f50.
 
-**2. [Rule 2 - Correctness] `revert_mcp_proposal`에 `p_confirm boolean default false` 추가**
-- 플랜의 "확인된 요청일 때만 복원"을 단일 인자 서명으로는 표현할 수 없어서 인자를 하나 더 받는다. 카탈로그 키는 `revert_mcp_proposal(uuid,boolean)`이다.
+**2. [Rule 2 - Correctness] `revert_mcp_proposal`에 확인 인자 추가 (`p_confirm`, `p_seen_hash`)**
+- 플랜의 "확인된 요청일 때만 복원"을 단일 인자 서명으로는 표현할 수 없어서 인자를 더 받는다. 카탈로그 키는 `revert_mcp_proposal(uuid,boolean,text)`이다(아래 7번 참고).
 
 **3. [Rule 3 - Blocking] kb 쓰기 RPC의 search_path를 `public, pg_temp`로 지정**
 - `''`로 두면 0004 `guard_chapter_folder_no_kb_files` 트리거가 `relation "kb_nodes" does not exist`로 실패한다. 함수 본문의 참조는 모두 스키마를 붙였고, pg_temp를 마지막에 둬서 임시 객체가 끼어들 수 없다. 기존 definer RPC(`soft_delete_kb_node`가 `public`)와 같은 결이다.
@@ -129,6 +132,23 @@ metrics:
 
 **6. RED 단계 실행 생략**
 - DCR 429 한도 때문에, 함수가 아직 없어 실패가 확실한 RED 실행은 돌리지 않고 커밋만 했다. 대신 GREEN 실행에서 0 skipped를 확인했다.
+
+**7. [교차 검증 BLOCKER/WARNING 후속 수정] 되돌리기 확정과 신규 문서 변경 감지 (커밋 cc8f27c)**
+- BLOCKER: 첫 버전은 `p_confirm=true`만으로 복원해서, 경고와 확정 사이에 작가가 다시 고친 최신 내용을 스냅샷으로 덮어쓸 수 있었다.
+  - 이제 확인 요청 응답에 `current_hash`를 담고, 확정 호출은 `p_seen_hash`를 함께 보내야 한다.
+  - 대상 행 `FOR UPDATE` 아래에서 현재 해시가 `p_seen_hash`와 같을 때만 복원한다. 다르면 새 `current_hash`로 다시 확인을 요청한다.
+  - `p_confirm=true`인데 `p_seen_hash`가 null이면 `mcp_invalid_decision`(22023)이다.
+  - 이전 시그니처 `(uuid, boolean)`은 0042 안에서 `drop function if exists`로 지웠고, grant/revoke와 search_path는 그대로 다시 걸었다.
+- WARNING: 신규 문서 되돌리기가 내용 해시만 봤다.
+  - 이제 이름(`proposed_name`), 부모 폴더(`decision.folder_id`), 잠금 상태가 수락 때와 다르면 changed로 판정한다. 필요한 값이 이미 제안 행에 있어서 컬럼은 추가하지 않았다.
+  - 상태 해시: 신규 문서는 `sha256(jsonb_build_array(name, parent_id, is_locked, coalesce(content,''))::text)`, 회차·문서 수정은 `sha256(content)`.
+  - 확정했는데 문서가 잠겨 있으면 `mcp_not_revertible`.
+- 추가한 테스트:
+  - 경고 뒤 다시 편집하면 확정해도 복원되지 않고 최신 편집이 보존된다. 잘못된 해시도 거부된다.
+  - 올바른 `p_seen_hash`로는 복원된다.
+  - 해시 없이 확정하면 `mcp_invalid_decision`.
+  - 이름만 또는 폴더만 바뀐 신규 문서는 확인 요청을 거쳐 확정할 때만 soft-delete된다.
+- 일회용 DB에 다시 적용한 뒤 accept-revert 24건이 통과했다.
 
 ## Deferred Issues
 
