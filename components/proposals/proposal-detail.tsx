@@ -1,12 +1,23 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, AlertTriangle, ArrowLeft, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { createSendAttempt, type SendAttempt } from '@/lib/ai/chat-request';
+import { cappedPresentation } from '@/lib/ai/chat-result';
+import { PROVIDER_MODELS } from '@/lib/ai/providers/catalog';
+import { KEY_SOURCE_LABEL, type Selection } from '@/lib/ai/providers/selection';
+import { REFINE_LIMITS, type RefineChunkInput, type RefineChunkResult } from '@/lib/proposals/refine-shared';
+import { refineChunkAction } from '@/app/studio/[workId]/review/[proposalId]/refine-actions';
+import {
+  EMPTY_REFINE_CHAT, REFINE_ASSISTANT_LABEL, REFINE_USER_LABEL, appendRefineTurn, canRefineChunk, canSendRefine,
+  injectCandidate, refineHistory, refineNotice, removeLastUserTurn, type RefineChat, type RefineNotice,
+} from './refine-model';
 import {
   Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -35,6 +46,8 @@ export interface ProposalDetailViewProps {
   detail: ProposalDetail;
   /** Server-formatted arrival label (relative labels depend on request time). */
   arrivalLabel: string;
+  /** 14-08: model for `AI와 다듬기` (account default). Null hides the side chat only. */
+  aiSelection?: Selection | null;
 }
 
 function StatusBadge({ status, partial }: { status: ProposalStatus; partial: boolean }) {
@@ -49,7 +62,7 @@ const targetHref = (d: ProposalDetail, createdNodeId: string | null) => {
   return node ? `/studio/${d.workId}/kb/${node}` : null;
 };
 
-export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewProps) {
+export function ProposalDetailView({ detail, arrivalLabel, aiSelection = null }: ProposalDetailViewProps) {
   const router = useRouter();
   const [stale, setStale] = useState<ProposalDetail | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -61,6 +74,11 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
   const [editing, setEditing] = useState<Record<number, boolean>>({});
   const [edits, setEdits] = useState<Record<number, string>>({});
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  // 14-08 AI와 다듬기: screen-only conversations per chunk (never stored) and the edit field to focus.
+  const [refineOpen, setRefineOpen] = useState<Record<number, boolean>>({});
+  // Keyed by seenHash:index so a late answer never lands on a re-compared chunk.
+  const [refineChats, setRefineChats] = useState<Record<string, RefineChat>>({});
+  const [focusEdit, setFocusEdit] = useState<{ index: number; tick: number }>({ index: -1, tick: 0 });
   const [folderId, setFolderId] = useState<string | null>(null);
   const [busy, setBusy] = useState<'accept' | 'reject' | 'revert' | null>(null);
   const [dialog, setDialog] = useState<'accept' | 'reject' | 'revert' | null>(null);
@@ -120,6 +138,17 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
     setEditing({});
     setEdits({});
     setExpanded({});
+    // Chunk indexes change on a re-compare: the old conversations no longer match.
+    setRefineOpen({});
+    setRefineChats({});
+  }
+
+  /** An AI answer only fills (and opens) the 직접 고치기 field; the accept checks stay as they are. */
+  function putCandidate(h: DetailHunk, candidate: string) {
+    const next = injectCandidate({ editing, edits }, h, candidate);
+    setEditing(next.editing);
+    setEdits(next.edits);
+    setFocusEdit((f) => ({ index: h.index, tick: f.tick + 1 }));
   }
 
   function closeDialog(open: boolean) {
@@ -358,6 +387,26 @@ export function ProposalDetailView({ detail, arrivalLabel }: ProposalDetailViewP
                 decision={decision && (status === 'accepted' || status === 'reverted')
                   ? { accepted: decision.acceptedIndexes.includes(h.index), ...completedChunkText(h, decision, submittedTexts) }
                   : null}
+                focusEditTick={focusEdit.index === h.index ? focusEdit.tick : 0}
+                refine={pending && !blocked && aiSelection && view.seenHash && canRefineChunk(h) ? {
+                  open: !!refineOpen[h.index],
+                  onToggle: () => setRefineOpen((o) => ({ ...o, [h.index]: !o[h.index] })),
+                  panel: (
+                    <RefinePanel
+                      n={h.index + 1}
+                      request={{ proposalId: view.id, hunkIndex: h.index, seenHash: view.seenHash }}
+                      selection={aiSelection}
+                      chat={refineChats[`${view.seenHash}:${h.index}`] ?? EMPTY_REFINE_CHAT}
+                      onChat={(update) => {
+                        const key = `${view.seenHash}:${h.index}`;
+                        setRefineChats((c) => ({ ...c, [key]: update(c[key] ?? EMPTY_REFINE_CHAT) }));
+                      }}
+                      onUseCandidate={(candidate) => putCandidate(h, candidate)}
+                      onRefresh={() => router.refresh()}
+                      disabled={busy !== null}
+                    />
+                  ),
+                } : null}
               />
             ))}
           </ol>
@@ -481,13 +530,22 @@ interface ChunkRowProps {
   disabled: boolean;
   /** Read-only result: accepted flag plus the text actually shown (submitted 직접 고침 or AI text + note). */
   decision: { accepted: boolean; edited: boolean; text: string; note: string | null } | null;
+  /** Bumped when an AI candidate was put into 직접 고치기: focus the field. */
+  focusEditTick: number;
+  /** 14-08 AI와 다듬기 (applicable 바뀜/추가 chunks of a live pending proposal only). */
+  refine: { open: boolean; onToggle: () => void; panel: ReactNode } | null;
 }
 
 function ChunkRow(props: ChunkRowProps) {
-  const { hunk: h, labels, mode, checked, editing, value, edited, expanded, disabled, decision } = props;
+  const { hunk: h, labels, mode, checked, editing, value, edited, expanded, disabled, decision, focusEditTick, refine } = props;
   const n = h.index + 1;
   const bodyId = useId();
   const editId = useId();
+  const refineId = useId();
+  const editRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (focusEditTick > 0) editRef.current?.focus();
+  }, [focusEditTick]);
   const kindLabel = h.applicable ? h.kind : '적용할 수 없음';
   const selectable = mode === 'select' && h.applicable;
   const editable = mode === 'select' && canEditChunk(h);
@@ -511,6 +569,11 @@ function ChunkRow(props: ChunkRowProps) {
         </span>
         {(edited && mode === 'select') || decision?.edited ? <Badge variant="outline" className="font-semibold">직접 고침</Badge> : null}
         <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
+          {editable && refine && (
+            <Button type="button" variant="outline" className="min-h-11 flex-1 sm:flex-none" aria-expanded={refine.open} aria-controls={refine.open ? refineId : undefined} onClick={refine.onToggle}>
+              {refine.open ? 'AI 닫기' : 'AI와 다듬기'}
+            </Button>
+          )}
           {editable && (
             <Button type="button" variant="outline" className="min-h-11 flex-1 sm:flex-none" aria-expanded={editing} aria-controls={editing ? editId : undefined} disabled={disabled} onClick={props.onToggleEdit}>
               {editing ? '고치기 닫기' : '직접 고치기'}
@@ -550,7 +613,7 @@ function ChunkRow(props: ChunkRowProps) {
             {showEditor ? (
               <div id={editId} className="flex flex-col gap-2">
                 <label htmlFor={`${editId}-text`} className="text-xs font-semibold text-muted-foreground">반영할 내용을 직접 고쳐요</label>
-                <Textarea id={`${editId}-text`} rows={5} value={value} disabled={disabled} onChange={(e) => props.onEdit(e.target.value)} className="min-h-28 text-sm leading-7" />
+                <Textarea ref={editRef} id={`${editId}-text`} rows={5} value={value} disabled={disabled} onChange={(e) => props.onEdit(e.target.value)} className="min-h-28 text-sm leading-7" />
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <p className="text-xs text-muted-foreground">고친 내용이 AI 초안 대신 본문에 들어가요.</p>
                   <Button type="button" variant="outline" className="min-h-11 sm:ml-auto" disabled={disabled || !edited} onClick={props.onResetEdit}>AI 초안으로 되돌리기</Button>
@@ -572,7 +635,160 @@ function ChunkRow(props: ChunkRowProps) {
           {expanded ? '접기' : '전체 보기'}
         </Button>
       )}
+      {editable && refine?.open && <div id={refineId}>{refine.panel}</div>}
     </li>
+  );
+}
+
+interface RefinePanelProps {
+  n: number;
+  /** Ids only: the server re-derives the chunk text from the stored proposal. */
+  request: Pick<RefineChunkInput, 'proposalId' | 'hunkIndex' | 'seenHash'>;
+  selection: Selection;
+  chat: RefineChat;
+  onChat: (update: (chat: RefineChat) => RefineChat) => void;
+  onUseCandidate: (candidate: string) => void;
+  onRefresh: () => void;
+  disabled: boolean;
+}
+
+type RefinePayload = Omit<RefineChunkInput, 'idempotencyKey'>;
+
+/**
+ * 14-08 (D-P14-11) `AI와 다듬기` for one chunk. Screen-only: the conversation lives in the
+ * parent's state and is never sent anywhere except as capped history on the next send.
+ * Answers become candidates for 직접 고치기 only; the accept checks are never touched here.
+ */
+function RefinePanel({ n, request, selection, chat, onChat, onUseCandidate, onRefresh, disabled }: RefinePanelProps) {
+  const inputId = useId();
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState<RefineNotice | null>(null);
+  // Frozen attempt kept for 다시 시도 (same idempotency key), only after a retryable failure.
+  const [failed, setFailed] = useState<SendAttempt<RefinePayload> | null>(null);
+  const lockRef = useRef(false);
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const modelName = PROVIDER_MODELS[selection.providerId].find((m) => m.id === selection.model)?.displayName ?? selection.model;
+  const limitReached = chat.sends >= REFINE_LIMITS.sendsPerChunk;
+
+  useEffect(() => {
+    if (notice) noticeRef.current?.focus();
+  }, [notice]);
+
+  async function run(attempt: SendAttempt<RefinePayload>) {
+    if (lockRef.current) return;
+    lockRef.current = true;
+    setSending(true);
+    setNotice(null);
+    let response: RefineChunkResult | null;
+    try {
+      response = await refineChunkAction({ ...attempt.payload, idempotencyKey: attempt.idempotencyKey } as RefineChunkInput);
+    } catch {
+      response = null;
+    }
+    const result = response;
+    lockRef.current = false;
+    setSending(false);
+    if (result?.ok) {
+      setFailed(null);
+      const capped = cappedPresentation(result);
+      onChat((c) => appendRefineTurn(c, { role: 'assistant', text: result.reply || result.candidate, candidate: result.candidate, note: capped?.body ?? null }));
+      return;
+    }
+    const next = refineNotice(result, attempt.payload.keySource, attempt.payload.providerId);
+    setFailed(next.retryable ? attempt : null);
+    if (next.removeUserTurn) {
+      onChat(removeLastUserTurn);
+      setText(attempt.payload.message);
+    }
+    setNotice(next);
+  }
+
+  function send() {
+    if (!canSendRefine(chat, text, sending || disabled)) return;
+    const message = text.trim();
+    const attempt = createSendAttempt<RefinePayload>({
+      ...request, message, history: refineHistory(chat),
+      providerId: selection.providerId, model: selection.model, keySource: selection.keySource,
+    });
+    onChat((c) => appendRefineTurn(c, { role: 'user', text: message }));
+    setText('');
+    void run(attempt);
+  }
+
+  return (
+    <section aria-label={`변경 ${n} AI와 다듬기`} className="flex flex-col gap-2 border-t border-border bg-muted/40 px-4 py-3">
+      <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+        <span className="font-semibold text-foreground">이 덩어리만 AI와 다듬기</span>
+        <span>대화는 이 화면에서만 보이고 저장되지 않아요.</span>
+      </div>
+      {chat.messages.length > 0 && (
+        <ul aria-label={`변경 ${n} AI 대화`} className="flex flex-col gap-2">
+          {chat.messages.map((m, i) => (
+            <li key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`flex max-w-[90%] flex-col gap-1 rounded-lg border p-3 text-sm ${m.role === 'user' ? 'border-border bg-background' : 'border-foreground/30 bg-card'}`}>
+                <span className="text-xs font-semibold text-muted-foreground">{m.role === 'user' ? REFINE_USER_LABEL : REFINE_ASSISTANT_LABEL}</span>
+                <p className="whitespace-pre-wrap break-words leading-7">{m.text}</p>
+                {m.role === 'assistant' && m.candidate && m.candidate !== m.text && (
+                  <p className="whitespace-pre-wrap break-words border-l-4 border-foreground/40 pl-3 leading-7">{m.candidate}</p>
+                )}
+                {m.role === 'assistant' && m.note && <p className="text-xs text-muted-foreground">{m.note}</p>}
+                {m.role === 'assistant' && m.candidate && (
+                  <Button type="button" variant="outline" className="mt-1 min-h-11 self-start" disabled={disabled} onClick={() => onUseCandidate(m.candidate as string)}>
+                    이 내용을 직접 고치기에 넣기
+                  </Button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {sending && <p role="status" className="text-sm">AI가 답을 쓰는 중…</p>}
+      {notice && (
+        <div ref={noticeRef} tabIndex={-1} role="alert" className="flex flex-col gap-2 rounded-lg border border-destructive/40 p-3 outline-none">
+          <p className="flex items-start gap-2 text-sm font-semibold text-destructive">
+            <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />{notice.title}
+          </p>
+          {notice.body && <p className="break-keep text-sm">{notice.body}</p>}
+          {notice.reasonLine && <p className="text-xs text-muted-foreground">{notice.reasonLine}</p>}
+          {notice.meta && <p className="text-xs text-muted-foreground tabular-nums">{notice.meta}</p>}
+          <div className="flex flex-wrap gap-2">
+            {notice.retryable && failed && (
+              <Button type="button" variant="outline" className="min-h-11" disabled={sending || disabled} onClick={() => void run(failed)}>다시 시도</Button>
+            )}
+            {notice.settingsHref && (
+              <Link href={notice.settingsHref} className="inline-flex min-h-11 items-center rounded-lg border border-border bg-background px-4 text-sm font-semibold hover:bg-muted">AI 설정 열기</Link>
+            )}
+            {notice.refresh && (
+              <Button type="button" variant="outline" className="min-h-11" onClick={onRefresh}>새로고침</Button>
+            )}
+          </div>
+        </div>
+      )}
+      {limitReached ? (
+        <p className="break-keep text-sm">이 변경은 AI와 {REFINE_LIMITS.sendsPerChunk}번까지 다듬을 수 있어요. 남은 부분은 직접 고치기로 마무리해 주세요.</p>
+      ) : (
+        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); send(); }}>
+          <label htmlFor={inputId} className="sr-only">AI에게 요청할 내용</label>
+          <Input
+            id={inputId}
+            value={text}
+            maxLength={REFINE_LIMITS.messageChars}
+            placeholder="예: 조금 더 담담한 말투로 바꿔 줘"
+            disabled={sending || disabled}
+            onChange={(e) => setText(e.target.value)}
+            // Enter that only commits a Korean IME composition must not send.
+            onKeyDown={(e) => { if (e.key === 'Enter' && e.nativeEvent.isComposing) e.preventDefault(); }}
+            className="min-h-11 flex-1 text-sm"
+          />
+          <Button type="submit" className="min-h-11 px-4" disabled={!canSendRefine(chat, text, sending || disabled)}>보내기</Button>
+        </form>
+      )}
+      <p className="text-xs text-muted-foreground">
+        앱 AI 사용량이 차감돼요(내 키를 등록했다면 내 키로 호출해요). AI 답은 본문에 바로 들어가지 않아요.
+        {' '}<span className="tabular-nums">사용 모델: {modelName} ({KEY_SOURCE_LABEL[selection.keySource]})</span>
+      </p>
+    </section>
   );
 }
 

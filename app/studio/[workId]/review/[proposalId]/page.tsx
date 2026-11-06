@@ -3,6 +3,9 @@ import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getProposalDetail } from '@/lib/proposals/queries';
+import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
+import { resolveDefaultProviderModel } from '@/lib/ai/providers/settings';
+import type { Selection } from '@/lib/ai/providers/selection';
 import { ProposalDetailView } from '@/components/proposals/proposal-detail';
 import { formatArrival, queueHref } from '@/components/proposals/review-model';
 
@@ -31,7 +34,22 @@ export default async function ProposalReviewPage({
     );
   }
 
+  // 14-08 AI와 다듬기: the writer's account default model (same resolver as the AI panel). A BYOK
+  // default that now needs consent to fall back to the service key stays BYOK, so the gateway
+  // answers replacement_required instead of silently charging the wallet. Any failure here only
+  // hides the side chat; the review flow itself does not depend on it.
+  let aiSelection: Selection | null = null;
+  if (result.detail.status === 'pending' && result.detail.kind !== 'kb_create') {
+    try {
+      const byokModels = await loadConnectedByokModels(supabase, user.id);
+      const resolved = await resolveDefaultProviderModel(supabase, user.id, byokModels);
+      aiSelection = resolved.fallback?.requiresConsent && resolved.fallback.original ? resolved.fallback.original : resolved.selection;
+    } catch {
+      aiSelection = null;
+    }
+  }
+
   // eslint-disable-next-line react-hooks/purity -- request-time server render; label is relative to this request
   const arrivalLabel = formatArrival(result.detail.createdAt, Date.now());
-  return <ProposalDetailView key={result.detail.id} detail={result.detail} arrivalLabel={arrivalLabel} />;
+  return <ProposalDetailView key={result.detail.id} detail={result.detail} arrivalLabel={arrivalLabel} aiSelection={aiSelection} />;
 }
