@@ -1,11 +1,17 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { listWorks } from '@/lib/works/actions';
+import { countPendingProposalsByWork } from '@/lib/proposals/queries';
+import { PendingProposalBadge } from '@/components/proposals/pending-badges';
 
 export default async function WorkListPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const works = user ? await listWorks(supabase, { ownerId: user.id }) : [];
+  // One owner-scoped query for every card; a failed count degrades to 0 (no badge).
+  const pending = user
+    ? await countPendingProposalsByWork(supabase, user.id, works.map((w) => w.id))
+    : {};
 
   return (
     <main className="mx-auto max-w-3xl p-8">
@@ -29,6 +35,7 @@ export default async function WorkListPage() {
             <li key={work.id} className="rounded border p-4 bg-secondary">
               <Link href={`/studio/${work.id}`} className="font-medium">{work.title}</Link>
               <p className="text-sm text-muted-foreground">{work.synopsis || ''}</p>
+              <PendingProposalBadge workId={work.id} workTitle={work.title} count={pending[work.id] ?? 0} />
             </li>
           ))}
         </ul>
