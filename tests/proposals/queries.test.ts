@@ -241,7 +241,7 @@ describe('getProposalDetail', () => {
 
     fake.tables.kb_nodes[0].deleted_at = iso(-1);
     const gone = await getProposalDetail(fake.client, OWNER, WORK, id(1));
-    expect(gone.ok && gone.detail.target).toMatchObject({ state: 'missing', title: null });
+    expect(gone.ok && gone.detail.target).toMatchObject({ state: 'missing', title: '주인공' });
     expect(gone.ok && gone.detail.hunks).toEqual([]);
   });
 
