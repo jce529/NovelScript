@@ -429,15 +429,20 @@ $$;
 --    Change detection (under FOR UPDATE of the target):
 --      chapter / kb_edit: sha256(content) <> applied_hash
 --      kb_create: content hash <> applied_hash, or the name / parent folder /
---        lock state differs from what accept created (proposed_name,
---        decision.folder_id, unlocked)
+--        category differs from what accept created (proposed_name,
+--        decision.folder_id, proposed_category). A created document that is
+--        now locked cannot be soft-deleted: mcp_not_revertible on the first call.
+--    undo_until is checked twice: a fast pre-check, then again with
+--    clock_timestamp() once the target row lock is held (now() is fixed at
+--    transaction start, so a long lock wait could otherwise outlive the window).
 --    If changed, nothing is restored unless p_confirm is true AND p_seen_hash
 --    equals the target's current state hash (current_hash below), which the
 --    writer saw in the previous confirm_required answer. A mismatch (the writer
 --    edited again in between) returns a fresh confirm_required and restores
 --    nothing, so a later edit is never overwritten silently.
 --    current_hash: chapter / kb_edit = sha256(content);
---      kb_create = sha256(jsonb_build_array(name, parent_id, is_locked, content)::text).
+--      kb_create = sha256(jsonb_build_array(name, parent_id, category, coalesce(content, ''))::text).
+--    The same v_state_hash value is returned and compared with p_seen_hash.
 --    p_confirm = true without p_seen_hash -> mcp_invalid_decision.
 --    0042 drafts had revert_mcp_proposal(uuid, boolean); dropped here (never merged).
 drop function if exists public.revert_mcp_proposal(uuid, boolean);
@@ -452,6 +457,7 @@ declare
   v_current text;
   v_name text;
   v_parent uuid;
+  v_category text;
   v_locked boolean;
   v_changed boolean;
   v_state_hash text;
@@ -496,7 +502,8 @@ begin
       and n.deleted_at is null and w.deleted_at is null
     for update of n;
   else
-    select n.content, n.name, n.parent_id, n.is_locked into v_current, v_name, v_parent, v_locked
+    select n.content, n.name, n.parent_id, n.category, n.is_locked
+      into v_current, v_name, v_parent, v_category, v_locked
     from public.kb_nodes as n
     join public.works as w on w.id = n.work_id
     where n.id = v_proposal.created_node_id and n.work_id = v_proposal.work_id
@@ -509,14 +516,24 @@ begin
     raise exception 'mcp_not_found' using errcode = 'P0001';
   end if;
 
+  -- Re-check the window with the wall clock now that the target row is locked.
+  if v_proposal.undo_until <= pg_catalog.clock_timestamp() then
+    raise exception 'mcp_undo_expired' using errcode = 'P0001';
+  end if;
+  -- Locked nodes cannot be soft-deleted (locked_node_immutable): refuse up front
+  -- instead of sending the writer through a confirmation that can never succeed.
+  if v_proposal.kind = 'kb_create' and v_locked then
+    raise exception 'mcp_not_revertible' using errcode = 'P0001';
+  end if;
+
   v_changed := public.mcp_proposal_sha256(coalesce(v_current, '')) is distinct from v_proposal.applied_hash;
   if v_proposal.kind = 'kb_create' then
     v_changed := v_changed
       or v_name is distinct from v_proposal.proposed_name
       or v_parent is distinct from (v_proposal.decision ->> 'folder_id')::uuid
-      or v_locked;
+      or v_category is distinct from v_proposal.proposed_category;
     v_state_hash := public.mcp_proposal_sha256(
-      pg_catalog.jsonb_build_array(v_name, v_parent, v_locked, coalesce(v_current, ''))::text);
+      pg_catalog.jsonb_build_array(v_name, v_parent, v_category, coalesce(v_current, ''))::text);
   else
     v_state_hash := public.mcp_proposal_sha256(coalesce(v_current, ''));
   end if;
@@ -535,10 +552,6 @@ begin
        set content = v_proposal.undo_content, updated_at = pg_catalog.now()
      where n.id = v_proposal.node_id;
   else
-    if v_locked then
-      -- A locked node cannot be soft-deleted (locked_node_immutable).
-      raise exception 'mcp_not_revertible' using errcode = 'P0001';
-    end if;
     update public.kb_nodes as n
        set deleted_at = pg_catalog.now(), updated_at = pg_catalog.now()
      where n.id = v_proposal.created_node_id;

@@ -351,9 +351,9 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
       fx.rpc('revert_mcp_proposal', bearer, confirm === undefined
         ? { p_proposal_id: id }
         : { p_proposal_id: id, p_confirm: true, p_seen_hash: confirm.seenHash });
-    /** kb_create current_hash, same formula as 0042: sha256(jsonb_build_array(name, parent_id, is_locked, content)::text). */
+    /** kb_create current_hash, same formula as 0042: sha256(jsonb_build_array(name, parent_id, category, content)::text). */
     const nodeStateHash = async (nodeId: string) => (await fx.query(
-      "select public.mcp_proposal_sha256(jsonb_build_array(name, parent_id, is_locked, coalesce(content, ''))::text) as h from public.kb_nodes where id = $1",
+      "select public.mcp_proposal_sha256(jsonb_build_array(name, parent_id, category, coalesce(content, ''))::text) as h from public.kb_nodes where id = $1",
       [nodeId]))[0].h as string;
     async function acceptCreated(name: string, content: string) {
       const created = await seedKbCreateProposal(wA, '인물', name, content);
@@ -431,10 +431,42 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
       expect((await proposalRow(id)).status).toBe('accepted');
     });
 
-    it('a created document renamed or moved after accept needs confirmation before it is soft-deleted', async () => {
+    it('a created document that is now locked is refused on the first call, not sent through confirmation', async () => {
+      const { id, nodeId } = await acceptCreated('잠길 신규', 'locked doc');
+      await fx.query('update public.kb_nodes set is_locked = true where id = $1', [nodeId]);
+      expect(await revert(fx.aBrowser, id)).toMatchObject({ status: 400, message: 'mcp_not_revertible' });
+      expect(await revert(fx.aBrowser, id, { seenHash: await nodeStateHash(nodeId) }))
+        .toMatchObject({ status: 400, message: 'mcp_not_revertible' });
+      expect(await nodeRow(nodeId)).toMatchObject({ deleted_at: null, is_locked: true });
+      expect((await proposalRow(id)).status).toBe('accepted');
+    });
+
+    it('undo_until boundary: just inside reverts, just past raises mcp_undo_expired and leaves the target unchanged', async () => {
+      const chapter = await insertChapter(fx, wA, 'deadline original', { orderIndex: 56 });
+      const inside = await seedChapterProposal(chapter, wA, 'deadline draft');
+      expect((await acceptChapter(fx.aBrowser, inside.id, hashContent('deadline original'), 'deadline draft')).status).toBe(200);
+      await fx.query("update public.mcp_proposals set undo_until = now() + interval '10 seconds' where id = $1", [inside.id]);
+      expect(await revert(fx.aBrowser, inside.id)).toMatchObject({ status: 200, json: { status: 'reverted' } });
+      expect((await chapterBody(chapter)).content).toBe('deadline original');
+
+      const { id, nodeId } = await acceptCreated('기한 신규', 'deadline doc');
+      await fx.query("update public.mcp_proposals set undo_until = now() - interval '1 millisecond' where id = $1", [id]);
+      expect(await revert(fx.aBrowser, id)).toMatchObject({ status: 400, message: 'mcp_undo_expired' });
+      expect((await nodeRow(nodeId)).deleted_at).toBeNull();
+      expect((await proposalRow(id)).status).toBe('accepted');
+
+      // Lock-wait expiry (static): after the target FOR UPDATE the window is re-checked with
+      // clock_timestamp(), not the transaction-start now().
+      const [{ src }] = await fx.query("select prosrc as src from pg_proc where proname = 'revert_mcp_proposal'");
+      expect(String(src)).toMatch(/for update of n;[\s\S]*undo_until <= pg_catalog\.clock_timestamp\(\)[\s\S]*mcp_undo_expired/);
+    });
+
+    it('a created document renamed, moved or re-categorized after accept needs confirmation before it is soft-deleted', async () => {
       const changes: Array<[string, (nodeId: string) => Promise<unknown>]> = [
         ['rename', (nodeId) => fx.query("update public.kb_nodes set name = name || ' (고침)' where id = $1", [nodeId])],
         ['move', (nodeId) => fx.query('update public.kb_nodes set parent_id = $2 where id = $1', [nodeId, peopleSub])],
+        // Category only (same folder, same name and content) must count as changed too.
+        ['category', (nodeId) => fx.query("update public.kb_nodes set category = '장소' where id = $1", [nodeId])],
       ];
       for (const [label, change] of changes) {
         const { id, nodeId } = await acceptCreated(`옮길 신규 ${label}`, `doc ${label}`);
