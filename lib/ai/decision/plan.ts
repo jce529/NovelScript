@@ -9,7 +9,7 @@ import {
   TASK_CANDIDATES,
 } from './candidates';
 import { JEV_CONFIDENCE_THRESHOLDS } from './config';
-import { listCategoryFolderCandidates, listTemplateOptions, type FolderCandidate, type TemplateOption } from '@/lib/kb/actions';
+import { listCategoryFolderCandidates, listCustomFolderCandidates, listTemplateOptions, type FolderCandidate, type TemplateOption } from '@/lib/kb/actions';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -173,18 +173,23 @@ export type FolderTemplatePlanResult = FolderTemplatePlan
 export async function planFolderAndTemplate(
   client: DecisionClient,
   supabase: SupabaseClient,
-  { ownerId, workId, category, state, seed }: {
+  { ownerId, workId, category, state, seed, includeCustomFolders }: {
     ownerId: string;
     workId: string;
     category: KbCategory;
     state: Record<string, unknown>;
     seed?: number;
+    /** 카테고리 밖에 직접 만든 폴더도 폴더 후보에 넣는다 (파일 업로드 분류 전용). */
+    includeCustomFolders?: boolean;
   },
 ): Promise<FolderTemplatePlanResult> {
   const listed = await listCategoryFolderCandidates(supabase, { ownerId, workId, category });
   if (listed.status !== 'ok') return { kind: 'data_integrity', reason: listed.status };
   const templates = await listTemplateOptions(supabase, { ownerId, workId, category });
-  return planFolderAndTemplateFromCandidates(client, { state, folders: listed.candidates, templates, seed });
+  const folders = includeCustomFolders
+    ? [...listed.candidates, ...await listCustomFolderCandidates(supabase, { ownerId, workId })]
+    : listed.candidates;
+  return planFolderAndTemplateFromCandidates(client, { state, folders, templates, seed });
 }
 
 export type CategoryOnlyPlan =

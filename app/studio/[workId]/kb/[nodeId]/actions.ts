@@ -113,13 +113,15 @@ export async function createNodeAction(
   category: string,
   nodeType: 'folder' | 'file',
   name: string,
-  templateOverrideContent?: string | null
+  templateOverrideContent?: string | null,
+  blankTemplate?: boolean
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: '로그인이 필요해요.' };
   const result = await createNode(supabase, {
     ownerId: user.id, workId, parentId, category, nodeType, name, templateOverrideContent,
+    blankTemplate: blankTemplate === true,
   });
   if (result.ok) revalidatePath(`/studio/${workId}`, 'layout');
   return result;

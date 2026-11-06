@@ -50,7 +50,7 @@ export default async function WorkLayout({
   const rootChapters = chapterRoot ? (chaptersByFolderId[chapterRoot.id] ?? []) : [];
   const hasNoChapterContent = !chapterRoot || (chapterRoot.children.length === 0 && rootChapters.length === 0);
   const hasCustomSharedFolders = sections.sharedFolders.length > 0;
-  const templateAreas = sections.templateRoots.map((root) => ({ scope: root.scope, folders: root.folders }));
+  const templateAreas = sections.templateRoots.map((root) => ({ scope: root.scope, rootId: root.id, folders: root.folders }));
 
   // 17-07 tree: 작품 폴더 (회차 · 설정 · 템플릿) / 계정 폴더 (설정). Depth: root group 0, section 1, rows 2+.
   const sidebar = (

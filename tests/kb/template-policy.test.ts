@@ -174,6 +174,33 @@ describe('default template selection (Reopen D-10, mock units)', () => {
   });
 });
 
+describe('빈 템플릿 미분류 생성 (템플릿 영역 루트 직속)', () => {
+  const fixture = () => [root, person, place];
+  it('blankTemplate이면 루트 바로 아래에 빈 본문의 미분류 템플릿을 만든다', async () => {
+    const mock = mockClient(fixture());
+    const result = await actions.createNode(mock.client, { ownerId: OWNER, workId: WORK, parentId: 'root', category: 'template', nodeType: 'file', name: '빈 양식', blankTemplate: true });
+    expect(result).toEqual({ ok: true, nodeId: 'copy-id' });
+    const insert = mock.calls.find((c) => c.op === 'insert');
+    expect(insert?.payload).toMatchObject({ parent_id: 'root', category: 'template', node_type: 'file', is_locked: false, content: '', scope: 'work', work_id: WORK });
+  });
+  it('blankTemplate이 아니면 루트 직속 생성은 기존처럼 거부한다', async () => {
+    const mock = mockClient(fixture());
+    const result = await actions.createNode(mock.client, { ownerId: OWNER, workId: WORK, parentId: 'root', category: 'template', nodeType: 'file', name: '양식' });
+    expect(result).toEqual({ ok: false, error: '템플릿은 카테고리 폴더 안에만 만들 수 있어요.' });
+    expect(mock.calls.some((c) => c.op === 'insert')).toBe(false);
+  });
+  it('다른 작품의 루트에는 만들 수 없다', async () => {
+    const mock = mockClient(fixture());
+    const result = await actions.createNode(mock.client, { ownerId: OWNER, workId: '44444444-4444-4444-8444-444444444444', parentId: 'root', category: 'template', nodeType: 'file', name: '빈 양식', blankTemplate: true });
+    expect(result.ok).toBe(false);
+  });
+  it('이름이 겹치면 템플릿 중복 안내로 바꿔 돌려준다', async () => {
+    const mock = mockClient(fixture(), { mutationError: { code: '23505', message: 'kb_nodes_template_area_name_unique' } });
+    const result = await actions.createNode(mock.client, { ownerId: OWNER, workId: WORK, parentId: 'root', category: 'template', nodeType: 'file', name: '빈 양식', blankTemplate: true });
+    expect(result).toEqual({ ok: false, error: COLLISION });
+  });
+});
+
 describe('template name collisions (0023 area unique index, mock units)', () => {
   it.each([
     ['23505', 'duplicate key value violates unique constraint "kb_nodes_template_area_name_unique"', COLLISION],
