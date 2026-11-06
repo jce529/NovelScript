@@ -314,3 +314,121 @@ describe('refineChunk: gateway failures reuse the AI panel outcomes', () => {
     expect(chatCalls).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Task 2: screen-only side chat helpers (components/proposals/refine-model.ts)
+// ---------------------------------------------------------------------------
+import {
+  REFINE_ASSISTANT_LABEL, appendRefineTurn, candidateForEdit, canRefineChunk, canSendRefine, injectCandidate,
+  refineHistory, refineNotice, removeLastUserTurn, type RefineChat,
+} from '@/components/proposals/refine-model';
+
+const hunk = (over: Record<string, unknown> = {}) => ({ index: 0, kind: '바뀜' as const, after: '새 문단\n\n', applicable: true, ...over });
+
+describe('refine-model: who may open the side chat', () => {
+  it('only applicable 바뀜/추가 chunks (same set as 직접 고치기)', () => {
+    expect(canRefineChunk(hunk())).toBe(true);
+    expect(canRefineChunk(hunk({ kind: '추가' }))).toBe(true);
+    expect(canRefineChunk(hunk({ kind: '삭제' }))).toBe(false);
+    expect(canRefineChunk(hunk({ applicable: false }))).toBe(false);
+  });
+});
+
+describe('refine-model: candidate injection never touches the accept checks', () => {
+  it('opens 직접 고치기 with the candidate and keeps selection by reference', () => {
+    const selected = [2];
+    const state = { selected, editing: {}, edits: { 1: '다른 덩어리 고침' } };
+    const next = injectCandidate(state, hunk({ index: 0 }), 'AI가 다듬은 문단');
+    expect(next.selected).toBe(selected);
+    expect(next.selected).toEqual([2]);
+    expect(next.editing).toEqual({ 0: true });
+    expect(next.edits).toEqual({ 1: '다른 덩어리 고침', 0: 'AI가 다듬은 문단\n\n' });
+    // Original state untouched (pure).
+    expect(state.edits).toEqual({ 1: '다른 덩어리 고침' });
+  });
+
+  it('keeps the chunk\'s trailing blank-line run so the merge keeps paragraph spacing', () => {
+    expect(candidateForEdit('새 문단\n\n', '다듬은 문단')).toBe('다듬은 문단\n\n');
+    expect(candidateForEdit('새 문단\n\n', '다듬은 문단\n')).toBe('다듬은 문단\n\n');
+    expect(candidateForEdit('끝 문단', '다듬은 문단\n\n')).toBe('다듬은 문단');
+  });
+});
+
+describe('refine-model: screen-only conversation', () => {
+  const chat = (n: number): RefineChat => ({
+    sends: n,
+    messages: Array.from({ length: n * 2 }, (_, i) => (i % 2
+      ? { role: 'assistant' as const, text: `답 ${i}`, candidate: `후보 ${i}` }
+      : { role: 'user' as const, text: `요청 ${i}` })),
+  });
+
+  it('resends at most the last 6 turns, each cut to 2000 characters', () => {
+    const long: RefineChat = { sends: 1, messages: [{ role: 'user', text: '가'.repeat(2500) }, { role: 'assistant', text: '답', candidate: '나'.repeat(3000) }] };
+    const history = refineHistory(long);
+    expect(history.every((t) => t.content.length <= REFINE_LIMITS.turnChars)).toBe(true);
+    expect(history[1].content.startsWith('답')).toBe(true);
+    const many = refineHistory(chat(5));
+    expect(many).toHaveLength(REFINE_LIMITS.historyTurns);
+    expect(many[0].content).toBe('요청 4');
+  });
+
+  it('caps sends per chunk at 6 and rejects blank or over-long messages', () => {
+    expect(canSendRefine(chat(0), '다듬어 줘', false)).toBe(true);
+    expect(canSendRefine(chat(5), '다듬어 줘', false)).toBe(true);
+    expect(canSendRefine(chat(6), '다듬어 줘', false)).toBe(false);
+    expect(canSendRefine(chat(0), '   ', false)).toBe(false);
+    expect(canSendRefine(chat(0), 'a'.repeat(1001), false)).toBe(false);
+    expect(canSendRefine(chat(0), '다듬어 줘', true)).toBe(false);
+  });
+
+  it('appends turns and removes a refused user turn without touching earlier ones', () => {
+    let c: RefineChat = { sends: 0, messages: [] };
+    c = appendRefineTurn(c, { role: 'user', text: '첫 요청' });
+    expect(c.sends).toBe(1);
+    c = appendRefineTurn(c, { role: 'assistant', text: '답', candidate: '후보' });
+    expect(c.sends).toBe(1);
+    c = appendRefineTurn(c, { role: 'user', text: '둘째 요청' });
+    c = removeLastUserTurn(c);
+    expect(c.sends).toBe(1);
+    expect(c.messages.map((m) => m.text)).toEqual(['첫 요청', '답']);
+    expect(REFINE_ASSISTANT_LABEL).toBe('AI');
+  });
+});
+
+describe('refine-model: failure copy reuses the AI panel mapping', () => {
+  it('uses CHAT_COPY for a wallet failure and allows no retry', () => {
+    const n = refineNotice({ ok: false, code: 'chat', error: 'x', chat: { ok: false, status: 'failed', failureKind: 'insufficient_balance' } }, 'service', 'gemini');
+    expect(n.title).toBe('보유 토큰을 모두 사용해서 대화할 수 없어요.');
+    expect(n.retryable).toBe(false);
+    expect(n.removeUserTurn).toBe(true);
+  });
+
+  it('keeps the frozen attempt for a retryable failure (same idempotency key on retry)', () => {
+    const n = refineNotice({ ok: false, code: 'chat', error: 'x', chat: { ok: false, status: 'failed', failureKind: 'generation_in_progress' } }, 'service', 'gemini');
+    expect(n.title).toBe('이미 생성 중이에요. 현재 생성이 끝난 뒤 다시 시도해주세요.');
+    expect(n.retryable).toBe(true);
+    expect(n.removeUserTurn).toBe(false);
+  });
+
+  it('points a bad BYOK key or a replacement to the AI provider settings', () => {
+    const invalid = refineNotice({ ok: false, code: 'chat', error: 'x', chat: { ok: false, status: 'failed', failureKind: 'invalid_key' } }, 'byok', 'openai');
+    expect(invalid.title).toBe('OpenAI 키를 사용할 수 없어요');
+    expect(invalid.settingsHref).toBe('/studio/settings/ai-providers');
+    const replacement = refineNotice({ ok: false, code: 'chat', error: 'x', chat: {
+      ok: false, status: 'failed', failureKind: 'unavailable', kind: 'replacement_required',
+      replacement: { providerId: 'gemini', model: 'gemini-3.5-flash', keySource: 'service' }, original: { providerId: 'openai', model: 'gpt-4o-mini' },
+    } }, 'byok', 'openai');
+    expect(replacement.title).toBe('선택한 OpenAI 키를 사용할 수 없어요');
+    expect(replacement.body).not.toContain('대신 보낼 수 있어요');
+    expect(replacement.settingsHref).toBe('/studio/settings/ai-providers');
+    expect(replacement.retryable).toBe(false);
+  });
+
+  it('asks for a refresh on stale / not refinable and never offers a retry', () => {
+    for (const code of ['stale', 'not_refinable', 'not_found'] as const) {
+      const n = refineNotice({ ok: false, code, error: 'e' }, 'service', 'gemini');
+      expect(n.refresh).toBe(true);
+      expect(n.retryable).toBe(false);
+    }
+  });
+});
