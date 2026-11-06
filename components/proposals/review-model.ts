@@ -177,6 +177,25 @@ export function buildSelections(
     .map((h) => (isEdited(h, edits) ? { index: h.index, accepted: true as const, editedText: edits[h.index] } : { index: h.index, accepted: true as const }));
 }
 
+/**
+ * Accept action input. Never carries chunk text except the writer's own 직접 고침;
+ * seenHash is the opaque token from the server detail, folder ids/versions come from
+ * the server's candidate list (kb_create only).
+ */
+export function buildAcceptInput(
+  view: { workId: string; id: string; kind: ProposalKind; seenHash: string | null; hunks: ChunkLike[] },
+  selected: number[], edits: Record<number, string>, folder: { id: string; version: string } | null,
+) {
+  if (view.kind === 'kb_create') {
+    return { workId: view.workId, proposalId: view.id, selections: [], ...(folder ? { folderId: folder.id, folderVersion: folder.version } : {}) };
+  }
+  return {
+    workId: view.workId, proposalId: view.id,
+    ...(view.seenHash ? { seenHash: view.seenHash } : {}),
+    selections: buildSelections(view.hunks, selected, edits),
+  };
+}
+
 export function selectionStatus(selectedCount: number, total: number): string {
   return `${selectedCount}/${total}개 선택`;
 }

@@ -29,7 +29,16 @@ vi.mock('@/app/studio/[workId]/review/[proposalId]/actions', () => ({
   acceptProposalAction: actionMocks.accept, rejectProposalAction: actionMocks.reject, revertProposalAction: actionMocks.revert,
 }));
 const pageMocks = vi.hoisted(() => ({ list: vi.fn(), detail: vi.fn(), access: vi.fn(), user: { id: '11111111-1111-4111-8111-111111111111' } as { id: string } | null }));
-vi.mock('@/lib/proposals/queries', () => ({ listWorkProposals: pageMocks.list, getProposalDetail: pageMocks.detail }));
+vi.mock('@/lib/proposals/queries', () => ({
+  listWorkProposals: pageMocks.list, getProposalDetail: pageMocks.detail,
+  isUuid: (v: unknown) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v),
+}));
+const libMocks = vi.hoisted(() => ({ accept: vi.fn(), reject: vi.fn(), revert: vi.fn(), revalidate: vi.fn() }));
+vi.mock('@/lib/proposals/actions', () => ({
+  acceptProposal: libMocks.accept, rejectProposal: libMocks.reject, revertProposal: libMocks.revert,
+  PROPOSAL_ERROR_COPY: { forbidden: '이 작업을 할 수 있는 계정이 아니에요. 다시 로그인해주세요.', accept_failed: 'AF', reject_failed: 'RF', revert_failed: 'VF' },
+}));
+vi.mock('next/cache', () => ({ revalidatePath: libMocks.revalidate }));
 vi.mock('@/lib/auth/write-access', () => ({ checkWriteAccess: pageMocks.access }));
 vi.mock('@/lib/supabase/server', () => ({ createClient: async () => ({ auth: { getUser: async () => ({ data: { user: pageMocks.user } }) } }) }));
 
@@ -40,6 +49,10 @@ import {
 } from '@/components/proposals/review-model';
 import { ProposalQueue } from '@/components/proposals/proposal-queue';
 import ReviewQueuePage from '@/app/studio/[workId]/review/page';
+import { ProposalDetailView } from '@/components/proposals/proposal-detail';
+import ProposalReviewPage from '@/app/studio/[workId]/review/[proposalId]/page';
+import { buildAcceptInput } from '@/components/proposals/review-model';
+import type { ProposalDetail } from '@/lib/proposals/queries';
 
 const WORK = '33333333-3333-4333-8333-333333333333';
 const P1 = 'aaaaaaaa-aaaa-4aaa-8aaa-000000000001';
@@ -255,5 +268,270 @@ describe('chunk selection helpers', () => {
   it('labels folders with the category root', () => {
     expect(folderOptionLabel({ isRoot: true, name: '인물', path: '' }, '인물')).toBe('인물');
     expect(folderOptionLabel({ isRoot: false, name: '조연', path: '조연' }, '인물')).toBe('인물 / 조연');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task 2: detail view, detail page, thin server actions
+// ---------------------------------------------------------------------------
+const CHAPTER = '55555555-5555-4555-8555-555555555555';
+const NODE = '66666666-6666-4666-8666-666666666666';
+const ROOT = '88888888-8888-4888-8888-888888888881';
+const SUB = '88888888-8888-4888-8888-888888888882';
+const HASH = 'a'.repeat(64);
+
+function detail(over: Partial<ProposalDetail> = {}): ProposalDetail {
+  return {
+    ...summary(),
+    workId: WORK, workTitle: '무월의 문',
+    target: { chapterId: CHAPTER, nodeId: null, title: '4화', state: 'ok' },
+    draft: '첫 문단 고침\n\n둘째 문단\n\n넷째 문단\n\n다섯째 문단\n',
+    currentContent: '첫 문단\n\n둘째 문단\n\n셋째 문단\n\n넷째 문단\n',
+    hunks: [
+      { index: 0, kind: '바뀜', before: '첫 문단\n\n', after: '첫 문단 고침\n\n', applicable: true, anchor: { start: 0, end: 1 }, currentText: '첫 문단\n\n' },
+      { index: 1, kind: '삭제', before: '셋째 문단\n\n', after: '', applicable: true, anchor: { start: 2, end: 3 }, currentText: '셋째 문단\n\n' },
+      { index: 2, kind: '추가', before: '', after: '다섯째 문단\n', applicable: true, anchor: { start: 4, end: 4 }, currentText: '' },
+    ],
+    isStale: false, seenHash: HASH, undoUntil: null, canRevert: false, decision: null, folders: null,
+    savedFolderId: null, createdNodeId: null,
+    ...over,
+  };
+}
+
+const createDetail = (over: Partial<ProposalDetail> = {}) => detail({
+  kind: 'kb_create', targetTitle: '서하', proposedCategory: '인물', changeCount: null,
+  target: { chapterId: null, nodeId: null, title: '서하', state: 'ok' },
+  draft: '나이: 25세\n성격: 침착함\n', currentContent: null, hunks: [], seenHash: null,
+  folders: { status: 'ok', root: { id: ROOT, name: '인물', isRoot: true, path: '', version: `${ROOT}:인물` }, candidates: [
+    { id: ROOT, name: '인물', isRoot: true, path: '', version: `${ROOT}:인물` },
+    { id: SUB, name: '조연', isRoot: false, path: '조연', version: `${ROOT}:인물/${SUB}:조연` },
+  ] },
+  ...over,
+});
+
+const detailHtml = (d: ProposalDetail) => renderToStaticMarkup(React.createElement(ProposalDetailView, { detail: d, arrivalLabel: '3시간 전' }));
+const disabledButton = (label: string) => new RegExp(`<button[^>]*disabled=""[^>]*>${label}`);
+const enabledButton = (label: string) => new RegExp(`<button(?![^>]*disabled)[^>]*>${label}`);
+
+describe('ProposalDetailView: chapter and kb_edit chunks', () => {
+  it('renders the pending chapter draft with per-chunk checkbox, labels, edit and bulk controls', () => {
+    const html = detailHtml(detail());
+    expect(html).toContain('4화 초안 검토');
+    expect(html).toContain('리뷰 큐로 돌아가기');
+    expect(html).toContain('Claude');
+    expect(html).toContain('3시간 전');
+    expect(html).toContain('<ol');
+    expect(html).toContain('aria-label="1번째 변경, 바뀜"');
+    expect(html).toContain('aria-label="2번째 변경, 삭제"');
+    expect(html).toContain('aria-label="3번째 변경, 추가"');
+    expect(html).toContain('1번째 변경 반영');
+    expect(html).toContain('type="checkbox"');
+    expect(html).toContain('지금 본문');
+    expect(html).toContain('AI 초안');
+    expect(html).toContain('md:grid-cols-2');
+    expect(html).toContain('min-h-11');
+    expect(html.match(/직접 고치기/g)?.length).toBe(2); // 바뀜 + 추가 only
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('전체 선택');
+    expect(html).toContain('전체 해제');
+    expect(html).toMatch(/role="status"[^>]*>0\/3개 선택/);
+    expect(html).toMatch(disabledButton('선택한 0개 반영하기'));
+    expect(html).toContain('반영할 부분을 하나 이상 골라 주세요.');
+    expect(html).toContain('체크하지 않은 변경은 반영되지 않아요.');
+    expect(html).toMatch(enabledButton('이 제안 거절하기'));
+    expect(html).toContain('sticky bottom-0');
+    expect(html).toContain('safe-area-inset-bottom');
+    expect(html).not.toContain('원본이 바뀌었어요');
+  });
+
+  it('shows the stale warning and disables non-applicable chunks', () => {
+    const d = detail({ isStale: true, hunks: [
+      ...detail().hunks.slice(0, 2),
+      { index: 2, kind: '추가', before: '', after: '다섯째 문단\n', applicable: false, anchor: null, currentText: '' },
+    ] });
+    const html = detailHtml(d);
+    expect(html).toMatch(/role="alert"[\s\S]*원본이 바뀌었어요/);
+    expect(html).toContain('본문이 바뀌어서 선택을 처음부터 다시 해야 해요.');
+    expect(html).toContain('적용할 수 없음');
+    expect(html).toContain('이 부분이 들어갈 자리가 지금 본문에 없어서 반영할 수 없어요.');
+    expect(html).toContain('aria-disabled="true"');
+    expect(html).toMatch(/0\/2개 선택/);
+    expect(html.match(/직접 고치기/g)?.length).toBe(1);
+  });
+
+  it('says nothing can be applied when every chunk is non-applicable', () => {
+    const d = detail({ isStale: true, hunks: detail().hunks.map((h) => ({ ...h, applicable: false, anchor: null })) });
+    const html = detailHtml(d);
+    expect(html).toContain('반영할 수 있는 부분이 없어요.');
+    expect(html).toMatch(disabledButton('선택한 0개 반영하기'));
+    expect(html).toMatch(enabledButton('이 제안 거절하기'));
+  });
+
+  it('uses 지금 내용 / 수정안 for kb_edit and blocks a locked document except reject', () => {
+    const html = detailHtml(detail({ kind: 'kb_edit', targetTitle: '아린', target: { chapterId: null, nodeId: NODE, title: '아린', state: 'locked' }, seenHash: null }));
+    expect(html).toContain('아린 수정안 검토');
+    expect(html).toContain('지금 내용');
+    expect(html).toContain('수정안');
+    expect(html).toContain('잠긴 문서라 반영할 수 없어요');
+    expect(html).not.toContain('직접 고치기');
+    expect(html).toMatch(disabledButton('선택한 0개 반영하기'));
+    expect(html).toMatch(enabledButton('이 제안 거절하기'));
+  });
+
+  it('shows only the proposal text for a deleted document', () => {
+    const html = detailHtml(detail({ kind: 'kb_edit', targetTitle: '아린', target: { chapterId: null, nodeId: NODE, title: null, state: 'missing' }, hunks: [], seenHash: null, currentContent: null }));
+    expect(html).toContain('삭제된 문서라 반영할 수 없어요');
+    expect(html).toContain('제안을 거절해서 정리해 주세요.');
+    expect(html).not.toContain('type="checkbox"');
+    expect(html).toMatch(enabledButton('이 제안 거절하기'));
+  });
+
+  it('renders an accepted proposal read-only with result labels and one-time revert', () => {
+    const html = detailHtml(detail({
+      status: 'accepted', seenHash: null, canRevert: true, undoUntil: '2026-11-13T00:00:00Z',
+      decision: { acceptedIndexes: [0, 2], editedIndexes: [0] },
+    }));
+    expect(html).toContain('일부 반영됨');
+    expect(html).not.toContain('type="checkbox"');
+    expect(html).toContain('반영함');
+    expect(html).toContain('반영 안 함');
+    expect(html).toContain('직접 고침');
+    expect(html).toMatch(enabledButton('반영 되돌리기'));
+    expect(html).toContain('2026. 11. 13.까지 되돌릴 수 있어요.');
+    expect(html).toContain(`href="/studio/${WORK}/chapters/${CHAPTER}"`);
+    expect(html).toContain('회차 열기');
+    expect(html).not.toContain('선택한 0개 반영하기');
+  });
+
+  it('shows the expired undo window instead of the revert button', () => {
+    const html = detailHtml(detail({ status: 'accepted', seenHash: null, canRevert: false, undoUntil: '2026-10-01T00:00:00Z', decision: { acceptedIndexes: [0, 1, 2], editedIndexes: [] } }));
+    expect(html).toContain('반영됨');
+    expect(html).toContain('되돌릴 수 있는 기간이 지났어요.');
+    expect(html).not.toMatch(enabledButton('반영 되돌리기'));
+  });
+
+  it('renders rejected, superseded and expired proposals read-only without actions', () => {
+    for (const status of ['rejected', 'superseded', 'expired'] as const) {
+      const html = detailHtml(detail({ status, seenHash: null }));
+      expect(html).not.toContain('type="checkbox"');
+      expect(html).not.toMatch(enabledButton('이 제안 거절하기'));
+      expect(html).not.toMatch(enabledButton('반영 되돌리기'));
+    }
+  });
+
+  it('renders the three confirmation dialogs with the contract copy and a safe initial focus', () => {
+    const html = detailHtml(detail());
+    expect(html).toContain('본문에 반영할까요?');
+    expect(html).toContain('반영하기');
+    expect(html).toContain('이 제안을 거절할까요?');
+    expect(html).toContain('제안 유지하기');
+    expect(html).toContain('aria-label="4화 초안 거절 확인"');
+    expect(html).not.toContain('반영을 되돌릴까요?');
+    expect(html).not.toContain('data-initial-focus="false"');
+    const accepted = detailHtml(detail({ status: 'accepted', seenHash: null, canRevert: true, undoUntil: '2026-11-13T00:00:00Z', decision: { acceptedIndexes: [0], editedIndexes: [] } }));
+    expect(accepted).toContain('반영을 되돌릴까요?');
+    expect(accepted).toContain('4화의 본문이 이 제안을 반영하기 전 모습으로 돌아가요.');
+    expect(accepted).toContain('>닫기<');
+    expect(accepted).not.toContain('이 제안을 거절할까요?');
+    expect(accepted).not.toContain('data-initial-focus="false"');
+  });
+});
+
+describe('ProposalDetailView: kb_create', () => {
+  it('requires an explicit folder: radio list with no default selection', () => {
+    const html = detailHtml(createDetail());
+    expect(html).toContain('서하 새 설정집 문서 검토');
+    expect(html).toContain('카테고리');
+    expect(html).toContain('AI가 정한 카테고리예요.');
+    expect(html).toContain('AI가 제안한 내용');
+    expect(html).toContain('저장할 폴더');
+    expect(html).toContain('인물 / 조연');
+    expect(html).toContain('최상위');
+    expect(html).not.toMatch(/type="radio"[^>]*checked/);
+    expect(html).toMatch(disabledButton('설정집에 저장하기'));
+    expect(html).toContain('저장할 폴더를 골라 주세요.');
+    expect(html).not.toContain('type="checkbox"');
+  });
+
+  it('explains when the category has no folder', () => {
+    const html = detailHtml(createDetail({ folders: { status: 'root_missing' } }));
+    expect(html).toContain('이 카테고리에 저장할 수 있는 폴더가 없어요.');
+    expect(html).toContain('설정집 열기');
+    expect(html).toMatch(disabledButton('설정집에 저장하기'));
+  });
+
+  it('builds accept input without chunk text: indexes, seenHash, folder id/version only', () => {
+    expect(buildAcceptInput(detail(), [0, 2], { 0: '작가 문장\n\n' }, null)).toEqual({
+      workId: WORK, proposalId: P1, seenHash: HASH,
+      selections: [{ index: 0, accepted: true, editedText: '작가 문장\n\n' }, { index: 2, accepted: true }],
+    });
+    expect(buildAcceptInput(createDetail(), [], {}, { id: SUB, version: `${ROOT}:인물/${SUB}:조연` })).toEqual({
+      workId: WORK, proposalId: P1, selections: [], folderId: SUB, folderVersion: `${ROOT}:인물/${SUB}:조연`,
+    });
+  });
+});
+
+describe('proposal detail page', () => {
+  beforeEach(() => { pageMocks.detail.mockReset(); pageMocks.user = { id: '11111111-1111-4111-8111-111111111111' }; });
+
+  it('awaits params and renders the server detail', async () => {
+    pageMocks.detail.mockResolvedValue({ ok: true, detail: detail() });
+    const html = renderToStaticMarkup(await ProposalReviewPage({ params: Promise.resolve({ workId: WORK, proposalId: P1 }) }));
+    expect(pageMocks.detail).toHaveBeenCalledWith(expect.anything(), '11111111-1111-4111-8111-111111111111', WORK, P1);
+    expect(html).toContain('4화 초안 검토');
+  });
+
+  it('404s for a foreign or missing proposal and alerts on load failure', async () => {
+    pageMocks.detail.mockResolvedValue({ ok: false, reason: 'not_found' });
+    await expect(ProposalReviewPage({ params: Promise.resolve({ workId: WORK, proposalId: P1 }) })).rejects.toThrow('NEXT_NOT_FOUND');
+    pageMocks.detail.mockResolvedValue({ ok: false, reason: 'error' });
+    const html = renderToStaticMarkup(await ProposalReviewPage({ params: Promise.resolve({ workId: WORK, proposalId: P1 }) }));
+    expect(html).toContain('role="alert"');
+  });
+});
+
+describe('review server actions (thin wrappers)', () => {
+  type ActionsModule = typeof import('@/app/studio/[workId]/review/[proposalId]/actions');
+  let actions: ActionsModule;
+  beforeEach(async () => {
+    actions = await vi.importActual<ActionsModule>('@/app/studio/[workId]/review/[proposalId]/actions');
+    libMocks.accept.mockReset(); libMocks.reject.mockReset(); libMocks.revert.mockReset(); libMocks.revalidate.mockReset();
+    pageMocks.user = { id: '11111111-1111-4111-8111-111111111111' };
+  });
+
+  it('refuses without a session and never calls the decision logic', async () => {
+    pageMocks.user = null;
+    expect(await actions.acceptProposalAction({ workId: WORK, proposalId: P1, selections: [] })).toMatchObject({ ok: false, code: 'forbidden' });
+    expect(await actions.rejectProposalAction({ workId: WORK, proposalId: P1 })).toMatchObject({ ok: false, code: 'forbidden' });
+    expect(await actions.revertProposalAction({ workId: WORK, proposalId: P1 })).toMatchObject({ ok: false, code: 'forbidden' });
+    expect(libMocks.accept).not.toHaveBeenCalled();
+    expect(libMocks.reject).not.toHaveBeenCalled();
+    expect(libMocks.revert).not.toHaveBeenCalled();
+  });
+
+  it('passes the session user id and the input through, revalidating the work on success', async () => {
+    const input = { workId: WORK, proposalId: P1, seenHash: HASH, selections: [{ index: 0, accepted: true }] };
+    libMocks.accept.mockResolvedValue({ ok: true, status: 'accepted', proposalId: P1, undoUntil: null, createdNodeId: null, appliedCount: 1 });
+    await expect(actions.acceptProposalAction(input)).resolves.toMatchObject({ ok: true, appliedCount: 1 });
+    expect(libMocks.accept).toHaveBeenCalledWith(expect.anything(), '11111111-1111-4111-8111-111111111111', input);
+    expect(libMocks.revalidate).toHaveBeenCalledWith(`/studio/${WORK}`, 'layout');
+  });
+
+  it('does not revalidate on stale results and maps thrown errors to fixed copy', async () => {
+    libMocks.accept.mockResolvedValue({ ok: false, status: 'stale', error: 'stale', detail: detail() });
+    await actions.acceptProposalAction({ workId: WORK, proposalId: P1, selections: [] });
+    expect(libMocks.revalidate).not.toHaveBeenCalled();
+    libMocks.reject.mockRejectedValue(new Error('relation "mcp_proposals" does not exist'));
+    expect(await actions.rejectProposalAction({ workId: WORK, proposalId: P1 })).toEqual({ ok: false, status: 'error', code: 'failed', error: 'RF' });
+  });
+
+  it('round-trips the revert confirm hash unchanged', async () => {
+    libMocks.revert.mockResolvedValueOnce({ ok: false, status: 'confirm_required', proposalId: P1, confirmHash: HASH });
+    expect(await actions.revertProposalAction({ workId: WORK, proposalId: P1 })).toMatchObject({ status: 'confirm_required', confirmHash: HASH });
+    expect(libMocks.revalidate).not.toHaveBeenCalled();
+    libMocks.revert.mockResolvedValueOnce({ ok: true, status: 'reverted', proposalId: P1, changedSinceAccept: true });
+    await actions.revertProposalAction({ workId: WORK, proposalId: P1, confirm: true, seenHash: HASH });
+    expect(libMocks.revert).toHaveBeenLastCalledWith(expect.anything(), expect.any(String), { workId: WORK, proposalId: P1, confirm: true, seenHash: HASH });
+    expect(libMocks.revalidate).toHaveBeenCalledWith(`/studio/${WORK}`, 'layout');
   });
 });
