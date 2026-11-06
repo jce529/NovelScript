@@ -119,5 +119,7 @@ export function refineNotice(result: RefineChunkResult | null, keySource: KeySou
     };
   }
   const refresh = result.code === 'stale' || result.code === 'not_refinable' || result.code === 'not_found';
-  return { title: result.error, body: null, meta: null, reasonLine: null, retryable: result.code === 'failed', removeUserTurn: result.code !== 'failed', refresh };
+  return { title: result.error, body: null, meta: null, reasonLine: null, retryable: result.code === 'failed',
+    // empty_answer: the send was settled, so it keeps its turn and counts toward the per-chunk cap.
+    removeUserTurn: result.code !== 'failed' && result.code !== 'empty_answer', refresh };
 }

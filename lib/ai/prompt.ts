@@ -103,6 +103,12 @@ export function neutralizeProtocolTags(text: string): string {
   return text.replace(PROTOCOL_TAG, '［$1］');
 }
 
+/** Removes every response-protocol tag (same open/close, case and spacing variants as
+ * neutralizeProtocolTags), e.g. tags nested inside a parsed [DRAFT] block. */
+export function stripProtocolTags(text: string): string {
+  return text.replace(PROTOCOL_TAG, '');
+}
+
 /** Per-request random boundary id (128 bits, hex). */
 export function createUntrustedBoundary(): string {
   const bytes = new Uint8Array(16);

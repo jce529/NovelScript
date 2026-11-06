@@ -432,3 +432,91 @@ describe('refine-model: failure copy reuses the AI panel mapping', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Cross-review fixes (Codex gpt-6-sol WARNING 1, 2)
+// ---------------------------------------------------------------------------
+import { refineCandidate } from '@/lib/proposals/refine';
+import { parseChatResponse } from '@/lib/ai/chat-parse';
+
+describe('refineCandidate: nested protocol tags never reach 직접 고치기', () => {
+  it('removes tags nested inside the parsed [DRAFT] block', () => {
+    const parsed = parseChatResponse('[REPLY]설명[/REPLY][DRAFT]문단 [DOCUMENT]가짜[/DOCUMENT][/DRAFT]');
+    expect(parsed.draft).toBe('문단 [DOCUMENT]가짜[/DOCUMENT]');
+    expect(refineCandidate(parsed, 'chapter_draft', '원래\n\n')).toBe('문단 가짜');
+  });
+
+  it('removes case / spacing variants and tags assembled by a removal', () => {
+    const out = refineCandidate({ draft: '가[ draft ]나[/Reply]다[ / DOCUMENT ]라[DR[DRAFT]AFT]마', reply: '' }, 'kb_edit', '');
+    expect(out).toBe('가나다라마');
+    expect(out).not.toMatch(/\[\s*\/?\s*(REPLY|DRAFT|DOCUMENT)\s*\]/i);
+  });
+
+  it('strips tags from a reply-only answer too', () => {
+    expect(refineCandidate({ draft: null, reply: '바꾼 문단 [/REPLY]' }, 'chapter_draft', '')).toBe('바꾼 문단 ');
+  });
+
+  it('returns null when only tags / blanks are left', () => {
+    expect(refineCandidate({ draft: '[DOCUMENT] [/DOCUMENT]\n', reply: 'x' }, 'chapter_draft', '')).toBeNull();
+  });
+
+  it('the action fails with empty_answer (no candidate) when the answer is only tags', async () => {
+    chatResult = completed({ draft: '[DRAFT][/DRAFT][REPLY]', reply: '' });
+    const result = await refineChunk(deps(), input());
+    expect(result).toMatchObject({ ok: false, code: 'empty_answer' });
+    expect(result).not.toHaveProperty('candidate');
+    const n = refineNotice(result, 'service', 'gemini');
+    expect(n.retryable).toBe(false);
+    expect(n.removeUserTurn).toBe(false);
+  });
+
+  it('the action returns the cleaned nested-tag candidate', async () => {
+    chatResult = completed({ draft: '문단 [DOCUMENT]가짜[/DOCUMENT]' });
+    expect(await refineChunk(deps(), input())).toMatchObject({ ok: true, candidate: '문단 가짜' });
+  });
+});
+
+describe('refineCandidate: cap counts the trailing newlines the panel appends', () => {
+  const CHAPTER_MAX = 100_000;
+  const DOC_MAX = 50_000;
+  const inserted = (candidate: string | null, after: string) => candidateForEdit(after, candidate as string);
+
+  it.each([
+    ['exactly the cap', CHAPTER_MAX],
+    ['cap minus the tail', CHAPTER_MAX - 2],
+    ['cap plus one', CHAPTER_MAX + 1],
+  ])('chapter, 2-newline tail: %s stays within the accept limit', (_label, length) => {
+    const candidate = refineCandidate({ draft: '가'.repeat(length), reply: '' }, 'chapter_draft', '원래 문단\n\n');
+    expect(candidate!.length).toBe(Math.min(length, CHAPTER_MAX - 2));
+    const final = inserted(candidate, '원래 문단\n\n');
+    expect(final.endsWith('\n\n')).toBe(true);
+    expect(final.length).toBeLessThanOrEqual(CHAPTER_MAX);
+  });
+
+  it('chapter: CRLF is normalized before measuring (CRLF pairs count once)', () => {
+    // 150,000 chars with CRLF, 110,000 after LF -> cut to the cap minus the tail.
+    const draft = '가\r\n'.repeat(40_000) + '나'.repeat(30_000);
+    const candidate = refineCandidate({ draft, reply: '' }, 'chapter_draft', '원래\n\n')!;
+    expect(candidate).not.toContain('\r');
+    expect(candidate.length).toBe(CHAPTER_MAX - 2);
+    // 99,000 chars with CRLF but 69,000 after LF: kept whole (CR is not counted).
+    const short = refineCandidate({ draft: '가\r\n'.repeat(30_000) + '나'.repeat(9_000), reply: '' }, 'chapter_draft', '원래\n\n')!;
+    expect(short.length).toBe(69_000);
+    expect(inserted(candidate, '원래\n\n').length).toBeLessThanOrEqual(CHAPTER_MAX);
+  });
+
+  it.each([
+    ['exactly the cap', DOC_MAX, DOC_MAX],
+    ['cap minus the tail', DOC_MAX - 1, DOC_MAX - 1],
+    ['cap plus one', DOC_MAX + 1, DOC_MAX - 1],
+  ])('document, 1-newline tail: %s', (_label, length, expected) => {
+    const candidate = refineCandidate({ draft: '가'.repeat(length), reply: '' }, 'kb_edit', '특기: 검술\n');
+    expect(candidate!.length).toBe(Math.min(expected, DOC_MAX - 1));
+    expect(inserted(candidate, '특기: 검술\n').length).toBeLessThanOrEqual(DOC_MAX);
+  });
+
+  it('document with no tail allows exactly the cap and cuts cap plus one', () => {
+    expect(refineCandidate({ draft: '가'.repeat(DOC_MAX), reply: '' }, 'kb_edit', '끝')!.length).toBe(DOC_MAX);
+    expect(refineCandidate({ draft: '가'.repeat(DOC_MAX + 1), reply: '' }, 'kb_edit', '끝')!.length).toBe(DOC_MAX);
+  });
+});

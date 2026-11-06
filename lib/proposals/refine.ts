@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ChatInput } from '@/lib/ai/chat';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
-import { DEFAULT_STYLE_PRESET, createUntrustedBoundary, neutralizeProtocolTags, quoteUntrusted, type ChatTurn } from '@/lib/ai/prompt';
+import { DEFAULT_STYLE_PRESET, createUntrustedBoundary, neutralizeProtocolTags, quoteUntrusted, stripProtocolTags, type ChatTurn } from '@/lib/ai/prompt';
 import { isKnownModel } from '@/lib/ai/providers/catalog';
 import type { GenerationRoute } from '@/lib/ai/providers/byok';
 import type { Selection } from '@/lib/ai/providers/selection';
@@ -93,10 +93,26 @@ export function buildRefineContext(
   return parts.join('\n\n');
 }
 
-/** `draft ?? reply`, normalized like the accept action's 직접 고침 text (LF, no NUL) and capped. */
-export function refineCandidate(result: Pick<ChatResult, 'draft' | 'reply'>, kind: 'chapter_draft' | 'kb_edit'): string {
-  const raw = result.draft ?? result.reply ?? '';
-  return raw.replace(/\r\n?/g, '\n').replace(/\u0000/g, '').slice(0, REFINE_CANDIDATE_MAX[kind]);
+/**
+ * `draft ?? reply` as a 직접 고치기 candidate, or null when nothing usable is left.
+ * - Every protocol tag nested inside the block is removed (repeated until stable, so removal
+ *   cannot assemble a new tag such as `[DR[DRAFT]AFT]`).
+ * - Normalized like the accept action's 직접 고침 text (LF, no NUL); trailing newlines dropped.
+ * - Capped so the text the panel inserts — candidate + the chunk's trailing newline run
+ *   (candidateForEdit) — never exceeds the accept limit (100,000 chapter / 50,000 document).
+ */
+export function refineCandidate(
+  result: Pick<ChatResult, 'draft' | 'reply'>, kind: 'chapter_draft' | 'kb_edit', hunkAfter: string,
+): string | null {
+  let text = (result.draft ?? result.reply ?? '').replace(/\r\n?/g, '\n').replace(/\u0000/g, '');
+  for (let prev = ''; prev !== text;) {
+    prev = text;
+    text = stripProtocolTags(text);
+  }
+  const tail = hunkAfter.match(/\n*$/)?.[0] ?? '';
+  const max = Math.max(0, REFINE_CANDIDATE_MAX[kind] - tail.length);
+  const candidate = text.replace(/\n+$/, '').slice(0, max).replace(/\n+$/, '');
+  return candidate.trim() === '' ? null : candidate;
 }
 
 /** Failure outcome without any generated text. */
@@ -190,10 +206,13 @@ export async function refineChunk(deps: RefineDeps, raw: unknown): Promise<Refin
   });
 
   if (!result.ok || result.status !== 'completed') return chatFail(sanitizeFailure(result));
+  const candidate = refineCandidate(result, kind, hunk.after);
+  // Only protocol tags / blank: nothing to offer (the gateway already settled this send).
+  if (candidate === null) return fail('empty_answer');
   return {
     ok: true,
     reply: result.reply ?? '',
-    candidate: refineCandidate(result, kind),
+    candidate,
     wasCapped: result.wasCapped ?? false,
     ...(result.cappedReason ? { cappedReason: result.cappedReason } : {}),
     ...(result.remainingBalance !== undefined ? { remainingBalance: result.remainingBalance } : {}),

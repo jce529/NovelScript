@@ -17,7 +17,8 @@ export const REFINE_LIMITS = {
   sendsPerChunk: 6,
 } as const;
 
-/** Same caps as the 직접 고침 text the accept action re-validates (0042). */
+/** Same caps as the 직접 고침 text the accept action re-validates (0042). The candidate is cut to
+ * this minus the chunk's trailing newline run, which the panel appends (candidateForEdit). */
 export const REFINE_CANDIDATE_MAX = { chapter_draft: 100_000, kb_edit: 50_000 } as const;
 
 export interface RefineChunkInput {
@@ -35,7 +36,7 @@ export interface RefineChunkInput {
   idempotencyKey: string;
 }
 
-export type RefineFailureCode = 'unauthenticated' | 'invalid_input' | 'not_found' | 'not_refinable' | 'stale' | 'failed' | 'chat';
+export type RefineFailureCode = 'unauthenticated' | 'invalid_input' | 'not_found' | 'not_refinable' | 'stale' | 'failed' | 'empty_answer' | 'chat';
 
 export type RefineChunkResult =
   | {
@@ -63,4 +64,5 @@ export const REFINE_ERROR_COPY: Record<Exclude<RefineFailureCode, 'chat'>, strin
   not_refinable: '이 변경은 지금 AI와 다듬을 수 없어요. 제안이 이미 처리됐거나 반영할 수 없는 상태예요. 새로고침해 주세요.',
   stale: '원본이 바뀌었어요. 새로고침해서 바뀐 내용을 확인한 뒤 다시 요청해 주세요.',
   failed: '응답을 받지 못했어요. 잠시 후 다시 시도해주세요.',
+  empty_answer: 'AI 답에 직접 고치기에 넣을 내용이 없어요. 요청을 바꿔 다시 보내 주세요.',
 };
