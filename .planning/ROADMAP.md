@@ -13,6 +13,7 @@ v1.1은 새 제품이 아니라 기존 `lib/ai/` 모듈의 증축 마일스톤�
 ## Phases
 
 **Phase Numbering:**
+
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
@@ -50,16 +51,20 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Foundation & Wallet Infrastructure
+
 **Goal**: Users can create and access an account, and the token wallet's ledger logic is proven correct under concurrent load using fake/stubbed credits — before any AI spend or real payment code exists.
 **Depends on**: Nothing (first phase)
 **Requirements**: AUTH-01, AUTH-02, AUTH-03
 **Success Criteria** (what must be TRUE):
+
   1. User can sign up/log in via Kakao or Google social login
   2. A single account serves both reader and writer roles — a "글쓰기 시작하기" entry point upgrades the same account, with no separate signup flow
   3. User's session persists across visits and browser refresh
+
 **Plans**: 5 plans (Wave 0: env/service setup; Wave 1: wallet+profile schema, auth session infra; Wave 2: OAuth login flow, writer upgrade + account settings)
 
 Plans:
+
 - [x] 01-01-PLAN.md — Create Supabase project, register Google/Kakao OAuth apps, install deps + Vitest
 - [x] 01-02-PLAN.md — Wallet/profile schema + apply_wallet_delta function, concurrency-proof test
 - [x] 01-03-PLAN.md — Supabase client wrappers + proxy.ts session refresh
@@ -76,14 +81,17 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: KB-01, KB-02, CONT-01, CONT-02, CONT-03
 **Success Criteria** (what must be TRUE):
+
   1. Writer can create, edit, and delete KB documents across all 5 templates (인물/장소/사건/세력/아이템)
   2. Writer can view their KB documents in an IDE-style folder/file tree, organized by template type, scoped per work
   3. Writer can create and save a chapter draft with a title and order
   4. Writer can publish a chapter, marking it free or paid with a price
   5. Writer can edit or unpublish a chapter after publishing
+
 **Plans**: 6 plans (Wave 0: dependencies + schema + template-substitution library; Wave 1: work CRUD, KB tree/node business logic, chapter business logic — all parallel; Wave 2: KB tree UI, chapter UI — parallel)
 
 Plans:
+
 - [x] 02-01-PLAN.md — @dnd-kit + shadcn components + indigo accent; works/kb_nodes/chapters schema migration; template-substitution library
 - [x] 02-02-PLAN.md — Work CRUD business logic + 작품 목록/새 작품 만들기 UI + /studio writer-role gate
 - [x] 02-03-PLAN.md — KB tree query + node CRUD business logic (template resolution, locked-folder + ownership guards)
@@ -97,6 +105,7 @@ Plans:
 - [x] 02-11-PLAN.md — (보완) 공유 패널 접기와 저장 상태 컴포넌트
 - [x] 02-12-PLAN.md — (보완) 설정 문서·회차 편집기에 읽기 전용·패널·저장 칩 연결
 - [x] 02-13-PLAN.md — (보완) 결정 문구 정합과 실DB·브라우저 최종 게이트(완료 2026-10-19: 1회용 DB 14 files/66 tests, 브라우저 승인)
+
 **UI hint**: yes
 
 ### Phase 3: Reader Core (Reading Loop, No Payment)
@@ -107,6 +116,7 @@ Plans:
 **Depends on**: Phase 2
 **Requirements**: READ-01, READ-02, READ-03, READ-04, READ-05, READ-07, READ-08, READ-09
 **Success Criteria** (what must be TRUE):
+
   1. Reader can browse a discovery feed showing cover, title, synopsis, and a simplified ranking signal (views/likes/next-chapter click-through)
   2. Reader can read chapters in a viewer with prev/next chapter navigation and a table of contents
   3. Reader can adjust font size and toggle a dark/alternate theme in the viewer
@@ -115,10 +125,12 @@ Plans:
   6. Reader can toggle a per-work new-chapter notification subscription (알림) from the work detail page — state persists, delivery channel out of scope
   7. Reader can save/unsave a work to a personal 선호작 (bookmark) list from the work detail page, distinct from 좋아요
   8. Home/discovery screen shows a static promotional banner slot above "최근 읽은 작품"
+
 **Plans**: 7 plans (Wave 1: reader schema migration + RLS fix; Wave 2: discovery/public-read lib, view+progress lib, likes/subscriptions/bookmarks/reports lib — parallel; Wave 3: discovery feed UI, work detail UI — parallel; Wave 4: chapter viewer UI)
 **UI hint**: yes
 
 Plans:
+
 - [x] 03-01-PLAN.md — Reader schema migration: RLS public-read fix, view_count + increment RPC, work_likes/reading_progress/reports/work_subscriptions/work_bookmarks
 - [x] 03-02-PLAN.md — Discovery feed lib (trending score) + content-leak-safe public work/chapter readers
 - [x] 03-03-PLAN.md — View-count increment wrapper + reading-progress upsert/read/recently-read lib
@@ -148,15 +160,18 @@ Plans:
 **Depends on**: Phase 1, Phase 2
 **Requirements**: EDIT-01, EDIT-02, EDIT-03, EDIT-04, EDIT-05
 **Success Criteria** (what must be TRUE):
+
   1. Writer can insert @-mention references to KB documents via an autocomplete UI component that searches by name/type
   2. Writer can see a visible list of currently-mentioned/in-context documents before generating
   3. Writer can select one of 3 tone presets (초보자/중급자/자유형), with 자유형 offering a custom-instruction textarea
   4. Writer can trigger AI generation that sends mentioned KB docs + preset + instruction to Gemini and inserts the result into the canvas, with per-request and per-user spend caps enforced against the wallet before the call fires
   5. Writer sees a token/cost estimate before generating
+
 **Plans**: 6 plans (Wave 1: wallet-token↔Gemini-token conversion + mockable Gemini client, mention search/quick-add backend, prompt composition — all parallel; Wave 2: generate/estimateCost Server Actions + wallet debit; Wave 3: AiPanel UI shell + permission-prompt preview; Wave 4: mention autocomplete + final page wiring + checkpoint)
 **UI hint**: yes
 
 Plans:
+
 - [x] 04-01-PLAN.md — Wallet-token↔Gemini-token conversion formula (Open Questions 1/2) + mockable Gemini client
 - [x] 04-02-PLAN.md — Mention search by name/type + quick-add KB document creation
 - [x] 04-03-PLAN.md — Prompt composition (D-14 baseline + D-08rev presets + D-15 style + D-07 genre)
@@ -178,6 +193,7 @@ Plans:
 **Plans:** 5/5 plans complete
 
 Plans:
+
 - [x] 04.1-01-PLAN.md — Schema migration: category CHECK widened (회차/custom), lock-regression fix, 회차 seed + backfill, chapters.folder_id, chapter-folder guard trigger
 - [x] 04.1-02-PLAN.md — KB tree data-layer split (getWorkKbNodes/getAccountSharedNodes) + createFolder (server-derived category)
 - [x] 04.1-03-PLAN.md — Chapter/회차-folder grouping data layer (assertChapterFolder, folder_id-aware createChapter/listChapters, groupChaptersByFolder)
@@ -185,15 +201,19 @@ Plans:
 - [x] 04.1-05-PLAN.md — KB tree UI wiring: two-section sidebar, folder creation dialogs, 회차 chapter leaves, checkpoint
 
 ### Phase 5: Real Payment Integration
+
 **Goal**: Users can convert real money into platform tokens through a verified, non-spoofable Toss Payments flow, swapped in behind the same wallet interface Phase 1 proved.
 **Depends on**: Phase 1
 **Requirements**: PAY-01, PAY-03
 **Success Criteria** (what must be TRUE):
+
   1. User can purchase tokens through the Toss Payments widget and see the charge reflected as an updated wallet balance
   2. Wallet balance is only credited by a verified Toss webhook event, never by a client-side redirect/return callback
+
 **Plans**: 7 plans (05-01·05-02 실행 완료, 05-03~07 미실행)
 
 Plans:
+
 - [x] 05-01-PLAN.md — 충전 티어·주문 ID 헬퍼·`payment_orders` 마이그레이션(0016_payments)·Toss SDK 의존성
 - [x] 05-02-PLAN.md — 소유자 검증 주문 생성·크레딧 폴링 액션·Toss confirm/조회 서버 클라이언트 (DB 테스트 2026-10-01 통과)
 - [x] 05-03-PLAN.md — Toss 브라우저 복귀 처리(지갑 적립은 webhook 전용)
@@ -202,6 +222,7 @@ Plans:
 - [x] 05-06-PLAN.md — 로컬 전체 결제 경계 검증, UI 목업 제공
 - [ ] 05-07-PLAN.md — Toss 샌드박스 흐름·렌더링 UI 최종 검증 (수동)
 - [x] 05-08-PLAN.md — D-01 개정에 맞춰 완료된 05-01·02의 고정 상품 원천만 DB 운영 목록으로 이관한다.
+
 **UI hint**: yes
 **Status**: In progress (2/7 plans) — 05-01·05-02 실행 완료: `payment_orders`(0016_payments)·주문 생성·Toss 서버 클라이언트, DB 테스트 2026-10-01 통과. 05-03~07(복귀 처리, webhook 적립, 충전 UI, 샌드박스 검증)은 미실행이며, 실제 샌드박스·webhook 검증은 Toss 가맹 키(사업자등록 + merchant application)에 의존한다.
 
@@ -213,14 +234,17 @@ Plans:
 **Depends on**: Phase 1, Phase 2, Phase 5
 **Requirements**: PAY-02
 **Success Criteria** (what must be TRUE):
+
   1. User can spend tokens to unlock a paid chapter and immediately view its content
   2. Wallet balance is deducted atomically at the moment of unlock, with no double-charge on retry or double-click
   3. The chapter's author is credited 90% of the spent tokens for the unlock, with 10% retained as a platform fee — this 90/10 split is a **provisional figure** (not final; see `06-CONTEXT.md` D-10), implemented behind a single adjustable constant
+
 **Plans**: TBD for remaining work. Existing implementation was outside the GSD plan flow; `06-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated or marked complete.
 **UI hint**: yes
 **Status**: Complete (2026-10-01) — source implementation done; live-DB/RLS/concurrency/E2E verification still pending. Purchase flow in commits `57e1c8e` / `fc8a4a5`; author settlement in `56b0031`. Originally implemented directly against the Phase 1 token wallet, without going through `/gsd:plan-phase`. Implementation report: `docs/commerce-entitlements.md`.
 
 Implemented in source (deployment/runtime verification pending):
+
 - `supabase/migrations/0005_commerce.sql` — `orders` / `order_items` / `entitlements` tables, RLS, purchase RPC, chapter-body column grants
 - `lib/commerce/actions.ts` (order creation + settlement), `lib/access/actions.ts` (session-based `canView` + protected body read), `lib/chapters/actions.ts` (body RPC + bulk TOC permission read)
 - `components/reader/viewer-shell.tsx` — price display, purchase button, double-click guard, error/retry
@@ -228,6 +252,7 @@ Implemented in source (deployment/runtime verification pending):
 - Success Criteria 1 and 2 have source implementations. SQL/RLS and settlement DB tests passed against the live test DB on 2026-10-01 (tests/commerce 33/33, incl. 90/10 split, retry idempotency, rollback); independent-session concurrency and browser E2E remain unverified; they are not marked fully met. Current UI uses a purchase button and refresh, matching the latest implementation baseline.
 
 Residual (stays in v1.0, not yet done):
+
 - [x] **Author settlement (Success Criterion 3) — implemented in source, DB verification pending.** `supabase/migrations/0017_author_settlement.sql`: single rate point `settlement_author_rate_bps()` (provisional 90%), per-item distribution snapshot on `order_items`, and atomic buyer debit + author credit (`CONTENT_SALE` ledger) inside `pay_purchase_order`. Author share rounds down; platform keeps the remainder. Static tests pass; PostgreSQL tests in `tests/commerce/settlement.test.ts` are not yet run (no `SUPABASE_DB_URL`). Pre-0015 PAID orders are not back-settled.
 - Phase 6 currently runs on the Phase 1 token wallet with **no real top-up path**, because Phase 5 has not been built. `docs/commerce-entitlements.md` states real-currency charging was explicitly out of its scope. This inverts the roadmap's intended 5 → 6 order; Phase 5 layers on top when the Toss keys arrive.
 - [ ] Apply/verify the migration in a test environment, run SQL/RLS and real concurrent-session tests, and validate the purchase E2E. Previous DB tests remain unexecuted by user choice.
@@ -241,29 +266,37 @@ Residual (stays in v1.0, not yet done):
 **Depends on**: Phase 1, Phase 3
 **Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
 **Success Criteria** (what must be TRUE):
+
   1. Admin can view a queue of open reports (reporter, target content, reason category, timestamp, status)
   2. Admin can unpublish/blind a specific chapter
   3. Admin can warn, suspend, or ban a user account with a logged reason, and view that user's past reports/actions
   4. Admin can mark a report resolved or dismissed with a short note
+
 **Plans**: 7 plans, 6 waves — ready for `$gsd-execute-phase 7`
 
 **Wave 1**
+
 - [x] 07-01-PLAN.md — 관리자 권한·보호된 스키마·초기 관리자 등록
 
 **Wave 2 (blocked on Wave 1)**
+
 - [x] 07-02-PLAN.md — 원자적 운영 조치·감사 기록·대상별 신고 큐
 
 **Wave 3 (blocked on Wave 2; parallel)**
+
 - [x] 07-03-PLAN.md — 제재 만료·DB/서버 쓰기 차단·읽기 유지
 - [x] 07-05-PLAN.md — 관리자 신고/재검토 화면·조치 폼
 
 **Wave 4 (blocked on 07-03)**
+
 - [x] 07-04-PLAN.md — 작품/회차 블라인드·구매/열람 경계
 
 **Wave 5 (blocked on 07-04 and 07-05)**
+
 - [x] 07-06-PLAN.md — 경고 확인·작가 재검토 요청·독자 잠금 상태
 
 **Wave 6 (blocked on Wave 5)**
+
 - [x] 07-07-PLAN.md — 실제 DB 적용·동시성·브라우저 통합 검증
 - [x] 07-08-PLAN.md — 댓글 제외 관리자 보완의 DB 계약을 예약 번호 0029 하나로 완성한다.
 - [x] 07-09-PLAN.md — 기존 URL 상태·관리자 조회 모듈을 확장해 전체 필터와 제재 이력 탭의 데이터를 공급한다.
@@ -278,6 +311,7 @@ Residual (stays in v1.0, not yet done):
 **UI hint**: yes
 **Status**: Complete 2026-09-17 — 7/7 plans. 실제 DB(44/44)·2세션 동시성(8/8)·브라우저 UAT 22건 통과. **미확인 브라우저 검수 2건(경고 확인 유지, 정지 사용자 화면)은 사용자 결정으로 보류 → `.planning/todos/pending/2026-09-17-phase-07-deferred-browser-checks.md`에서 반드시 확인.**
 **논의에서 확정된 범위 확장 2건** (Success Criteria 문면을 넘어섬 — 플랜이 커지면 여기부터 조절):
+
   - **D-12 작품 전체 블라인드** — ADMIN-02는 "특정 회차"만 명시. `reports.work_id`가 필수라 작품 단위 신고가 이미 존재해 추가함. 피드·상세·목록·뷰어 쿼리 분기가 늘어남
   - **D-16 작가 재검토 요청 + 별도 탭** — 작가측 진입점과 요청 상태 모델이 추가됨. 최종 해제 권한은 운영자에게 고정
 
@@ -286,62 +320,78 @@ Residual (stays in v1.0, not yet done):
 ## Phase Details (continued)
 
 ### Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정
+
 **Goal**: Gemini 생성 경로가 공통 `ProviderClient` 어댑터 뒤로 이관되어도 작가 눈에는 아무것도 달라지지 않고, 동시에 현존하는 이중 차감 버그가 사라진다 — 이후 모든 제공자·재시도·BYOK 작업이 딛고 설 기반.
 **Depends on**: Phase 4 (AI Gateway)
 **Requirements**: PROV-01, COST-01
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 어댑터 이관 전과 똑같이 Gemini로 생성한다 — `@`멘션 주입, 3단계 프리셋, 4종 문체, `[REPLY]/[DRAFT]/[DOCUMENT]` 초안·제안 파싱이 모두 이전과 동일하게 동작한다
   2. 같은 생성 호출이 재시도돼도 지갑에서 토큰이 한 번만 차감된다 (매 호출 랜덤 `reference_id`를 넘겨 RPC 중복 방지를 무력화하던 현재 동작이 고쳐진다)
   3. 생성 전 비용 상한 계산이 원격 `countTokens` 호출 없이도 이전과 같은 수준으로 동작한다 (2026-09-18 결정: 로컬 입력 추정도 제거 — 출력 상한은 잔액 전체 기준, 차감은 실사용량을 호출 전 잔액까지만)
   4. 제공자가 안전 거절(safety refusal)을 반환하면 작가는 영어 거절문이 창작 결과물처럼 렌더링되는 대신 한국어 안내를 본다
+
 **Plans**: 9 plans
 
 **Wave 1**
+
 - [x] 08-01-PLAN.md — ProviderClient·ChatResult 계약, 에러 스크러빙 choke point, 로컬 토큰 추정
 
 **Wave 2** *(blocked on 08-01)*
+
 - [x] 08-02-PLAN.md — Gemini 어댑터(거절·사용량 정규화, 단일 시도) + 플랫폼 registry
 - [x] 08-03-PLAN.md — chat() 오케스트레이션: 원장 사전확인·안정 reference_id·정산 복구·거절 차감·원인별 에러
 - [x] 08-04-PLAN.md — 클라이언트 전송 키 수명·전송 잠금·결과→알림 매핑 + AiPanelNotice
 
 **Wave 3**
+
 - [x] 08-05-PLAN.md — chatAction idempotencyKey 검증·세션 owner·registry 연결 (blocked on 08-02, 08-03)
 - [x] 08-06-PLAN.md — 실제 PostgreSQL 동일 키 동시성·재전송 증명 (blocked on 08-03)
 
 **Wave 4**
+
 - [x] 08-07-PLAN.md — AiPanel 알림 슬롯·재시도·잔액 갱신 연결 + lib/ai/gemini.ts 제거 (blocked on 08-04, 08-05)
 - [x] 08-08-PLAN.md — 개발 전용 프로바이더 fixture (blocked on 08-02, 08-05)
 
 **Wave 5**
+
 - [x] 08-09-PLAN.md — 전체 게이트 + 브라우저·라이브 Gemini 검수 체크포인트 (blocked on 08-06, 08-07, 08-08)
 
 **Notes**: 스키마 변경 없음(중복 방지 제약은 이미 존재). BYOK 키가 로그로 새는 유일한 경로인 **에러 스크러빙 choke point를 어댑터 인터페이스와 같이 출하**한다 — 세 번째 어댑터에서 잊히면 늦는다. 킥오프 체크리스트에 **OpenAI Organization Verification / Anthropic 빌링·tier 신청**을 넣어 병행 착수한다(외부 리드타임).
 
 ### Phase 9: OpenAI · Anthropic 어댑터 + 제공자별 단가
+
 **Goal**: 작가가 플랫폼(서비스) 키로 Gemini 외 두 제공자를 실제로 골라 집필할 수 있고, 무엇을 고르든 그 모델의 진짜 단가로 계산된 비용을 생성 전에 본다.
 **Depends on**: Phase 8
 **Requirements**: PROV-02, PROV-03, PROV-04, PROV-07
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 OpenAI 모델을 선택해 본문 생성·어시스트를 받고, 결과가 기존 초안·제안 UI로 동일하게 들어온다
   2. 작가가 Anthropic 모델을 선택해 본문 생성·어시스트를 받고, 결과가 기존 초안·제안 UI로 동일하게 들어온다
   3. 작가가 계정 설정에서 기본 제공자·모델을 지정하고, AI 패널 드롭다운에서 이번 호출만 다른 제공자·모델로 전환할 수 있다
   4. 서비스 키 모드에서 작가가 보는 비용 추정치가 선택한 제공자·모델의 실제 단가를 반영한다 (Gemini 단가가 GPT 호출에 재사용되지 않는다)
+
 **Plans**: 6 plans, 5 waves
 
 **Wave 0**
+
 - [x] 09-00-PLAN.md — ProviderId 확장 + 모델 카탈로그(D-01~03) + OpenAI/Anthropic 실패 테스트 스캐폴드
 
 **Wave 1** *(blocked on 09-00)*
+
 - [x] 09-01-PLAN.md — OpenAI 어댑터(mapOpenAiResponse/createOpenAiProvider) + 단가 테이블
 - [x] 09-02-PLAN.md — Anthropic 어댑터(mapAnthropicResponse/createAnthropicProvider, temperature 미전달) + 단가 테이블
 
 **Wave 2** *(blocked on 09-01, 09-02)*
+
 - [x] 09-03-PLAN.md — lib/ai/cost.ts 벤더 중립화(D-06) + registry.ts 3사 분기
 
 **Wave 3** *(blocked on 09-03)*
+
 - [x] 09-04-PLAN.md — chat.ts/chatAction providerId+model 전환 + AiPanel 드롭다운 교체
 
 **Wave 4** *(blocked on 09-04)*
+
 - [x] 09-05-PLAN.md — 계정 기본 제공자·모델 설정(D-04) 마이그레이션 + /studio/settings/ai-providers
 
 **UI hint**: yes
@@ -355,15 +405,18 @@ Residual (stays in v1.0, not yet done):
 **Depends on**: Phase 9
 **Requirements**: BYOK-01, BYOK-02, BYOK-03, BYOK-04, PROV-05
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 계정 설정 화면에서 제공자별로 자신의 API 키를 1개씩 등록하고, 서버가 저장 전에 제공자의 모델 목록 엔드포인트로 유효성·소유권을 검증한다 — 검증에 실패한 키는 활성 키로 저장되지 않으며, 검증 자체가 작가에게 과금되지 않는다
   2. 등록된 키는 제공자·끝 4자리·등록일과 `연결됨/검증 실패/미등록` 상태로만 보이고, 평문은 화면·응답·로그 어디에도 다시 나타나지 않는다
   3. 작가가 키를 삭제할 때 해당 제공자가 어떻게 되는지 안내받고, 삭제된 키가 기본 선택이었다면 선택이 자동 대체된다 (교체 = 삭제 후 재등록)
   4. 모델 피커에 작가가 실제로 호출 가능한 모델만 나타나고, 각 모델에 `BYOK` / `서비스 키` 배지가 붙어 누가 비용을 내는지 선택 시점에 보인다 — 전역 모드 토글은 존재하지 않는다
+
 **Plans**: TBD
 **UI hint**: yes
 **Notes**: 키 검증(models-list)과 피커는 **같은 기능**이다 — 검증 결과가 피커의 모델 목록을 생산하므로 페이즈를 가르지 않는다. 암호화 방식(Supabase Vault vs 앱 레벨 AES-256-GCM)은 **이 페이즈 계획 시점에 확정**한다 — 구현 중 미루면 데이터 마이그레이션이 된다. 별도 평문 `masked_hint` 컬럼이 BYOK 슬라이스에서 가장 중요한 스키마 결정. 평문 키가 어떤 경로로도 로그에 닿지 않음을 테스트로 확인한다.
 
 Plans:
+
 - [x] 10-00-PLAN.md — Phase 10 전체가 기대는 계약을 먼저 고정한다: (1) Vault 실제 시그니처/권한 프로브, (2) 이후 plan이 GREEN으로 만들 RED 테스트 4개.
 - [x] 10-01-PLAN.md — BYOK 키 보관 스키마와 Vault 접근 함수를 마이그레이션 0014로 만들고, 실제 테스트 DB에 적용해 Wave 0의 DB 테스트를 GREEN으로 만든다.
 - [x] 10-02-PLAN.md — DB·UI와 독립적인 순수 계약 두 묶음을 구현한다: (1) 선택 값 코덱 + 피커 항목 생성 + 삭제 대체 규칙, (2) 제공자별 models-list 검증기 + 원인별 한국어 오류 문구.
@@ -377,18 +430,22 @@ Plans:
 - [ ] 10-10-PLAN.md — 기존 성공 UAT를 재구현하지 않고 잔여 10/11과 BUG-03의 실화면·실DB 회귀를 검증한다.
 
 ### Phase 11: BYOK 호출 경로 · 사용 기록 · 실패 UX
+
 **Goal**: 지갑 잔액이 0인 작가도 자기 키로 막힘없이 생성하고, 실패했을 때 원인별로 다른 안내를 받으며, 이번 달 자기 키의 제공자별 호출 수·토큰 수를 확인할 수 있다.
 **Depends on**: Phase 10
 **Requirements**: PROV-06, BYOK-05, BYOK-06, BYOK-07, BYOK-08, BYOK-09, COST-02
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 BYOK 모델로 호출하면 플랫폼 토큰이 전혀 차감되지 않고, 지갑 잔액이 0이어도 호출이 차단되지 않는다
   2. BYOK 모델을 선택하면 AI 패널의 지갑 토큰 비용 게이지가 숨겨지고, 1회 출력 토큰 상한이 서비스 키 호출보다 높게 적용된다
   3. 무효·폐기된 키 / 레이트리밋 / 크레딧 소진 / 타임아웃·장애 네 가지 실패가 각각 구분되는 한국어 메시지로 안내되고, 무효 키만 `검증 실패`로 바뀐다 — 자동 재시도도, 서비스 키로의 조용한 폴백도 일어나지 않는다
   4. 선택한 제공자·모델을 쓸 수 없을 때 작가는 무엇으로 대체됐는지 화면에서 보고 진행 여부를 스스로 결정한다 — 서비스 키↔BYOK 간 조용한 전환은 없다
   5. 작가가 이번 달 제공자별 BYOK 호출 수·토큰 수를 보고, 모든 AI 호출이 제공자·모델·토큰 수와 함께 지갑 원장과 분리된 사용 기록에 남는다 (지갑 원장에 0원 행이 기록되지 않는다)
+
 **Plans**: 8 plans (11-01~07 실행 완료, 11-08 Task 2 브라우저 UAT 대기)
 
 Plans:
+
 - [x] 11-01-PLAN.md — ai_usage 스키마·KST 집계·원격 DB 차단 게이트
 - [x] 11-02-PLAN.md — provider 실패 4분류·SDK 자동 retry 비활성화
 - [x] 11-03-PLAN.md — 서버 재도출 BYOK route·race-safe invalid 전환
@@ -411,82 +468,99 @@ Plans:
 **하드 경계** — 1단계(Phase 8~11)가 안정화되기 전에 2단계(Phase 12~14)를 시작하지 않는다. BYOK는 "우리가 남의 비밀을 보관해 밖으로 호출", MCP OAuth는 "우리가 비밀을 발급해 밖에서 들어옴" — 방향이 반대이고 공유 코드가 없다. 하나의 '인증 페이즈'로 묶지 않는다.
 
 ### Phase 12: MCP OAuth 기반 · 연결/해제
+
 **Goal**: 작가가 Claude에서 NovelScript를 커스텀 커넥터로 연결해 자기 계정 데이터에만 접근하도록 승인하고, 해제하면 이미 발급된 접근이 실제로 끊긴다.
 **Depends on**: Phase 11 (1단계 안정화 이후)
 **Requirements**: MCP-01, MCP-08
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 Claude에서 NovelScript를 커스텀 커넥터로 추가하고 OAuth 계정 연결을 승인하면 연결이 성립한다
   2. 연결된 토큰은 승인한 작가 본인의 데이터에만 접근하며, 다른 사용자의 리소스에는 유효한 토큰으로도 도달하지 못한다
   3. 작가가 NovelScript에서 연결된 클라이언트 목록과 마지막 사용 시각을 본다
   4. 작가가 연결을 해제하면, 해제 이전에 발급된 토큰으로 시도한 호출이 즉시 차단된다
+
 **Plans**: TBD
 **UI hint**: yes
 **Notes**: **인수 기준 클라이언트는 Claude만.** ChatGPT는 쓰기 가능 커스텀 커넥터를 Business/Enterprise/Edu 워크스페이스로 제한하므로 best-effort 문서화 대상이며 성공 기준이 아니다. 첫 작업은 **스파이크**다 — 실제 Claude 커스텀 커넥터로 discovery → 등록 → 토큰 교환을 왕복시켜 authorization server 선택(Supabase Auth OAuth 2.1 Server vs WorkOS AuthKit)을 결판낸다. 스파이크 실패 시 페이즈 내용 자체가 바뀌므로 도구 작업과 섞지 않는다. 해제 검증은 UI 목록이 아니라 **해제 이전에 발급된 토큰으로 실제 도구 호출을 시도**해서 한다 — stateless JWT 검증만으로는 이 기준을 구조적으로 충족할 수 없고, 매 호출 살아있는 grant introspection이 필요하다(나중에 붙일 수 없다). `/gsd:research-phase` 필수: 2026-07-28 spec 개정이 DCR을 CIMD로 대체해 기존 튜토리얼이 전부 낡았고, 커넥터 UI가 실제로 무엇을 보내는지는 구현 시점 재확인이 필요하다.
 
 ### Phase 13: MCP 읽기 도구 + 집필 컨텍스트 번들
+
 **Goal**: 연결된 AI가 작가 본인의 작품·회차·설정집을 읽고, 앱 안에서와 동일한 구성의 집필 컨텍스트를 한 번에 받아 초안을 쓸 준비를 마친다.
 **Depends on**: Phase 12
 **Requirements**: MCP-02, MCP-03, MCP-04, MCP-09
 **Success Criteria** (what must be TRUE):
+
   1. 연결된 AI가 작가의 작품 목록·회차 목록·회차 본문을 조회할 수 있다
   2. 연결된 AI가 작가의 설정집 문서를 검색하고 내용을 읽을 수 있다
   3. 연결된 AI가 멘션 방식 집필 컨텍스트 번들(설정집 + 프리셋 + 문체 조합)을 한 번에 받아, 앱 안에서 생성한 것과 같은 구성으로 초안을 쓴다
   4. 읽기 도구를 호출할 때 클라이언트가 불필요한 확인 프롬프트를 띄우지 않는다 (모든 툴에 읽기/쓰기 성격 annotation이 붙는다)
+
 **Plans**: 6/6 완료 (13-01, 13-01b, 13-02~05) — 2026-11-03 master 병합(6d69b29). 0037~0040은 공유 DB에 2026-11-05 적용
 **Notes**: 도구는 기본적으로 user-scoped 클라이언트를 쓴다 — Server Action에서 옳았던 `createAdminClient()` 관행을 그대로 복사하면 bearer 토큰 하나로 교차 사용자 읽기가 가능해지는 confused deputy가 된다. `createAdminClient` import는 그 자체로 추가 리뷰 대상. 모든 도구에 대해 **두 번째 사용자 토큰으로 첫 사용자 리소스를 찌르는 교차 사용자 테스트 스위트**를 통과시킨다. `get_writing_context`는 기존 `composeSystemInstruction`/`assembleUserContent`를 **재사용**한다(fork 금지) — 이 페이즈를 단순 CRUD API가 아니게 만드는 유일한 차별화 도구다.
 
 ### Phase 14: MCP 쓰기 도구 + 스튜디오 리뷰 큐
+
 **Goal**: 외부 AI가 되돌릴 수 있는 것은 '제안된 초안'과 '설정 변경안'뿐이고, 작가가 스튜디오에서 출처와 함께 그것들을 검토해 수락하거나 거절한다 — 기존 본문은 어떤 경우에도 조용히 바뀌지 않는다.
 **Depends on**: Phase 13
 **Requirements**: MCP-05, MCP-06, MCP-07
 **Success Criteria** (what must be TRUE):
+
   1. 연결된 AI가 특정 회차에 '제안된 초안'을 저장할 수 있고, 그 회차의 기존 본문은 어떤 경로로도 덮어쓰이지 않는다 (본문 직접 수정 툴 자체가 존재하지 않으며, 새 초안 회차를 만들지도 않는다)
   2. 연결된 AI가 설정집 문서의 신규 생성안 또는 기존 문서 수정안을 제안할 수 있다
   3. 작가가 설정집 수정안을 원문과 나란히 놓고 비교(diff)해 수락 또는 거절한다
   4. 작가가 스튜디오에서 MCP로 도착한 초안·제안을 출처(어느 클라이언트에서, 언제)와 함께 검토하고 수락 또는 거절한다
+
 **Plans**: TBD
 **UI hint**: yes
 **Notes**: 리뷰 큐 UI는 "도구 몇 개 더"의 반올림 오차가 아니라 실제 UI 스코프다 — 마지막에 두되 축소하지 않는다. `save_draft` / `propose_kb_document` 둘 다 pending 상태 객체만 생성하며, "외부 AI가 제안하고 작가가 결정한다"를 UI 카피가 아니라 **데이터 접근 레이어에서** 강제한다(`mcp_drafts` / `mcp_kb_proposals`). LLM이 넘긴 `work_id`/`chapter_id`는 읽기 도구 결과를 거쳐 온 **비신뢰 입력**이므로 매 호출 서버에서 소유권을 재검증한다 — 초안/제안 전용 설계는 이 문제의 대체재가 아니라 짝이다. 주입된 도구 결과로 유도된 교차 사용자 쓰기 테스트를 포함한다.
 
 ### Phase 15: Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택
+
 **Goal**: 작가가 AI에게 설정 문서를 요청하면 Jev가 먼저 작업 종류·문서 카테고리·저장 폴더·템플릿을 제한된 후보 안에서 계획하고, Gemini가 그 계획과 템플릿을 따라 문서를 생성하며, 작가는 결과와 저장 위치를 확인·변경한 뒤 권한이 검증된 폴더에 저장한다.
 **Depends on**: Phase 14 (v1.1 마무리 순서), Phase 4 (AI Gateway), Phase 04.1 (KB 폴더·템플릿)
 **Requirements**: AIDOC-01, AIDOC-02, AIDOC-03, AIDOC-04
 **Success Criteria** (what must be TRUE):
+
   1. Jev가 Gemini 생성 전에 `reply`/`draft`/`document`/`clarify`와 문서 카테고리를 결정하고, 문서 생성일 때만 해당 카테고리의 폴더·템플릿 후보 중 추천안을 확률과 함께 반환한다
   2. Gemini가 선택된 템플릿의 제목·필수 섹션·순서를 유지해 문서를 생성하고, 근거 없는 필드는 임의로 확정하지 않으며, 사용자는 추천 폴더와 템플릿을 확인하고 변경할 수 있다
   3. 저장 시 서버가 `targetFolderId`와 템플릿 선택을 사용자·작품·범위·카테고리·삭제 상태 기준으로 다시 검증하며, 저장 전 위치가 바뀌었거나 권한이 없으면 다른 폴더에 조용히 저장하지 않는다
   4. @멘션 빠른 추가는 Jev 호출 없이 카테고리별 실제 폴더 선택기를 제공하고, 기본값은 최상위 카테고리 폴더이며, 사용자가 고른 하위 폴더에 즉시 생성된다
   5. Jev는 오프라인 평가와 그림자 계획을 거쳐 합의된 정확도·보정 기준을 충족한 뒤에만 실제 추천에 사용되고, 작품 데이터 보관·학습 사용·처리 지역·삭제 정책 검토 전에는 실제 작품 본문을 프로덕션 호출에 보내지 않는다
+
 **Plans**: 11 plans, 6 waves (2026-09-24 cross-AI review 반영 재계획)
 
 **Wave 1**
+
 - [x] 15-01-PLAN.md — Jev(TypeSafe AI) 온보딩 + DecisionClient 계약(Zod 응답 검증·후보 membership·타임아웃·단일 에러 경계) (checkpoint: 계정 발급)
 - [x] 15-03-PLAN.md — BUG-01 근본 수정: 구조 루트(parent_id IS NULL) 판별 + 루트 유일성 index + version 기반 저장 직전 재검증
 - [x] 15-10-PLAN.md — 공통 paid-generation lifecycle 추출(chat 무회귀) + 문서 계획 프롬프트 지시 + 결과 계약 검증기
 
 **Wave 2** *(blocked on Wave 1)*
+
 - [x] 15-02-PLAN.md — Jev 2단계 계획(안정 정렬·membership·data_integrity·선별 폴백·순수 FromCandidates) *(blocked on 15-01, 15-03)*
 - [x] 15-07-PLAN.md — QuickAddDialog 폴더 선택기 (D-12, Jev 미호출, stale 응답 reducer) *(blocked on 15-03)*
 - [x] 15-11-PLAN.md — 영속 활성화 게이트: getAiDocPlanningMode + 증거/승인/그림자/결정 로그 테이블 + 지표 *(blocked on 15-01)*
 
 **Wave 3**
+
 - [x] 15-04-PLAN.md — Jev→Gemini 생성 전략을 lifecycle 위에 연결 + chatAction resolver 주입 *(blocked on 15-02, 15-07, 15-10, 15-11)*
 - [x] 15-05-PLAN.md — 오프라인 평가(버전 고정 JSONL 정답셋, calibration/holdout 분리, 순서 교란, DB 증거 기록) *(blocked on 15-02, 15-11)*
 
 **Wave 4**
+
 - [x] 15-06-PLAN.md — 저장 확인 모달(D-11) + 원자적 저장 + lifecycle 기반 템플릿 재생성 *(blocked on 15-04, 15-07, 15-10)*
 
 **Wave 5**
+
 - [x] 15-08-PLAN.md — 그림자 계획(bucket별 합성 시나리오, after(), 샘플링·예산·회로 차단) + 저장 결정 로그 *(blocked on 15-04, 15-05, 15-06, 15-11)*
 
 **Wave 6**
+
 - [x] 15-09-PLAN.md — 전체 게이트: 스위트 + off 경로 무호출 테스트 + 브라우저 UAT + Code complete / Activation blocked 기록 *(Task 2 browser UAT pending)*
 
 **UI hint**: yes
 **Source**: Phase 4 BUG-01 (`.planning/phases/15-jev-ai/15-DESIGN-SOURCE-04-BUG-01.md`)에서 페이즈로 승격 (2026-09-22)
 **Notes**: 단순 `parent_id IS NULL` 필터는 긴급 완화책일 뿐 최종 해결안이 아니다. Jev는 자유 형식 생성 모델이 아니라 서버가 제공한 불투명 후보 키 중 계획을 고르는 결정 계층이며, Gemini는 확정된 템플릿으로 생성한다. 확신도가 낮으면 `clarify`로 전환하고, 폴더·템플릿 판단 실패 시에만 문서화된 안전 기본값을 추천한다. 운영 전 100~300건 정답셋 평가, 후보 순서 교란 평가, 그림자 계획, 템플릿 생성 비교를 수행한다.
-
 
 ### Phase 16: 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일)
 
@@ -496,62 +570,74 @@ Plans:
 **Depends on**: Phase 10 (BYOK 키 관리), Phase 15 (Jev 결정 계층 · 폴더 재검증), Phase 04.1 (KB 폴더 트리)
 **Requirements**: STUDIO-01, STUDIO-02, STUDIO-03, STUDIO-04
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 `/account`에서 OpenAI·Anthropic·Gemini별 연결 상태와 키 끝 4자리를 보고, 관리 페이지로 이동할 수 있다
   2. 작가가 설정 문서 편집 화면에서 회차와 동일한 AI 패널로 대화하고, 현재 문서를 컨텍스트로 쓰며, 초안 삽입·문서 제안 저장이 동일하게 동작한다 (과금 원장 reason `kb:<nodeId>`)
   3. 작가가 .md/.txt를 최대 50개 선택해 카테고리 폴더에 일괄 저장하거나, 이번 대화에만(최대 5개) 첨부할 수 있다
   4. Jev 자동 분류를 고르면 기존 카테고리 트리 위에 제안 배치가 표시되고, 작가가 트리 안에서 드래그앤드롭으로 수정한 뒤 승인하면 그 배치대로 실제 폴더에 저장되며, 승인 전에는 아무것도 저장되지 않는다. 확신하지 못한 문서는 미분류로 남아 직접 배치해야 승인할 수 있다
   5. 승인 저장 시 서버가 `targetFolderId`를 소유자·작품·범위·카테고리·삭제 상태로 재검증하고 폴더 카테고리를 문서 카테고리로 쓰며, 폴더가 바뀌었으면 다른 폴더에 조용히 저장하지 않고 해당 파일을 실패로 보고한다
   6. 스튜디오(작품 사이드바·편집기·AI 패널·계정/설정 페이지)가 모바일 세로 화면에서 가로 스크롤 없이 쓸 수 있다
+
 **Plans**: TBD. Implementation was outside the GSD plan flow; `16-SUMMARY.md` is a retrospective phase summary, not a completed PLAN. No execution plans are fabricated.
 **UI hint**: yes
 **Status**: Reopened (2026-10-12 청사진 갭; 최초 Complete 2026-10-02) — source implementation done; `tsc`/`eslint` clean, 신규 단위 테스트 4개 통과. 실제 Jev 연결·DB·브라우저·모바일 기기 검증 pending (see `16-VERIFICATION.md`).
 **Notes**: 설정 문서 AI 채팅에서도 BYOK 모델 전송은 Phase 11 전까지 막혀 있다. 업로드 자동 분류는 Jev 활성화 게이트(AIDOC-04)와 별개로 Jev 연결만 있으면 동작하므로, 정책 검토 전 실제 작품 본문 전송 허용 여부를 결정해야 한다. 독자 화면·admin 모바일 대응은 범위 밖. 결정 기록: `.planning/phases/16-studio-workflow-upload/16-CONTEXT.md`.
 
 Plans:
+
 - [x] 16-01-PLAN.md — D-06 개정의 모바일 하단 탭을 위한 최소 셸과 가시성 계약을 만든다.
 - [x] 16-02-PLAN.md — Phase 2의 공통 슬롯에 모바일 어댑터를 연결하고 기존 계약 검사 2개로 실제 호출부를 검증한다.
 - [ ] 16-03-PLAN.md — 모바일 하단 탭 구현 후 기존 Phase 16의 partial/blocked 갭과 실기기 검증을 한 번에 재실행한다.
 
 ### Phase 17: 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그)
+
 **Goal**: Phase 16 브라우저 UAT에서 나온 갭과 Phase 4·8·15에 흩어진 미해결 버그를 한 phase로 모아, AI 응답 잘림/소진 안내의 정확성, 문서 재생성·저장 정합성, 업로드 다이얼로그 UI 경고, 재시도 모델 반영, 테스트·린트 기준선을 정리한다. 수정은 각 버그의 원인 phase `bugs/` 문서(`/bug-plan` → `/bug-execute` → `/bug-complete`)로 추적한다.
 **Depends on**: Phase 16 (UAT 갭 출처), Phase 15 (BUG-03·04), Phase 8 (BUG-04)
 **Requirements**: BUGFIX-01, BUGFIX-02, BUGFIX-03, BUGFIX-04, BUGFIX-05
 **Success Criteria** (what must be TRUE):
+
   1. 지갑 잔액이 충분한데 요청당 출력 상한이나 thinking 토큰 소진으로 응답이 잘린 경우 "토큰이 모두 소진됐어요" 안내가 나오지 않고, 원인별로 올바른 문구가 나온다 (잔액 캡 vs 요청당 상한)
   2. 템플릿 재생성 후 저장해도 문서 이름이 바뀌지 않고(Phase 15 BUG-04), 템플릿 카테고리 폴더 관련 남은 UAT 항목(BUG-03)이 닫힌다
   3. 업로드 다이얼로그가 콘솔 경고(Base UI Select uncontrolled→controlled) 없이 동작하고 브라우저 기본 파일 입력 문구가 시각적으로 노출되지 않는다
   4. AI 패널 "다시 시도"가 현재 선택된 모델로 재전송된다 (확인 후 필요 시 수정)
   5. `npx tsc --noEmit`·`eslint`가 깨끗하고, 전체 `vitest` 실패의 원인이 분류되어 환경 요인(supabaseUrl env 등)과 실제 결함이 분리된다
+
 **Plans**: TBD (`/gsd:plan-phase 17`로 분할)
 **UI hint**: yes
 **Source**: Phase 16 UAT 갭 4건 (`.planning/phases/16-studio-workflow-upload/16-UAT.md`) + Phase 8 BUG-04, Phase 15 BUG-03·04, Phase 8 기록의 eslint·테스트 기준선 이슈
 **Notes**: 범위·분류·진행 기준은 `17-CONTEXT.md`. Phase 8 BUG-04(thinking 토큰 정책)는 2026-10-08 결정 완료(단계 A 먼저, 후보 4는 관측 후).
 
 ### Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)
+
 **Goal**: 작가가 자기 작품의 세계관(설정집)을 복제해 If 가지·확장 가지 작품을 연재하고, 세계관 연표에 작품을 배치하며, 독자가 작품 상세의 `세계관` 탭에서 세계수(본가지·잔가지·열매)를 본다. 첫 버전은 **셀프 가지만** 다루고 스토어 구매 연동(WTREE-11~13)은 스토어 보류 해제 후로 미룬다.
 **Depends on**: Phase 2 (설정집 KB), Phase 3 (독자 작품 상세·세계관 탭·독자 지표). 스포일러 잠금 확장(WTREE-09)은 READ-06 Lore 위키 phase와 함께 별도 처리.
 **Requirements**: WTREE-01, WTREE-02, WTREE-03, WTREE-04, WTREE-05, WTREE-06, WTREE-07, WTREE-08, WTREE-10
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 세계관마다 연표(시대 구간 필수·연도 선택)를 만들고 작품을 배치하며, 같은 시기 작품을 `동시 진행`으로 표시한다. 잔가지는 분기 시점까지 본가지 연표를 이어받아(수정 불가) 이후 구간만 독립 편집하고 선택 메모를 적을 수 있다
   2. 작가가 `이 세계관에서 가지 치기`로 If 가지(설정 1개 이상 수정·삭제·추가) 또는 확장 가지(새 설정 1개 이상 추가, 기존 수정·삭제 불가)를 확정할 수 있고, 변경 0건이면 확정이 막힌다. 확정한 가지는 스냅샷으로 고정되고 원작 변경은 알림만 간다
   3. 독자는 작품 상세 `세계관` 탭의 `세계수` 보기(모바일 포함)에서 본가지·잔가지·열매를 시간순으로 보고 항목을 눌러 상세를 본다. 작가는 스튜디오 세계관 공개 설정에서 편집하며, 큰 화면용 단독 화면이 있다
   4. 부모 작품은 발행 회차·설정 문서 기준을 채워야 가지를 칠 수 있고, 독자에게는 발행된 작품만 세계수에 보이며 비공개로 돌린 부모는 위치만 암시되는 부러진 가지로 표시되고 작가 본인·관리자에게는 전체가 보인다
   5. 가지 굵기·열매 크기는 근접도와 독자 지표(작가 본인 조회 제외)로 계산되고, 하위 가지가 있는 가지·작품은 삭제할 수 없으며 비공개는 하위로 전파되지 않는다
+
 **Plans**: TBD (`/gsd:plan-phase 18`로 분할)
 **UI hint**: yes
 **Source**: `.planning/design/WORLD-TREE.md`(규칙 1~17), 목업 보드 40~43(`.planning/design/mockups/project/`)
 **Notes**: 근접도·크기 산식의 세부 계수는 phase 계획에서 정한다. 요구사항 WTREE-09(스포일러 잠금 가지 확장)·WTREE-11~13(스토어 편입·환불·운영 검토)은 이 phase 범위가 아니다. UI 계약 초안: `.planning/phases/18-world-tree/18-UI-SPEC.md`(checker 검증 전). 목업은 보드 40~43.
 
 ### Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)
+
 **Goal**: 작가가 `/studio/[workId]`에서 작품의 현황과 다음 할 일을 한눈에 보고 각 작업 화면으로 이동할 수 있다. 현재는 제목·시놉시스·밑줄 링크 3개뿐이다.
 **Depends on**: Phase 2 (스튜디오 코어)
 **Requirements**: WORKHOME-01, WORKHOME-02, WORKHOME-03, WORKHOME-04, WORKHOME-05, WORKHOME-06, WORKHOME-07
 **Success Criteria** (what must be TRUE):
+
   1. 작가가 작품 홈에서 전체 회차·공개·미공개를 한눈에 본다
   2. 첫 연재를 마칠 때까지 4단계 가이드가, 마친 뒤에는 4개 바로가기 카드가 보인다
   3. 새 작품(회차 0개)은 가이드만 크게 보이고 현황은 숨는다
   4. 모바일 `집필` 탭에서 가로 스크롤 없이 같은 내용을 쓸 수 있다
   5. 17-07 트리 사이드바 구조는 그대로다
+
 **Plans**: 4 plans (19-01 홈 상태 계산, 19-02 홈 화면, 19-03 사이드바 빈 문구, 19-04 회귀·실화면 검증)
 **UI hint**: yes
 **Source**: Phase 17 세션이 사용자 요청으로 분리한 항목(Phase 17 범위 밖). 현재 상태·제안 범위는 `phase17-handover-author-work-home-phase.md`.
@@ -574,10 +660,12 @@ Plans:
 **Source**: `.planning/business/이용약관_저작권리스크_대응안.md`, `변호사_자문_필요사항.md`
 **Status**: Not started — 약관은 초안, 변호사 자문 전. 자문은 약관 게시 전 1회(대응안 §5 결정).
 **Success Criteria**:
+
   1. 변호사 자문 결과로 약관 초안의 미확정 값이 모두 확정·게시된다
   2. 법령 사실 확인 표의 불일치 항목이 원문 대조로 해소된다
   3. AI기본법 생성형 AI 고지 의무가 검토되고 필요 시 반영된다
   4. BYOK 개인정보 국외 이전 고지가 처리방침에 반영된다
+
 **Notes**: Phase 5(실결제)·Phase 6(작가 정산)·BYOK(Phase 11)는 약관 조항 7(정산 보류·상계)·10④와 직접 얽힌다. 이 phase들의 **실사용자 공개 전**에 자문을 마치는 것이 안전하다. 외부 대기열(변호사)이라 Toss 심사처럼 일찍 시작할수록 좋다.
 
 ### Phase 20: 최종 모바일 실기기 확인 (Phase 17 UAT 이월: M8 파일 선택, M9 터치 이동, A4 실기기)
@@ -585,9 +673,10 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 19
-**Plans:** 0 plans
+**Plans:** 0/12 plans executed
 
 Plans:
+
 - [ ] TBD (run /gsd:plan-phase 20 to break down)
 
 ---
@@ -601,11 +690,13 @@ Plans:
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
 **상태 용어 (2026-10-04 통일):**
+
 - **Complete** — 코드 완료 + 해당 phase 검증 통과.
 - **Complete (… pending)** — 코드는 끝났으나 괄호의 검증(live·브라우저·UAT)이 남음. 체크박스 `[x]`는 이 경우도 포함한다.
 - **Code complete (activation blocked)** — 코드 완료, 외부 조건(정책 검토·평가·키)이 풀려야 운영 활성화 (Phase 15).
 - **Reopened** — 완료됐던 phase가 청사진 필수 기능 누락으로 완료 취소됨. 기존 구현·검증은 유효하고 논의·research·plan을 이어간다. 근거·이어갈 단계는 `.planning/gaps/2026-10-12-blueprint-reconcile.md`. 체크박스는 `[ ]`.
 - **Planned** — 계획·검증 완료, 실행 전. **In progress / Not started** — 문자 그대로.
+
 검증 대기 항목의 상세는 STATE.md Pending Todos와 `.planning/gaps/` 점검 문서에 둔다.
 
 | Phase | Plans Complete | Status | Completed |
@@ -624,7 +715,7 @@ Plans:
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 공유 DB 적용 2026-11-05) | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2는 #3~#6·#10(Claude 커넥터 등록·승인·호출·해제 후 차단·정리)이 일회용 DB 실인수에서 통과(Phase 13 세션 수행, 근거 `13-VALIDATION.md`). #7(동의 화면 상태)·#8(375px·접근성)·#9(1시간 후 refresh)는 pending. 0037·0038 공유 DB 적용 2026-11-05. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 6/6 | Complete (2026-11-03 master 병합 6d69b29) — 일회용 DB에서 실제 Claude 커스텀 커넥터 인수 통과(연결·읽기 전용 그룹 인식·항상 허용 후 읽기 도구 무확인 실행·본인 데이터만 반환·해제 후 차단). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 0037~0040 공유 DB 적용 2026-11-05(백업 없이, 테스트 데이터만 있음). 근거 `13-VALIDATION.md` | 2026-11-03 |
-| 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/TBD | Not started | - |
+| 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/12 | Planned    |  |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 7/7 | Code complete — 수동 UAT(실키·실기기·E1·E2 등 `17-UAT.md` M1~M13) 대기. 코드 완료이며 검증 완료 아님 | - |
@@ -634,6 +725,7 @@ Plans:
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
 
 Plans:
+
 - [x] 18-01-PLAN.md — 기존 KB를 재사용하는 세계수 데이터 계약·초안 격리 기반
 - [x] 18-02-PLAN.md — 셀프 가지 초안·서버 diff·원자 확정·불변성
 - [x] 18-03-PLAN.md — 분기 시점 연표 상속과 독립 배치 저장
