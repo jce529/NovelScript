@@ -1,0 +1,100 @@
+<title>AI 검토 대기 화면</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: UI-SPEC 화면 순서(인박스 → 초안 검토 → 수정안 diff → 상태)를 한 장에 보여 주고, 모바일 배치 3안을 나란히 둔다 */
+:root{--bg:#f7f7f8;--panel:#fff;--fg:#18181b;--mute:#6b6b76;--line:#e1e1e6;--accent:#4f46e5;--onacc:#fff;--soft:#eef0ff;--bad:#dc2626;--badsoft:#fdecec;--sec:#f1f1f4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131316;--panel:#1c1c21;--fg:#ececf0;--mute:#9b9ba6;--line:#2e2e36;--accent:#8b85ff;--onacc:#111;--soft:#25243d;--bad:#f87171;--badsoft:#3a1f22;--sec:#18181c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#131316;--panel:#1c1c21;--fg:#ececf0;--mute:#9b9ba6;--line:#2e2e36;--accent:#8b85ff;--onacc:#111;--soft:#25243d;--bad:#f87171;--badsoft:#3a1f22;--sec:#18181c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:'Noto Sans KR',system-ui,sans-serif;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));line-height:1.5;font-size:14px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:32px 0 4px}h3{font-size:14px;margin:0}
+.lead{color:var(--mute);margin:0 0 12px;max-width:68ch;font-size:13px}.src{color:var(--mute);font-size:12px}
+.scroll{overflow-x:auto}.frame{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px}
+.hdr{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}.hdr .sp{flex:1}
+.badge{background:var(--accent);color:var(--onacc);border-radius:10px;padding:0 7px;font-size:12px;font-weight:600}
+.link{color:var(--accent);font-weight:600}
+.btn{border:1px solid var(--line);border-radius:6px;padding:5px 12px;font-size:13px;background:var(--panel);display:inline-block}
+.btn.p{background:var(--accent);color:var(--onacc);border-color:var(--accent);font-weight:600}.btn.d{color:var(--bad);border-color:var(--bad)}.btn.off{opacity:.45}
+.tag{font-size:12px;padding:1px 8px;border-radius:4px;background:var(--soft);color:var(--accent);flex:none}
+.md{display:grid;grid-template-columns:320px 1fr;min-width:760px}.md>div{padding:12px;min-width:0}.md>div:first-child{border-right:1px solid var(--line);background:var(--sec)}
+.seg{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}.seg span{padding:3px 10px;border:1px solid var(--line);border-radius:14px;font-size:12px}.seg .on{background:var(--accent);color:var(--onacc);border-color:var(--accent)}
+.row{padding:8px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;background:var(--panel);display:grid;gap:2px}.row.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.row .t{display:flex;gap:6px;align-items:center;min-width:0}.row .t b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.body{display:grid;gap:10px}.prose{border:1px solid var(--line);border-radius:6px;padding:10px;white-space:pre-wrap;background:var(--panel)}
+.cols3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.phone{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;font-size:12px;display:grid;grid-template-rows:auto 1fr auto;min-height:330px}
+.phone .top{padding:8px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:6px}.phone .mid{padding:10px;display:grid;gap:6px;align-content:start}
+.tabs{display:flex;border-top:1px solid var(--line)}.tabs span{flex:1;text-align:center;padding:9px 0;color:var(--mute)}.tabs .on{color:var(--accent);font-weight:600}
+.sheet{border-top:1px solid var(--line);background:var(--sec);padding:10px;border-radius:14px 14px 0 0;margin-top:4px}
+.hunk{border:1px solid var(--line);border-radius:6px;padding:8px;display:grid;gap:6px;background:var(--panel)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:6px}.two>div{border:1px solid var(--line);border-radius:5px;padding:6px;min-width:0}
+.del{background:var(--badsoft)}.add{background:var(--soft)}
+.banner{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;padding:8px 10px;background:var(--sec)}
+.banner.w{border-left-color:var(--bad)}
+.pend{display:inline-block;border:1px dashed var(--accent);color:var(--accent);border-radius:4px;padding:0 6px;font-size:11px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:8px;min-width:0;font-size:13px}
+</style>
+<h1>AI 검토 대기 화면</h1>
+<p class="lead">14-UI-SPEC 기준 예시 데이터입니다. 점선 표시(<span class="pend">확인 대기</span>)가 붙은 부분은 아직 확정하지 않은 결정입니다.</p>
+
+<h2>1. 인박스 · 데스크톱</h2>
+<p class="lead">헤더 배지(A)에서 들어오는 전체 목록입니다. 넓은 화면에서는 왼쪽 목록, 오른쪽 상세 2열입니다. <span class="pend">2열 여부 확인 대기</span></p>
+<div class="scroll"><div class="frame">
+<div class="hdr"><b>NovelScript</b><span>스튜디오</span><span class="sp"></span><span class="link">AI 검토 대기 <span class="badge">3</span></span></div>
+<div class="md"><div>
+<h3 style="margin-bottom:8px">AI 검토 대기</h3>
+<div class="seg"><span class="on">전체 3</span><span>초안 2</span><span>설정집 1</span></div>
+<div class="seg"><span class="on">대기 중</span><span>이력</span></div>
+<div class="row sel"><div class="t"><span class="tag">초안</span><b>별빛 도서관 · 7화</b></div><span class="src">Claude · 10분 전</span></div>
+<div class="row"><div class="t"><span class="tag">설정집</span><b>별빛 도서관 · 인물/하윤</b></div><span class="src">Claude · 어제 18:40</span></div>
+<div class="row"><div class="t"><span class="tag">초안</span><b>별빛 도서관 · 7화</b></div><span class="src">Claude · 어제 18:12</span></div>
+</div><div class="body">
+<div><h3>초안 · 별빛 도서관 7화</h3><span class="src">Claude · 오늘 14:02 도착 · 1,820자</span></div>
+<div class="prose">하윤은 서가 사이로 걸어 들어갔다. 먼지 냄새가 코끝을 스쳤고, 높은 천장 어딘가에서 종이 넘기는 소리가 났다.
+
+“누가 있나요?”
+
+대답 대신 책 한 권이 선반에서 떨어졌다. …</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><span class="btn d">거절</span><span class="btn p">에디터로 가져오기</span></div>
+<span class="src">가져오면 7화 에디터의 커서 위치에 삽입됩니다. 저장은 직접 해 주세요. <span class="pend">삽입 위치 확인 대기</span></span>
+</div></div></div></div>
+
+<h2>2. 인박스 · 모바일 배치</h2>
+<p class="lead">작품 화면은 하단 탭 3개(설정집·회차 / 집필 / AI)입니다. 인박스를 어디에 둘지 세 안입니다. <span class="pend">확인 대기</span> 추천은 M1입니다.</p>
+<div class="cols3">
+<div><h3 style="margin-bottom:6px">M1. 전체 페이지 (추천)</h3><div class="phone"><div class="top"><span>← 7화로</span><b>AI 검토 대기</b><span></span></div>
+<div class="mid"><div class="seg"><span class="on">전체</span><span>초안</span><span>설정집</span></div><div class="row"><div class="t"><span class="tag">초안</span><b>7화</b></div><span class="src">Claude · 10분 전</span></div><div class="row"><div class="t"><span class="tag">설정집</span><b>인물/하윤</b></div><span class="src">Claude · 어제</span></div></div>
+<div class="src" style="padding:8px 12px">탭 바 없음. 작품을 가로지르는 목록이라 작품 셸 밖에 둡니다.</div></div></div>
+<div><h3 style="margin-bottom:6px">M2. 4번째 탭</h3><div class="phone"><div class="top"><b>별빛 도서관</b><span class="badge">3</span></div>
+<div class="mid"><div class="row"><div class="t"><span class="tag">초안</span><b>7화</b></div><span class="src">Claude · 10분 전</span></div><div class="row"><div class="t"><span class="tag">설정집</span><b>인물/하윤</b></div><span class="src">Claude · 어제</span></div><span class="src">이 작품의 건만 보입니다.</span></div>
+<div class="tabs"><span>설정집·회차</span><span>집필</span><span>AI</span><span class="on">검토 3</span></div></div></div>
+<div><h3 style="margin-bottom:6px">M3. 아래에서 올라오는 시트</h3><div class="phone"><div class="top"><b>7화 · 집필</b><span class="badge">3</span></div>
+<div class="mid"><div class="prose" style="padding:6px">…하윤은 서가 사이로…</div>
+<div class="sheet"><b>AI 검토 대기</b><div class="row" style="margin-top:6px"><div class="t"><span class="tag">초안</span><b>7화</b></div></div></div></div>
+<div class="tabs"><span>설정집·회차</span><span class="on">집필</span><span>AI</span></div></div></div>
+</div>
+
+<h2>3. 설정집 수정안 검토</h2>
+<p class="lead">변경 덩어리마다 수락 또는 건너뛰기를 고릅니다. 처음에는 모두 선택 해제 상태입니다. <span class="pend">기본 해제 확인 대기</span> 색은 프로젝트 토큰만 쓰고, 줄 앞의 − / + 로도 구분합니다. <span class="pend">diff 색 확인 대기</span></p>
+<div class="grid2">
+<div class="card"><h3>인물/하윤 수정안</h3><span class="src">Claude · 어제 18:40 · 최신 원문 기준으로 비교 중</span>
+<div class="banner">제안 이후 원문이 바뀌어 지금 원문 기준으로 다시 비교했습니다.</div>
+<div class="hunk"><b>변경 1 · 나이</b><div class="two"><div class="del">− 나이: 17세</div><div class="add">+ 나이: 18세</div></div><div style="display:flex;gap:6px"><span class="btn">건너뛰기</span><span class="btn p">수락</span></div></div>
+<div class="hunk"><b>변경 2 · 특기</b><div class="two"><div class="del">− 특기: 없음</div><div class="add">+ 특기: 고문서 해독</div></div><div style="display:flex;gap:6px"><span class="btn">건너뛰기</span><span class="btn">수락</span></div></div>
+<div class="src" aria-live="polite">선택한 변경 1개</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><span class="btn d">전체 거절</span><span class="btn p">선택한 변경 적용</span></div></div>
+<div class="card"><h3>신규 문서 제안 · 장소/고문서 서고</h3><span class="src">Claude · 어제 17:55</span>
+<div class="prose"># 고문서 서고
+위치: 별빛 도서관 지하 2층
+특징: 허가 없이는 열 수 없다.</div>
+<div class="banner">저장 위치: 설정 / 장소 <span class="pend">폴더 무효 시 선택기 재사용 확인 대기</span></div>
+<div style="display:flex;gap:8px;justify-content:flex-end"><span class="btn d">거절</span><span class="btn p">문서로 만들기</span></div></div>
+</div>
+
+<h2>4. 상태</h2>
+<div class="grid2">
+<div class="card"><h3>정지된 계정</h3><div class="banner w">계정이 정지되어 수락·거절을 할 수 없습니다. 쌓인 항목은 볼 수 있습니다.</div>
+<div class="row"><div class="t"><span class="tag">초안</span><b>7화</b></div><span class="src">Claude · 10분 전</span></div><div style="display:flex;gap:8px;justify-content:flex-end"><span class="btn d off">거절</span><span class="btn p off">에디터로 가져오기</span></div></div>
+<div class="card"><h3>빈 상태</h3><div class="banner">검토할 항목이 없어요. Claude에서 초안이나 설정집 제안을 보내면 여기에 도착합니다.</div>
+<h3 style="margin-top:6px">거절 확인</h3><div class="banner w">이 초안을 거절할까요? 이력에는 남습니다.</div><div style="display:flex;gap:8px;justify-content:flex-end"><span class="btn">취소</span><span class="btn d">거절</span></div></div>
+</div>
