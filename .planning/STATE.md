@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: completed
-stopped_at: Phase 14 UI-SPEC drafted, mockup awaiting user confirmation
-last_updated: "2026-11-09T11:26:20.443Z"
+stopped_at: Phase 14 UI-SPEC approved
+last_updated: "2026-11-09T12:16:32.922Z"
 last_activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
 progress:
   total_phases: 21
@@ -178,8 +178,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-11-09T11:26:20.428Z
-Stopped at: Phase 14 UI-SPEC drafted, mockup awaiting user confirmation
+Last session: 2026-11-09T12:16:32.906Z
+Stopped at: Phase 14 UI-SPEC approved
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
