@@ -24,13 +24,14 @@ const ready = Boolean(process.env.MCP_DISPOSABLE_PROJECT_REF?.trim() && dbUrl &&
   && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 const READ_TABLES = ['works', 'chapters', 'kb_nodes', 'work_ai_instructions'] as const;
-/** 13-PLAN-NOTES catalog (40 permanent public tables), confirmed against the disposable DB. */
+/** 13-PLAN-NOTES catalog (40 permanent public tables) + 14-03 review queue (mcp_drafts, mcp_kb_proposals) = 42. */
 const EXPECTED_PUBLIC_TABLES = [
   'admin_actions', 'admin_users', 'ai_doc_activation_approvals', 'ai_doc_activation_evidence',
   'ai_doc_plan_decision_log', 'ai_doc_plan_shadow_log', 'ai_generation_locks', 'ai_usage',
   'byok_keys', 'byok_validation_log', 'chapter_reading_state', 'chapters', 'entitlements',
   'kb_nodes', 'kb_template_backfill_copies', 'kb_template_seed_catalog', 'ledger_entries',
-  'mcp_connections', 'moderation_review_requests', 'order_items', 'orders', 'payment_orders',
+  'mcp_connections', 'mcp_drafts', 'mcp_kb_proposals', 'moderation_review_requests', 'order_items',
+  'orders', 'payment_orders',
   'payment_topup_tiers', 'profiles', 'publication_notifications', 'reading_progress', 'reports',
   'user_sanctions', 'wallets', 'warning_acknowledgements', 'work_ai_instructions',
   'work_bookmarks', 'work_likes', 'work_subscriptions', 'works', 'world_branch_docs',
@@ -40,6 +41,8 @@ const SENSITIVE_0038 = [
   'wallets', 'ledger_entries', 'byok_keys', 'byok_validation_log', 'orders', 'order_items',
   'entitlements', 'payment_orders', 'mcp_connections', 'ai_usage',
 ];
+/** 14-03: review queue tables. Browser owner SELECT only; no DML grant or policy for any API role. */
+const REVIEW_TABLES = ['mcp_drafts', 'mcp_kb_proposals'] as const;
 const BLOCKED_TABLES = EXPECTED_PUBLIC_TABLES.filter((t) => !(READ_TABLES as readonly string[]).includes(t));
 
 /**
@@ -217,6 +220,8 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
           ? await query('select id from public.works where owner_id = any($1::uuid[])', [owners])
           : [];
         const works = [...new Set([f.wA, f.wA2, f.wAdel, f.wB, ...owned.map((row) => row.id as string)])].filter(Boolean);
+        await query('delete from public.mcp_drafts where owner_id = any($1::uuid[]) or work_id = any($2::uuid[])', [owners, works]);
+        await query('delete from public.mcp_kb_proposals where owner_id = any($1::uuid[]) or work_id = any($2::uuid[])', [owners, works]);
         await query('delete from public.work_likes where work_id = any($1::uuid[]) or user_id = any($2::uuid[])', [works, owners]);
         await query('delete from public.work_ai_instructions where work_id = any($1::uuid[])', [works]);
         await query('delete from public.chapters where work_id = any($1::uuid[])', [works]);
@@ -230,11 +235,12 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
   }, 180_000);
 
   describe('catalog', () => {
-    it('classifies every permanent public table (40) into blocked or owner-read', async () => {
+    it('classifies every permanent public table (42) into blocked or owner-read', async () => {
       const tables = await query(`select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
         where n.nspname = 'public' and c.relkind in ('r', 'p') and c.relpersistence = 'p' order by 1`);
       expect(tables.map((row) => row.relname as string).sort()).toEqual(EXPECTED_PUBLIC_TABLES);
-      expect(BLOCKED_TABLES).toHaveLength(36);
+      expect(BLOCKED_TABLES).toHaveLength(38);
+      for (const table of REVIEW_TABLES) expect(BLOCKED_TABLES).toContain(table);
       for (const table of SENSITIVE_0038) expect(BLOCKED_TABLES).toContain(table);
 
       const policies = await query(`select tablename, policyname, permissive, cmd, roles::text as roles, qual, with_check
@@ -293,7 +299,7 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
   });
 
   describe('blocked tables', () => {
-    it('OAuth claims see 0 rows (or are denied) on all 36 blocked tables while browser claims see own rows', async () => {
+    it('OAuth claims see 0 rows (or are denied) on all 38 blocked tables while browser claims see own rows', async () => {
       const oauthClaims = { ...aTok.claims, role: 'authenticated' };
       const browserClaims = { ...decodeClaims(aBrowser), role: 'authenticated' };
       const oauthCounts = await asClaims(oauthClaims, async () => {
@@ -498,6 +504,125 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       // The original live token is unaffected.
       expect(ids((await restRows('works', `id=eq.${f.wA}&select=id`, aTok.accessToken)).rows)).toEqual([f.wA]);
     }, 180_000);
+  });
+
+  describe('review queue tables (14-03)', () => {
+    const qIds = { dA: randomUUID(), kA: randomUUID(), dB: randomUUID() };
+    const hash = (n: number) => String(n).repeat(64).slice(0, 64);
+    const snapshot = async () => ({
+      drafts: await query('select id, status, body, owner_id from public.mcp_drafts where id = any($1::uuid[]) order by id', [[qIds.dA, qIds.dB]]),
+      kb: await query('select id, status, body, owner_id from public.mcp_kb_proposals where id = $1', [qIds.kA]),
+    });
+
+    beforeAll(async () => {
+      // Direct superuser inserts: no API role has an INSERT grant on these tables.
+      await query(`insert into public.mcp_drafts
+        (id, owner_id, work_id, chapter_id, oauth_client_id, client_name, redirect_host, body, body_hash) values
+        ($1, $3, $4, $5, $8, 'mcp-test', 'claude.ai', 'A draft', $9),
+        ($2, $6, $7, $10, $8, 'mcp-test', 'claude.ai', 'B draft', $9)`,
+      [qIds.dA, qIds.dB, writerA.id, f.wA, f.cDraft, writerB.id, f.wB, randomUUID(), hash(1), f.cB]);
+      await query(`insert into public.mcp_kb_proposals
+        (id, owner_id, work_id, kind, category, name, body, body_hash, oauth_client_id, client_name, redirect_host) values
+        ($1, $2, $3, 'create', '인물', 'A proposal', 'A kb body', $4, $5, 'mcp-test', 'claude.ai')`,
+      [qIds.kA, writerA.id, f.wA, hash(2), randomUUID()]);
+    });
+
+    it('has RLS, owner SELECT, the restrictive oauth_browser_only policy and SELECT-only grants', async () => {
+      const rls = await query(`select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and c.relname = any($1::text[]) order by 1`, [[...REVIEW_TABLES]]);
+      expect(rls.map((row) => ({ ...row }))).toEqual([...REVIEW_TABLES].sort().map((relname) => ({ relname, relrowsecurity: true })));
+      const policies = await query(`select tablename, policyname, permissive, cmd, roles::text as roles, qual, with_check
+        from pg_policies where schemaname = 'public' and tablename = any($1::text[])`, [[...REVIEW_TABLES]]);
+      for (const table of REVIEW_TABLES) {
+        const mine = policies.filter((p) => p.tablename === table);
+        // Exactly two policies: owner SELECT and the OAuth restriction. No write policy exists.
+        expect(mine.map((p) => p.cmd as string).sort(), table).toEqual(['ALL', 'SELECT']);
+        const own = mine.find((p) => p.cmd === 'SELECT')!;
+        expect(own, table).toMatchObject({ permissive: 'PERMISSIVE', roles: '{authenticated}' });
+        expect(String(own.qual), table).toMatch(/owner_id = \(\s*SELECT auth\.uid\(\)/i);
+        const oauth = mine.find((p) => p.policyname === 'oauth_browser_only');
+        expect(oauth, table).toMatchObject({ permissive: 'RESTRICTIVE', cmd: 'ALL', roles: '{authenticated}' });
+        expect(String(oauth!.qual), table).toMatch(/client_id[\s\S]*IS NULL/);
+        expect(String(oauth!.with_check), table).toMatch(/client_id[\s\S]*IS NULL/);
+        for (const [role, privilege, allowed] of [
+          ['authenticated', 'SELECT', true], ['authenticated', 'INSERT', false], ['authenticated', 'UPDATE', false],
+          ['authenticated', 'DELETE', false], ['anon', 'SELECT', false], ['anon', 'INSERT', false],
+        ] as const) {
+          const [row] = await query('select has_table_privilege($1, $2, $3) as ok', [role, `public.${table}`, privilege]);
+          expect(row.ok, `${role} ${privilege} ${table}`).toBe(allowed);
+        }
+      }
+    });
+
+    it('OAuth REST cannot read or write either table; rows stay unchanged', async () => {
+      const before = await snapshot();
+      for (const table of REVIEW_TABLES) {
+        const read = await restRows(table, 'select=id', aTok.accessToken);
+        expect([200, 401, 403], `${table}: ${read.status}`).toContain(read.status);
+        if (read.status === 200) expect(read.rows, table).toEqual([]);
+      }
+      const writes: Array<[string, string, unknown?]> = [
+        ['POST', 'mcp_drafts', { owner_id: writerA.id, work_id: f.wA, chapter_id: f.cDraft, oauth_client_id: aTok.clientId,
+          client_name: 'forged', redirect_host: 'forged.example', body: 'forged', body_hash: hash(3) }],
+        ['PATCH', `mcp_drafts?id=eq.${qIds.dA}`, { status: 'accepted', decided_at: new Date().toISOString() }],
+        ['DELETE', `mcp_drafts?id=eq.${qIds.dA}`],
+        ['POST', 'mcp_kb_proposals', { owner_id: writerA.id, work_id: f.wA, kind: 'create', category: '인물', name: 'forged',
+          body: 'forged', body_hash: hash(4), oauth_client_id: aTok.clientId, client_name: 'forged', redirect_host: 'forged.example' }],
+        ['PATCH', `mcp_kb_proposals?id=eq.${qIds.kA}`, { body: 'tampered' }],
+        ['DELETE', `mcp_kb_proposals?id=eq.${qIds.kA}`],
+      ];
+      for (const [method, path, body] of writes) {
+        const result = await rest(method, path, aTok.accessToken, body);
+        expect(result.status, `${method} ${path}`).not.toBe(201);
+        expect([401, 403, 404, 405, 200, 204], `${method} ${path}`).toContain(result.status);
+        if (result.status === 200) expect(result.json, `${method} ${path}`).toEqual([]);
+      }
+      expect(await snapshot()).toEqual(before);
+      expect(await query('select 1 from public.mcp_drafts where owner_id = $1 and body = $2', [writerA.id, 'forged'])).toHaveLength(0);
+      expect(await query('select 1 from public.mcp_kb_proposals where owner_id = $1 and name = $2', [writerA.id, 'forged'])).toHaveLength(0);
+
+      // SQL level under OAuth claims: nothing visible, insert denied.
+      await asClaims({ ...aTok.claims, role: 'authenticated' }, async () => {
+        for (const table of REVIEW_TABLES) expect(await visibleCount(table), table).toBe(0);
+        await query('savepoint ins');
+        await expect(query(`insert into public.mcp_drafts (owner_id, work_id, chapter_id, oauth_client_id, client_name, redirect_host, body, body_hash)
+          values ($1, $2, $3, $4, 'x', 'x', 'x', $5)`, [writerA.id, f.wA, f.cDraft, aTok.clientId, hash(5)]))
+          .rejects.toMatchObject({ code: '42501' });
+        await query('rollback to savepoint ins');
+      });
+    });
+
+    it('browser owner SELECTs only own rows; other writers and anon see nothing; browser DML is refused too', async () => {
+      const ownDrafts = await restRows('mcp_drafts', 'select=id', aBrowser);
+      expect(ownDrafts.status).toBe(200);
+      expect(ids(ownDrafts.rows)).toEqual([qIds.dA]);
+      expect(ids((await restRows('mcp_kb_proposals', 'select=id', aBrowser)).rows)).toEqual([qIds.kA]);
+
+      const bSession = (await writerB.browser.auth.getSession()).data.session!.access_token;
+      expect((await restRows('mcp_drafts', `id=eq.${qIds.dA}&select=id`, bSession)).rows).toEqual([]);
+      expect((await restRows('mcp_kb_proposals', `id=eq.${qIds.kA}&select=id`, bSession)).rows).toEqual([]);
+      expect(ids((await restRows('mcp_drafts', 'select=id', bSession)).rows)).toEqual([qIds.dB]);
+      for (const table of REVIEW_TABLES) {
+        const anon = await restRows(table, 'select=id', anonKey!);
+        expect([200, 401, 403], table).toContain(anon.status);
+        if (anon.status === 200) expect(anon.rows, table).toEqual([]);
+      }
+
+      // The owner's browser session cannot transition or forge rows either (RPC-only writes).
+      const before = await snapshot();
+      const writes: Array<[string, string, unknown?]> = [
+        ['PATCH', `mcp_drafts?id=eq.${qIds.dA}`, { status: 'accepted', decided_at: new Date().toISOString() }],
+        ['DELETE', `mcp_drafts?id=eq.${qIds.dA}`],
+        ['PATCH', `mcp_kb_proposals?id=eq.${qIds.kA}`, { status: 'rejected', decided_at: new Date().toISOString() }],
+        ['POST', 'mcp_drafts', { owner_id: writerA.id, work_id: f.wA, chapter_id: f.cDraft, oauth_client_id: aTok.clientId,
+          client_name: 'forged', redirect_host: 'forged.example', body: 'forged', body_hash: hash(6) }],
+      ];
+      for (const [method, path, body] of writes) {
+        const result = await rest(method, path, aBrowser, body);
+        expect([401, 403], `${method} ${path}`).toContain(result.status);
+      }
+      expect(await snapshot()).toEqual(before);
+    });
   });
 
   describe('SECURITY DEFINER RPC bypass (13-01b)', () => {
