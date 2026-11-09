@@ -99,7 +99,8 @@
 ### Integration Points
 - `app/mcp/route.ts`에 `save_draft`, `propose_kb_document`를 등록한다.
 - 작품 화면 레이아웃(헤더 배지, 회차·설정집 트리 배지, 에디터 안내줄)에 개수 조회를 더한다.
-- 마이그레이션 최신 번호는 0040(공유 DB 기준). 이 phase는 새 마이그레이션이 필요하고 일회용 DB에서만 검증한다.
+- 마이그레이션 최신 번호는 `0050_feed_public_read_cost.sql`이다(0040 다음 번호가 0050으로 건너뛰어 있음, 2026-11-09 디스크 확인). 이 phase의 새 마이그레이션은 **0051 이상**으로 잡고, 일회용 DB에서만 검증한다. plan 착수 시 `ls supabase/migrations`로 번호를 다시 확인한다.
+- **plan 검증 항목:** `checkWriteAccess`는 supabase 클라이언트를 받는다. OAuth bearer 클라이언트로 호출할 때 0038/0039의 RESTRICTIVE RLS·`mcp_reject_oauth_caller` 가드가 그 조회(profiles 등)를 막지 않는지 실DB 테스트로 확인한다. 막히면 정지 판정용 읽기 경로를 따로 설계한다(D-P14-15의 전제).
 
 </code_context>
 
