@@ -638,28 +638,47 @@ end; $$;
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | pending 상한 30건/작품(초안+KB 합산) | §3.5 | 숫자만 조정(SQL 함수 한 곳). 사용자 확정 필요 |
-| A2 | 초안 상한 30,000자, KB 제안 50,000자 | §1, §3 | 긴 회차 거절 증가. 사용자 분량 기준 확인 필요 |
+| A1 | pending 상한 30건/작품(초안+KB 합산) | §3.5 | 기본값 채택, 실행 전 이의 시 SQL·TS·테스트 조정 |
+| A2 | 초안 상한 30,000자, KB 제안 50,000자 | §1, §3 | 기본값 채택, 실행 전 이의 시 경계 테스트 포함 조정 |
 | A3 | `diff@9.0.0`의 합법성(slopcheck 미실행), `diffLines` 반환 형태·`timeout` 옵션 존재 | Standard Stack, §5 | 설치 후 타입 확인으로 해소. 옵션 없으면 입력 길이 상한으로 방어 |
 | A4 | `execCommand('insertText')`가 textarea에서 undo를 보존 | §1, Pitfall 5 | Ctrl+Z 요구(UI-SPEC #11)를 못 지킴 → 수동 검증, 폴백은 undo 없음 고지 |
 | A5 | 도구 3분할(`propose_kb_document`+`propose_kb_edit`) | §4 | 도구 수·테스트 기대값 변경 정도. 합치려면 optional nodeId + refine |
-| A6 | 폴더 ID를 AI가 알 수 없어 인자에서 제외 | §6 | 폴더 지정 UX 요구가 있으면 읽기 도구 확장(Phase 13 재오픈) 필요 |
-| A7 | 수정안 대상은 `scope='work'` 비템플릿 문서만(account_template·템플릿 제외) | §3.4 | 계정 공유 문서 수정안 요구 시 RPC 술어 확장 |
-| A8 | 새 pending dedupe는 pending 한정(거절/수락 내용 재제안은 허용) | §8 | AI가 거절 내용을 반복 제안해 작가 피로 → 별도 정책 필요 |
+| A6 | 폴더 ID를 AI가 알 수 없어 인자에서 제외 | §6 | 기본값 채택, 실행 전 이의 시 읽기 도구·UI 조정 |
+| A7 | 수정안 대상은 `scope='work'` 비템플릿 문서만(account_template·템플릿 제외) | §3.4 | 기본값 채택, 실행 전 이의 시 RPC 술어 조정 |
+| A8 | 새 pending dedupe는 pending 한정(거절/수락 내용 재제안은 허용) | §8 | 기본값 채택, 실행 전 이의 시 인덱스·RPC·테스트 조정 |
 | A9 | Next 정적 세그먼트가 `[workId]`보다 우선, `useSearchParams` Suspense 필요 여부 | §7 | node_modules 없어 docs 미확인. 추정 틀리면 라우트 이동/래퍼 조정 |
 | A10 | 한국어 웹소설 한 회 통상 5~6천 자 | §1 | 상한 근거 약화 |
 | A11 | 통상 Supabase Postgres 버전에서 `sha256()`/`hashtextextended` 사용 가능 | §2~3 | 이미 0037이 `hashtextextended` 사용 [VERIFIED], `sha256`은 PG11+ [ASSUMED 일회용 DB 버전] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **pending 상한 30과 본문 상한 30,000자를 확정할 것인가?**
+   - **RESOLVED:** A1/A2 기본값 30건/작품, 초안 30,000자, KB 50,000자를 채택한다. 실행 전 사용자 이의가 있으면 SQL·TS 상수와 경계 테스트를 함께 변경한다.
    - 알려진 것: 숫자는 plan 재량(D-P14-13/04). 근거는 기존 상수와 통상 분량.
    - 불명: 작가의 실제 한 회 분량·한 작품 검토 용량.
    - 권고: 30 / 30,000 / 50,000으로 시작, SQL 함수·TS 상수 각 한 곳에서만 정의하고 값 변경 시 테스트가 두 곳을 함께 검증.
 2. **신규 문서 제안에서 폴더 지정을 AI에게 줄 것인가?** 현재는 category+name만, 위치는 수락 시. UI-SPEC E의 "제안한 폴더를 쓸 수 없어요" 문구는 *카테고리 루트가 없거나 중복·변경된 경우*에 사용. 권고: 그대로 진행(읽기 도구가 폴더 ID를 노출하지 않음).
+   - **RESOLVED:** A6 기본값 채택: AI 입력에는 폴더 ID를 두지 않고 작가가 수락 시 선택한다. 실행 전 사용자 이의가 있으면 도구 입력·읽기 범위·수락 UI를 함께 변경한다.
 3. **거절된 내용의 동일 재제안 허용 여부?** 권고: 허용(pending dedupe만). 반복 제안 억제는 사용 후 판단.
+   - **RESOLVED:** A8 기본값 채택: pending만 중복 제거하고 처리 완료 내용의 재제안은 허용한다. 실행 전 사용자 이의가 있으면 부분 unique 인덱스·RPC·테스트를 함께 변경한다.
 4. **`SiteHeader` prop 확장 vs studio 전용 헤더 래퍼?** 권고: 선택 prop `extraNav` 1개 추가(영향 최소).
+   - **RESOLVED:** 14-10의 `SiteHeader` 선택 prop `extraNav`를 채택한다.
 5. **KB 수락이 CRLF 원문을 LF로 바꾸는 것을 허용?** 권고: 허용하고 문서화(대부분의 설정집은 브라우저 `<textarea>` 입력이라 LF). 아니면 줄 단위로 원래 종결자를 보존하는 변형 필요.
+   - **RESOLVED:** KB 수정안 수락 결과의 CRLF→LF를 허용한다. 14-06 테스트와 SUMMARY에 원문 줄 끝 변화를 명시하고 14-04 CAS 테스트에서 결과를 확인한다.
+
+### SQL·TS 정규화/해시 공유 벡터
+
+14-06의 `lib/review/text.ts` 단위 테스트와 14-12의 `propose-write.database.test.ts` DB 비교에 동일한 입력·기대 정규화·UTF-8 SHA-256 표를 사용한다. 해시는 기대 정규화 문자열의 UTF-8 바이트에서 계산한다.
+
+| 벡터 | 입력 | 기대 정규화·경계 |
+|---|---|---|
+| CRLF | `a\r\nb` | `a\nb`; KB 수정안 수락 시 원문 CRLF가 LF로 바뀜 |
+| bidi | `a\u202Eb` | `ab`; 양방향 제어문자 제거 |
+| lone surrogate | `a\uD800b` | `a\uFFFDb`; 잘못된 서로게이트 교정 |
+| 초안 경계 | `a` × 30,000 / 30,001 | 전자는 허용, 후자는 `too_large` |
+| KB 경계 | `a` × 50,000 / 50,001 | 전자는 허용, 후자는 `too_large` |
+
+DB 테스트는 같은 벡터마다 SQL 정규화 결과·`encode(sha256(convert_to(..., 'UTF8')), 'hex')`와 TS 정규화 결과·`createHash('sha256')` 결과를 직접 비교한다. 경계 길이는 정규화 후 기준으로 단정한다.
 
 ## Environment Availability
 
@@ -669,7 +688,7 @@ end; $$;
 | npm | `diff` 설치, vitest | ✓ | (npm view 동작 확인) | — |
 | `node_modules/` | 테스트·Next docs 열람 | ✗ (이 체크아웃에 없음) | — | **Wave 0에 `npm ci` 필요**, 이후 `node_modules/next/dist/docs/` 확인 |
 | `.env.disposable` | 실DB 스위트 | ✓ 파일 존재(내용은 읽지 않음, `node scripts/check-env.mjs .env.disposable`로만 확인) | — | 없으면 DB 스위트는 skip이 아니라 **중단·보고**(13-VALIDATION 규약) |
-| 일회용 Supabase 프로젝트 (0001~0050 적용) | DB 스위트, 0051+ 검증 | 미확인(가정: 13 phase에서 0037~0039 적용됨, 0050 적용 여부 확인 필요) | — | `scripts/apply-pending-migrations.mjs --env-file .env.disposable --expect-ref <ref> --from 0040 --to 0051 --execute`(공유 ref는 스크립트가 거부) |
+| 일회용 Supabase 프로젝트 (0001~0050 적용) | DB 스위트, 0051+ 검증 | 미확인(14-01에서 0037/0038/0039/0040/0050 각각 확인) | — | 선행 적용 상태 확인 뒤 신규 파일은 `node scripts/apply-pending-migrations.mjs --env-file .env.disposable --expect-ref <일회용-ref> --from 0051 --to 0051 --execute`, 다음 0052도 `--from 0052 --to 0052`로 별도 적용(공유 ref는 스크립트가 거부) |
 | 공유 Supabase 프로젝트 | — | 사용 금지 | — | 0037~ 미적용 상태이며 별도 승인 필요 |
 
 **Missing dependencies with no fallback:** `node_modules`(Wave 0에서 설치). **Missing with fallback:** 없음.
