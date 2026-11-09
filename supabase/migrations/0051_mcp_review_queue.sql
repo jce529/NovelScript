@@ -163,7 +163,242 @@ revoke all on public.mcp_kb_proposals from public, anon, authenticated;
 grant select on public.mcp_drafts to authenticated;
 grant select on public.mcp_kb_proposals to authenticated;
 
--- 4. MCP proposal RPCs: added by 14-03 Task 2.
+-- ---------------------------------------------------------------------------
+-- 4. MCP proposal RPCs (catalog class: guard)
+-- Common steps, in this order:
+--   a) OAuth only + live grant: mcp_grant_is_live()            -> 42501
+--   b) app grant scope propose_draft from mcp_connections       -> 42501
+--   c) suspended / withdrawn: user_can_write(auth.uid())        -> mcp_write_denied
+--   d) normalize + size check                                   -> mcp_invalid_input
+--   e) ownership re-check of every untrusted id (D-P14-17)      -> mcp_not_found
+--      (never says whether the row exists)
+--   f) per-work advisory lock -> pending dedupe -> cap -> insert -> mcp_pending_limit
+-- Retrying an identical pending proposal answers duplicate=true even at cap.
+-- ---------------------------------------------------------------------------
+
+create or replace function public.mcp_save_draft(p_work_id uuid, p_chapter_id uuid, p_body text)
+returns table(out_id uuid, out_duplicate boolean)
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_user uuid := (select auth.uid());
+  v_client uuid;
+  v_conn public.mcp_connections%rowtype;
+  v_body text;
+  v_hash text;
+  v_id uuid;
+begin
+  if v_user is null or (select auth.jwt() ->> 'client_id') is null or not public.mcp_grant_is_live() then
+    raise exception 'live MCP grant required' using errcode = '42501';
+  end if;
+  v_client := ((select auth.jwt()) ->> 'client_id')::uuid;
+  select c.* into v_conn from public.mcp_connections as c
+   where c.user_id = v_user and c.oauth_client_id = v_client and c.revoked_at is null;
+  if not found or not ('propose_draft' = any(v_conn.scopes)) then
+    raise exception 'mcp_scope' using errcode = '42501';
+  end if;
+  if not public.user_can_write(auth.uid()) then
+    raise exception 'mcp_write_denied';
+  end if;
+
+  v_body := public.mcp_normalize_proposal_text(p_body);
+  if v_body is null or pg_catalog.btrim(v_body, E' \t\n') = ''
+     or pg_catalog.char_length(v_body) > 30000 then
+    raise exception 'mcp_invalid_input';
+  end if;
+
+  if p_work_id is null or p_chapter_id is null or not exists (
+    select 1 from public.chapters as ch join public.works as w on w.id = ch.work_id
+     where ch.id = p_chapter_id and ch.work_id = p_work_id and w.owner_id = v_user
+       and ch.deleted_at is null and w.deleted_at is null
+  ) then
+    raise exception 'mcp_not_found';
+  end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('mcp_review:' || p_work_id::text, 0));
+  v_hash := pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_body, 'UTF8')), 'hex');
+  select d.id into v_id from public.mcp_drafts as d
+   where d.chapter_id = p_chapter_id and d.body_hash = v_hash and d.status = 'pending';
+  if found then
+    return query select v_id, true;
+    return;
+  end if;
+  if (select pg_catalog.count(*) from public.mcp_drafts as d where d.work_id = p_work_id and d.status = 'pending')
+   + (select pg_catalog.count(*) from public.mcp_kb_proposals as k where k.work_id = p_work_id and k.status = 'pending')
+     >= public.mcp_review_pending_cap() then
+    raise exception 'mcp_pending_limit';
+  end if;
+
+  insert into public.mcp_drafts
+    (owner_id, work_id, chapter_id, oauth_client_id, client_name, redirect_host, body, body_hash)
+  values (v_user, p_work_id, p_chapter_id, v_client,
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_conn.client_name), ''), 'unknown'), 200),
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_conn.redirect_host), ''), 'unknown'), 253),
+    v_body, v_hash)
+  returning id into v_id;
+  return query select v_id, false;
+end;
+$$;
+
+create or replace function public.mcp_propose_kb_create(
+  p_work_id uuid, p_category text, p_name text, p_body text
+) returns table(out_id uuid, out_duplicate boolean)
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_user uuid := (select auth.uid());
+  v_client uuid;
+  v_conn public.mcp_connections%rowtype;
+  v_name text;
+  v_body text;
+  v_hash text;
+  v_id uuid;
+begin
+  if v_user is null or (select auth.jwt() ->> 'client_id') is null or not public.mcp_grant_is_live() then
+    raise exception 'live MCP grant required' using errcode = '42501';
+  end if;
+  v_client := ((select auth.jwt()) ->> 'client_id')::uuid;
+  select c.* into v_conn from public.mcp_connections as c
+   where c.user_id = v_user and c.oauth_client_id = v_client and c.revoked_at is null;
+  if not found or not ('propose_draft' = any(v_conn.scopes)) then
+    raise exception 'mcp_scope' using errcode = '42501';
+  end if;
+  if not public.user_can_write(auth.uid()) then
+    raise exception 'mcp_write_denied';
+  end if;
+
+  -- Only the five user categories: never 'template' (locked templates) and
+  -- never chapter folders or custom roots. No folder argument (A6).
+  if p_category is null or p_category not in ('인물', '장소', '사건', '세력', '아이템') then
+    raise exception 'mcp_invalid_input';
+  end if;
+  v_name := public.mcp_normalize_label(p_name);
+  if v_name is null or pg_catalog.char_length(v_name) not between 1 and 80
+     or pg_catalog.strpos(v_name, '/') > 0 then
+    raise exception 'mcp_invalid_input';
+  end if;
+  v_body := public.mcp_normalize_proposal_text(p_body);
+  if v_body is null or pg_catalog.btrim(v_body, E' \t\n') = ''
+     or pg_catalog.char_length(v_body) > 50000 then
+    raise exception 'mcp_invalid_input';
+  end if;
+
+  if p_work_id is null or not exists (
+    select 1 from public.works as w
+     where w.id = p_work_id and w.owner_id = v_user and w.deleted_at is null
+  ) then
+    raise exception 'mcp_not_found';
+  end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('mcp_review:' || p_work_id::text, 0));
+  v_hash := pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_body, 'UTF8')), 'hex');
+  select k.id into v_id from public.mcp_kb_proposals as k
+   where k.work_id = p_work_id and k.kind = 'create' and k.category = p_category
+     and k.name = v_name and k.body_hash = v_hash and k.status = 'pending';
+  if found then
+    return query select v_id, true;
+    return;
+  end if;
+  if (select pg_catalog.count(*) from public.mcp_drafts as d where d.work_id = p_work_id and d.status = 'pending')
+   + (select pg_catalog.count(*) from public.mcp_kb_proposals as k where k.work_id = p_work_id and k.status = 'pending')
+     >= public.mcp_review_pending_cap() then
+    raise exception 'mcp_pending_limit';
+  end if;
+
+  insert into public.mcp_kb_proposals
+    (owner_id, work_id, kind, target_node_id, category, name, body, body_hash,
+     base_content, base_hash, oauth_client_id, client_name, redirect_host)
+  values (v_user, p_work_id, 'create', null, p_category, v_name, v_body, v_hash, null, null, v_client,
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_conn.client_name), ''), 'unknown'), 200),
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_conn.redirect_host), ''), 'unknown'), 253))
+  returning id into v_id;
+  return query select v_id, false;
+end;
+$$;
+
+create or replace function public.mcp_propose_kb_edit(p_work_id uuid, p_node_id uuid, p_body text)
+returns table(out_id uuid, out_duplicate boolean)
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_user uuid := (select auth.uid());
+  v_client uuid;
+  v_conn public.mcp_connections%rowtype;
+  v_node_name text;
+  v_base text;
+  v_body text;
+  v_hash text;
+  v_id uuid;
+begin
+  if v_user is null or (select auth.jwt() ->> 'client_id') is null or not public.mcp_grant_is_live() then
+    raise exception 'live MCP grant required' using errcode = '42501';
+  end if;
+  v_client := ((select auth.jwt()) ->> 'client_id')::uuid;
+  select c.* into v_conn from public.mcp_connections as c
+   where c.user_id = v_user and c.oauth_client_id = v_client and c.revoked_at is null;
+  if not found or not ('propose_draft' = any(v_conn.scopes)) then
+    raise exception 'mcp_scope' using errcode = '42501';
+  end if;
+  if not public.user_can_write(auth.uid()) then
+    raise exception 'mcp_write_denied';
+  end if;
+
+  v_body := public.mcp_normalize_proposal_text(p_body);
+  if v_body is null or pg_catalog.btrim(v_body, E' \t\n') = ''
+     or pg_catalog.char_length(v_body) > 50000 then
+    raise exception 'mcp_invalid_input';
+  end if;
+
+  -- Target (A7): the caller's own, live, unlocked, non-template FILE in this
+  -- work's scope. Locked templates, account templates, folders, other works
+  -- and other writers' documents are all indistinguishable "not found" (D-P14-09).
+  select n.name, coalesce(n.content, '') into v_node_name, v_base
+    from public.kb_nodes as n join public.works as w on w.id = n.work_id
+   where n.id = p_node_id and n.work_id = p_work_id and n.owner_id = v_user and w.owner_id = v_user
+     and n.scope = 'work' and n.node_type = 'file' and n.is_locked = false and n.category <> 'template'
+     and n.deleted_at is null and w.deleted_at is null;
+  if not found or p_work_id is null then
+    raise exception 'mcp_not_found';
+  end if;
+  if pg_catalog.char_length(v_base) > 50000 then
+    raise exception 'mcp_too_large';
+  end if;
+  if v_body = v_base then
+    raise exception 'mcp_no_change';
+  end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('mcp_review:' || p_work_id::text, 0));
+  v_hash := pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_body, 'UTF8')), 'hex');
+  select k.id into v_id from public.mcp_kb_proposals as k
+   where k.target_node_id = p_node_id and k.kind = 'edit' and k.body_hash = v_hash and k.status = 'pending';
+  if found then
+    return query select v_id, true;
+    return;
+  end if;
+  if (select pg_catalog.count(*) from public.mcp_drafts as d where d.work_id = p_work_id and d.status = 'pending')
+   + (select pg_catalog.count(*) from public.mcp_kb_proposals as k where k.work_id = p_work_id and k.status = 'pending')
+     >= public.mcp_review_pending_cap() then
+    raise exception 'mcp_pending_limit';
+  end if;
+
+  insert into public.mcp_kb_proposals
+    (owner_id, work_id, kind, target_node_id, category, name, body, body_hash,
+     base_content, base_hash, oauth_client_id, client_name, redirect_host)
+  values (v_user, p_work_id, 'edit', p_node_id, null,
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_node_name), ''), 'untitled'), 200),
+    v_body, v_hash,
+    v_base, pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_base, 'UTF8')), 'hex'),
+    v_client,
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_conn.client_name), ''), 'unknown'), 200),
+    pg_catalog.left(coalesce(nullif(public.mcp_normalize_label(v_conn.redirect_host), ''), 'unknown'), 253))
+  returning id into v_id;
+  return query select v_id, false;
+end;
+$$;
+
+revoke all on function public.mcp_save_draft(uuid, uuid, text) from public, anon, service_role;
+revoke all on function public.mcp_propose_kb_create(uuid, text, text, text) from public, anon, service_role;
+revoke all on function public.mcp_propose_kb_edit(uuid, uuid, text) from public, anon, service_role;
+grant execute on function public.mcp_save_draft(uuid, uuid, text) to authenticated;
+grant execute on function public.mcp_propose_kb_create(uuid, text, text, text) to authenticated;
+grant execute on function public.mcp_propose_kb_edit(uuid, uuid, text) to authenticated;
 
 notify pgrst, 'reload schema';
 commit;

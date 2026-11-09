@@ -81,7 +81,10 @@ const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
   'mcp_connect(uuid,text,text,text[])': 'keep',
   'mcp_disconnect(uuid)': 'keep',
   'mcp_grant_is_live()': 'guard',
+  'mcp_propose_kb_create(uuid,text,text,text)': 'guard',
+  'mcp_propose_kb_edit(uuid,uuid,text)': 'guard',
   'mcp_read_owned_chapter_content(uuid)': 'guard',
+  'mcp_save_draft(uuid,uuid,text)': 'guard',
   'open_chapter_reading(uuid,uuid,uuid)': 'block',
   'pay_purchase_order(uuid)': 'block',
   'read_chapter_content(uuid)': 'block',
@@ -99,6 +102,10 @@ const RAISING_BLOCKED_RPCS = Object.entries(EXPOSED_DEFINER_RPCS)
   .filter(([sig, kind]) => kind === 'block' && sig !== 'current_user_can_write()')
   .map(([sig]) => sig);
 const GUARD_MESSAGE = 'browser session required';
+/** 14-03: the only OAuth write paths. Each inserts pending proposals only. */
+const PROPOSE_RPCS = [
+  'mcp_save_draft(uuid,uuid,text)', 'mcp_propose_kb_create(uuid,text,text,text)', 'mcp_propose_kb_edit(uuid,uuid,text)',
+] as const;
 
 /** `name(uuid,text)` -> `public.name($1::uuid, null::text)` with random uuids for uuid params. */
 function callSql(sig: string): string {
@@ -649,6 +656,16 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       }
       expect(src('mcp_authorize_call()')).toContain('oauth_consents');
       expect(src('mcp_read_owned_chapter_content(uuid)')).toContain('mcp_grant_is_live()');
+      for (const sig of PROPOSE_RPCS) {
+        const body = src(sig);
+        expect(body, sig).toContain('mcp_grant_is_live()');
+        expect(body, sig).toContain('user_can_write(auth.uid())');
+        expect(body, sig).toContain("'propose_draft' = any(v_conn.scopes)");
+        expect(body, sig).toContain('pg_advisory_xact_lock');
+        expect(body, sig).toContain('mcp_review_pending_cap()');
+        // Proposals only: never touches chapters or kb_nodes rows.
+        expect(body, sig).not.toMatch(/update\s+public\.(chapters|kb_nodes)|insert\s+into\s+public\.(chapters|kb_nodes)|delete\s+from/i);
+      }
       // plpgsql guards run first: nothing but declarations precede them.
       for (const sig of RAISING_BLOCKED_RPCS) {
         const row = rows.find((r) => String(r.sig).replace(/^public\./, '') === sig)!;
@@ -665,6 +682,29 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
         where n.nspname = 'public' and p.proname = 'mcp_reject_oauth_caller'`);
       expect(helper).toEqual([{ prosecdef: false, anon_exec: false, auth_exec: false, service_exec: false }]);
+    });
+
+    it('locks down the 14-03 proposal RPCs and their internal helpers', async () => {
+      const rows = await query(`select p.oid::regprocedure::text as sig, p.prosecdef, coalesce(p.proconfig, array[]::text[]) as config,
+          p.proacl::text as acl,
+          has_function_privilege('anon', p.oid, 'execute') as anon_exec,
+          has_function_privilege('authenticated', p.oid, 'execute') as auth_exec,
+          has_function_privilege('service_role', p.oid, 'execute') as service_exec
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname in ('mcp_save_draft', 'mcp_propose_kb_create', 'mcp_propose_kb_edit',
+          'mcp_review_pending_cap', 'mcp_normalize_proposal_text', 'mcp_normalize_label')`);
+      expect(rows).toHaveLength(6);
+      for (const fn of rows) {
+        const sig = String(fn.sig).replace(/^public\./, '');
+        const rpc = (PROPOSE_RPCS as readonly string[]).includes(sig);
+        expect(fn.prosecdef, sig).toBe(rpc);
+        expect(fn.config, sig).toContain('search_path=""');
+        expect(fn.anon_exec, sig).toBe(false);
+        expect(fn.auth_exec, sig).toBe(rpc);
+        expect(fn.service_exec, sig).toBe(false);
+        expect(String(fn.acl), sig).not.toMatch(/[{,]=X/);
+      }
+      expect((await query('select public.mcp_review_pending_cap() as cap'))[0].cap).toBe(30);
     });
 
     it('rejects every blocked RPC for OAuth claims before it reads or writes, and not for browser claims', async () => {
