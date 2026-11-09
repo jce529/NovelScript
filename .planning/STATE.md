@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
-status: completed
+status: executing
 stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-11-09T12:16:32.922Z"
-last_activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
+last_updated: "2026-11-09T12:59:09.529Z"
+last_activity: 2026-11-09
 progress:
   total_phases: 21
   completed_phases: 11
-  total_plans: 168
-  completed_plans: 160
+  total_plans: 180
+  completed_plans: 161
   percent: 52
 ---
 
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** 재개 phase 보완 plan의 실DB·브라우저 검증 (일회용 Supabase 프로젝트에 0024~0036 적용 후)
+**Current focus:** Phase 14 — MCP 쓰기 도구 + 스튜디오 리뷰 큐
 
 ## Current Position
 
-Phase: 재개 phase 2·3·4·5·7·10·11·16·18 — 보완 plan 코드 완료
-Plan: 자동 실행 가능한 plan 전부 완료. 남은 plan 10개(전부 수동 gate): 03-19, 03-20, 04-12, 05-07, 07-15, 10-10, 11-08(Task 2 UAT), 11-12, 16-03, 18-12
-Status: Code complete — 실DB·브라우저 검증 대기 (단위 테스트 161개 파일 2,516개 통과, tsc·eslint 오류 0)
+Phase: 14 (MCP 쓰기 도구 + 스튜디오 리뷰 큐) — EXECUTING
+Plan: 2 of 12
+Status: Ready to execute
 **2026-11-01 병합:** Phase 12(12-01~05 완료, 12-06 Task 2 수동 대기)와 Phase 17(17-01~07 코드 완료, 수동 UAT 대기)을 master에 병합·push했다. 두 phase 모두 사람 검증 전이라 완료로 올리지 않았다. 남은 수동 항목은 `12-06-SUMMARY.md`·`17-UAT.md`의 '수동 확인 필요' 절. Phase 19(작가용 작품 홈 디자인)는 ROADMAP에만 등록, discuss 전.
 **2026-11-03 Phase 13 완료·master 병합(6d69b29):** 6/6 plan(9커밋)이 master에 `--no-ff`로 병합됐다(push 안 함). 일회용 DB(`anzafn…`)+터널+`next start`로 실제 Claude 커스텀 커넥터를 인수했다 — 연결, 읽기 전용 그룹 인식, "항상 허용" 후 읽기 도구 6개 무확인 실행, 본인 데이터만 반환(타인 작품 미노출), 해제 후 같은 연결 호출 차단 통과(12-06 Task 2 #3~#6·#10에 해당). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 12-06 #7·#8·#9는 pending이라 Phase 12는 완료로 올리지 않았다. 병합 후 `tests/mcp`+`tests/ai` 1339개 통과, 22개 실패는 모두 DB 연동 테스트(`tests/ai/chat`·`ai-service-settlement.database`·`ai-usage-db`, 환경 없이 postgres 접속 불가)이며 병합 전과 같은 수, tsc 오류 0건. 남은 것: 0037·0038·0039는 공유 DB 미적용(별도 승인, 이 순서로 적용), 일회용 DB의 임시 작가·작품 "전은재 개패기"는 0023 보호로 삭제 불가(live MCP grant 0), 일회용 Supabase Site URL은 원래 값 이력이 없어 `http://localhost:3100`으로 복구(원래 값 미확인), 터널 터미널 종료는 사용자 몫. 응답 프로토콜 기본 제외는 사용자 확정 기록 없이 계획대로 진행. 워크트리 `.env.disposable` 사본은 삭제했다.
 
-Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
+Last activity: 2026-11-09
 
 **Phase 2:** 2026-10-19 완료(검증 포함). 일회용 DB(0001~0023)와 브라우저 UAT 통과, BUG-02·03 수정. 실제 터치 기기·AI 응답 진행 중 접기는 수용(미검증) 항목. 근거는 `02-13-SUMMARY.md`·`02-VERIFICATION.md`.
 
@@ -178,13 +178,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-11-09T12:16:32.906Z
+Last session: 2026-11-09T12:59:09.515Z
 Stopped at: Phase 14 UI-SPEC approved
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
   - **v1.0 잔여:** Phase 5 05-03~07 (Toss 키 대기), Phase 6·7·15·16 브라우저 UAT.
 
-Resume file: .planning/phases/14-mcp/14-UI-SPEC.md
+Resume file: None
 
 - **[v1.1 Phase 9] Complete (2026-09-29).** OpenAI(Responses API)·Anthropic(Messages API) 어댑터, 제공자별 단가표, 계정 기본 제공자·모델 설정(`/studio/settings/ai-providers`, `profiles.default_provider/default_model`)이 들어갔다. 라이브 호출(gpt-4o-mini, gpt-5.6-terra, claude-haiku-4-5, claude-sonnet-5 성공)과 브라우저 UAT 통과. 마이그레이션은 0010 충돌로 `0013_ai_provider_defaults.sql`이며 테스트 프로젝트에 적용됨. 실행은 Codex CLI `gpt-6-sol`(plan별 순차), 검증은 gsd-verifier(sonnet). 교훈: 모킹 테스트가 못 잡은 결함 3건(추론 모델 `temperature` 400, `profiles` 컬럼 단위 UPDATE grant 누락, 선택기 raw 값 표시)은 라이브/브라우저 검증에서만 드러났다 — `profiles`에 컬럼을 추가하는 마이그레이션은 0006의 컬럼 단위 grant도 함께 갱신해야 한다. UAT용 일회용 계정(`test-…@novelscript.test`)이 원장 FK 때문에 삭제되지 않고 남아 있다.

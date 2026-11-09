@@ -673,7 +673,7 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 19
-**Plans:** 0/12 plans executed
+**Plans:** 1/12 plans executed
 
 Plans:
 
@@ -715,7 +715,7 @@ Plans:
 | 11. BYOK 호출 경로 · 사용 기록 · 실패 UX | 11/13 | Code complete — 11-08 Task 2(브라우저 UAT 6건)·11-12(실DB 회귀 + UAT) 대기. 11-09~11·13 완료(0030 공유 DB 적용 2026-11-05) | - |
 | 12. MCP OAuth 기반 · 연결/해제 | 5/6 | Code complete — 12-06 Task 2는 #3~#6·#10(Claude 커넥터 등록·승인·호출·해제 후 차단·정리)이 일회용 DB 실인수에서 통과(Phase 13 세션 수행, 근거 `13-VALIDATION.md`). #7(동의 화면 상태)·#8(375px·접근성)·#9(1시간 후 refresh)는 pending. 0037·0038 공유 DB 적용 2026-11-05. MCP-01·MCP-08은 아직 완료 아님. 항목은 `12-06-SUMMARY.md` '수동 확인 필요' | - |
 | 13. MCP 읽기 도구 + 집필 컨텍스트 번들 | 6/6 | Complete (2026-11-03 master 병합 6d69b29) — 일회용 DB에서 실제 Claude 커스텀 커넥터 인수 통과(연결·읽기 전용 그룹 인식·항상 허용 후 읽기 도구 무확인 실행·본인 데이터만 반환·해제 후 차단). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 0037~0040 공유 DB 적용 2026-11-05(백업 없이, 테스트 데이터만 있음). 근거 `13-VALIDATION.md` | 2026-11-03 |
-| 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 0/12 | Planned    |  |
+| 14. MCP 쓰기 도구 + 스튜디오 리뷰 큐 | 1/12 | In Progress|  |
 | 15. Jev 선계획 기반 AI 문서 생성 · 저장 위치 선택 | 11/11 | Code complete (activation blocked) | 2026-09-27 |
 | 16. 스튜디오 작업 흐름 확장 (BYOK 요약 · 설정 문서 AI · 파일 업로드 · 모바일) | 2/3 | Code complete — 16-03(브라우저 UAT, 수동) 대기. 16-01·02 완료(모바일 탭 연결), STUDIO-04 범위 충돌 미결 | - |
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 7/7 | Code complete — 수동 UAT(실키·실기기·E1·E2 등 `17-UAT.md` M1~M13) 대기. 코드 완료이며 검증 완료 아님 | - |
