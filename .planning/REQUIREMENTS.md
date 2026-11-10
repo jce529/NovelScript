@@ -281,9 +281,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | MCP-02 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | MCP-03 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | MCP-04 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
-| MCP-05 | Phase 14 | Mapped |
-| MCP-06 | Phase 14 | Mapped |
-| MCP-07 | Phase 14 | Mapped |
+| MCP-05 | Phase 14 | Code complete (master 병합·공유 DB 0041~0044 적용 2026-11-10, 일회용 DB 자동 검증 통과, 14-09 실제 Claude·화면 수동 인수 pending) |
+| MCP-06 | Phase 14 | Code complete (master 병합·공유 DB 0041~0044 적용 2026-11-10, 일회용 DB 자동 검증 통과, 14-09 실제 Claude·화면 수동 인수 pending) |
+| MCP-07 | Phase 14 | Code complete (master 병합·공유 DB 0041~0044 적용 2026-11-10, 일회용 DB 자동 검증 통과, 14-09 실제 Claude·화면 수동 인수 pending) |
 | MCP-08 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
 | MCP-09 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | AIDOC-01 | Phase 15 | Code complete (activation blocked; browser UAT pending) |

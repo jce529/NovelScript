@@ -81,7 +81,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | BYOK-01~04 (키 등록·검증·마스킹·삭제) | 완료 (Phase 10). Vault 보관, 계정 삭제 시 시크릿 정리(0015_byok_secret_cleanup) |
 | COST-01 | 완료 (Phase 8, 멱등 차감) |
 | PROV-06, BYOK-05~09, COST-02 | 부분 구현(COST-02는 서비스 경로 0원 원장 행으로 미충족, Phase 11 재개) — 코드 완료(Phase 11, 11-01~07, `0018_ai_usage`), `11-VERIFICATION` human_needed: 브라우저 UAT 6건·잔액 0 BYOK 실호출 확인 대기 |
-| MCP-01~09 | 부분 구현 — MCP-02·03·04·09(Phase 13)는 master 병합 완료, 일회용 DB에서 실제 Claude 커넥터 인수 통과(0037~0040 공유 DB 적용 2026-11-05). MCP-01·08(Phase 12)은 실제 왕복 통과했으나 12-06 #7·#8·#9 pending. MCP-05~07은 Phase 14 미구현 |
+| MCP-01~09 | 부분 구현 — MCP-02·03·04·09(Phase 13)는 master 병합 완료, 일회용 DB에서 실제 Claude 커넥터 인수 통과(0037~0040 공유 DB 적용 2026-11-05). MCP-01·08(Phase 12)은 실제 왕복 통과했으나 12-06 #7·#8·#9 pending. MCP-05~07(Phase 14)은 코드 완료·master 병합 — 제안 RPC·결정 RPC·리뷰 큐 UI·패치 형식(`edits[]`, 0041~0044), 공유 DB 적용 2026-11-10, 실제 Claude·화면 수동 인수(14-09) pending |
 | AIDOC-01~04 | 코드 완료(Phase 15), 활성화 보류·브라우저 UAT 대기 |
 | STUDIO-01~04 (BYOK 요약·설정 문서 AI·파일 업로드·모바일) | 코드 완료(Phase 16, GSD 밖 구현), Jev·브라우저·모바일 실사용 검증 대기. Phase 16 재개: STUDIO-04는 청사진 모바일 하단 탭·통합 설정 허브와 16-CONTEXT 결정이 충돌 |
 | BUGFIX-01~05 | 미구현 — Phase 17 계획 전(`17-CONTEXT.md`만 존재) |
@@ -152,7 +152,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
-- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다. 2026-10-19 기준 최신은 `0036_world_tree_reader_visibility`다. `0022`·`0023`(Phase 2 템플릿)은 일회용 DB에서 검증됐고, `0024`~`0027`·`0029`·`0030`·`0032`~`0036`은 파일만 있고 어떤 DB에도 적용·실행되지 않았다. `0028`·`0031`은 의도적 결번이다. 공유 프로젝트 적용 전에 일회용 DB에서 먼저 검증한다.
+- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다. 2026-10-19 기준 최신은 `0036_world_tree_reader_visibility`였고, 2026-11-10 기준으로는 Phase 12·13의 `0037`~`0039`, `0040`(soft_delete_kb_node 가드 복구), Phase 14의 `0041_mcp_proposals`·`0042_mcp_proposal_decisions`·`0043_mcp_proposal_multi_draft`·`0044_mcp_proposal_patches`, BUG-02의 `0050_feed_public_read_cost`(공유 DB 미적용)가 더해졌다. 공유 DB는 0001~0044(0028·0031 결번 제외, 0050 제외)까지 적용됐다. `0022`·`0023`(Phase 2 템플릿)은 일회용 DB에서 검증됐고, `0024`~`0027`·`0029`·`0030`·`0032`~`0036`은 파일만 있고 어떤 DB에도 적용·실행되지 않았다. `0028`·`0031`은 의도적 결번이다. 공유 프로젝트 적용 전에 일회용 DB에서 먼저 검증한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`
