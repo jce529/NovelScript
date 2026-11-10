@@ -1,0 +1,72 @@
+<title>MCP 리뷰 큐 전체 화면</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 실제 스튜디오 셸(헤더 / 좌측 폴더 트리 / 집필 무대 / AI 패널) 안에 진입점 3곳을 표시한다 */
+:root{--bg:#f6f5f3;--panel:#fff;--fg:#1f2328;--mute:#6b7076;--line:#dcdad6;--accent:#2f5d8a;--new:#c2410c;--soft:#e8eef5;--sec:#efeeeb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--panel:#212326;--fg:#e8e8e6;--mute:#9a9ea3;--line:#34373b;--accent:#7fb0e0;--new:#fb923c;--soft:#26323f;--sec:#1b1c1e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17181a;--panel:#212326;--fg:#e8e8e6;--mute:#9a9ea3;--line:#34373b;--accent:#7fb0e0;--new:#fb923c;--soft:#26323f;--sec:#1b1c1e;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:'Noto Sans KR',system-ui,sans-serif;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));line-height:1.5}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:15px;margin:28px 0 8px}p.lead{color:var(--mute);margin:0 0 16px;max-width:70ch;font-size:13px}
+.scroll{overflow-x:auto}
+.shell{min-width:860px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:12px}
+.hdr{display:flex;align-items:center;gap:14px;padding:9px 12px;border-bottom:1px solid var(--line)}
+.hdr b{font-size:14px}.hdr .sp{flex:1}
+.cols{display:grid;grid-template-columns:200px 1fr 230px;min-height:320px}
+.cols>div{padding:10px;min-width:0}.side{background:var(--sec);border-right:1px solid var(--line);display:grid;gap:3px;align-content:start}
+.ai{border-left:1px solid var(--line);display:grid;gap:6px;align-content:start}
+.g{font-weight:700;margin-top:6px}.i{padding:2px 0 2px 12px;color:var(--mute)}.i.on{color:var(--fg);font-weight:700}
+.badge{background:var(--new);color:#fff;border-radius:10px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px}
+.hot{outline:2px dashed var(--new);outline-offset:2px;border-radius:5px}
+.pin{position:relative}.pin::after{content:attr(data-k);position:absolute;top:-9px;right:-9px;background:var(--new);color:#fff;border-radius:50%;width:18px;height:18px;display:grid;place-items:center;font-size:11px;font-weight:700}
+.editor{display:grid;gap:8px;align-content:start}.editor .t{font-size:15px;font-weight:700}
+.bub{border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--mute)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:7px 8px;border:1px solid var(--line);border-radius:6px;min-width:0}
+.row>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:10px;padding:1px 6px;border-radius:4px;background:var(--soft);color:var(--accent)}
+.src{color:var(--mute);font-size:11px}.btn{border:1px solid var(--accent);color:var(--accent);border-radius:5px;padding:2px 8px;font-size:11px;flex:none}.btn.p{background:var(--accent);color:var(--panel)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;display:grid;gap:8px;min-width:0}
+.diff{display:grid;grid-template-columns:1fr 1fr;gap:6px}.diff>div{border:1px solid var(--line);border-radius:5px;padding:6px;min-width:0}
+.del{background:rgba(220,38,38,.12)}.add{background:rgba(22,163,74,.14)}
+.legend{display:grid;gap:4px;font-size:13px;max-width:75ch}.legend b{color:var(--new)}
+</style>
+<h1>MCP 리뷰 큐 전체 화면</h1>
+<p class="lead">예시 데이터입니다. 실제 스튜디오 셸(작품 화면: 폴더 트리 · 집필 무대 · AI 패널) 안에서 진입점이 놓일 자리를 표시했습니다.</p>
+
+<h2>1. 작품 화면 (/studio/[작품]/…) 의 진입점</h2>
+<div class="scroll"><div class="shell">
+<div class="hdr"><b>NovelScript</b><span>스튜디오</span><span class="sp"></span>
+<span class="hot pin" data-k="A">AI 검토 대기<span class="badge">3</span></span><span class="src">계정</span></div>
+<div class="cols">
+<div class="side"><span class="src">← 내 작품</span><b>별빛 도서관</b>
+<div class="g">작품 폴더</div><div class="g">└ 회차</div><div class="i">6화</div>
+<div class="i on hot pin" data-k="B">7화 <span class="badge">2</span></div><div class="i">8화</div>
+<div class="g">└ 설정</div><div class="i">인물</div><div class="i hot pin" data-k="C">└ 하윤 <span class="badge">1</span></div><div class="i">장소</div>
+<div class="g">└ 템플릿</div><div class="g">계정 폴더</div></div>
+<div class="editor"><div class="t">7화 · 별빛 도서관</div>
+<div class="hot pin" data-k="B" style="padding:6px">이 회차에 Claude가 보낸 초안 2건 · <b style="color:var(--accent)">검토하기</b></div>
+<div class="bub">…하윤은 서가 사이로 걸어 들어갔다. 먼지 냄새가 …</div><div class="bub">(본문 편집 영역)</div></div>
+<div class="ai"><b>AI</b><div class="bub">앱 안 AI 대화 패널</div><div class="bub">지금 만든 초안 …</div></div>
+</div></div></div>
+<div class="legend" style="margin-top:12px"><span><b>A</b> 헤더의 “AI 검토 대기”: 어느 화면에서나 열리는 전체 인박스 (모든 작품, 초안+설정집 한 목록, 종류 필터)</span>
+<span><b>B</b> 회차 트리·에디터 안내줄: 그 회차의 초안만 바로 열기</span>
+<span><b>C</b> 설정집 트리 항목: 그 문서의 수정안만 바로 열기</span></div>
+
+<h2>2. 인박스를 열면 (A)</h2>
+<div class="two"><div class="card"><b>AI 검토 대기 3건</b><span class="src">전체 · 초안 · 설정집 &nbsp;|&nbsp; 작품: 전체 ▾</span>
+<div class="row"><span><span class="tag">초안</span> 별빛 도서관 7화</span><span class="src">Claude · 10분 전</span><span class="btn p">검토</span></div>
+<div class="row"><span><span class="tag">설정집</span> 별빛 도서관 · 인물/하윤</span><span class="src">Claude · 어제</span><span class="btn p">검토</span></div>
+<div class="row"><span><span class="tag">초안</span> 별빛 도서관 7화 (대안)</span><span class="src">Claude · 어제</span><span class="btn p">검토</span></div></div>
+
+<div class="card"><b>초안 검토 · 7화</b><span class="src">출처: Claude · 오늘 14:02</span>
+<div class="bub">(초안 본문 전문 표시)</div>
+<div style="display:flex;gap:6px;justify-content:flex-end"><span class="btn">거절</span><span class="btn p">에디터로 가져오기 (수락)</span></div>
+<span class="src">가져오면 7화 에디터에 삽입되고, 저장은 작가가 직접 합니다.</span></div></div>
+
+<h2>3. 설정집 수정안 검토 (원문과 나란히, 변경 덩어리별 수락)</h2>
+<div class="card" style="max-width:640px"><b>인물/하윤 수정안</b><span class="src">출처: Claude · 어제 · 최신 원문 기준으로 비교 중</span>
+<div class="diff"><div class="del">원문<br>나이: 17세<br>성격: 조용함</div><div class="add">수정안<br>나이: 18세<br>성격: 조용함</div></div>
+<div class="row"><span>변경 1 · 나이 17→18</span><span class="btn">건너뛰기</span><span class="btn p">수락</span></div>
+<div class="diff"><div class="del">특기: 없음</div><div class="add">특기: 고문서 해독</div></div>
+<div class="row"><span>변경 2 · 특기 추가</span><span class="btn">건너뛰기</span><span class="btn p">수락</span></div>
+<div style="display:flex;gap:6px;justify-content:flex-end"><span class="btn">전체 거절</span><span class="btn p">선택한 변경 적용</span></div></div>

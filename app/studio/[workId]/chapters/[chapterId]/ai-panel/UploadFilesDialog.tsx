@@ -28,12 +28,13 @@ export interface UploadFilesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Files already attached to the conversation — counts toward the attach limit. */
-  attachedCount: number;
-  onAttach: (files: ChatAttachment[]) => void;
+  attachedCount?: number;
+  /** AI 대화창 밖(사이드바)에서는 넘기지 않는다 — 그러면 '이번 대화에만 첨부' 방식이 사라진다. */
+  onAttach?: (files: ChatAttachment[]) => void;
 }
 
 /** 로컬 작업물(.md/.txt)을 (a) 설정 문서로 일괄 저장하거나 (b) Jev가 분류한 트리를 승인해 저장하거나 (c) 이번 대화에만 첨부한다. */
-export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, onAttach }: UploadFilesDialogProps) {
+export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount = 0, onAttach }: UploadFilesDialogProps) {
   const router = useRouter();
   const [mode, setMode] = useState<UploadMode>('import');
   const [files, setFiles] = useState<ChatAttachment[]>([]);
@@ -153,7 +154,7 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
     if (files.length === 0) return;
     if (mode === 'auto') { if (inReview) await approvePlacement(); else await classify(); return; }
     if (mode === 'attach') {
-      onAttach(files);
+      onAttach?.(files);
       toast.success(`${files.length}개 파일을 이번 대화에 첨부했어요.`);
       onOpenChange(false);
       return;
@@ -178,13 +179,17 @@ export function UploadFilesDialog({ workId, open, onOpenChange, attachedCount, o
     ? (isPending ? '처리 중...' : inReview ? `승인하고 ${files.length}개 저장` : `${files.length}개 AI로 분류하기`)
     : mode === 'import' ? `${files.length}개 저장` : `${files.length}개 첨부`;
 
+  const modes: (readonly [UploadMode, string])[] = [
+    ['import', '설정 문서로 저장'], ['auto', 'AI 자동 분류'], ...(onAttach ? [['attach', '이번 대화에만 첨부'] as const] : []),
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader><DialogTitle>파일 업로드</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-3">
           <div role="radiogroup" aria-label="업로드 방식" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            {([['import', '설정 문서로 저장'], ['auto', 'AI 자동 분류'], ['attach', '이번 대화에만 첨부']] as const).map(([value, label]) => (
+            {modes.map(([value, label]) => (
               <Button key={value} type="button" role="radio" aria-checked={mode === value} size="sm" variant={mode === value ? 'default' : 'outline'} className="w-full sm:w-auto" onClick={() => { setMode(value); resetReview(); }}>
                 {label}
               </Button>

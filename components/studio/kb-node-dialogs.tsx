@@ -98,7 +98,7 @@ export function KbTreeActions({ workId, node, isTemplateCategoryFolder = false, 
       {dialog === 'create-template' && (
         <CreateTemplateDialog
           open onOpenChange={(v) => !v && setDialog(null)} workId={workId}
-          areas={[{ scope: node.scope, folders: categoryFolders.map((folder) => ({ id: folder.id, name: folder.name })) }]}
+          areas={[{ scope: node.scope, rootId: categoryFolders[0]?.parent_id ?? '', folders: categoryFolders.map((folder) => ({ id: folder.id, name: folder.name })) }]}
           onCreated={() => router.refresh()}
         />
       )}
@@ -197,9 +197,11 @@ export async function runCreateFromTemplate(
 
 /** 내 템플릿 만들기: the existing createNode path (category=template) under the chosen category folder. */
 export async function runCreateTemplate(
-  args: { workId: string; folderId: string; name: string }, cb: SubmitCallbacks,
+  args: { workId: string; folderId: string; name: string; blank?: boolean }, cb: SubmitCallbacks,
 ): Promise<void> {
-  const result = await createNodeAction(args.workId, args.folderId, 'template', 'file', args.name);
+  const result = args.blank
+    ? await createNodeAction(args.workId, args.folderId, 'template', 'file', args.name, null, true)
+    : await createNodeAction(args.workId, args.folderId, 'template', 'file', args.name);
   if (!result.ok) { cb.onError(result.error ?? SAVE_FAILED); return; }
   cb.onSuccess(result.nodeId);
 }
@@ -338,7 +340,7 @@ export function CopyTemplateDialog({
   );
 }
 
-export interface TemplateArea { scope: 'work' | 'account_template'; folders: { id: string; name: string }[] }
+export interface TemplateArea { scope: 'work' | 'account_template'; rootId: string; folders: { id: string; name: string }[] }
 
 const AREA_LABEL: Record<TemplateArea['scope'], string> = { work: '이 작품 전용', account_template: '계정 공용' };
 
@@ -349,10 +351,12 @@ export function CreateTemplateDialog({
   const [name, setName] = useState('');
   const [scope, setScope] = useState<TemplateArea['scope']>(areas[0]?.scope ?? 'work');
   const [category, setCategory] = useState<string>(KB_CATEGORIES[0]);
+  const [blank, setBlank] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const area = areas.find((a) => a.scope === scope) ?? areas[0];
-  const folder = area?.folders.find((f) => f.name === category);
+  // 빈 템플릿은 카테고리 없이(미분류) 템플릿 영역 루트에 만든다. 카테고리 선택값은 그대로 두어 되돌아오면 복원된다.
+  const folder = blank ? (area ? { id: area.rootId } : undefined) : area?.folders.find((f) => f.name === category);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -377,12 +381,28 @@ export function CreateTemplateDialog({
         )}
         <div className="flex flex-col gap-1">
           <Label htmlFor="new-template-category">카테고리</Label>
-          <Select value={category} onValueChange={(v) => setCategory(v ?? KB_CATEGORIES[0])}>
-            <SelectTrigger id="new-template-category" className="w-full"><SelectValue>{(v: string) => v}</SelectValue></SelectTrigger>
+          <Select value={category} onValueChange={(v) => setCategory(v ?? KB_CATEGORIES[0])} disabled={blank}>
+            <SelectTrigger id="new-template-category" className="w-full" disabled={blank}><SelectValue>{(v: string) => v}</SelectValue></SelectTrigger>
             <SelectContent>
               {KB_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label id="new-template-start-label">시작 방식</Label>
+          <div role="radiogroup" aria-labelledby="new-template-start-label" className="flex flex-col gap-2 sm:flex-row">
+            {([[false, '기본 양식으로 시작'], [true, '빈 템플릿에서 시작']] as const).map(([value, label]) => (
+              <Button
+                key={label} type="button" role="radio" aria-checked={blank === value} size="sm"
+                variant={blank === value ? 'default' : 'outline'} className="w-full sm:w-auto" onClick={() => setBlank(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {blank ? '본문과 소제목 없이, 카테고리 없이(미분류) 만들어져요. 나중에 카테고리 폴더로 옮길 수 있어요.' : `${category} 카테고리의 기본 소제목이 채워진 채로 시작해요.`}
+          </p>
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter>
@@ -391,7 +411,7 @@ export function CreateTemplateDialog({
             disabled={isPending}
             onClick={() => startTransition(async () => {
               if (!folder) { setError('템플릿 카테고리 폴더를 찾을 수 없어요.'); return; }
-              await runCreateTemplate({ workId, folderId: folder.id, name }, {
+              await runCreateTemplate({ workId, folderId: folder.id, name, blank }, {
                 onError: (message) => setError(message),
                 onSuccess: (nodeId) => { onOpenChange(false); onCreated(nodeId); },
               });

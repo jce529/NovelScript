@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FilePlus, FileText } from 'lucide-react';
+import { FilePlus, FileText, Upload } from 'lucide-react';
+import { UploadFilesDialog } from '@/app/studio/[workId]/chapters/[chapterId]/ai-panel/UploadFilesDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CreateNodeDialog, CreateTemplateDialog, type TemplateArea } from '@/components/studio/kb-node-dialogs';
@@ -14,6 +15,7 @@ import { KB_CATEGORIES } from '@/lib/kb/categories';
 export function TemplateSidebarEntry({ workId, areas }: { workId: string; areas: TemplateArea[] }) {
   const router = useRouter();
   const [step, setStep] = useState<'pick' | 'create-document' | 'create-template' | null>(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [category, setCategory] = useState<string>(KB_CATEGORIES[0]);
 
   return (
@@ -28,6 +30,10 @@ export function TemplateSidebarEntry({ workId, areas }: { workId: string; areas:
       >
         <FilePlus size={14} /> 템플릿 만들기
       </Button>
+      <Button variant="ghost" size="sm" className="justify-start" onClick={() => setUploadOpen(true)}>
+        <Upload size={14} /> 파일 올리기 (.md/.txt)
+      </Button>
+      <UploadFilesDialog workId={workId} open={uploadOpen} onOpenChange={setUploadOpen} />
       {step === 'pick' && (
         <Dialog open onOpenChange={(v) => !v && setStep(null)}>
           <DialogContent>

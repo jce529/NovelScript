@@ -7,7 +7,7 @@ import { readChapterContent } from '@/lib/access/actions';
 import { createClient } from '@/lib/supabase/server';
 import { saveChapterContent, publishChapter, unpublishChapter } from '@/lib/chapters/actions';
 import { searchMentionNodes, quickAddMentionNode } from '@/lib/ai/mentions';
-import { listCategoryFolderCandidates, getWorkKbNodes, listTemplateOptions, validateTargetFolder, validateTargetTemplate, createNode, formatFolderPath, TEMPLATE_REVALIDATION_FAILED, type FolderCandidate, type FolderCandidatesResult, type TemplateOption } from '@/lib/kb/actions';
+import { listCategoryFolderCandidates, getWorkKbNodes, listTemplateOptions, validateTargetFolder, validateTargetTemplate, createNode, formatFolderPath, CUSTOM_FOLDER_PATH_PREFIX, TEMPLATE_REVALIDATION_FAILED, type FolderCandidate, type FolderCandidatesResult, type TemplateOption } from '@/lib/kb/actions';
 import { KB_CATEGORIES, type KbCategory } from '@/lib/kb/categories';
 import type { FlatKbNode } from '@/lib/kb/tree';
 import { chat, type ChatInput } from '@/lib/ai/chat';
@@ -512,12 +512,14 @@ export async function classifyUploadFilesAction(raw: unknown): Promise<ClassifyU
       const state = { userRequest: '업로드한 설정 파일을 알맞은 설정집 카테고리에 분류', fileName: documentNameFromFile(file.name), fileContent: file.content.slice(0, 3000) };
       const category = await planCategoryOnly(client, state);
       if (category.kind !== 'category') return empty;
-      const selected = await planFolderAndTemplate(client, supabase, { ownerId: user.id, workId, category: category.category, state });
+      const selected = await planFolderAndTemplate(client, supabase, { ownerId: user.id, workId, category: category.category, state, includeCustomFolders: true });
       if (selected.kind !== 'planned') return { ...empty, category: category.category, confidence: category.confidence };
       return {
         fileName: file.name, category: category.category, confidence: category.confidence,
         folderId: selected.folder.id, folderVersion: selected.folder.version,
-        folderPath: formatFolderPath(category.category, selected.folder.path, ' › '),
+        folderPath: selected.folder.path.startsWith(`${CUSTOM_FOLDER_PATH_PREFIX}/`)
+          ? selected.folder.path.replaceAll('/', ' › ')
+          : formatFolderPath(category.category, selected.folder.path, ' › '),
       };
     } catch { return empty; }
   };
@@ -527,6 +529,9 @@ export async function classifyUploadFilesAction(raw: unknown): Promise<ClassifyU
   return { ok: true, items };
 }
 
+/** createFolder가 카테고리 밖에 만든 폴더에 붙이는 category 값 (lib/kb/actions.ts). */
+const CUSTOM_CATEGORY = 'custom';
+
 const importClassifiedSchema = z.object({
   workId: z.string().uuid(),
   files: z.array(z.object({
@@ -535,13 +540,14 @@ const importClassifiedSchema = z.object({
   })).min(1).max(MAX_IMPORT_FILES),
 });
 
-/** 승인 화면 트리용: 작품의 카테고리(인물·장소…) 폴더와 기존 문서만 돌려준다. 회차·템플릿 영역은 배치 대상이 아니다. */
+/** 승인 화면 트리용: 작품의 카테고리(인물·장소…) 폴더, 직접 만든 폴더(custom)와 기존 문서를 돌려준다. 회차·템플릿 영역은 배치 대상이 아니다.
+ * 직접 만든 폴더는 Jev 제안 후보는 아니지만, 사용자가 끌어다 놓아 직접 배치할 수 있어야 한다. */
 export async function loadPlacementTreeAction(workId: string): Promise<FlatKbNode[] | null> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
   const nodes = await getWorkKbNodes(supabase, { ownerId: user.id, workId });
-  return nodes.filter((node) => (KB_CATEGORIES as string[]).includes(node.category));
+  return nodes.filter((node) => (KB_CATEGORIES as string[]).includes(node.category) || node.category === CUSTOM_CATEGORY);
 }
 
 /** 사용자가 트리에서 확정한 위치대로 저장한다. 폴더의 카테고리는 폴더 자체에서 읽고, 저장 직전에 폴더를 다시 검증한다. */
@@ -553,12 +559,13 @@ export async function importClassifiedFilesAction(raw: unknown): Promise<ImportF
   if (!parsed.success) return { ok: false, error: '파일 개수나 크기가 한도를 넘었어요.' };
   const { workId, files } = parsed.data;
 
-  const folderCategory = new Map<string, KbCategory | null>();
-  async function categoryOf(folderId: string): Promise<KbCategory | null> {
+  const folderCategory = new Map<string, KbCategory | typeof CUSTOM_CATEGORY | null>();
+  async function categoryOf(folderId: string): Promise<KbCategory | typeof CUSTOM_CATEGORY | null> {
     if (folderCategory.has(folderId)) return folderCategory.get(folderId)!;
     const { data } = await supabase.from('kb_nodes').select('category, node_type')
       .eq('id', folderId).eq('owner_id', user!.id).eq('work_id', workId).eq('scope', 'work').is('deleted_at', null).maybeSingle();
-    const category = data?.node_type === 'folder' && (KB_CATEGORIES as string[]).includes(data.category) ? data.category as KbCategory : null;
+    const category = data?.node_type === 'folder' && ((KB_CATEGORIES as string[]).includes(data.category) || data.category === CUSTOM_CATEGORY)
+      ? data.category as KbCategory | typeof CUSTOM_CATEGORY : null;
     folderCategory.set(folderId, category);
     return category;
   }
@@ -568,8 +575,11 @@ export async function importClassifiedFilesAction(raw: unknown): Promise<ImportF
   for (const file of files) {
     const category = await categoryOf(file.targetFolderId);
     if (!category) { failed.push({ fileName: file.name, error: '문서를 넣을 수 없는 폴더예요.' }); continue; }
-    const folder = await validateTargetFolder(supabase, { ownerId: user.id, workId, category, targetFolderId: file.targetFolderId });
-    if (!folder.ok) { failed.push({ fileName: file.name, error: folder.error }); continue; }
+    // 직접 만든 폴더는 최상위가 여러 개일 수 있어 카테고리 후보 검증을 쓰지 않는다. categoryOf가 소유·작품·종류를 이미 확인했다.
+    if (category !== CUSTOM_CATEGORY) {
+      const folder = await validateTargetFolder(supabase, { ownerId: user.id, workId, category, targetFolderId: file.targetFolderId });
+      if (!folder.ok) { failed.push({ fileName: file.name, error: folder.error }); continue; }
+    }
     const name = documentNameFromFile(file.name);
     if (!name) { failed.push({ fileName: file.name, error: '파일 이름이 비어 있어요.' }); continue; }
     const result = await createNode(supabase, { ownerId: user.id, workId, parentId: file.targetFolderId, category, nodeType: 'file', name, initialContent: file.content });

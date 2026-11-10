@@ -114,6 +114,16 @@
 - [x] **STUDIO-03**: 작가가 로컬 .md/.txt를 업로드해 설정 문서로 일괄 저장하거나 이번 대화에만 첨부할 수 있고, Jev 자동 분류 시 기존 트리 위의 제안 배치를 드래그앤드롭으로 수정·승인한 뒤에만 그 배치대로 저장된다 (저장 시 서버가 폴더를 재검증)
 - [ ] **STUDIO-04**: 스튜디오가 모바일 세로 화면에서 가로 스크롤 없이 사용 가능하다 (작품 사이드바·편집기·AI 패널·계정/설정 페이지)
 
+### 작가용 작품 홈 (WORKHOME)
+
+- [ ] **WORKHOME-01**: 작가가 작품 홈에서 전체 회차·공개·미공개 3칸 현황을 기존 데이터(`listChapters`)만으로 볼 수 있다
+- [ ] **WORKHOME-02**: 첫 연재를 마칠 때까지 4단계 연재 시작 가이드(체크리스트 + 진행 막대)가 보이고, 4단계를 모두 마치면 가이드가 사라진다
+- [ ] **WORKHOME-03**: 가이드가 끝난 뒤 회차 목록·세계관 설정·타임라인·가지 치기 고정 바로가기 4개 카드가 상태 문구와 함께 보인다
+- [ ] **WORKHOME-04**: 홈은 개요, 17-07 왼쪽 트리는 탐색 역할을 유지하며 트리 구조는 바뀌지 않는다
+- [ ] **WORKHOME-05**: 회차가 0개인 새 작품은 현황 3칸을 숨기고 가이드만 크게 보여 주며, 작업 화면 카드는 접혀 있고 트리 빈 폴더에 안내 문구가 있다
+- [ ] **WORKHOME-06**: 모바일에서는 하단 `집필` 탭 안에 홈이 들어가고 현황 2x2, 작업 화면 세로 목록(행 44px 이상), 가이드 버튼 전체 폭 알약으로 보인다
+- [ ] **WORKHOME-07**: 승인된 UI-SPEC과 최종 목업대로 실제 화면이 구현되고, 시안에 없는 UI는 목업을 먼저 보여 준 뒤 넣는다
+
 ### 버그 수정 통합 (BUGFIX)
 
 - [ ] **BUGFIX-01**: AI 응답이 잘렸을 때 원인(잔액 캡 / 요청당 출력 상한 / thinking 토큰 소진)에 맞는 안내가 표시되고, 잔액이 충분하면 "토큰 소진" 문구가 나오지 않는다
@@ -232,7 +242,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | READ-01 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
 | READ-02 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
 | READ-03 | Phase 3 | Code complete (03-19 실DB·브라우저 pending) |
-| READ-04 | Phase 3 | Code complete (0024·0025 미적용; 03-19 실DB·브라우저 pending) |
+| READ-04 | Phase 3 | Code complete (0024·0025 공유 DB 적용 2026-11-05; 03-19 실DB·브라우저 pending) |
 | READ-05 | Phase 3 | Complete |
 | READ-07 | Phase 3 | Complete |
 | READ-08 | Phase 3 | Complete |
@@ -241,8 +251,8 @@ Explicitly excluded. Documented to prevent scope creep.
 | PAY-02 | Phase 6 | Reopened (청사진 갭: 대여·정주행·소장함 없음; 이전: Complete (DB tests passed 2026-10-01; browser E2E pending)) |
 | PAY-03 | Phase 5 | Code complete (05-07 Toss 샌드박스·실DB pending) |
 | ADMIN-01 | Phase 7 | Code complete (07-15 실DB·브라우저 pending) |
-| ADMIN-02 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
-| ADMIN-03 | Phase 7 | Code complete (0029 미적용; 07-15 실DB·브라우저 pending) |
+| ADMIN-02 | Phase 7 | Code complete (0029 공유 DB 적용 2026-11-05; 07-15 실DB·브라우저 pending) |
+| ADMIN-03 | Phase 7 | Code complete (0029 공유 DB 적용 2026-11-05; 07-15 실DB·브라우저 pending) |
 | ADMIN-04 | Phase 7 | Complete |
 
 **v1.1 (멀티 프로바이더 AI · BYOK · 구독형 AI MCP)**
@@ -266,16 +276,16 @@ Explicitly excluded. Documented to prevent scope creep.
 | BYOK-08 | Phase 11 | Code complete (browser UAT pending) |
 | BYOK-09 | Phase 11 | Code complete (browser UAT pending) |
 | COST-01 | Phase 8 | Complete |
-| COST-02 | Phase 11 | Code complete (0030 미적용; 11-12 실DB 회귀 pending) |
+| COST-02 | Phase 11 | Code complete (0030 공유 DB 적용 2026-11-05; 11-12 실DB 회귀 pending) |
 | MCP-01 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
-| MCP-02 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
-| MCP-03 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
-| MCP-04 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
+| MCP-02 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
+| MCP-03 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
+| MCP-04 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | MCP-05 | Phase 14 | Mapped |
 | MCP-06 | Phase 14 | Mapped |
 | MCP-07 | Phase 14 | Mapped |
 | MCP-08 | Phase 12 | Code complete (실제 Claude 왕복 PASS, 12-06 #7·#8·#9 pending) |
-| MCP-09 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0039 미적용) |
+| MCP-09 | Phase 13 | Complete (일회용 DB 실제 Claude 인수 통과, 공유 DB 0037~0040 적용 2026-11-05) |
 | AIDOC-01 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-02 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
 | AIDOC-03 | Phase 15 | Code complete (activation blocked; browser UAT pending) |
@@ -289,19 +299,26 @@ Explicitly excluded. Documented to prevent scope creep.
 | BUGFIX-03 | Phase 17 | Not started |
 | BUGFIX-04 | Phase 17 | Not started |
 | BUGFIX-05 | Phase 17 | Not started |
-| WTREE-01 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-02 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-03 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-04 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-05 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-06 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-07 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
-| WTREE-08 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-01 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-02 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-03 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-04 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-05 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-06 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-07 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
+| WTREE-08 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
 | WTREE-09 | Deferred (READ-06 Lore 위키·스포일러 잠금 phase에서 함께) | Defined |
-| WTREE-10 | Phase 18 | Code complete (0032~0036 미적용; 18-12 실DB·브라우저 pending) |
+| WTREE-10 | Phase 18 | Code complete (0032~0036 공유 DB 적용 2026-11-05; 18-12 실DB·브라우저 pending) |
 | WTREE-11 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-12 | Deferred (스토어 보류 해제 후) | Defined |
 | WTREE-13 | Deferred (스토어 보류 해제 후) | Defined |
+| WORKHOME-01 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-02 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-03 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-04 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-05 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-06 | Phase 19 | Code complete (실화면 UAT pending) |
+| WORKHOME-07 | Phase 19 | Code complete (실화면 UAT pending) |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -311,6 +328,7 @@ Explicitly excluded. Documented to prevent scope creep.
 - v1.0 requirements: 31 total / mapped 31 / unmapped 0 ✓ (Phases 1–04.1, 5–7)
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
 - 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
+- 작품 홈(WORKHOME): 7 defined / mapped 7 (Phase 19) — v1.1 합계 40과 별도
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)

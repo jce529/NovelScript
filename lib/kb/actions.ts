@@ -3,7 +3,7 @@ import type { FlatKbNode } from './tree';
 import { buildSeedContent, readCanonicalSeed, type KbCategory } from './templates';
 import { checkWriteAccess, writeDenial, type WriteDenialCode } from '../auth/write-access';
 import { FOLDER_COPY } from './folder-copy';
-import { templateCategoryOf } from './template-tree';
+import { isTemplateRoot, templateCategoryOf } from './template-tree';
 import { MAX_FOLDER_DEPTH, MOVE_COPY, kbMoveVerdict, nameConflictMessage, nodeMapOf, type MoveNode } from './move-rules';
 export { FOLDER_COPY } from './folder-copy';
 
@@ -252,6 +252,45 @@ export async function listCategoryFolderCandidates(
   return { status: 'ok', root, candidates: [root, ...rest] };
 }
 
+/** 직접 만든 폴더(category='custom') 후보의 경로 접두어 — Jev가 카테고리 하위 폴더와 구분하도록 경로에 붙인다. */
+export const CUSTOM_FOLDER_PATH_PREFIX = '직접 만든 폴더';
+
+/** 카테고리 밖에 사용자가 직접 만든 폴더들을 Jev 후보 형태로 돌려준다. 업로드 분류에서만 쓴다
+ * (카테고리 후보 검증을 쓰는 다른 저장 경로는 custom 폴더를 받지 않는다). */
+export async function listCustomFolderCandidates(
+  supabase: SupabaseClient,
+  { ownerId, workId }: { ownerId: string; workId: string },
+): Promise<FolderCandidate[]> {
+  const { data, error } = await supabase
+    .from('kb_nodes').select('id, name, parent_id')
+    .eq('owner_id', ownerId).eq('work_id', workId).eq('scope', 'work')
+    .eq('category', 'custom').eq('node_type', 'folder').is('deleted_at', null);
+  if (error || !data) return [];
+  const rows = data as CategoryFolderRow[];
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const candidates: FolderCandidate[] = [];
+  for (const row of rows) {
+    const chain = [row];
+    const seen = new Set([row.id]);
+    let current = row;
+    let valid = true;
+    while (current.parent_id !== null) {
+      const parent = byId.get(current.parent_id);
+      if (!parent || seen.has(parent.id) || chain.length > MAX_FOLDER_DEPTH) { valid = false; break; }
+      seen.add(parent.id);
+      chain.unshift(parent);
+      current = parent;
+    }
+    if (!valid) continue;
+    candidates.push({
+      id: row.id, name: row.name, isRoot: false,
+      path: `${CUSTOM_FOLDER_PATH_PREFIX}/${chain.map((item) => item.name).join('/')}`,
+      version: chain.map((item) => `${item.id}:${item.name}`).join('/'),
+    });
+  }
+  return candidates.sort((a, b) => a.path.localeCompare(b.path) || a.id.localeCompare(b.id));
+}
+
 export function formatFolderPath(category: string, path: string, separator: string): string {
   return path ? `${category}${separator}${path}` : category;
 }
@@ -291,6 +330,8 @@ export async function createNode(
     templateOverrideContent?: string | null;
     /** Persist generated content directly in the single node insert. */
     initialContent?: string;
+    /** 내 템플릿 만들기: start from an empty body instead of the canonical seed. Ignored outside templates. */
+    blankTemplate?: boolean;
   }
 ): Promise<NodeMutationResult> {
   const name = input.name.trim();
@@ -301,6 +342,7 @@ export async function createNode(
   let scope: 'work' | 'account_template' = 'work';
   let workId: string | null = input.workId;
   let templateCategory: KbCategory | null = null;
+  let looseBlank = false;
   if (input.category === 'template') {
     if (input.nodeType !== 'file') return { ok: false, error: '템플릿 폴더는 새로 만들 수 없어요.' };
     const { data: parent } = await supabase.from('kb_nodes')
@@ -313,17 +355,23 @@ export async function createNode(
       ? await supabase.from('kb_nodes').select('id, parent_id, name, category, node_type, scope, work_id')
         .eq('id', parent.parent_id).eq('owner_id', input.ownerId).is('deleted_at', null).maybeSingle()
       : { data: null };
-    templateCategory = templateCategoryOf(parent, root);
-    if (!templateCategory || !root || root.scope !== parent.scope || root.work_id !== parent.work_id) {
-      return { ok: false, error: '템플릿은 카테고리 폴더 안에만 만들 수 있어요.' };
+    // 빈 템플릿은 템플릿 영역 루트 바로 아래(미분류)에 만들 수 있다. 카테고리 폴더 밖이라 category는 없다.
+    looseBlank = input.blankTemplate === true && isTemplateRoot(parent);
+    if (!looseBlank) {
+      templateCategory = templateCategoryOf(parent, root);
+      if (!templateCategory || !root || root.scope !== parent.scope || root.work_id !== parent.work_id) {
+        return { ok: false, error: '템플릿은 카테고리 폴더 안에만 만들 수 있어요.' };
+      }
     }
     scope = parent.scope;
     workId = parent.work_id;
   }
 
   let content: string | null = null;
-  if (templateCategory) {
-    content = await readCanonicalSeed(templateCategory);
+  if (looseBlank) {
+    content = '';
+  } else if (templateCategory) {
+    content = input.blankTemplate ? '' : await readCanonicalSeed(templateCategory);
   } else if (input.initialContent !== undefined) {
     content = input.initialContent;
   } else if (input.nodeType === 'file' && input.category !== 'template') {
@@ -347,7 +395,7 @@ export async function createNode(
     .single();
 
   if (error) {
-    if (templateCategory) {
+    if (templateCategory || looseBlank) {
       const friendly = templateNameError(error);
       if (friendly) return { ok: false, error: friendly };
     }

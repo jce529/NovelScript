@@ -79,6 +79,25 @@ describe('UploadFilesDialog 파일 입력', () => {
   });
 });
 
+describe('UploadFilesDialog 사이드바 단독 사용', () => {
+  it('onAttach가 없으면 대화 첨부 방식을 숨기고 저장·자동 분류만 보인다', () => {
+    const html = renderToStaticMarkup(createElement(UploadFilesDialog, { workId: 'w1', open: true, onOpenChange: () => {} }));
+    expect(html).toContain('설정 문서로 저장');
+    expect(html).toContain('AI 자동 분류');
+    expect(html).not.toContain('이번 대화에만 첨부');
+  });
+
+  it('onAttach가 있으면 첨부 방식도 보인다', () => {
+    expect(render()).toContain('이번 대화에만 첨부');
+  });
+
+  it('사이드바 진입점이 같은 다이얼로그를 onAttach 없이 쓴다', () => {
+    const entry = readFileSync('components/studio/template-sidebar-entry.tsx', 'utf8');
+    expect(entry).toContain('파일 올리기');
+    expect(entry).toContain('<UploadFilesDialog workId={workId} open={uploadOpen} onOpenChange={setUploadOpen} />');
+  });
+});
+
 describe('UploadFilesDialog Select 제어 상태 (G2 회귀)', () => {
   it('폴더 로드 전에도 저장 폴더 Select value는 null로 제어형이다', () => {
     const values = [...render().matchAll(/data-select-value="([^"]*)"/g)].map((m) => m[1]);

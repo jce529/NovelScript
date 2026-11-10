@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -118,12 +119,29 @@ describe('runCreateTemplate (내 템플릿 만들기 submit)', () => {
     expect(c.onSuccess).toHaveBeenCalledWith('t1');
   });
 
+  it('blank 옵션이면 빈 템플릿 플래그를 서버 액션에 넘긴다', async () => {
+    mock.createNode.mockResolvedValue({ ok: true, nodeId: 't2' });
+    const c = cb();
+    await runCreateTemplate({ workId: 'w', folderId: 'cat-person', name: '빈 양식', blank: true }, c);
+    expect(mock.createNode).toHaveBeenCalledWith('w', 'cat-person', 'template', 'file', '빈 양식', null, true);
+    expect(c.onSuccess).toHaveBeenCalledWith('t2');
+  });
+
   it('surfaces duplicate-name errors', async () => {
     mock.createNode.mockResolvedValue({ ok: false, error: '이미 같은 이름의 템플릿이 있어요. 다른 이름을 사용해주세요.' });
     const c = cb();
     await runCreateTemplate({ workId: 'w', folderId: 'f', name: 'dup' }, c);
     expect(c.onError).toHaveBeenCalled();
     expect(c.onSuccess).not.toHaveBeenCalled();
+  });
+});
+
+describe('CreateTemplateDialog 빈 템플릿 카테고리', () => {
+  it('카테고리 드롭다운 비활성화·복원은 blank 상태에 묶여 있고 영역 루트를 대상 폴더로 쓴다', () => {
+    const src = readFileSync('components/studio/kb-node-dialogs.tsx', 'utf8');
+    expect(src).toContain('<Select value={category} onValueChange={(v) => setCategory(v ?? KB_CATEGORIES[0])} disabled={blank}>');
+    expect(src).toContain('const folder = blank ? (area ? { id: area.rootId } : undefined)');
+    expect(src).not.toMatch(/blank && setCategory|setCategory\([^)]*blank/);
   });
 });
 
@@ -155,13 +173,14 @@ describe('dialog rendering', () => {
 
   it('asks for name, scope and category when creating a 내 템플릿', () => {
     const areas = [
-      { scope: 'work' as const, folders: [{ id: 'a', name: '인물' }] },
-      { scope: 'account_template' as const, folders: [{ id: 'b', name: '인물' }] },
+      { scope: 'work' as const, rootId: 'root-w', folders: [{ id: 'a', name: '인물' }] },
+      { scope: 'account_template' as const, rootId: 'root-a', folders: [{ id: 'b', name: '인물' }] },
     ];
     const html = renderToStaticMarkup(createElement(CreateTemplateDialog, { open: true, onOpenChange: vi.fn(), workId: 'w', areas, onCreated: vi.fn() }));
     expect(html).toContain('템플릿 이름');
     expect(html).toContain('영역');
     expect(html).toContain('카테고리');
+    expect(html).toContain('빈 템플릿에서 시작');
   });
 });
 

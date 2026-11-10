@@ -21,5 +21,8 @@
 2026-10-25 | 12-05-1 | multi_file(review)/high | T4->gpt-6-sol | gpt-6-sol (codex, high) | 통과(검증 BLOCKER 0, 서버 로직 PASS) | 0 | 0 (sonnet) | - | 비고: Task1 지적 없음
 2026-10-25 | 12-05-2 | multi_file/low | T2 | gpt-5.6-terra (codex, medium) | 1차 WARNING 5건(포커스·dl·색 등) → 수정 1회 | 1 | 6 WARNING (sonnet) | - | 비고: 수정 중 ChatGPT 사용 한도 초과(10:08 PM 재시도 가능)로 SUMMARY 기록 직전 중단, 코드는 적용 확인 후 오케스트레이터가 마무리
 2026-10-25 | 12-06-1(수정) | routine/medium | T3 | sonnet (claude, 폴백) | 통과(사용자 DB 실행 22 passed, skipped 0) | 0 | - | - | 비고: grants/sensitive-rls 토큰 빈틈 수정. Codex 한도 초과(10:08 PM)로 Claude 폴백. 사용자가 DB 테스트 직접 실행
-
 2026-11-02 | 13-plan,13-01~13-05 | multi_file~architectural/high | T3~T4 | planner gpt-6-sol (medium); 13-01·13-01b·13-05 opus (claude); 13-02·13-03·13-04 gpt-6.1-sol (codex, high) | 통과(교차 리뷰·직접 재실행, 경고 반영) | 0 | 교차 리뷰 경고 다수·치명 0 | - | classifier: fallback(Jev jev_ask 호출 형식 실수, 도구는 정상). criteria를 [{id,description}] 배열로 넘겨 desc.trim is not a function 발생, {id: 설명} 맵으로 바꾸면 정상(jev-1.14.0, 13-05 위험도 high 0.92 일치). 교훈: jev_ask 실패 시 criteria를 {id: 설명} 맵으로 바꿔 재시도하고 jev_doctor로 상태를 확인한 뒤에만 fallback 사용. 6.1 Sol은 이 계정에서 지원 확인
+2026-11-01 | 19-01 | routine/low | T2 | gpt-5.6-terra | 통과(샌드박스 EPERM으로 테스트는 오케스트레이터가 재실행) | 0 | 0 | no | classifier: jev-partial(choice만, noul 미사용)
+2026-11-01 | 19-02 | multi_file/medium | T3 | gpt-6-sol | 부분(entrypoints 카드 문구 단언 1건 수정) | 0 | warning 2건 반영 | no | 검증 sonnet diff 리뷰 blocker 0
+2026-11-01 | 19-03 | multi_file/low | T2 | gpt-5.6-terra | 통과 | 0 | 0 | no | Jev는 multi_file(0.75)이었으나 low+P3로 T2
+2026-11-01 | 19-04 | routine/low | T3 | claude(직접) | 통과 | 0 | - | no | 브라우저 필요로 Claude 채널

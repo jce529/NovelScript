@@ -3,14 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: 자동 실행 가능한 재개 보완 plan 전부 완료 (18-11까지). 남은 plan 10개는 전부 실DB·브라우저가 필요한 수동 gate. Phase 12~14·17은 미시작
-last_updated: "2026-10-23T07:00:00.000Z"
-last_activity: 2026-10-23 -- 수동 게이트 기능 점검(03-19·07-15·18-12·04-12·16-03, 에이전트 수행분·사람 승인 아님), Toss 키 종류 불일치 확인, 병합 후 테스트 결함 4건 수정
+stopped_at: Phase 14 UI-SPEC approved
+last_updated: "2026-11-09T12:59:09.529Z"
+last_activity: 2026-11-09
 progress:
-  total_phases: 20
-  completed_phases: 6
-  total_plans: 145
-  completed_plans: 135
+  total_phases: 21
+  completed_phases: 11
+  total_plans: 180
+  completed_plans: 161
+  percent: 52
 ---
 
 # Project State
@@ -20,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-25)
 
 **Core value:** 작가가 이 IDE로 실제로 반복해서 집필하고, 독자가 그 결과물에 몰입해서 완독·연독한다 — 창작과 소비 양쪽 루프가 동시에 성립해야 의미가 있다.
-**Current focus:** 재개 phase 보완 plan의 실DB·브라우저 검증 (일회용 Supabase 프로젝트에 0024~0036 적용 후)
+**Current focus:** Phase 14 — MCP 쓰기 도구 + 스튜디오 리뷰 큐
 
 ## Current Position
 
-Phase: 재개 phase 2·3·4·5·7·10·11·16·18 — 보완 plan 코드 완료
-Plan: 자동 실행 가능한 plan 전부 완료. 남은 plan 10개(전부 수동 gate): 03-19, 03-20, 04-12, 05-07, 07-15, 10-10, 11-08(Task 2 UAT), 11-12, 16-03, 18-12
-Status: Code complete — 실DB·브라우저 검증 대기 (단위 테스트 161개 파일 2,516개 통과, tsc·eslint 오류 0)
+Phase: 14 (MCP 쓰기 도구 + 스튜디오 리뷰 큐) — EXECUTING
+Plan: 2 of 12
+Status: Ready to execute
 **2026-11-01 병합:** Phase 12(12-01~05 완료, 12-06 Task 2 수동 대기)와 Phase 17(17-01~07 코드 완료, 수동 UAT 대기)을 master에 병합·push했다. 두 phase 모두 사람 검증 전이라 완료로 올리지 않았다. 남은 수동 항목은 `12-06-SUMMARY.md`·`17-UAT.md`의 '수동 확인 필요' 절. Phase 19(작가용 작품 홈 디자인)는 ROADMAP에만 등록, discuss 전.
 **2026-11-03 Phase 13 완료·master 병합(6d69b29):** 6/6 plan(9커밋)이 master에 `--no-ff`로 병합됐다(push 안 함). 일회용 DB(`anzafn…`)+터널+`next start`로 실제 Claude 커스텀 커넥터를 인수했다 — 연결, 읽기 전용 그룹 인식, "항상 허용" 후 읽기 도구 6개 무확인 실행, 본인 데이터만 반환(타인 작품 미노출), 해제 후 같은 연결 호출 차단 통과(12-06 Task 2 #3~#6·#10에 해당). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 12-06 #7·#8·#9는 pending이라 Phase 12는 완료로 올리지 않았다. 병합 후 `tests/mcp`+`tests/ai` 1339개 통과, 22개 실패는 모두 DB 연동 테스트(`tests/ai/chat`·`ai-service-settlement.database`·`ai-usage-db`, 환경 없이 postgres 접속 불가)이며 병합 전과 같은 수, tsc 오류 0건. 남은 것: 0037·0038·0039는 공유 DB 미적용(별도 승인, 이 순서로 적용), 일회용 DB의 임시 작가·작품 "전은재 개패기"는 0023 보호로 삭제 불가(live MCP grant 0), 일회용 Supabase Site URL은 원래 값 이력이 없어 `http://localhost:3100`으로 복구(원래 값 미확인), 터널 터미널 종료는 사용자 몫. 응답 프로토콜 기본 제외는 사용자 확정 기록 없이 계획대로 진행. 워크트리 `.env.disposable` 사본은 삭제했다.
 
-Last activity: 2026-10-19 -- 보완 plan 실행 완료, Phase 2 일회용 DB·브라우저 UAT 통과 후 master 합병, ROADMAP/STATE 정합
+Last activity: 2026-11-09
 
 **Phase 2:** 2026-10-19 완료(검증 포함). 일회용 DB(0001~0023)와 브라우저 UAT 통과, BUG-02·03 수정. 실제 터치 기기·AI 응답 진행 중 접기는 수용(미검증) 항목. 근거는 `02-13-SUMMARY.md`·`02-VERIFICATION.md`.
 
@@ -159,7 +160,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- **[공유 DB 따라잡기 — 열린 위험: 백업 없음 (2026-11-04, 사용자가 취약점으로 남기고 보류)]** 공유 DB(`ymudwg…`)는 0001~0021·0028만 적용돼 master보다 13개(0022~0027·0029·0030·0032~0036) + MCP 3개(0037~0039) 뒤처져 있고, 적용 순서·리허설은 끝났다(`.planning/gaps/2026-11-03-shared-db-catchup-plan.md` 4·9·10·11절). **공유 적용 전 백업이 없다.** Supabase Free 플랜은 대시보드 백업·복원이 없고 이 PC에는 `pg_dump`가 없다. 0022·0023·0027은 데이터를 바꾸므로 그 뒤의 완전한 롤백은 백업 복원뿐이다. 백업(Pro 업그레이드 또는 내보내기 스크립트)이 정해지기 전에는 공유 DB 적용을 시작하지 않는다. 그 외 열린 것: 공유의 `soft_delete_kb_node`가 0008의 소유자·쓰기 권한 확인 없는 이전 정의(적용 순서 5단계에서 0039 이전에 복구), 공유 DB 사용자 2,864명 중 테스트 계정 비율 미확인.
+- **[공유 DB 따라잡기 — 완료 (2026-11-05, 백업 없이 적용)]** 공유 DB(`ymudwg…`)에 0010·0022~0027·0029·0030·0032~0036·0040·0037~0039를 파일 단위로 사용자 승인 후 적용했다(Phase 13 세션이 사용자 터미널 실행을 이끌었고 이 세션은 읽기 전용 점검만 했다). 모든 파일 성공, 오류 0, 롤백 0. 최종 점검: 0001~0040 전부 n/n, public 테이블 40개·SECURITY DEFINER 함수 95개·함수 123개, RLS 꺼진 테이블 없음, `oauth_browser_only` 36개 테이블, `mcp_reject_oauth_caller` 가드가 들어간 SECURITY DEFINER 함수 28개, `soft_delete_kb_node`는 `write_access_denied`와 OAuth 가드 둘 다 있음. 0022 전후: kb_nodes 25,275→34,796(+9,521), 템플릿 파일 994→10,515, 잠금 템플릿 파일 135→10,165, 사본 14→86, 중복 이름 그룹 21→0, 삭제 0. 충전 단계 4개(100/1000·300/2850·550/5000·1000/9000)와 payment_orders 0행 확인. **남은 것:** 배포된 앱과의 RPC 호환·브라우저 스모크(독자 화면·세계수·충전 모달·관리자)는 앱 연결 후 필요, 공유 지문과 리허설 지문의 diff는 Phase 14가 일회용 DB를 쓰는 동안 보류, 롤백 근거였던 적용 전 함수 스냅샷은 점검 스크립트가 같은 파일명으로 덮어써 사라졌다(백업 없는 결정과 같은 이유로 수용), Claude 커넥터를 공유 환경에서 쓰려면 공개 HTTPS 배포·`MCP_PUBLIC_ORIGIN`·공유 Supabase OAuth 서버 설정이 별도로 필요하다. **공유 DB 스모크 (2026-11-05, 로컬 앱 `next dev` + `.env.local`):** 로그인 화면 정상, 사용자 본인이 구글·카카오로 로그인 성공. 로그인 후 홈 피드·스튜디오 작품 목록·작품 페이지·설정집 트리(기본 템플릿 5개 잠금, "사본 만들어 수정" 표시)·AI 커넥터 설정 화면(`/studio/settings/mcp-connections`)이 정상이고 새 콘솔 오류 없음. **결함 발견:** 비로그인(anon)으로 홈 `/`을 열면 `listFeed`가 `canceling statement due to statement timeout`으로 500. 로그인 상태(authenticated)에서는 같은 피드가 렌더된다. 공유 DB에서 anon 권한으로 같은 쿼리를 `EXPLAIN ANALYZE`(읽기 전용)하니 works 511개·chapters 625개가 보이고 1.44초, 공개 읽기 정책의 `world_work_public_meta_visible(work_id)`가 회차 행마다 평가돼 buffers 36,421. PostgREST 경로에서는 anon 제한시간(기본 3초)을 넘는 것으로 보인다. 작품 수에 비례해 느려지므로 공개 출시 규모에서도 재현될 수 있고, 마이그레이션 0033·0036이 공개 읽기 정책에 세계수 공개 여부 함수를 넣은 뒤 처음 드러났다(원인 phase: 18). 공유 DB 작품 대부분이 테스트 계정의 합성 데이터다. 버그 문서(bug-plan)로 기록해 정책 함수 평가 비용을 줄이는 방안을 검토한다. 아래는 적용 전 결정 기록이다. - **[(기록) 공유 DB 따라잡기 — 백업 없이 진행 결정 (2026-11-05)]** 공유 DB(`ymudwg…`)는 0001~0021·0028만 적용돼 master보다 뒤처져 있고(0010·0022~0027·0029·0030·0032~0036 + MCP 0037~0039 + 신규 0040), 적용 순서·리허설(빈 DB, 합성 데이터 작품 1,200개)은 끝났다(`.planning/gaps/2026-11-03-shared-db-catchup-plan.md`). 백업은 하지 않기로 했다: Supabase Free는 대시보드 백업이 없고 사용자가 Pro를 결제하지 않으며, 읽기 전용 분류 점검(2026-11-05)에서 사용자 2,864명 중 테스트 도메인 2,859명이고 나머지 5명(gmail·kakao 각 1, 이메일 없는 3)은 모두 사용자 본인의 확인용 테스트 계정이다. 결제 주문 0건(실제 돈 없음), 그 외 사용자 작품 3개·회차 6개·설정집 노드 62개·지갑 5개(합계 10,957 토큰, 가상)·BYOK 키 1개(본인 테스트). 즉 잃어도 다시 만들 수 있는 데이터다. 파일 단위 트랜잭션과 리허설 통과가 안전장치이고, 함수 정의 스냅샷(`shared-functions-snapshot.sql`)이 있다. **공개 출시 전에는 실제 사용자·결제가 생기므로 백업(Pro 또는 자체 내보내기)을 다시 결정한다.** 공유 DB의 `soft_delete_kb_node`는 0008의 소유자·쓰기 권한 확인이 없는 이전 정의였고 `0040_restore_soft_delete_kb_node_guard.sql`(0039 이전에 적용, 이미 보호가 있는 DB에서는 건너뜀)로 복구한다.
 - **[v1.1 Phase 15] Code complete / Activation blocked.** Jev 추천의 Production active는 lib/ai/decision/activation.ts getAiDocPlanningMode()가 다음을 모두 확인할 때만 성립한다: (1) 데이터 처리 정책 검토 승인 행(ai_doc_activation_approvals — 검토 주체: 작가 본인, D-10) (2) pinned JEV_MODEL_VERSION (3) 같은 모델·golden-set hash·EVALUATOR_VERSION의 실제 벤더 holdout 평가 통과 증거(ai_doc_activation_evidence) (4) 최근 30일 그림자 표본 ≥ 200·오류율 ≤ 5%·P95 ≤ 800ms. 그 전에는 실제 작품 본문을 프로덕션 Jev 호출에 보내지 않는다(D-08). Jev 계정: live verified — 인증 `Authorization: Bearer <key>`, 요청 `{state, model, questions:{<id>:{type,instructions,criteria}}}`, 응답 `{model, answers:{<id>:{choice,probabilities,confidence}}}`, 고정 버전 태그 `jev-1.13.0`(semver, alias는 `jev-latest`/`jev-preview`). 갱신일: 2026-09-27. Phase 5 Toss 심사와 동일한 외부 대기열로 취급.
 - **[v1.1] 벤더 온보딩 리드타임이 Phase 9의 잠재 차단요인이다.** OpenAI Organization Verification과 초기 rate-limit tier는 코드로 해결할 수 없는 외부 큐다. Phase 8 착수와 동시에 신청하고 여기서 상태를 추적한다.
 - ~~**[v1.1] Phase 9 선행:** BUG-04(Gemini 사고 토큰 차감 누락)를 Phase 9 착수 전에 `/gsd:quick`으로 수정한다(09-CONTEXT D-13). Gemini 고성능 슬롯을 실제 Pro 모델로 바꾸려면 Google 프로젝트 결제 활성화가 필요하다(09-CONTEXT D-04, 외부 작업).~~ — RESOLVED: BUG-04 차감 누락은 `fixed/08-04`로 수정됨 (남은 출력 잘림 문제는 `phases/08-.../bugs/BUG-04` 보류). 고성능 슬롯용 Google 결제는 별개 외부 작업.
@@ -177,8 +178,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-13T06:40:01.358Z
-Stopped at: Completed 02-07-PLAN.md (DB gate pending 02-13)
+Last session: 2026-11-09T12:59:09.515Z
+Stopped at: Phase 14 UI-SPEC approved
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.
