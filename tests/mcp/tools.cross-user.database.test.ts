@@ -27,6 +27,8 @@ const ready = Boolean(process.env.MCP_DISPOSABLE_PROJECT_REF?.trim() && dbUrl
   && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 const MISSING = '요청한 항목을 찾을 수 없습니다.';
+/** 14-13: 쓰기 도구는 baseHash가 필수다. 남의 대상에는 해시와 무관하게 not-found만 돌아온다. */
+const ANY_HASH = 'a'.repeat(64);
 /** Every message the common runtime and the tools may return; anything else would be a leak. */
 const ALLOWED_ERRORS = [
   MISSING,
@@ -296,8 +298,8 @@ describe.skipIf(!ready)('MCP read tools: two-user OAuth isolation and revocation
       get_writing_context: { workId: f.wB, chapterId: f.cB, nodeIds: [f.kBwork] },
     };
     const writeArgs: Record<string, Record<string, unknown>> = {
-      save_draft: { workId: f.wB, chapterId: f.cB, content: 'revoked draft' },
-      propose_kb_document: { mode: 'edit', workId: f.wB, nodeId: f.kBwork, content: 'revoked edit' },
+      save_draft: { workId: f.wB, chapterId: f.cB, baseHash: ANY_HASH, content: 'revoked draft' },
+      propose_kb_document: { mode: 'edit', workId: f.wB, nodeId: f.kBwork, baseHash: ANY_HASH, content: 'revoked edit' },
     };
     const calls = [...READ_TOOLS.map((name) => [name, args[name]] as const), ...Object.entries(writeArgs)];
     expect(calls).toHaveLength(9);
@@ -319,8 +321,8 @@ describe.skipIf(!ready)('MCP read tools: two-user OAuth isolation and revocation
       callTool(bTok.accessToken, 'search_kb', { workId: f.wA, query: secret }),
       callTool(bTok.accessToken, 'get_kb_document', { workId: f.wB, nodeId: f.kAacct }),
       callTool(bTok.accessToken, 'get_writing_context', { workId: f.wA, chapterId: f.cDraft, nodeIds: [] }),
-      callTool(bTok.accessToken, 'save_draft', { workId: f.wA, chapterId: f.cDraft, content: 'B draft' }),
-      callTool(bTok.accessToken, 'propose_kb_document', { mode: 'edit', workId: f.wA, nodeId: f.kAwork, content: 'B edit' }),
+      callTool(bTok.accessToken, 'save_draft', { workId: f.wA, chapterId: f.cDraft, baseHash: ANY_HASH, content: 'B draft' }),
+      callTool(bTok.accessToken, 'propose_kb_document', { mode: 'edit', workId: f.wA, nodeId: f.kAwork, baseHash: ANY_HASH, edits: [{ op: 'replace', find: 'B', replace: 'C' }] }),
     ]);
     for (const result of samples) {
       expect(result.isError).toBe(true);

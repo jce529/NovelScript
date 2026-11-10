@@ -27,8 +27,14 @@ describe.skipIf(!ready)('mcp_propose_kb_edit / mcp_propose_kb_create (0041)', ()
     string
   >;
 
-  const edit = (bearer: string, workId: string, nodeId: string, content: string) =>
-    fx.rpc('mcp_propose_kb_edit', bearer, { p_work_id: workId, p_node_id: nodeId, p_content: content });
+  // 14-13 (0044): 전체 본문은 현재 원문(null은 '') 해시와 replaceAll 하나로 보낸다.
+  const edit = async (bearer: string, workId: string, nodeId: string, content: string) => {
+    const [current] = await fx.query('select content from public.kb_nodes where id = $1', [nodeId]);
+    return fx.rpc('mcp_propose_kb_edit', bearer, {
+      p_work_id: workId, p_node_id: nodeId, p_base_hash: sha256(String(current?.content ?? '')),
+      p_edits: [{ op: 'replaceAll', content }],
+    });
+  };
   const create = (bearer: string, workId: string, category: string, name: string, content: string) =>
     fx.rpc('mcp_propose_kb_create', bearer, { p_work_id: workId, p_category: category, p_name: name, p_content: content });
   const kbSnapshot = () => fx.query(

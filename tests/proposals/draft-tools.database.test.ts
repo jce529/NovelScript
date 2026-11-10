@@ -24,8 +24,14 @@ describe.skipIf(!ready)('mcp_propose_chapter_draft (0041)', () => {
   let cCap: string;
   const ORIGINAL = '첫 문단입니다.\n\n둘째 문단 🌙\n';
 
-  const propose = (bearer: string, workId: string, chapterId: string, content: string) =>
-    fx.rpc('mcp_propose_chapter_draft', bearer, { p_work_id: workId, p_chapter_id: chapterId, p_content: content });
+  // 14-13 (0044): 전체 본문은 현재 원문 해시와 replaceAll 하나로 보낸다(이전 p_content 계약의 흡수).
+  const propose = async (bearer: string, workId: string, chapterId: string, content: string) => {
+    const [current] = await fx.query('select content from public.chapters where id = $1', [chapterId]);
+    return fx.rpc('mcp_propose_chapter_draft', bearer, {
+      p_work_id: workId, p_chapter_id: chapterId, p_base_hash: sha256(String(current?.content ?? '')),
+      p_edits: [{ op: 'replaceAll', content }],
+    });
+  };
   const chapterBodies = () => fx.query(
     'select id, content, updated_at from public.chapters where work_id = any($1::uuid[]) order by id',
     [[wA, wA2, wAdel, wB]],
@@ -224,7 +230,8 @@ describe.skipIf(!ready)('mcp_propose_chapter_draft (0041)', () => {
       where conrelid = 'public.mcp_connections'::regclass and contype = 'c'
         and pg_get_constraintdef(oid) like '%propose_draft%'`);
     const scoped = await fx.asClaims({ ...fx.aTok.claims, role: 'authenticated' },
-      () => fx.outcome('select public.mcp_propose_chapter_draft($1, $2, $3) as r', [wA, cPub, 'no scope']),
+      () => fx.outcome('select public.mcp_propose_chapter_draft($1, $2, $3, $4::jsonb) as r',
+        [wA, cPub, sha256('published body'), JSON.stringify([{ op: 'replaceAll', content: 'no scope' }])]),
       async () => {
         await fx.query(`alter table public.mcp_connections drop constraint "${String(constraint.conname)}"`);
         await fx.query("update public.mcp_connections set scopes = array['read'] where oauth_client_id = $1", [fx.aTok.clientId]);

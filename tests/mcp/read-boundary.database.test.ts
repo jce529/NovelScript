@@ -86,9 +86,10 @@ const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
   'mcp_disconnect(uuid)': 'keep',
   'mcp_grant_is_live()': 'guard',
   // 14-01 (0041): bearer-only proposal RPCs; live grant + propose_draft scope + write access + owner inside.
-  'mcp_propose_chapter_draft(uuid,uuid,text)': 'guard',
+  // 14-13 (0044): the two edit RPCs take (base_hash, edits jsonb); the old (uuid,uuid,text) signatures are dropped.
+  'mcp_propose_chapter_draft(uuid,uuid,text,jsonb)': 'guard',
   'mcp_propose_kb_create(uuid,text,text,text)': 'guard',
-  'mcp_propose_kb_edit(uuid,uuid,text)': 'guard',
+  'mcp_propose_kb_edit(uuid,uuid,text,jsonb)': 'guard',
   'mcp_read_owned_chapter_content(uuid)': 'guard',
   'open_chapter_reading(uuid,uuid,uuid)': 'block',
   'pay_purchase_order(uuid)': 'block',
@@ -113,8 +114,8 @@ const RAISING_BLOCKED_RPCS = Object.entries(EXPOSED_DEFINER_RPCS)
 const GUARD_MESSAGE = 'browser session required';
 const DECISION_RPCS = Object.keys(EXPOSED_DEFINER_RPCS).filter((sig) => /^(accept|reject|revert)_mcp_/.test(sig));
 const PROPOSE_RPCS = [
-  'mcp_propose_chapter_draft(uuid,uuid,text)',
-  'mcp_propose_kb_edit(uuid,uuid,text)',
+  'mcp_propose_chapter_draft(uuid,uuid,text,jsonb)',
+  'mcp_propose_kb_edit(uuid,uuid,text,jsonb)',
   'mcp_propose_kb_create(uuid,text,text,text)',
 ] as const;
 
@@ -342,6 +343,32 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
         expect(String(fn!.prosrc), sig).toContain('mcp_not_found');
         expect(String(fn!.prosrc), sig).toContain('mcp_proposal_check_cap');
       }
+      // 14-13 (0044): old full-content signatures are gone; the patch RPCs lock the original row,
+      // compare the raw hash first and apply edits through the private patch helper.
+      for (const old of ['mcp_propose_chapter_draft(uuid,uuid,text)', 'mcp_propose_kb_edit(uuid,uuid,text)']) {
+        expect(bySig.has(old), old).toBe(false);
+      }
+      for (const sig of PROPOSE_RPCS.filter((s) => s.endsWith(',jsonb)'))) {
+        const body = String(bySig.get(sig)!.prosrc);
+        expect(body, sig).toMatch(/for update of/);
+        expect(body, sig).toContain('mcp_patch_stale');
+        expect(body, sig).toContain('public.mcp_patch_apply(');
+        expect(body.indexOf('mcp_patch_stale'), sig).toBeLessThan(body.indexOf('public.mcp_patch_apply('));
+      }
+      const patchHelpers = await query(`select p.oid::regprocedure::text as sig, p.prosecdef, coalesce(p.proconfig, array[]::text[]) as config,
+          p.proacl::text as acl,
+          has_function_privilege('anon', p.oid, 'execute') as anon_exec,
+          has_function_privilege('authenticated', p.oid, 'execute') as auth_exec,
+          has_function_privilege('service_role', p.oid, 'execute') as service_exec
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname like 'mcp_patch%'`);
+      expect(patchHelpers.length).toBeGreaterThanOrEqual(1);
+      for (const fn of patchHelpers) {
+        expect(fn.prosecdef, String(fn.sig)).toBe(false);
+        expect(fn.config, String(fn.sig)).toContain('search_path=""');
+        expect([fn.anon_exec, fn.auth_exec, fn.service_exec], String(fn.sig)).toEqual([false, false, false]);
+        expect(String(fn.acl), String(fn.sig)).not.toMatch(/[{,]=X/);
+      }
       const caller = bySig.get('mcp_proposal_caller()');
       expect(caller).toBeDefined();
       expect(caller!.prosecdef).toBe(false);
@@ -417,7 +444,12 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
       for (const sig of PROPOSE_RPCS) expect(browser[sig], sig).toBe('live MCP grant required');
       // Null content and random ids: a live bearer passes the grant checks and fails on input.
       const oauth = await run({ ...aTok.claims, role: 'authenticated' });
-      for (const sig of PROPOSE_RPCS) expect(oauth[sig], sig).toBe('mcp_invalid_content');
+      // 14-13 (0044): the patch RPCs check the (random, unowned) target before the hash or edits.
+      expect(oauth).toEqual({
+        'mcp_propose_chapter_draft(uuid,uuid,text,jsonb)': 'mcp_not_found',
+        'mcp_propose_kb_edit(uuid,uuid,text,jsonb)': 'mcp_not_found',
+        'mcp_propose_kb_create(uuid,text,text,text)': 'mcp_invalid_content',
+      });
     });
   });
 

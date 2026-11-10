@@ -36,7 +36,7 @@ describe.skipIf(!ready)('proposal source and base snapshots (0041)', () => {
 
   it('stores the connection client name, host and id from mcp_connections', async () => {
     const result = await fx.rpc('mcp_propose_chapter_draft', fx.aTok.accessToken,
-      { p_work_id: wA, p_chapter_id: cA, p_content: '새 초안' });
+      { p_work_id: wA, p_chapter_id: cA, p_base_hash: sha256(ORIGINAL), p_edits: [{ op: 'replaceAll', content: '새 초안' }] });
     expect(result.status).toBe(200);
     const [row] = await fx.query(
       'select source_client_id, source_client_name, source_host, base_content, base_hash from public.mcp_proposals where id = $1',
@@ -64,7 +64,7 @@ describe.skipIf(!ready)('proposal source and base snapshots (0041)', () => {
       { p_owner_id: fx.writerB.id },
     ]) {
       const result = await fx.rpc('mcp_propose_chapter_draft', fx.aTok.accessToken,
-        { p_work_id: wA, p_chapter_id: cA2, p_content: 'forged', ...extra });
+        { p_work_id: wA, p_chapter_id: cA2, p_base_hash: sha256('second'), p_edits: [{ op: 'replaceAll', content: 'forged' }], ...extra });
       expect(result.status).not.toBe(200);
     }
     const rows = await fx.query('select source_client_name from public.mcp_proposals where chapter_id = $1', [cA2]);
@@ -101,7 +101,7 @@ describe.skipIf(!ready)('proposal source and base snapshots (0041)', () => {
     const temp = await issueMcpToken(fx.writerA, { clientName: 'mcp-test-source-temp' });
     fx.clientIds.push(temp.clientId);
     const created = await fx.rpc('mcp_propose_kb_edit', temp.accessToken,
-      { p_work_id: wA, p_node_id: kA, p_content: '길드 설정 v2' });
+      { p_work_id: wA, p_node_id: kA, p_base_hash: sha256('길드 설정'), p_edits: [{ op: 'replace', find: '설정', replace: '설정 v2' }] });
     expect(created.status).toBe(200);
     const id = (created.json as Proposed).id;
 
