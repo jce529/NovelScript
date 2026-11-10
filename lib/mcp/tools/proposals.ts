@@ -17,7 +17,15 @@ export const PROPOSAL_MESSAGE = '작가가 스튜디오 리뷰 큐에서 수락�
 
 const noNul = (value: string) => !value.includes('\u0000');
 const notBlank = (value: string) => value.trim().length > 0;
-const text = (max: number, description: string) => z.string().min(1).max(max)
+/** SQL length()와 같은 코드포인트 기준 길이(0044). zod .max()는 UTF-16 단위라 이모지를 두 번 센다. */
+const codePoints = (value: string) => [...value].length;
+/**
+ * 코드포인트 기준 1..max(빈 문자열 허용 시 0..max) 문자열. 코드포인트 하나는 UTF-16으로 최대 2단위라
+ * .max(max * 2)로 큰 입력을 먼저 끊고, 정확한 한도는 refine으로 센다.
+ */
+const boundedString = (min: 0 | 1, max: number) => z.string().min(min).max(max * 2)
+  .refine((value) => codePoints(value) <= max, `${max}자를 넘을 수 없습니다.`);
+const text = (max: number, description: string) => boundedString(1, max)
   .refine(noNul, '제어 문자(NUL)는 넣을 수 없습니다.')
   .refine(notBlank, '내용이 비어 있습니다.')
   .describe(description);
@@ -29,10 +37,10 @@ export const PATCH_LIMITS = {
   edits: 20, anchor: 500, replace: 10000, hintPara: 100000, chapter: 100000, kb: 50000,
 } as const;
 
-const anchor = (description: string) => z.string().min(1).max(PATCH_LIMITS.anchor)
+const anchor = (description: string) => boundedString(1, PATCH_LIMITS.anchor)
   .refine(noNul, '제어 문자(NUL)는 넣을 수 없습니다.')
   .describe(description);
-const replacement = z.string().max(PATCH_LIMITS.replace)
+const replacement = boundedString(0, PATCH_LIMITS.replace)
   .refine(noNul, '제어 문자(NUL)는 넣을 수 없습니다.')
   .describe(`바꿔 넣을 글(0~${PATCH_LIMITS.replace}자, 빈 문자열이면 삭제)`);
 const hintPara = z.number().int().min(1).max(PATCH_LIMITS.hintPara).optional()
@@ -88,7 +96,7 @@ export const proposeKbDocumentInputSchema = z.discriminatedUnion('mode', [
     workId,
     category: z.enum(KB_CATEGORIES)
       .describe('새 문서의 분류. 인물·장소·사건·세력·아이템 중 하나입니다. 폴더는 작가가 수락할 때 고릅니다.'),
-    name: z.string().min(1).max(100)
+    name: boundedString(1, 100)
       .refine(noNul, '제어 문자(NUL)는 넣을 수 없습니다.')
       .refine(notBlank, '이름이 비어 있습니다.')
       .describe('새 설정 문서의 이름(1~100자)'),

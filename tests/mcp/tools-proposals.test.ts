@@ -393,6 +393,38 @@ describe('14-13 patch input (save_draft edits)', () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
+  // 0044 SQL은 length()(코드포인트)로 센다. 도구 한도도 UTF-16이 아니라 코드포인트여야 한다.
+  const E = '😀';
+  it('counts limits in code points: emoji inputs exactly at each limit pass', async () => {
+    const { call, rpc } = setup();
+    payload(await call('save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace', find: E.repeat(500), replace: E.repeat(10000) }] }));
+    payload(await call('save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace_range', start_text: E.repeat(500), end_text: E.repeat(500), replace: E.repeat(10000) }] }));
+    payload(await call('save_draft', { ...DRAFT_BASE, edits: replaceAllOf(E.repeat(100000)) }));
+    payload(await call('save_draft', { ...DRAFT_BASE, content: E.repeat(100000) }));
+    payload(await call('propose_kb_document', { ...EDIT_BASE, edits: replaceAllOf(E.repeat(50000)) }));
+    payload(await call('propose_kb_document', { ...EDIT_BASE, content: E.repeat(50000) }));
+    payload(await call('propose_kb_document', { ...CREATE, name: E.repeat(100), content: E.repeat(50000) }));
+    expect(rpc).toHaveBeenCalledTimes(7);
+  });
+
+  it.each([
+    ['find 501 emoji', 'save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace', find: E.repeat(501), replace: '' }] }],
+    ['replace 10001 emoji', 'save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace', find: 'a', replace: E.repeat(10001) }] }],
+    ['start_text 501 emoji', 'save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace_range', start_text: E.repeat(501), end_text: 'b', replace: '' }] }],
+    ['end_text 501 emoji', 'save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace_range', start_text: 'a', end_text: E.repeat(501), replace: '' }] }],
+    ['range replace 10001 emoji', 'save_draft', { ...DRAFT_BASE, edits: [{ op: 'replace_range', start_text: 'a', end_text: 'b', replace: E.repeat(10001) }] }],
+    ['chapter replaceAll 100001 emoji', 'save_draft', { ...DRAFT_BASE, edits: replaceAllOf(E.repeat(100001)) }],
+    ['chapter content 100001 emoji', 'save_draft', { ...DRAFT_BASE, content: E.repeat(100001) }],
+    ['kb replaceAll 50001 emoji', 'propose_kb_document', { ...EDIT_BASE, edits: replaceAllOf(E.repeat(50001)) }],
+    ['kb content 50001 emoji', 'propose_kb_document', { ...EDIT_BASE, content: E.repeat(50001) }],
+    ['kb create 50001 emoji', 'propose_kb_document', { ...CREATE, content: E.repeat(50001) }],
+    ['kb create name 101 emoji', 'propose_kb_document', { ...CREATE, name: E.repeat(101) }],
+  ])('rejects %s (code point limit + 1) before any RPC', async (_label, tool, args) => {
+    const { call, rpc } = setup();
+    expect(safeError(await call(tool, args))).toBe('입력값을 확인해주세요.');
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it('describes every edit field in Korean in the advertised JSON schema', () => {
     const { registered } = setup();
     for (const name of ['save_draft', 'propose_kb_document']) {

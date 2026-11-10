@@ -191,8 +191,14 @@ begin
       perform public.mcp_patch_fail('mcp_patch_invalid', '22023',
         pg_catalog.jsonb_build_object('code', 'invalid', 'editIndex', v_i, 'reason', 'replace_all_mixed'));
     end if;
-    -- hint_para is accepted and ignored (never a position source).
+    -- hint_para is never a position source, but when present it must be an integer 1..100000
+    -- (same contract as the MCP tool). CASE keeps the numeric cast away from non-numbers.
     if exists (select 1 from pg_catalog.jsonb_object_keys(v_edit) as k(key) where k.key <> all (v_allowed))
+       or (v_edit ? 'hint_para' and case
+             when pg_catalog.jsonb_typeof(v_edit -> 'hint_para') is distinct from 'number' then true
+             else (v_edit ->> 'hint_para')::numeric not between 1 and 100000
+               or (v_edit ->> 'hint_para')::numeric <> pg_catalog.trunc((v_edit ->> 'hint_para')::numeric)
+           end)
        or (v_op = 'replace' and (pg_catalog.jsonb_typeof(v_edit -> 'find') is distinct from 'string'
              or pg_catalog.jsonb_typeof(v_edit -> 'replace') is distinct from 'string'))
        or (v_op = 'replace_range' and (pg_catalog.jsonb_typeof(v_edit -> 'start_text') is distinct from 'string'
@@ -215,7 +221,12 @@ begin
   end loop;
 
   -- replaceAll keeps the old full-text behaviour: the caller's normalize checks length / blank.
+  -- The raw (pre-normalization) length is capped too, so stripped control characters cannot
+  -- smuggle a longer input past the limit; same error family as before (mcp_invalid_content).
   if v_op = 'replaceAll' then
+    if pg_catalog.length(p_edits -> 0 ->> 'content') > p_max then
+      raise exception 'mcp_invalid_content' using errcode = '22023';
+    end if;
     return pg_catalog.jsonb_build_object('content', p_edits -> 0 ->> 'content', 'preview', null);
   end if;
 

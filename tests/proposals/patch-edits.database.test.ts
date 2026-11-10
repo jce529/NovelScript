@@ -319,6 +319,47 @@ describe.skipIf(!ready)('patch edits in the propose RPCs (0044)', () => {
       }
     });
 
+    it('hint_para must be an integer 1..100000 when present (re-checked in SQL, still never a position)', async () => {
+      const original = 'hint body';
+      const c = await chapter(original);
+      const body = { chapter: c, body: original };
+      for (const hint of ['3', 0, 100_001, 1.5, -1, null, true, [1]]) {
+        await expectPatchError(() => chapterPatch(c, sha256(original), [{ op: 'replace', find: 'hint', replace: 'h', hint_para: hint }]),
+          'mcp_patch_invalid', '22023', { code: 'invalid', editIndex: 0, reason: 'malformed' }, body);
+      }
+      await expectPatchError(() => chapterPatch(c, sha256(original), [
+        { op: 'replace', find: 'hint', replace: 'h', hint_para: 1 },
+        { op: 'replace_range', start_text: 'bo', end_text: 'dy', replace: 'B', hint_para: '2' }]),
+      'mcp_patch_invalid', '22023', { code: 'invalid', editIndex: 1, reason: 'malformed' }, body);
+      for (const hint of [1, 100_000]) {
+        const ok = await chapterPatch(c, sha256(original), [{ op: 'replace', find: 'hint', replace: `h${hint}`, hint_para: hint }]);
+        expect(ok.status, String(ok.message)).toBe(200);
+      }
+    });
+
+    it('replaceAll raw length is capped before normalization (stripped controls cannot bypass the limit)', async () => {
+      const original = 'raw cap body';
+      const c = await chapter(original);
+      const n = await proposalCount();
+      // 100,001 code points, 100,000 of them control characters that normalization would strip.
+      const over = await chapterPatch(c, sha256(original), [{ op: 'replaceAll', content: `x${'\u0007'.repeat(100_000)}` }]);
+      expect(over).toMatchObject({ status: 400, message: 'mcp_invalid_content', code: '22023' });
+      const okRaw = await chapterPatch(c, sha256(original), [{ op: 'replaceAll', content: `x${'\u0007'.repeat(99_999)}` }]);
+      expect(okRaw.status, String(okRaw.message)).toBe(200);
+      expect((await row((okRaw.json as Proposed).id)).content).toBe('x');
+      // 100,000 emoji = 100,000 code points (UTF-16 200,000) is still within the chapter limit.
+      const emoji = await chapterPatch(c, sha256(original), [{ op: 'replaceAll', content: '😀'.repeat(100_000) }]);
+      expect(emoji.status, String(emoji.message)).toBe(200);
+
+      const k = await node('kb raw cap');
+      const kOver = await kbPatch(k, sha256('kb raw cap'), [{ op: 'replaceAll', content: `y${'‎\u0001'.repeat(25_000)}` }]);
+      expect(kOver).toMatchObject({ status: 400, message: 'mcp_invalid_content', code: '22023' });
+      const kOk = await kbPatch(k, sha256('kb raw cap'), [{ op: 'replaceAll', content: `y${'\u0001'.repeat(49_999)}` }]);
+      expect(kOk.status, String(kOk.message)).toBe(200);
+      expect(await proposalCount()).toBe(n + 3);
+      expect(await chapterBody(c)).toBe(original);
+    });
+
     it('no change and blank results use the existing errors', async () => {
       const original = 'same text';
       const c = await chapter(original);
