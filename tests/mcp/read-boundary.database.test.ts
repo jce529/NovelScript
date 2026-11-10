@@ -102,6 +102,8 @@ const EXPOSED_DEFINER_RPCS: Record<string, RpcClass> = {
   'toggle_work_bookmarks(uuid)': 'block',
   'toggle_work_likes(uuid)': 'block',
   'toggle_work_subscriptions(uuid)': 'block',
+  // 0050 (BUG-02): public-read policy helper used by chapters_public_read; same exposure as the other visibility helpers.
+  'world_work_base_visible(uuid)': 'keep',
   'world_work_public_meta_visible(uuid)': 'keep',
   'world_work_reader_visible(uuid)': 'keep',
 };
@@ -354,9 +356,13 @@ describe.skipIf(!ready)('MCP D-17 read boundary on disposable Supabase (0039)', 
         if ((PROPOSE_RPCS as readonly string[]).includes(sig)) continue;
         expect([fn.anon_exec, fn.auth_exec, fn.service_exec], sig).toEqual([false, false, false]);
       }
+      // 14-10 (0043): several pending drafts per chapter; identical text is deduped per (chapter, content_hash).
       const index = await query(
-        "select indexdef from pg_indexes where schemaname = 'public' and indexname = 'mcp_proposals_one_pending_draft'");
-      expect(String(index[0]?.indexdef)).toMatch(/UNIQUE INDEX[\s\S]*\(chapter_id\)[\s\S]*chapter_draft[\s\S]*pending/);
+        "select indexdef from pg_indexes where schemaname = 'public' and indexname = 'mcp_proposals_pending_draft_dedupe'");
+      expect(String(index[0]?.indexdef)).toMatch(/UNIQUE INDEX[\s\S]*\(chapter_id, content_hash\)[\s\S]*chapter_draft[\s\S]*pending/);
+      const oldIndex = await query(
+        "select 1 from pg_indexes where schemaname = 'public' and indexname = 'mcp_proposals_one_pending_draft'");
+      expect(oldIndex).toHaveLength(0);
     });
 
     it('locks down the five decision RPCs (14-04) and their private helpers', async () => {
