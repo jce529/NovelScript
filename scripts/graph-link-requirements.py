@@ -128,7 +128,7 @@ def main():
         edges[key] = dict(confidence=conf, confidence_score=score, basis=basis, **extra)
 
     # 2) PLAN: requirements + files_modified
-    for f in sorted(glob.glob(".planning/phases/**/*-PLAN.md", recursive=True)):
+    for f in sorted(p for p in glob.glob(".planning/phases/**/*-PLAN.md", recursive=True) if "_superseded" not in p):
         b = frontmatter(f)
         reqs = [r for r in fm_list(b, "requirements") if r in status]
         if not reqs:
@@ -144,7 +144,7 @@ def main():
                 add(r, rel, x, "INFERRED", 0.6, "plan-files-modified:" + os.path.basename(f)[:5])
 
     # 3) SUMMARY: 완료 증거
-    for f in sorted(glob.glob(".planning/phases/**/*-SUMMARY.md", recursive=True)):
+    for f in sorted(p for p in glob.glob(".planning/phases/**/*-SUMMARY.md", recursive=True) if "_superseded" not in p):
         b = frontmatter(f)
         for r in fm_list(b, "requirements-completed") or fm_list(b, "requirements"):
             if r in status:
