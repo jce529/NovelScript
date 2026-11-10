@@ -46,8 +46,8 @@ const VALID_ARGS: Record<string, Record<string, unknown>> = {
   search_kb: { workId: WORK, query: '' },
   get_kb_document: { workId: WORK, nodeId: NODE },
   get_writing_context: { workId: WORK, chapterId: CHAPTER, nodeIds: [NODE] },
-  save_draft: { workId: WORK, chapterId: CHAPTER, content: '초안' },
-  propose_kb_document: { mode: 'edit', workId: WORK, nodeId: NODE, content: '수정안' },
+  save_draft: { workId: WORK, chapterId: CHAPTER, baseHash: 'a'.repeat(64), content: '초안' },
+  propose_kb_document: { mode: 'edit', workId: WORK, nodeId: NODE, baseHash: 'a'.repeat(64), content: '수정안' },
 };
 const WRITE_TOOLS = ['save_draft', 'propose_kb_document'];
 const EXPECTED_TOOLS = Object.keys(VALID_ARGS).sort();

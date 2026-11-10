@@ -29,9 +29,11 @@ const TOOL_ARGS: Record<(typeof READ_TOOLS)[number], Record<string, unknown>> = 
 };
 /** Phase 14 proposal tools (14-02): pending rows only, through the 0041 RPCs. */
 const WRITE_TOOLS = ['save_draft', 'propose_kb_document'] as const;
+/** 14-13: 수정 제안은 읽기 도구의 contentHash(baseHash)가 필수다. */
+const BASE_HASH = 'a'.repeat(64);
 const WRITE_ARGS: Record<(typeof WRITE_TOOLS)[number], Record<string, unknown>> = {
-  save_draft: { workId: WORK, chapterId: CHAPTER, content: '초안 본문' },
-  propose_kb_document: { mode: 'edit', workId: WORK, nodeId: NODE, content: '수정안' },
+  save_draft: { workId: WORK, chapterId: CHAPTER, baseHash: BASE_HASH, content: '초안 본문' },
+  propose_kb_document: { mode: 'edit', workId: WORK, nodeId: NODE, baseHash: BASE_HASH, content: '수정안' },
 };
 const PROPOSAL = '88888888-8888-4888-8888-888888888888';
 
@@ -269,7 +271,8 @@ describe('/mcp route authentication', () => {
     const saved = JSON.parse(body.result?.content?.[0]?.text ?? 'null');
     expect(saved).toMatchObject({ proposalId: PROPOSAL, status: 'pending', reviewUrl: `${ORIGIN}/studio/${WORK}/review/${PROPOSAL}` });
     expect(fake.rpcCalls.at(-1)).toEqual({
-      fn: 'mcp_propose_chapter_draft', args: { p_work_id: WORK, p_chapter_id: CHAPTER, p_content: '초안 본문' },
+      fn: 'mcp_propose_chapter_draft',
+      args: { p_work_id: WORK, p_chapter_id: CHAPTER, p_base_hash: BASE_HASH, p_edits: [{ op: 'replaceAll', content: '초안 본문' }] },
     });
   });
 
