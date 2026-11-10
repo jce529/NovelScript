@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 14 (MCP 쓰기 도구 + 스튜디오 리뷰 큐) — EXECUTING
-Plan: 11 of 12 (14-09 수동 인수만 남음)
+Plan: 11 of 13 (14-13 패치 형식은 PLAN만, 14-09 수동 인수 남음)
 Status: Ready for manual acceptance
 **2026-11-01 병합:** Phase 12(12-01~05 완료, 12-06 Task 2 수동 대기)와 Phase 17(17-01~07 코드 완료, 수동 UAT 대기)을 master에 병합·push했다. 두 phase 모두 사람 검증 전이라 완료로 올리지 않았다. 남은 수동 항목은 `12-06-SUMMARY.md`·`17-UAT.md`의 '수동 확인 필요' 절. Phase 19(작가용 작품 홈 디자인)는 ROADMAP에만 등록, discuss 전.
 **2026-11-10 Phase 14 두 갈래 병합(브랜치 `claude/phase14-merge`, 푸시·master 병합 전):** 데스크탑이 `14-mcp/`(12 plan, 0051)로 새로 시작한 Phase 14와 로컬 `14-mcp-write-review/`(0041·0042, 14-01~14-08 완료)를 하나로 합쳤다. 로컬 구현을 뼈대로 쓰고 데스크탑 결정 일부(다중 초안, 작품당 30·작가당 100건 상한, 제어 문자 정규화, 전역 인박스·헤더 진입·트리 배지)를 14-10(0043)·14-11로 얹었다. `0051`·데스크탑 plan 12개는 채택하지 않고 설계 문서만 `_superseded/`에 보관. 공유 DB 미접촉. 남은 일: 14-09 수동 인수, 병합 전 Codex 교차 검증, 푸시·master 병합·공유 DB 0041~0043(+0050) 적용(각각 승인 필요).

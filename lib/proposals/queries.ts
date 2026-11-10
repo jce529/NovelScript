@@ -24,6 +24,8 @@ export type ProposalStatus = 'pending' | 'accepted' | 'rejected' | 'superseded' 
 export type ProposalFilter = 'pending' | 'done' | 'all';
 
 export const PROPOSAL_LIST_LIMIT = 200;
+/** Live works considered for the inbox and the header count. */
+const WORK_LIST_LIMIT = 1000;
 /** kb_edit targets: same category set as 0041/0042. */
 const KB_EDIT_CATEGORIES = ['인물', '장소', '사건', '세력', '아이템', 'custom'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -309,12 +311,27 @@ export type ListInboxResult =
   }
   | { ok: false };
 
-/** Live pending proposals over all of the writer's works. Failure -> null (the header omits the badge). */
+/** Owned, not deleted works (the only ones whose proposals are shown anywhere). */
+async function listLiveWorks(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase.from('works').select('id, title')
+    .eq('owner_id', userId).is('deleted_at', null).order('created_at', { ascending: false }).limit(WORK_LIST_LIMIT);
+  if (error || !Array.isArray(data)) return null;
+  return data as Array<{ id: string; title: string }>;
+}
+
+/**
+ * Live pending proposals over the writer's live works (a deleted work's rows are hidden everywhere,
+ * so they are not counted either). Failure -> null (the header omits the badge).
+ */
 export async function countPendingProposalsTotal(supabase: SupabaseClient, userId: string): Promise<number | null> {
   if (!isUuid(userId)) return null;
   try {
+    const works = await listLiveWorks(supabase, userId);
+    if (!works) return null;
+    if (works.length === 0) return 0;
     const { data, error } = await supabase.from('mcp_proposals').select('id')
-      .eq('owner_id', userId).eq('status', 'pending').gt('expires_at', nowIso());
+      .eq('owner_id', userId).eq('status', 'pending').gt('expires_at', nowIso())
+      .in('work_id', works.map((w) => w.id));
     if (error || !Array.isArray(data)) return null;
     return data.length;
   } catch {
@@ -359,29 +376,29 @@ export async function listInboxProposals(
   };
   if (!isUuid(userId)) return { ok: false };
   try {
-    const { data: workRows, error: workError } = await supabase.from('works').select('id, title')
-      .eq('owner_id', userId).is('deleted_at', null).order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT);
-    if (workError || !Array.isArray(workRows)) return { ok: false };
-    const ownedWorks = workRows as Array<{ id: string; title: string }>;
+    const ownedWorks = await listLiveWorks(supabase, userId);
+    if (!ownedWorks) return { ok: false };
     const workTitle = new Map(ownedWorks.map((w) => [w.id, w.title]));
+    const liveIds = ownedWorks.map((w) => w.id);
+    // A scope on a deleted or foreign work is an empty list, never another work's rows.
+    const scopedOut = scope.workId !== null && !workTitle.has(scope.workId);
 
     const now = nowIso();
     const base = () => {
       let query = selectProposalRows(supabase).eq('owner_id', userId);
       if (kind === 'draft') query = query.eq('kind', 'chapter_draft');
       if (kind === 'kb') query = query.in('kind', ['kb_edit', 'kb_create']);
-      if (scope.workId) query = query.eq('work_id', scope.workId);
+      query = scope.workId ? query.eq('work_id', scope.workId) : query.in('work_id', liveIds);
       if (scope.chapterId) query = query.eq('chapter_id', scope.chapterId);
       return query;
     };
-    const [fetched, index, counts, total] = await Promise.all([
-      fetchProposalRows(base, filter, now),
+    const [fetched, index, counts] = await Promise.all([
+      scopedOut || liveIds.length === 0 ? Promise.resolve<ProposalRow[]>([]) : fetchProposalRows(base, filter, now),
       loadConnectionIndex(supabase, userId),
-      countPendingProposalsByWork(supabase, userId, ownedWorks.map((w) => w.id)),
-      countPendingProposalsTotal(supabase, userId),
+      countPendingProposalsByWork(supabase, userId, liveIds),
     ]);
     if (!fetched) return { ok: false };
-    // RLS already limits rows to the owner; a row of a deleted work is hidden with the work.
+    // Defensive: the query is already limited to live works.
     const rows = fetched.filter((r) => workTitle.has(r.work_id));
 
     const titles = new Map<string, string>();
@@ -395,7 +412,7 @@ export async function listInboxProposals(
       filter,
       kind,
       scope,
-      pendingTotal: total ?? Object.values(counts).reduce((sum, n) => sum + n, 0),
+      pendingTotal: Object.values(counts).reduce((sum, n) => sum + n, 0),
       works: ownedWorks.map((w) => ({ id: w.id, title: w.title, pendingCount: counts[w.id] ?? 0 })),
       proposals: rows.map((row) => ({
         ...summarize(row, titles.get(row.chapter_id ?? row.node_id ?? '') ?? null, index),

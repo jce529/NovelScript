@@ -142,6 +142,27 @@ describe('listInboxProposals', () => {
     expect(done.ok && done.proposals.map((p) => [p.id, p.status])).toEqual([[id(3), 'rejected'], [id(2), 'expired']]);
   });
 
+  it('deleted works neither count nor take list slots: a window full of deleted-work rows does not hide live ones', async () => {
+    // Newer rows of a deleted work fill the whole 200-row window; the live row is older.
+    for (let n = 1; n <= 200; n += 1) {
+      fake.tables.mcp_proposals.push(proposal(1000 + n, { work_id: WORK_DELETED, created_at: iso(-n) }));
+    }
+    fake.tables.mcp_proposals.push(proposal(5, { created_at: iso(-DAY) }));
+    const pending = await listInboxProposals(fake.client, OWNER);
+    expect(pending.ok && pending.proposals.map((p) => p.id)).toEqual([id(5)]);
+    expect(pending.ok && pending.pendingTotal).toBe(1);
+    const all = await listInboxProposals(fake.client, OWNER, { filter: 'all' });
+    expect(all.ok && all.proposals.map((p) => p.id)).toEqual([id(5)]);
+  });
+
+  it('a scope on a work that is deleted or not owned lists nothing', async () => {
+    fake.tables.mcp_proposals.push(proposal(1, { work_id: WORK_DELETED }), proposal(2));
+    const deleted = await listInboxProposals(fake.client, OWNER, { workId: WORK_DELETED });
+    expect(deleted.ok && deleted.proposals).toEqual([]);
+    const foreign = await listInboxProposals(fake.client, OWNER, { workId: FOREIGN_WORK });
+    expect(foreign.ok && foreign.proposals).toEqual([]);
+  });
+
   it('reports failure instead of throwing or showing partial data', async () => {
     fake.failTables.set('mcp_proposals', 'boom');
     expect(await listInboxProposals(fake.client, OWNER)).toEqual({ ok: false });
@@ -159,6 +180,9 @@ describe('countPendingProposalsTotal / countPendingDraftsByChapter', () => {
       proposal(3, { expires_at: iso(-1000) }), proposal(4, { status: 'accepted' }),
       proposal(5, { owner_id: OTHER, work_id: FOREIGN_WORK }),
     );
+    expect(await countPendingProposalsTotal(fake.client, OWNER)).toBe(2);
+    // A pending row of a deleted work is not counted (the inbox hides it too).
+    fake.tables.mcp_proposals.push(proposal(7, { work_id: WORK_DELETED }));
     expect(await countPendingProposalsTotal(fake.client, OWNER)).toBe(2);
     expect(await countPendingProposalsTotal(fake.client, 'not-a-uuid')).toBeNull();
     fake.failTables.set('mcp_proposals', 'boom');

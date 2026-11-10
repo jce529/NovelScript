@@ -18,7 +18,7 @@ Jev 분류(jev-1.14.0, task=plan 단위) → 고정 표. 모든 plan이 P1(자�
 
 | plan | 한 곳 | 모델 | 검증자 |
 |---|---|---|---|
-| 14-10 | 병합 세션이 직접 구현(Sonnet 5.5). Jev 분류·외부 AI 호출 없음 | sonnet | 일회용 DB 스위트 직접 재실행. **Codex 교차 검증 미실시**(high 위험이라 병합 전 필요) |
+| 14-10 | 병합 세션이 직접 구현(Sonnet 5.5). Jev 분류·외부 AI 호출 없음 | sonnet | 일회용 DB 스위트 직접 재실행. Codex `gpt-6-sol`(high, 읽기 전용) 사후 검토: 블로커 0 / 경고 5, 3건 수정 |
 | 14-11 | 같은 세션이 직접 구현 | sonnet | 단위·eslint·tsc 직접 재실행. 화면 확인은 14-09 |
 | 14-12 | 같은 세션 | sonnet | 위와 같음 |
-
+| 14-13 (PLAN만) | planner Codex `gpt-6-sol` medium(2회: 최초 + checker 이슈 반영), checker Claude `sonnet`(2회: ISSUES FOUND → VERIFICATION PASSED) | codex / sonnet | — |

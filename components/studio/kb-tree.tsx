@@ -207,9 +207,9 @@ function ChapterLeafRow({ chapter, depth, workId, folderId }: { chapter: Chapter
           <Link
             href={chapterInboxHref(workId, chapter.id)}
             aria-label={chapterBadgeAriaLabel(chapter.title, chapter.pendingCount)}
-            className="shrink-0 rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-8 min-w-8 shrink-0 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-lg:min-h-10 max-lg:min-w-10"
           >
-            <span aria-hidden>{countBadgeText(chapter.pendingCount)}</span>
+            <span aria-hidden className="rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">{countBadgeText(chapter.pendingCount)}</span>
           </Link>
         ) : null}
         <RowActions active={isActive}>
