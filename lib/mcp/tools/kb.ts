@@ -1,4 +1,5 @@
 import 'server-only';
+import { createHash } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { getMentionedNodesContent, searchMentionNodes } from '@/lib/ai/mentions';
@@ -31,6 +32,8 @@ export interface McpKbDocumentDto {
   id: string; workId: string; name: string; scope: Scope; category: string;
   content: string; offset: number; maxChars: number; totalChars: number;
   nextOffset: number | null; truncated: boolean;
+  /** SHA-256(UTF-8 원문 전체) 소문자 hex. 페이지와 무관하며 정규화하지 않는다. */
+  contentHash: string;
 }
 
 function escapeLike(query: string): string { return query.replace(/[\\%_]/g, '\\$&'); }
@@ -199,6 +202,7 @@ export function registerKbTools(server: McpToolRegistrar): void {
   }, withMcpReadTool(getKbDocumentInputSchema, async ({ workId, nodeId, offset, maxChars }, { db, userId }): Promise<McpKbDocumentDto> => {
     await requireOwnedWork(db, userId, workId);
     const document = await readDocument(db, userId, workId, nodeId);
-    return { id: document.id, workId, name: document.name, category: document.category, scope: document.scope, ...textPage(document.content, offset, maxChars) };
+    return { id: document.id, workId, name: document.name, category: document.category, scope: document.scope, ...textPage(document.content, offset, maxChars),
+      contentHash: createHash('sha256').update(document.content, 'utf8').digest('hex') };
   }));
 }

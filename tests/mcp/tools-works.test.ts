@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { McpServer, type AuthInfo } from '@modelcontextprotocol/server';
 import { z } from 'zod';
@@ -13,6 +14,7 @@ const OTHER = '22222222-2222-4222-8222-222222222222';
 const SESSION = '33333333-3333-4333-8333-333333333333';
 const BEARER = 'unit-caller-bearer';
 const URL = 'https://unit-ref.supabase.test';
+const sha = (text: string) => createHash('sha256').update(text, 'utf8').digest('hex');
 const SENSITIVE = 'SELECT secret FROM chapters; SQL 42501 permission denied';
 
 function auth(overrides: Partial<AuthInfo> = {}): AuthInfo {
@@ -323,7 +325,7 @@ describe('MCP owned work tools', () => {
     });
     expect(payload(await call('get_chapter', { workId: WORK, chapterId: CHAPTER }))).toEqual({
       id: CHAPTER, workId: WORK, title: '회차', content: '비공개 본문', offset: 0, maxChars: 20000,
-      totalChars: 6, nextOffset: null, truncated: false,
+      totalChars: 6, nextOffset: null, truncated: false, contentHash: sha('비공개 본문'),
     });
     expect(rpc).toHaveBeenCalledExactlyOnceWith('mcp_read_owned_chapter_content', { p_chapter_id: CHAPTER });
   });
@@ -374,6 +376,30 @@ describe('MCP owned work tools', () => {
     }
     expect(pages.join('')).toBe('a😀b😀c');
     for (const page of pages) expect(page).toBe(page.toWellFormed());
+  });
+
+  it.each([
+    ['한글', '한'.repeat(60001)], ['CRLF', 'a\r\nb\r\n\r\nc'], ['CR/LF 혼합', 'a\rb\nc\r\n'],
+    ['이모지', 'a😀b😀c'], ['빈 본문', ''], ['NFD', '\u1100\u1161 e\u0301'],
+  ])('contentHash는 정규화 없는 전체 원문의 SHA-256이며 페이지와 무관하다 (%s)', async (_label, content) => {
+    const { rows, call } = tools();
+    rows.chapters[0].content = content;
+    const expected = sha(content);
+    expect(expected).toMatch(/^[0-9a-f]{64}$/);
+    const total = content.length;
+    for (const args of [{}, { offset: 0, maxChars: 1 }, { offset: Math.floor(total / 2), maxChars: 3 }, { offset: Math.max(0, total - 1), maxChars: 5 }, { offset: total + 10 }]) {
+      const result = payload(await call('get_chapter', { workId: WORK, chapterId: CHAPTER, ...args }));
+      expect(result.contentHash).toBe(expected);
+      expect(result).toHaveProperty('totalChars', total);
+    }
+  });
+
+  it('읽기 RPC가 null이면 해시 없이 기존 missing 응답을 유지한다', async () => {
+    const { call, failures } = tools();
+    failures.set('rpc', { data: null, error: null });
+    const result = await call('get_chapter', { workId: WORK, chapterId: CHAPTER });
+    expectSafeError(result);
+    expect(JSON.stringify(result)).not.toMatch(/contentHash|[0-9a-f]{64}/);
   });
 
   it('makes foreign, cross-work, deleted and absent IDs indistinguishable without calling the body RPC', async () => {

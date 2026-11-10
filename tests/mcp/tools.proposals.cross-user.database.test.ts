@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { assertDisposableRef } from '../helpers/disposable-ref';
 import { callTool, type McpToolCallResult } from '../helpers/mcp-oauth';
 import {
-  insertChapter, insertKbNode, insertWork, proposalEnvReady, setupProposalFixture, type ProposalFixture,
+  insertChapter, insertKbNode, insertWork, proposalEnvReady, setupProposalFixture, sha256, type ProposalFixture,
 } from '../helpers/proposals-db';
 
 /**
@@ -27,6 +27,9 @@ describe.skipIf(!proposalEnvReady)('MCP proposal tools: two-user OAuth injection
   const ids = {} as Record<'wA' | 'cA' | 'kFolderA' | 'kA' | 'wB' | 'cB', string>;
   const aPending: string[] = [];
   const aIds = () => [ids.wA, ids.cA, ids.kFolderA, ids.kA, ...aPending];
+  // 14-13: 쓰기 도구는 읽기 도구의 contentHash(원문 그대로의 SHA-256)를 baseHash로 받는다.
+  const chapterHash = () => sha256(`A body ${secret}`);
+  const nodeHash = () => sha256(`A doc ${secret}`);
 
   function expectNoLeak(result: McpToolCallResult, label: string) {
     expect(result.raw.includes(secret), `${label} leaks A text`).toBe(false);
@@ -81,16 +84,16 @@ describe.skipIf(!proposalEnvReady)('MCP proposal tools: two-user OAuth injection
 
   it('A saves its own draft and KB proposals through the route (the test is live)', async () => {
     aPending.push(expectPending(await callTool(fx.aTok.accessToken, 'save_draft', {
-      workId: ids.wA, chapterId: ids.cA, content: 'A 초안 제안 본문',
+      workId: ids.wA, chapterId: ids.cA, baseHash: chapterHash(), content: 'A 초안 제안 본문',
     }), 'A save_draft'));
     aPending.push(expectPending(await callTool(fx.aTok.accessToken, 'propose_kb_document', {
-      mode: 'edit', workId: ids.wA, nodeId: ids.kA, content: 'A 설정 수정안',
+      mode: 'edit', workId: ids.wA, nodeId: ids.kA, baseHash: nodeHash(), content: 'A 설정 수정안',
     }), 'A kb edit'));
     aPending.push(expectPending(await callTool(fx.aTok.accessToken, 'propose_kb_document', {
       mode: 'create', workId: ids.wA, category: '장소', name: 'A 새 장소', content: 'A 새 장소 설정',
     }), 'A kb create'));
     // Same connection, same text: the dedupe behind idempotentHint returns the same id.
-    const again = await callTool(fx.aTok.accessToken, 'save_draft', { workId: ids.wA, chapterId: ids.cA, content: 'A 초안 제안 본문' });
+    const again = await callTool(fx.aTok.accessToken, 'save_draft', { workId: ids.wA, chapterId: ids.cA, baseHash: chapterHash(), content: 'A 초안 제안 본문' });
     expect(expectPending(again, 'A save_draft retry')).toBe(aPending[0]);
     const state = await snapshot();
     expect(state.proposals).toHaveLength(3);
@@ -104,11 +107,11 @@ describe.skipIf(!proposalEnvReady)('MCP proposal tools: two-user OAuth injection
     const before = await snapshot();
     expect(before.bRows).toBe(0);
     const attempts: Array<[string, string, Record<string, unknown>]> = [
-      ['save_draft A work+chapter', 'save_draft', { workId: ids.wA, chapterId: ids.cA, content: 'B 덮어쓰기' }],
-      ['save_draft B work + A chapter', 'save_draft', { workId: ids.wB, chapterId: ids.cA, content: 'B 덮어쓰기' }],
-      ['save_draft A work + B chapter', 'save_draft', { workId: ids.wA, chapterId: ids.cB, content: 'B 덮어쓰기' }],
-      ['kb edit A work+node', 'propose_kb_document', { mode: 'edit', workId: ids.wA, nodeId: ids.kA, content: 'B 수정' }],
-      ['kb edit B work + A node', 'propose_kb_document', { mode: 'edit', workId: ids.wB, nodeId: ids.kA, content: 'B 수정' }],
+      ['save_draft A work+chapter', 'save_draft', { workId: ids.wA, chapterId: ids.cA, baseHash: chapterHash(), content: 'B 덮어쓰기' }],
+      ['save_draft B work + A chapter', 'save_draft', { workId: ids.wB, chapterId: ids.cA, baseHash: chapterHash(), content: 'B 덮어쓰기' }],
+      ['save_draft A work + B chapter', 'save_draft', { workId: ids.wA, chapterId: ids.cB, baseHash: sha256('B body'), content: 'B 덮어쓰기' }],
+      ['kb edit A work+node', 'propose_kb_document', { mode: 'edit', workId: ids.wA, nodeId: ids.kA, baseHash: nodeHash(), edits: [{ op: 'replace', find: secret, replace: 'B' }] }],
+      ['kb edit B work + A node', 'propose_kb_document', { mode: 'edit', workId: ids.wB, nodeId: ids.kA, baseHash: nodeHash(), edits: [{ op: 'replace', find: secret, replace: 'B' }] }],
       ['kb create in A work', 'propose_kb_document', { mode: 'create', workId: ids.wA, category: '인물', name: 'B 인물', content: 'B 설정' }],
     ];
     for (const [label, name, args] of attempts) expectRefused(await callTool(fx.bTok.accessToken, name, args), label);
@@ -118,9 +121,9 @@ describe.skipIf(!proposalEnvReady)('MCP proposal tools: two-user OAuth injection
   it('identity, owner and source arguments are refused as input errors before any write', async () => {
     const before = await snapshot();
     const attempts: Array<[string, string, Record<string, unknown>]> = [
-      ['save_draft userId', 'save_draft', { workId: ids.wA, chapterId: ids.cA, content: 'x', userId: fx.writerA.id }],
-      ['save_draft ownerId', 'save_draft', { workId: ids.wA, chapterId: ids.cA, content: 'x', ownerId: fx.writerA.id }],
-      ['kb edit source', 'propose_kb_document', { mode: 'edit', workId: ids.wA, nodeId: ids.kA, content: 'x', source: 'A' }],
+      ['save_draft userId', 'save_draft', { workId: ids.wA, chapterId: ids.cA, baseHash: chapterHash(), content: 'x', userId: fx.writerA.id }],
+      ['save_draft ownerId', 'save_draft', { workId: ids.wA, chapterId: ids.cA, baseHash: chapterHash(), content: 'x', ownerId: fx.writerA.id }],
+      ['kb edit source', 'propose_kb_document', { mode: 'edit', workId: ids.wA, nodeId: ids.kA, baseHash: nodeHash(), content: 'x', source: 'A' }],
       ['kb create ownerId', 'propose_kb_document', { mode: 'create', workId: ids.wA, category: '인물', name: 'n', content: 'x', ownerId: fx.writerA.id }],
     ];
     for (const [label, name, args] of attempts) {
@@ -142,5 +145,28 @@ describe.skipIf(!proposalEnvReady)('MCP proposal tools: two-user OAuth injection
     for (const id of aPending) expect(state.proposals.some((row) => row.startsWith(`${id}|`) && row.includes('|pending|'))).toBe(true);
     expect(state.bRows).toBe(0);
     expect(state.chapter).toBe(`A body ${secret}`);
+  });
+
+  it('14-13: A patch edits through the route return a preview; a stale hash returns only the structured latest hash', async () => {
+    const id = expectPending(await callTool(fx.aTok.accessToken, 'save_draft', {
+      workId: ids.wA, chapterId: ids.cA, baseHash: chapterHash(), edits: [{ op: 'replace', find: 'A body', replace: 'A 패치', hint_para: 1 }],
+    }), 'A save_draft edits');
+    const [row] = await fx.query('select content, base_content from public.mcp_proposals where id = $1', [id]);
+    expect(row).toEqual({ content: `A 패치 ${secret}`, base_content: `A body ${secret}` });
+
+    const stale = await callTool(fx.aTok.accessToken, 'propose_kb_document', {
+      mode: 'edit', workId: ids.wA, nodeId: ids.kA, baseHash: sha256('old'), edits: [{ op: 'replace', find: 'A doc', replace: 'x' }],
+    });
+    expect(stale.isError).toBe(true);
+    const detail = JSON.parse(stale.text!) as Record<string, unknown>;
+    expect(Object.keys(detail).sort()).toEqual(['code', 'latestHash', 'message']);
+    expect(detail).toMatchObject({ code: 'stale', latestHash: nodeHash() });
+    expect(stale.raw.includes(secret)).toBe(false);
+
+    // B never gets A's hash: the same stale call from B is the fixed not-found answer.
+    expectRefused(await callTool(fx.bTok.accessToken, 'propose_kb_document', {
+      mode: 'edit', workId: ids.wA, nodeId: ids.kA, baseHash: sha256('old'), edits: [{ op: 'replace', find: 'A doc', replace: 'x' }],
+    }), 'B stale on A node');
+    expect((await snapshot()).chapter).toBe(`A body ${secret}`);
   });
 });

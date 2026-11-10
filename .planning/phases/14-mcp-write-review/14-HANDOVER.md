@@ -234,3 +234,15 @@
 1. 새 환경 준비(§7), 일회용 DB 스위트 2회 연속 green 확인(§3 gate, 한도 주의 §8). 코드가 바뀌었으므로 14-09 전에 `tests/mcp tests/proposals --project db`를 먼저 돌린다.
 2. 14-09-PLAN.md의 Task 구성과 `autonomous: false` 체크포인트를 따른다. 사람이 판정하는 항목은 12-06 #7·#8·#9를 포함해 한 번의 일회용 환경에서 묶는다. #9(연결 1시간 후 refresh)는 시간이 걸리므로 인수 시작과 동시에 연결을 만들어 둔다.
 3. 판정은 사람이 남긴다(13-05 Task 3 형식: 표 + 관찰 + 후속 조치). FAIL이나 pending을 완료로 기록하지 않는다.
+
+## 15. 2026-11-10 14-13 패치 형식 구현 완료 (이 절이 §0의 "구현은 plan 승인 전" 문장보다 우선)
+
+브랜치 `claude/phase14-patch`(기반 `claude/phase14-merge` `2e7a6a0`). 푸시·master 병합·공유 DB 적용은 하지 않았다. 자세한 내용은 `14-13-SUMMARY.md`.
+
+- 커밋: `2b4a5e2`(읽기 `contentHash`), `50372f9`(입력 계약·구조화 오류), `f95157a`(0044 + DB 테스트), `e1d9b1b`(Codex 지적 반영). 이 문서 갱신은 그 뒤 별도 커밋.
+- **마이그레이션 0044**는 일회용 DB(`anzafn…`)에만 적용했다. 공유 DB 적용 순서는 0041 → 0042 → 0043 → **0044**(+ 별도로 0050). §6 표에 0044 행을 더해 읽을 것: 일회용 적용됨 / 공유 미적용.
+- 직접 재실행: 단위 203개 파일 3396/3396, eslint 0, tsc는 기존 `LayoutProps` 1건뿐, DB `patch-edits` 26/26(건너뜀 0). 나머지 DB 스위트 수치는 `14-13-SUMMARY.md` 참조.
+- Codex `gpt-6-sol`(high, 읽기 전용) 교차 검증: 블로커 1 / 경고 2, 모두 고침.
+- 병합 브랜치와 합치는 방법: `claude/phase14-patch`는 `claude/phase14-merge` 위에 커밋 5개(+문서)만 얹었다. `phase14-merge`가 푸시·병합된 뒤 그 위로 fast-forward하거나 함께 병합하면 된다. 겹치는 파일은 없다.
+- **14-09 수동 인수에 추가할 것(런북 반영 필요):** (1) 실제 Claude 커넥터에서 `get_kb_document`가 `contentHash`를 주고 `propose_kb_document`/`save_draft`가 `baseHash`+`edits`로 성공하는지, 도구 스키마가 Claude에게 어떻게 보이는지. (2) 오래된 `baseHash`로 호출하면 Claude가 `latestHash`로 재읽기·재시도하는지. (3) 같은 수정에서 전체 `content` 방식과 `edits` 방식의 쓰기 출력 토큰을 비교하는 계측(PLAN 위험 7). 이번 구현에서는 측정하지 않았다.
+- 알려진 한계는 `14-13-SUMMARY.md`의 "남은 위험·한계".

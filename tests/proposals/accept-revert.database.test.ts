@@ -617,8 +617,8 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
       await fx.query("update public.profiles set role = 'reader' where id = $1", [fx.writerA.id]);
       try {
         for (const [fn, body] of [
-          ['mcp_propose_chapter_draft', { p_work_id: wA, p_chapter_id: chapter, p_content: 'reader draft' }],
-          ['mcp_propose_kb_edit', { p_work_id: wA, p_node_id: node, p_content: 'reader edit' }],
+          ['mcp_propose_chapter_draft', { p_work_id: wA, p_chapter_id: chapter, p_base_hash: sha256('demoted original'), p_edits: [{ op: 'replaceAll', content: 'reader draft' }] }],
+          ['mcp_propose_kb_edit', { p_work_id: wA, p_node_id: node, p_base_hash: sha256('demoted kb'), p_edits: [{ op: 'replaceAll', content: 'reader edit' }] }],
           ['mcp_propose_kb_create', { p_work_id: wA, p_category: '인물', p_name: '리더 신규', p_content: 'reader new' }],
         ] as const) {
           const result = await fx.rpc(fn, fx.aTok.accessToken, body);
@@ -646,7 +646,7 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
       expect((await proposalRow(pending.id)).status).toBe('pending');
       expect((await proposalRow(accepted.id)).status).toBe('accepted');
       // Restored writer: the same bearer proposes again.
-      const back = await fx.rpc('mcp_propose_chapter_draft', fx.aTok.accessToken, { p_work_id: wA, p_chapter_id: chapter, p_content: 'writer again' });
+      const back = await fx.rpc('mcp_propose_chapter_draft', fx.aTok.accessToken, { p_work_id: wA, p_chapter_id: chapter, p_base_hash: sha256('demoted original'), p_edits: [{ op: 'replace', find: 'original', replace: 'again' }] });
       expect(back.status, String(back.message)).toBe(200);
     });
   });

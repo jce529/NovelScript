@@ -1,4 +1,5 @@
 import 'server-only';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import {
   MCP_READ_ANNOTATIONS, McpToolError, withMcpReadTool,
@@ -41,6 +42,8 @@ export interface McpChapterDto {
 export interface McpChapterContentDto {
   id: string; workId: string; title: string; content: string; offset: number; maxChars: number;
   totalChars: number; nextOffset: number | null; truncated: boolean;
+  /** SHA-256(UTF-8 원문 전체) 소문자 hex. 페이지와 무관하며 정규화하지 않는다. */
+  contentHash: string;
 }
 
 function page<T>(rows: T[], offset: number, limit: number): McpPage<T> {
@@ -127,6 +130,7 @@ export function registerWorkTools(server: McpToolRegistrar): void {
     return {
       id: metadata.id, workId: metadata.work_id, title: metadata.title, content: text,
       offset: start, maxChars, totalChars: content.length, nextOffset, truncated: nextOffset !== null,
+      contentHash: createHash('sha256').update(content, 'utf8').digest('hex'),
     };
   }));
 }

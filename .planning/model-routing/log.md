@@ -26,3 +26,6 @@
 2026-11-01 | 19-02 | multi_file/medium | T3 | gpt-6-sol | 부분(entrypoints 카드 문구 단언 1건 수정) | 0 | warning 2건 반영 | no | 검증 sonnet diff 리뷰 blocker 0
 2026-11-01 | 19-03 | multi_file/low | T2 | gpt-5.6-terra | 통과 | 0 | 0 | no | Jev는 multi_file(0.75)이었으나 low+P3로 T2
 2026-11-01 | 19-04 | routine/low | T3 | claude(직접) | 통과 | 0 | - | no | 브라우저 필요로 Claude 채널
+2026-11-10 | 14-13 task1 | multi_file/low | T3 | sonnet (claude) | 통과(재실행 159/159) | 0 | 검증 모델 없음(테스트+diff) | no | classifier: jev(P1=.44 → Claude). T2 칸 없음으로 한 칸 위
+2026-11-10 | 14-13 task2 | multi_file→architectural(review)/medium | T4 | opus (claude) | 통과(재실행 단위 350/350) | 0 | Codex gpt-6-sol: 지적은 task3 범위와 함께 처리 | no | classifier: jev(복잡도 신뢰도 .57). review → 높은 쪽
+2026-11-10 | 14-13 task3 | architectural(review)/high | T4 | opus (claude) | 통과(재실행 patch-edits 26/26 등) | 1 (Codex 지적 수정 라운드, 에이전트 600초 무응답 후 재개) | Codex gpt-6-sol high: 블로커 1·경고 2, 모두 반영 | no | classifier: jev(복잡도 신뢰도 .39). Codex 첫 호출 출력 끊김 → 재시도
