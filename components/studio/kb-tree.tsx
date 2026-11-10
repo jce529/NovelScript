@@ -15,6 +15,7 @@ import { isTemplateRoot, templateCategoryOf } from '@/lib/kb/template-tree';
 import { folderPresentation, toggleCollapsed } from '@/lib/kb/kb-node-menu-controller';
 import { KB_CATEGORIES } from '@/lib/kb/categories';
 import type { TemplateEntry } from '@/lib/kb/sidebar-sections';
+import { chapterBadgeAriaLabel, chapterInboxHref, countBadgeText } from '@/components/proposals/inbox-model';
 
 /** 17-07 tree metrics: 32px rows (40px below lg), 20px indent per level, mockup active colours. */
 export const INDENT_PX = 20;
@@ -202,6 +203,15 @@ function ChapterLeafRow({ chapter, depth, workId, folderId }: { chapter: Chapter
         >
           {chapter.title}
         </Link>
+        {chapter.pendingCount ? (
+          <Link
+            href={chapterInboxHref(workId, chapter.id)}
+            aria-label={chapterBadgeAriaLabel(chapter.title, chapter.pendingCount)}
+            className="shrink-0 rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span aria-hidden>{countBadgeText(chapter.pendingCount)}</span>
+          </Link>
+        ) : null}
         <RowActions active={isActive}>
           <RowMenuButton />
         </RowActions>

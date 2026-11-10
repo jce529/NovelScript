@@ -189,6 +189,31 @@ function summarize(row: ProposalRow, title: string | null, index: Awaited<Return
   };
 }
 
+const selectProposalRows = (supabase: SupabaseClient) => supabase.from('mcp_proposals').select(PROPOSAL_COLUMNS);
+type RowQuery = ReturnType<typeof selectProposalRows>;
+
+/** Rows for one filter: pending = live pending, done = decided or lapsed (by decision time), all = newest first. */
+async function fetchProposalRows(base: () => RowQuery, filter: ProposalFilter, now: string): Promise<ProposalRow[] | null> {
+  if (filter === 'pending') {
+    const { data, error } = await base().eq('status', 'pending').gt('expires_at', now)
+      .order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT);
+    return error || !Array.isArray(data) ? null : (data as ProposalRow[]);
+  }
+  if (filter === 'done') {
+    const [decided, lapsed] = await Promise.all([
+      base().neq('status', 'pending').order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT),
+      base().eq('status', 'pending').lte('expires_at', now).order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT),
+    ]);
+    if (decided.error || lapsed.error || !Array.isArray(decided.data) || !Array.isArray(lapsed.data)) return null;
+    const doneAt = (r: ProposalRow) => Date.parse(r.decided_at ?? r.expires_at);
+    return [...(decided.data as ProposalRow[]), ...(lapsed.data as ProposalRow[])]
+      .sort((a, b) => doneAt(b) - doneAt(a) || Date.parse(b.created_at) - Date.parse(a.created_at))
+      .slice(0, PROPOSAL_LIST_LIMIT);
+  }
+  const { data, error } = await base().order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT);
+  return error || !Array.isArray(data) ? null : (data as ProposalRow[]);
+}
+
 /** Queue for one owned work. Default filter 'pending'; newest first ('done' by decision time). */
 export async function listWorkProposals(
   supabase: SupabaseClient, userId: string, workId: string, filter: ProposalFilter = 'pending',
@@ -197,32 +222,10 @@ export async function listWorkProposals(
     const work = await findOwnedWork(supabase, userId, workId);
     if (!work) return { ok: false, reason: 'not_found' };
     const now = nowIso();
-    const base = () => supabase.from('mcp_proposals').select(PROPOSAL_COLUMNS)
-      .eq('owner_id', userId).eq('work_id', workId);
+    const base = () => selectProposalRows(supabase).eq('owner_id', userId).eq('work_id', workId);
 
-    let rows: ProposalRow[];
-    if (filter === 'pending') {
-      const { data, error } = await base().eq('status', 'pending').gt('expires_at', now)
-        .order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT);
-      if (error || !Array.isArray(data)) return { ok: false, reason: 'error' };
-      rows = data as ProposalRow[];
-    } else if (filter === 'done') {
-      const [decided, lapsed] = await Promise.all([
-        base().neq('status', 'pending').order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT),
-        base().eq('status', 'pending').lte('expires_at', now).order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT),
-      ]);
-      if (decided.error || lapsed.error || !Array.isArray(decided.data) || !Array.isArray(lapsed.data)) {
-        return { ok: false, reason: 'error' };
-      }
-      const doneAt = (r: ProposalRow) => Date.parse(r.decided_at ?? r.expires_at);
-      rows = [...(decided.data as ProposalRow[]), ...(lapsed.data as ProposalRow[])]
-        .sort((a, b) => doneAt(b) - doneAt(a) || Date.parse(b.created_at) - Date.parse(a.created_at))
-        .slice(0, PROPOSAL_LIST_LIMIT);
-    } else {
-      const { data, error } = await base().order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT);
-      if (error || !Array.isArray(data)) return { ok: false, reason: 'error' };
-      rows = data as ProposalRow[];
-    }
+    const rows = await fetchProposalRows(base, filter, now);
+    if (!rows) return { ok: false, reason: 'error' };
 
     const [titles, index, counts] = await Promise.all([
       loadTitles(supabase, userId, workId, rows),
@@ -272,6 +275,136 @@ export async function countPendingProposalsForTarget(
     return { count: proposalIds.length, proposalIds };
   } catch {
     return empty;
+  }
+}
+
+export type InboxKind = 'all' | 'draft' | 'kb';
+
+export interface InboxProposal extends ProposalSummary {
+  workId: string;
+  workTitle: string;
+}
+
+export interface InboxWork {
+  id: string;
+  title: string;
+  pendingCount: number;
+}
+
+export interface InboxScope {
+  workId: string | null;
+  chapterId: string | null;
+}
+
+export type ListInboxResult =
+  | {
+    ok: true;
+    filter: ProposalFilter;
+    kind: InboxKind;
+    scope: InboxScope;
+    /** Live pending proposals over all works (the header badge number). */
+    pendingTotal: number;
+    works: InboxWork[];
+    proposals: InboxProposal[];
+  }
+  | { ok: false };
+
+/** Live pending proposals over all of the writer's works. Failure -> null (the header omits the badge). */
+export async function countPendingProposalsTotal(supabase: SupabaseClient, userId: string): Promise<number | null> {
+  if (!isUuid(userId)) return null;
+  try {
+    const { data, error } = await supabase.from('mcp_proposals').select('id')
+      .eq('owner_id', userId).eq('status', 'pending').gt('expires_at', nowIso());
+    if (error || !Array.isArray(data)) return null;
+    return data.length;
+  } catch {
+    return null;
+  }
+}
+
+/** Chapter tree badges: live pending drafts per chapter of one work. Failure -> {} (no badges). */
+export async function countPendingDraftsByChapter(
+  supabase: SupabaseClient, userId: string, workId: string,
+): Promise<Record<string, number>> {
+  if (!isUuid(userId) || !isUuid(workId)) return {};
+  try {
+    const { data, error } = await supabase.from('mcp_proposals').select('chapter_id')
+      .eq('owner_id', userId).eq('work_id', workId).eq('kind', 'chapter_draft')
+      .eq('status', 'pending').gt('expires_at', nowIso());
+    if (error || !Array.isArray(data)) return {};
+    const counts: Record<string, number> = {};
+    for (const row of data as Array<{ chapter_id: string | null }>) {
+      if (row.chapter_id) counts[row.chapter_id] = (counts[row.chapter_id] ?? 0) + 1;
+    }
+    return counts;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Global inbox: proposals of all owned works in one list. Optional scope narrows to one work and
+ * one chapter (tree shortcut). A scope that does not belong to the writer shows an empty list
+ * (indistinguishable from "nothing there"), never another writer's rows.
+ */
+export async function listInboxProposals(
+  supabase: SupabaseClient, userId: string,
+  options: { filter?: ProposalFilter; kind?: InboxKind; workId?: string | null; chapterId?: string | null } = {},
+): Promise<ListInboxResult> {
+  const filter = options.filter ?? 'pending';
+  const kind = options.kind ?? 'all';
+  const scope: InboxScope = {
+    workId: isUuid(options.workId) ? options.workId : null,
+    chapterId: isUuid(options.chapterId) ? options.chapterId : null,
+  };
+  if (!isUuid(userId)) return { ok: false };
+  try {
+    const { data: workRows, error: workError } = await supabase.from('works').select('id, title')
+      .eq('owner_id', userId).is('deleted_at', null).order('created_at', { ascending: false }).limit(PROPOSAL_LIST_LIMIT);
+    if (workError || !Array.isArray(workRows)) return { ok: false };
+    const ownedWorks = workRows as Array<{ id: string; title: string }>;
+    const workTitle = new Map(ownedWorks.map((w) => [w.id, w.title]));
+
+    const now = nowIso();
+    const base = () => {
+      let query = selectProposalRows(supabase).eq('owner_id', userId);
+      if (kind === 'draft') query = query.eq('kind', 'chapter_draft');
+      if (kind === 'kb') query = query.in('kind', ['kb_edit', 'kb_create']);
+      if (scope.workId) query = query.eq('work_id', scope.workId);
+      if (scope.chapterId) query = query.eq('chapter_id', scope.chapterId);
+      return query;
+    };
+    const [fetched, index, counts, total] = await Promise.all([
+      fetchProposalRows(base, filter, now),
+      loadConnectionIndex(supabase, userId),
+      countPendingProposalsByWork(supabase, userId, ownedWorks.map((w) => w.id)),
+      countPendingProposalsTotal(supabase, userId),
+    ]);
+    if (!fetched) return { ok: false };
+    // RLS already limits rows to the owner; a row of a deleted work is hidden with the work.
+    const rows = fetched.filter((r) => workTitle.has(r.work_id));
+
+    const titles = new Map<string, string>();
+    await Promise.all([...new Set(rows.map((r) => r.work_id))].map(async (id) => {
+      const forWork = await loadTitles(supabase, userId, id, rows.filter((r) => r.work_id === id));
+      for (const [key, value] of forWork) titles.set(key, value);
+    }));
+
+    return {
+      ok: true,
+      filter,
+      kind,
+      scope,
+      pendingTotal: total ?? Object.values(counts).reduce((sum, n) => sum + n, 0),
+      works: ownedWorks.map((w) => ({ id: w.id, title: w.title, pendingCount: counts[w.id] ?? 0 })),
+      proposals: rows.map((row) => ({
+        ...summarize(row, titles.get(row.chapter_id ?? row.node_id ?? '') ?? null, index),
+        workId: row.work_id,
+        workTitle: workTitle.get(row.work_id) ?? '',
+      })),
+    };
+  } catch {
+    return { ok: false };
   }
 }
 

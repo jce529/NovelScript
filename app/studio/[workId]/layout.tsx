@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getWork } from '@/lib/works/actions';
 import { getWorkKbNodes, getAccountSharedNodes } from '@/lib/kb/actions';
 import { listChapters } from '@/lib/chapters/actions';
-import { countPendingProposalsByWork } from '@/lib/proposals/queries';
+import { countPendingDraftsByChapter, countPendingProposalsByWork } from '@/lib/proposals/queries';
 import { ReviewQueueNavLink } from '@/components/proposals/pending-badges';
 import { buildTree, groupChaptersByFolder } from '@/lib/kb/tree';
 import { KbTree, KbTemplateSection } from '@/components/studio/kb-tree';
@@ -35,12 +35,13 @@ export default async function WorkLayout({
   const work = await getWork(supabase, { ownerId: user.id, workId });
   if (!work) redirect('/studio');
 
-  const [workNodes, accountNodes, chapters, pendingCounts] = await Promise.all([
+  const [workNodes, accountNodes, chapters, pendingCounts, draftCounts] = await Promise.all([
     getWorkKbNodes(supabase, { ownerId: user.id, workId }),
     getAccountSharedNodes(supabase, { ownerId: user.id }),
     listChapters(supabase, { ownerId: user.id, workId }),
     // Owner-scoped; a failed count resolves to 0 (badge omitted), never throws.
     countPendingProposalsByWork(supabase, user.id, [workId]),
+    countPendingDraftsByChapter(supabase, user.id, workId),
   ]);
   const pendingCount = pendingCounts[workId] ?? 0;
 
@@ -49,7 +50,9 @@ export default async function WorkLayout({
   const sections = partitionStudioSidebar(workTree, accountTree);
   const chapterRoot = sections.chapterRoots[0];
   const chaptersByFolderId = groupChaptersByFolder(
-    chapters.map((c) => ({ id: c.id, title: c.title, isPublished: c.is_published, folderId: c.folder_id })),
+    chapters.map((c) => ({
+      id: c.id, title: c.title, isPublished: c.is_published, folderId: c.folder_id, pendingCount: draftCounts[c.id],
+    })),
     chapterRoot?.id ?? null
   );
   const rootChapters = chapterRoot ? (chaptersByFolderId[chapterRoot.id] ?? []) : [];

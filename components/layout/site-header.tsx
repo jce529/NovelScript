@@ -4,7 +4,7 @@ import { ReaderHeaderFrame } from '@/components/reader/reader-header-frame';
 import { HeaderTokenBalance } from '@/components/payment/header-token-balance';
 import { AccountPanel } from '@/components/layout/account-panel';
 
-export async function SiteHeader() {
+export async function SiteHeader({ reviewEntry }: { reviewEntry?: React.ReactNode } = {}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -27,7 +27,10 @@ export async function SiteHeader() {
       brand={<Link href="/" className="text-lg font-semibold">NovelScript</Link>}
       account={
         user ? (
-          <AccountPanel displayName={displayName} isWriter={isWriter} balance={balance} />
+          <>
+            {reviewEntry}
+            <AccountPanel displayName={displayName} isWriter={isWriter} balance={balance} />
+          </>
         ) : (
           <Link href="/login" className="text-sm font-medium hover:underline">로그인</Link>
         )

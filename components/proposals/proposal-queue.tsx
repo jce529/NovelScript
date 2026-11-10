@@ -28,7 +28,9 @@ export function ProposalStatusBadge({ status, partial = false }: { status: Propo
   return <Badge variant="secondary" className={isMutedStatus(status) ? 'text-muted-foreground' : undefined}>{statusLabel(status, partial)}</Badge>;
 }
 
-function ProposalCard({ workId, proposal, now }: { workId: string; proposal: ProposalSummary; now: number }) {
+export function ProposalCard({ workId, workTitle, proposal, now }: {
+  workId: string; workTitle?: string; proposal: ProposalSummary; now: number;
+}) {
   const titleId = `proposal-${proposal.id}-title`;
   const title = cardTitle(proposal);
   const actionable = isActionable(proposal.status);
@@ -44,6 +46,7 @@ function ProposalCard({ workId, proposal, now }: { workId: string; proposal: Pro
           <ProposalStatusBadge status={proposal.status} />
         </div>
         <h3 id={titleId} className="break-keep text-lg font-semibold leading-tight">{title}</h3>
+        {workTitle && <p className="break-all text-xs text-muted-foreground"><span className="sr-only">작품 </span>{workTitle}</p>}
         <dl className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
             <dt className="sr-only">보낸 AI</dt>
