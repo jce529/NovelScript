@@ -13,6 +13,8 @@ import {
   getChapterAction, saveChapterContentAction, publishChapterAction, unpublishChapterAction,
 } from './actions';
 import { ReviewRequestPanel } from '@/components/moderation/review-request';
+import { PendingTargetLine } from '@/components/proposals/pending-badges';
+import { getPendingProposalsForTargetAction, type PendingForTarget } from '../../review/target-actions';
 import { AiPanel, type MentionedNode } from './ai-panel/AiPanel';
 import type { DefaultFallback, ProviderModelPair } from '@/lib/ai/providers/settings';
 import type { ByokModelMap } from '@/lib/ai/providers/selection';
@@ -51,6 +53,7 @@ export default function ChapterEditorPage({
   const [priceTier, setPriceTier] = useState<number | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [loadState, setLoadState] = useState<LoadState | null>(null);
+  const [pendingProposals, setPendingProposals] = useState<({ key: string } & PendingForTarget) | null>(null);
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   // Publish/unpublish pending only; save pending lives in the editor reducer (separate states).
   const [isPublishPending, startPublishTransition] = useTransition();
@@ -95,6 +98,17 @@ export default function ChapterEditorPage({
     };
   }, [workId, chapterId, resourceKey]);
 
+  // Pending MCP proposals for this chapter (14-07). Separate from the editor load so a
+  // failed/slow count never blocks writing; keyed so a late answer for another chapter is ignored.
+  useEffect(() => {
+    let cancelled = false;
+    getPendingProposalsForTargetAction(workId, 'chapter', chapterId)
+      .then((result) => { if (!cancelled) setPendingProposals({ key: resourceKey, ...result }); })
+      .catch(() => { if (!cancelled) setPendingProposals(null); });
+    return () => { cancelled = true; };
+  }, [workId, chapterId, resourceKey]);
+
+  const pendingHere = pendingProposals?.key === resourceKey ? pendingProposals : null;
   const current = loadState?.key === resourceKey ? loadState : null;
   const loaded = current?.status === 'ok';
   const synced = editor.resourceKey === resourceKey;
@@ -248,6 +262,9 @@ export default function ChapterEditorPage({
       }
       editor={
         <StudioPane pane="write" className="flex min-w-0 flex-1 flex-col gap-4">
+          {pendingHere && (
+            <PendingTargetLine workId={workId} subject="회차" count={pendingHere.count} proposalIds={pendingHere.proposalIds} />
+          )}
           <ReviewRequestPanel workId={workId} chapterId={chapterId} />
           <Textarea
             ref={textareaRef}

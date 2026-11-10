@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getWork } from '@/lib/works/actions';
 import { getWorkKbNodes, getAccountSharedNodes } from '@/lib/kb/actions';
 import { listChapters } from '@/lib/chapters/actions';
+import { countPendingDraftsByChapter, countPendingProposalsByWork } from '@/lib/proposals/queries';
+import { ReviewQueueNavLink } from '@/components/proposals/pending-badges';
 import { buildTree, groupChaptersByFolder } from '@/lib/kb/tree';
 import { KbTree, KbTemplateSection } from '@/components/studio/kb-tree';
 import { TemplateSidebarEntry } from '@/components/studio/template-sidebar-entry';
@@ -33,18 +35,24 @@ export default async function WorkLayout({
   const work = await getWork(supabase, { ownerId: user.id, workId });
   if (!work) redirect('/studio');
 
-  const [workNodes, accountNodes, chapters] = await Promise.all([
+  const [workNodes, accountNodes, chapters, pendingCounts, draftCounts] = await Promise.all([
     getWorkKbNodes(supabase, { ownerId: user.id, workId }),
     getAccountSharedNodes(supabase, { ownerId: user.id }),
     listChapters(supabase, { ownerId: user.id, workId }),
+    // Owner-scoped; a failed count resolves to 0 (badge omitted), never throws.
+    countPendingProposalsByWork(supabase, user.id, [workId]),
+    countPendingDraftsByChapter(supabase, user.id, workId),
   ]);
+  const pendingCount = pendingCounts[workId] ?? 0;
 
   const workTree = buildTree(workNodes);
   const accountTree = buildTree(accountNodes);
   const sections = partitionStudioSidebar(workTree, accountTree);
   const chapterRoot = sections.chapterRoots[0];
   const chaptersByFolderId = groupChaptersByFolder(
-    chapters.map((c) => ({ id: c.id, title: c.title, isPublished: c.is_published, folderId: c.folder_id })),
+    chapters.map((c) => ({
+      id: c.id, title: c.title, isPublished: c.is_published, folderId: c.folder_id, pendingCount: draftCounts[c.id],
+    })),
     chapterRoot?.id ?? null
   );
   const rootChapters = chapterRoot ? (chaptersByFolderId[chapterRoot.id] ?? []) : [];
@@ -103,9 +111,11 @@ export default async function WorkLayout({
           >
             <KbTemplateSection defaults={sections.defaultTemplates} mine={sections.myTemplates} workId={workId} baseDepth={2} />
           </SidebarGroup>
+
+          <ReviewQueueNavLink workId={workId} count={pendingCount} />
         </SidebarGroup>
 
-        <SidebarGroup id="account" kind="root" icon="account" label="계정 폴더" aside="모든 작품 공용">
+        <SidebarGroup id="account"kind="root" icon="account" label="계정 폴더" aside="모든 작품 공용">
           <SidebarGroup
             id="account-settings" label="설정" dropId={DROP.kbTop('account_template')}
             actions={<CreateRootFolderButton workId={workId} scope="account_template" />}

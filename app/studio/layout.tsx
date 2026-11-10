@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { seedTemplateFiles } from '@/lib/kb/templates';
 import { checkWriteAccess } from '@/lib/auth/write-access';
 import { SiteHeader } from '@/components/layout/site-header';
+import { countPendingProposalsTotal } from '@/lib/proposals/queries';
+import { HeaderReviewLink } from '@/components/proposals/header-review-link';
 
 export default async function StudioLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -34,9 +36,12 @@ export default async function StudioLayout({ children }: { children: React.React
     }
   }
 
+  // Owner-scoped; a failed count resolves to null (link stays, number omitted), never throws.
+  const pendingTotal = await countPendingProposalsTotal(supabase, user.id);
+
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader />
+      <SiteHeader reviewEntry={<HeaderReviewLink count={pendingTotal} />} />
       {children}
     </div>
   );

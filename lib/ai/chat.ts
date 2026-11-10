@@ -2,7 +2,7 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getMentionedNodesContent } from '@/lib/ai/mentions';
 import {
-  composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal,
+  composeSystemInstruction, assembleUserContent, type PresetLevel, type StylePresetId, type ChatTurn, type DocumentProposal, type PromptContextKind,
 } from '@/lib/ai/prompt';
 import type { ProviderId, ProviderClient } from '@/lib/ai/providers/types';
 import { cappedCompletionFields, type ChatResult } from '@/lib/ai/chat-result';
@@ -27,8 +27,9 @@ export interface ChatInput {
   /** Exactly one of chapterId (회차 편집기) / nodeId (설정 문서 편집기) identifies where the chat runs. */
   chapterId?: string;
   nodeId?: string;
-  /** What `precedingText` is: the chapter body (default) or the open 설정 문서. */
-  contextKind?: 'chapter' | 'document';
+  /** What `precedingText` is: the chapter body (default), the open 설정 문서, or (14-08)
+   * an already-quoted untrusted proposal chunk for the review-screen refine chat. */
+  contextKind?: PromptContextKind;
   /** Files the writer attached to this conversation only — never persisted. */
   attachments?: ChatAttachment[];
   providerId: ProviderId;
@@ -118,6 +119,7 @@ export async function chat(supabase: SupabaseClient, client: ProviderClient, inp
     const systemInstruction = composeSystemInstruction({
       presetLevel: input.presetLevel, styleId: input.styleId, genre: input.genre,
       customInstruction: input.customInstruction, workSystemInstruction: input.workSystemInstruction,
+      contextKind: input.contextKind,
     });
     const contents = assembleUserContent({ mentionedDocs, precedingText: input.precedingText, chatHistory: input.chatHistory, contextKind: input.contextKind });
     const generationModel = 'walletBalance' in pre.ctx ? pre.ctx.model : pre.ctx.route.trusted.selection.model;

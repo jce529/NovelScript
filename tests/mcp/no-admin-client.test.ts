@@ -41,6 +41,7 @@ describe('MCP modules never use the admin client or service role key', () => {
     for (const file of [
       'lib/mcp/auth.ts', 'lib/mcp/db-client.ts', 'lib/mcp/tool-runtime.ts', 'lib/mcp/owned-work.ts',
       'lib/mcp/tools/works.ts', 'lib/mcp/tools/kb.ts', 'lib/mcp/tools/writing-context.ts',
+      'lib/mcp/tools/proposals.ts',
     ]) expect(files).toContain(file);
   });
 

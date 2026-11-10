@@ -3,12 +3,15 @@ import { z } from 'zod';
 import { getMcpPublicOrigin, readMcpAuthExtra, verifyMcpToken } from '@/lib/mcp/auth';
 import { MCP_READ_ANNOTATIONS } from '@/lib/mcp/tool-runtime';
 import { registerKbTools } from '@/lib/mcp/tools/kb';
+import { registerProposalTools } from '@/lib/mcp/tools/proposals';
 import { registerWorkTools } from '@/lib/mcp/tools/works';
 import { registerWritingContextTools } from '@/lib/mcp/tools/writing-context';
 
-// Seven read-only tools: Phase 12 whoami (D-16) plus the Phase 13 work/KB/context readers.
-// Every one sits behind withMcpAuth(required) below, so the signature and live grant are
-// re-checked per request before any tool runs; tools take identity only from that AuthInfo.
+// Nine tools: seven read-only (Phase 12 whoami (D-16) plus the Phase 13 work/KB/context
+// readers) and two Phase 14 proposal writers that only add pending rows (D-P14-06). No tool
+// edits a chapter or KB node directly or creates a chapter. Every one sits behind
+// withMcpAuth(required) below, so the signature and live grant are re-checked per request
+// before any tool runs; tools take identity only from that AuthInfo.
 const handler = createMcpHandler(
   (server) => {
     server.registerTool(
@@ -31,6 +34,7 @@ const handler = createMcpHandler(
     registerWorkTools(server); // list_works, list_chapters, get_chapter
     registerKbTools(server); // search_kb, get_kb_document
     registerWritingContextTools(server); // get_writing_context
+    registerProposalTools(server); // save_draft, propose_kb_document
   },
   { serverInfo: { name: 'novelscript', version: '0.1.0' } },
 );

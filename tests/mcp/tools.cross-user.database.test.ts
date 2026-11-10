@@ -8,7 +8,9 @@ import {
 } from '../helpers/mcp-oauth';
 
 /**
- * 13-05 MCP-02/03/04/09: every registered read tool, called through the real /mcp route with
+ * 13-05 MCP-02/03/04/09: every registered read tool (and, since 14-02, the two proposal tools for
+ * revocation and the fixed error texts; their injection suite is
+ * tools.proposals.cross-user.database.test.ts), called through the real /mcp route with
  * real Supabase OAuth tokens on a disposable project (0037 -> 0038 -> 0039 applied).
  * - Writer B's token, given writer A's IDs, never returns a single character of A's data:
  *   lists contain only B's rows, searches over B's own work find none of A's documents, and
@@ -293,8 +295,14 @@ describe.skipIf(!ready)('MCP read tools: two-user OAuth isolation and revocation
       get_kb_document: { workId: f.wB, nodeId: f.kBwork },
       get_writing_context: { workId: f.wB, chapterId: f.cB, nodeIds: [f.kBwork] },
     };
-    for (const name of READ_TOOLS) {
-      const result = await callTool(before.accessToken, name, args[name]);
+    const writeArgs: Record<string, Record<string, unknown>> = {
+      save_draft: { workId: f.wB, chapterId: f.cB, content: 'revoked draft' },
+      propose_kb_document: { mode: 'edit', workId: f.wB, nodeId: f.kBwork, content: 'revoked edit' },
+    };
+    const calls = [...READ_TOOLS.map((name) => [name, args[name]] as const), ...Object.entries(writeArgs)];
+    expect(calls).toHaveLength(9);
+    for (const [name, toolArgs] of calls) {
+      const result = await callTool(before.accessToken, name, toolArgs);
       expect(result.status, name).toBe(401);
       expect(result.challenge ?? '', name).toMatch(/^Bearer /);
       expect(result.raw.includes(own), `${name} leaks after revoke`).toBe(false);
@@ -311,6 +319,8 @@ describe.skipIf(!ready)('MCP read tools: two-user OAuth isolation and revocation
       callTool(bTok.accessToken, 'search_kb', { workId: f.wA, query: secret }),
       callTool(bTok.accessToken, 'get_kb_document', { workId: f.wB, nodeId: f.kAacct }),
       callTool(bTok.accessToken, 'get_writing_context', { workId: f.wA, chapterId: f.cDraft, nodeIds: [] }),
+      callTool(bTok.accessToken, 'save_draft', { workId: f.wA, chapterId: f.cDraft, content: 'B draft' }),
+      callTool(bTok.accessToken, 'propose_kb_document', { mode: 'edit', workId: f.wA, nodeId: f.kAwork, content: 'B edit' }),
     ]);
     for (const result of samples) {
       expect(result.isError).toBe(true);

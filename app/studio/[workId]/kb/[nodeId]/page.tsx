@@ -8,6 +8,8 @@ import { saveNodeContentAction, getNodeContentAction } from './actions';
 import { getNodeAiContextAction } from '../../chapters/[chapterId]/actions';
 import { AiPanel, type MentionedNode } from '../../chapters/[chapterId]/ai-panel/AiPanel';
 import { MentionAutocomplete, type MentionCandidate } from '../../chapters/[chapterId]/ai-panel/MentionAutocomplete';
+import { PendingTargetLine } from '@/components/proposals/pending-badges';
+import { getPendingProposalsForTargetAction, type PendingForTarget } from '../../review/target-actions';
 import { StudioEditorPanels } from '@/components/studio/studio-panel-shell';
 import { StudioPane } from '@/components/studio/workspace/StudioPane';
 import { useStudioWorkspace } from '@/components/studio/workspace/mobile-tabs';
@@ -43,6 +45,7 @@ export default function KbNodeEditorPage({
   const { notifyInsert } = useStudioWorkspace();
   const [editor, dispatch] = useReducer(editorReducer, undefined, createEditorState);
   const [loadState, setLoadState] = useState<LoadState | null>(null);
+  const [pendingProposals, setPendingProposals] = useState<({ key: string } & PendingForTarget) | null>(null);
   const [mentionedNodes, setMentionedNodes] = useState<MentionedNode[]>([]);
   const editorRef = useRef(editor);
   const requestCounter = useRef(0);
@@ -92,6 +95,16 @@ export default function KbNodeEditorPage({
     };
   }, [workId, nodeId, resourceKey]);
 
+  // Pending MCP proposals for this document (14-07); independent of the editor load.
+  useEffect(() => {
+    let cancelled = false;
+    getPendingProposalsForTargetAction(workId, 'kb', nodeId)
+      .then((result) => { if (!cancelled) setPendingProposals({ key: resourceKey, ...result }); })
+      .catch(() => { if (!cancelled) setPendingProposals(null); });
+    return () => { cancelled = true; };
+  }, [workId, nodeId, resourceKey]);
+
+  const pendingHere = pendingProposals?.key === resourceKey ? pendingProposals : null;
   const current = loadState?.key === resourceKey ? loadState : null;
   const loaded = current?.status === 'ok';
   const mode: NodeMode = current?.status === 'ok' ? current.mode : 'document';
@@ -199,6 +212,9 @@ export default function KbNodeEditorPage({
       }
       editor={
         <StudioPane pane="write" className="flex min-w-0 flex-1 flex-col gap-4">
+          {pendingHere && mode === 'document' && (
+            <PendingTargetLine workId={workId} subject="문서" count={pendingHere.count} proposalIds={pendingHere.proposalIds} />
+          )}
           <Textarea
             ref={textareaRef}
             value={synced ? editor.currentContent : ''}
