@@ -93,6 +93,14 @@ describe('proposal tool registration', () => {
     }
   });
 
+  it('tells the AI that a second save_draft adds a draft instead of replacing the first (14-10)', () => {
+    const { registered } = setup();
+    const description = registered.get('save_draft')!.config.description;
+    expect(description).not.toMatch(/대체합니다/);
+    expect(description).toMatch(/하나 더/);
+    expect(description).toMatch(/같은 내용이면/);
+  });
+
   it('advertises object-rooted JSON schemas where every field has a Korean description', () => {
     const { registered } = setup();
     for (const [name, tool] of registered) {

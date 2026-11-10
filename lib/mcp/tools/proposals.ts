@@ -90,7 +90,7 @@ async function propose(
 export function registerProposalTools(server: McpToolRegistrar): void {
   server.registerTool('save_draft', {
     title: '회차 초안 제안 저장',
-    description: '본인 회차에 초안 전문을 "제안"으로 저장합니다. 본문은 바뀌지 않고, 작가가 스튜디오 리뷰 큐에서 수락해야 반영됩니다. 같은 회차에 다시 저장하면 이전 대기 초안을 대체합니다.',
+    description: '본인 회차에 초안 전문을 "제안"으로 저장합니다. 본문은 바뀌지 않고, 작가가 스튜디오 리뷰 큐에서 수락해야 반영됩니다. 같은 회차에 다른 내용으로 다시 저장하면 대기 초안이 하나 더 생기고(이전 것은 그대로 남습니다), 같은 내용이면 기존 제안을 그대로 돌려줍니다.',
     inputSchema: saveDraftInputSchema, annotations: MCP_WRITE_ANNOTATIONS,
   }, withMcpWriteTool(saveDraftInputSchema, async (input, { db }) => propose(db, input.workId, 'mcp_propose_chapter_draft', {
     p_work_id: input.workId, p_chapter_id: input.chapterId, p_content: input.content,
