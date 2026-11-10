@@ -189,3 +189,11 @@
 - 로그인 화면·소셜 로그인(구글·카카오) 성공, 로그인 후 스튜디오·설정집 트리·AI 커넥터 화면 정상.
 - **홈 피드 anon 500 (statement timeout):** 공유 DB에서 anon으로 works+chapters 쿼리를 `EXPLAIN ANALYZE`(읽기 전용) 한 결과 1.44초, works 511개·chapters 625개가 보이고 buffers 36,421. 회차 정책의 `world_work_public_meta_visible(work_id)`가 행마다 평가된다. 로그인 상태에서는 렌더된다(제한시간이 더 길다). 작품 수에 비례해 느려져 공개 규모에서도 재현될 수 있다.
 - 처리: `bug-plan`으로 Phase 18 `bugs/`에 기록하고 정책 함수 평가 비용을 줄이는 방안을 정한다(이 문서는 마이그레이션 적용 기록이라 수정 방안은 거기서 다룬다).
+
+## 16. Phase 14 마이그레이션 공유 DB 적용 (2026-11-10)
+
+사용자 승인("병합하고 공유 DB 적용해") 하에 `scripts/apply-pending-migrations.mjs --env-file .env.local --expect-ref ymudwgso --allow-shared --execute`로 **0041 → 0042 → 0043 → 0044**를 한 파일씩 적용했다. 모두 첫 오류 없이 성공(트랜잭션, rollback 0). **0050(BUG-02)은 검증이 끝나지 않아 적용하지 않았다.** 백업은 없다(2026-11-05 결정 그대로).
+
+- 사전 점검(읽기 전용): `mcp_proposals`·제안/결정/패치 함수 0개, 선행 조건(0037~0040: `mcp_reject_oauth_caller`, `mcp_grant_is_live`, `user_can_write`, 0040의 `soft_delete_kb_node` 가드) 모두 있음, `chapters.content`는 text, works 1905·profiles 2864행.
+- 사후 점검(읽기 전용): `mcp_proposals` RLS 켜짐, 정책 `mcp_proposals_select_own`·`oauth_browser_only`, authenticated는 SELECT만(INSERT/UPDATE/DELETE 없음). 제안 RPC 3개와 결정 RPC 3개(accept 3 + reject + revert)는 SECURITY DEFINER에 authenticated 전용(anon·service_role EXECUTE 없음). 내부 helper(`mcp_patch_*`, `mcp_proposal_*`, `mcp_decision_*`)는 어느 API 역할도 EXECUTE 불가. 옛 3-인자 제안 RPC 잔존 0. 0040 가드 유지. `mcp_proposals` 행 0. works·profiles 행 수 적용 전과 동일. `chapters_public_read`는 0050을 쓰지 않음(미적용 확인).
+- 이 적용은 DB 스키마만이다. 공유 DB의 MCP 실사용(공개 HTTPS 배포, `MCP_PUBLIC_ORIGIN`, OAuth 서버 설정)은 별개로 남아 있다. 14-09 수동 인수는 일회용 환경에서 진행한다.

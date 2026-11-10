@@ -246,3 +246,8 @@
 - 병합 브랜치와 합치는 방법: `claude/phase14-patch`는 `claude/phase14-merge` 위에 커밋 5개(+문서)만 얹었다. `phase14-merge`가 푸시·병합된 뒤 그 위로 fast-forward하거나 함께 병합하면 된다. 겹치는 파일은 없다.
 - **14-09 수동 인수에 추가할 것(런북 반영 필요):** (1) 실제 Claude 커넥터에서 `get_kb_document`가 `contentHash`를 주고 `propose_kb_document`/`save_draft`가 `baseHash`+`edits`로 성공하는지, 도구 스키마가 Claude에게 어떻게 보이는지. (2) 오래된 `baseHash`로 호출하면 Claude가 `latestHash`로 재읽기·재시도하는지. (3) 같은 수정에서 전체 `content` 방식과 `edits` 방식의 쓰기 출력 토큰을 비교하는 계측(PLAN 위험 7). 이번 구현에서는 측정하지 않았다.
 - 알려진 한계는 `14-13-SUMMARY.md`의 "남은 위험·한계".
+
+## 16. 2026-11-10 master 병합과 공유 DB 적용
+
+- `claude/phase14-patch`를 master에 병합했다(`da5011c`, 로컬만 — 푸시는 별도 승인). 병합 직후 전체 단위 203개 파일 3396/3396.
+- 공유 DB(`ymudwg…`)에 0041·0042·0043·0044를 적용했다(2026-11-10). §6 표의 "공유 DB" 열은 0041~0044 모두 **적용됨**으로 읽을 것. 0050은 여전히 **미적용**(BUG-02 검증 전). 점검 내용은 `.planning/gaps/2026-11-03-shared-db-catchup-plan.md` §16.
