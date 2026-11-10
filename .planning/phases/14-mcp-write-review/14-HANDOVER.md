@@ -2,6 +2,33 @@
 
 작성: 2026-11-06 · 브랜치 `claude/great-hamilton-1954a6` · 새 환경의 Claude 세션이 이 대화 없이 이어가기 위한 문서다. 비밀·키 값은 이 문서에 없다.
 
+## 0. 2026-11-10 갱신 — 데스크탑 병행 Phase 14와 병합 (이 절이 아래 §1~§14와 다르면 이 절이 맞다)
+
+브랜치 `claude/phase14-merge`(기반 `55afcc2`). 푸시·master 병합은 아직 하지 않았다. 아래 §1~§14는 병합 전에 쓴 글이라 **작가당 대기 50건**, **새 초안이 이전 초안을 대체**, **마이그레이션은 0041·0042뿐**이라고 적힌 곳이 있다. 지금은 모두 바뀌었다.
+
+**무슨 일이 있었나.** 데스크탑 환경이 같은 Phase 14를 `.planning/phases/14-mcp/`(12 plan, 마이그레이션 `0051_mcp_review_queue.sql`, 테이블 `mcp_drafts`·`mcp_kb_proposals`)로 새로 시작해 `origin/master`에 14-01·14-03까지 올려 두었다. 사용자가 두 구현을 절충하기로 했고, 로컬 구현(이 디렉터리, `mcp_proposals` 1개 테이블, 0041·0042)을 뼈대로 삼았다.
+
+| 구분 | 내용 |
+|---|---|
+| 병합 | `origin/master`(Phase 19·홍보 문서·0040·0050 포함)를 이 브랜치에 병합. 코드 충돌은 `tests/mcp/read-boundary.database.test.ts` 한 곳(우리 `mcp_proposals` 카탈로그로 해결). 병합 커밋 `ae962ed` |
+| 채택(데스크탑) | 한 회차에 대기 초안 여러 개(D-P14-02), 작품당 대기 30건(D-P14-13)에 작가당 100건 보조 상한, 제어 문자·BOM·양방향 제어 문자 제거, 전역 인박스·헤더 `AI 검토 대기`·회차 트리 배지(UI-SPEC A·B), `scripts/assert-vitest-json.mjs`, `scripts/check-disposable-migrations.mjs` |
+| 채택하지 않음 | `0051_mcp_review_queue.sql`(테이블 2개 설계), `tests/mcp/propose-write.database.test.ts`, 데스크탑 plan 12개. 설계 문서(CONTEXT·RESEARCH·UI-SPEC·목업·plan)는 `_superseded/desktop-14-mcp/`에 참고용으로 보관 |
+| 일부만 채택 | 정규화의 4줄 이상 빈 줄 접기·끝 공백 제거는 **넣지 않음**(원본과의 문단 diff에 가짜 끝 변경을 만든다). C(설정집 트리 배지)·문서 화면 안내줄·모바일 3탭 셸 배치도 이번 범위 아님 |
+| 유지(우리 방식) | 수락·되돌리기를 브라우저 전용 SECURITY DEFINER 트랜잭션으로 서버가 확정. AI가 호출하는 RPC는 pending 행 INSERT만 한다 |
+
+**새 plan.** 14-10(다중 초안·상한·정규화, `0043_mcp_proposal_multi_draft.sql`), 14-11(전역 인박스·진입점), 14-12(통합 검증·문서). 14-09 수동 인수는 이 셋 뒤의 마지막 단계다(런북 §4.4, §5.15~5.18 갱신).
+
+**마이그레이션 상태.** 0043은 일회용 DB(`anzafn…`)에만 적용했다. 공유 DB(`ymudwg…`)에는 0037~0040까지만 적용돼 있고(2026-11-05) 0041·0042·0043·0050은 아직이다. 일회용 DB에는 0050도 이미 적용돼 있어, 병합으로 들어온 `world_work_base_visible(uuid)`를 read-boundary 분류표에 올렸다. `mcp_proposal_check_cap`은 `(uuid)`에서 `(uuid, uuid)`로 바뀌었다(옛 시그니처는 0043이 지운다).
+
+**직접 재실행한 값(일회용 DB, 한 번에 한 스위트).** 전체 단위 203개 파일 3258/3258, `npx eslint .` 0, `npx tsc --noEmit`은 기존 `LayoutProps` 1건뿐. DB `tests/mcp tests/proposals --project db` 11개 파일: 1회차 112/112 통과·건너뜀 0. 이어 곧바로 돌린 2회차는 `DCR failed with HTTP 429`(일회용 프로젝트 OAuth 클라이언트 등록 한도)로 3건 실패, 12분 대기 뒤 3회차는 112/112(건너뜀 0)였다. 이후 `accept-revert`에 다중 초안 케이스를 더해 그 스위트는 27/27이다(자세한 한계는 14-12-SUMMARY).
+
+**아직 안 한 것.**
+- 외부 AI 교차 검증(Codex)은 14-10·14-11에서 돌리지 않았다. 0043은 보안 경계를 건드리니 병합 전 읽기 전용으로 한 번 돌릴 것(`gpt-6-sol`).
+- 로그인한 화면 확인(인박스·헤더 링크·트리 배지)은 14-09 수동 인수로 넘겼다. 개발 서버 컴파일과 비로그인 307만 확인했다.
+- 설정집 수정안의 패치 형식(`find`/`replace`로 바뀐 부분만 보내기)은 만들지 않았다. 외부 AI가 문서 전체를 보내는 구조라 토큰이 든다. 사용자 결정 대기.
+- kb_edit·kb_create의 동일 제안 중복 제거는 여전히 연결별이다(초안만 연결 무관). 통일할지는 결정 사항.
+- 푸시, master 병합, 공유 DB 적용(0041→0042→0043, 별도로 0050)은 각각 사용자 승인 후.
+
 ## 1. 한눈에
 
 | 항목 | 상태 |
@@ -77,9 +104,9 @@
 
 **0041 계약 (14-02·14-05 공통)**
 - 제안 RPC 반환 `{id, status, expires_at, superseded_id}`. 오류: `42501 live MCP grant required` / `mcp_scope_denied` / `mcp_suspended` / `active writer required`; `P0001 mcp_not_found` / `mcp_no_change` / `mcp_cap_reached`; `22023 mcp_invalid_content|name|category`.
-- 같은 연결이 같은 정규화 내용을 다시 보내면 같은 id를 반환(dedupe, `content_hash`). 새 초안 저장 시 같은 회차의 이전 pending은 `superseded`, 50건 상한은 supersede 이후에 센다. 만료된 pending은 제안 RPC 호출 때마다 `expired`로 정리.
+- 같은 연결이 같은 정규화 내용을 다시 보내면 같은 id를 반환(dedupe, `content_hash`). **(0043 이후)** 같은 회차에 다른 내용의 초안은 모두 pending으로 공존하고(supersede 없음), 같은 정규화 내용은 연결과 무관하게 같은 id를 돌려준다. 만료된 pending은 제안 RPC 호출 때마다 `expired`로 정리(행은 삭제하지 않음).
 - `kb_edit` 허용 대상: `scope='work'`, 미삭제·미잠금 파일, category ∈ 인물/장소/사건/세력/아이템/custom(하위 폴더 파일은 부모 category 상속). template·회차·account_template·폴더는 거부. `kb_create`: 인물~아이템 카테고리만, 이름 trim 후 1..100자, 제어문자 금지.
-- 되돌리기 가능 기간 **7일**, 대기 제안 만료 30일, 작가당 대기 50건 — CONTEXT/RESEARCH 기본값을 plan에서 확정한 값.
+- 되돌리기 가능 기간 **7일**, 대기 제안 만료 30일, 대기 상한 **작품당 30건·작가당 100건**(0043, `mcp_proposal_pending_cap_per_work/_per_writer`; 처음에는 작가당 50건이었다).
 
 **기타**
 - `propose_kb_document` 입력 스키마가 루트 `oneOf`(create/edit)다. 실제 claude.ai 커넥터가 이 스키마를 처리하는지는 미확인 — 14-09 수동 인수에서 확인하고, 안 되면 `mode` 하나에 선택 필드를 두는 평면 스키마로 바꾼다(CONTEXT 결정은 불변).
@@ -92,13 +119,14 @@
 
 | 번호 | 내용 | 일회용 DB | 공유 DB |
 |---|---|---|---|
-| 0037 / 0038 / 0039 | Phase 12·13 (OAuth grant, 민감 RLS, 읽기 경계) | 적용됨 | **미적용** |
-| 0040 | (master) `soft_delete_kb_node` 보호 복구 — 이 phase는 쓰지 않음 | — | — |
+| 0037 / 0038 / 0039 | Phase 12·13 (OAuth grant, 민감 RLS, 읽기 경계) | 적용됨 | 적용됨(2026-11-05) |
+| 0040 | (master) `soft_delete_kb_node` 보호 복구 — 이 phase는 쓰지 않음 | — | 적용됨(2026-11-05) |
 | **0041** | `mcp_proposals`, 제안 RPC | 적용됨 | **미적용** |
 | **0042** | 결정 RPC, `mcp_proposal_caller` writer 검사 | 적용됨(수정 반영본) | **미적용** |
-| 0050 | (master) 피드 공개 읽기 비용 | — | — |
+| **0043** | 다중 초안·작품/작가 상한·정규화 강화, 제안 RPC 3개 재정의 (14-10) | 적용됨 | **미적용** |
+| 0050 | (master) 피드 공개 읽기 비용(BUG-02) | 적용됨 | **미적용** |
 
-- 이 브랜치가 쓰는 번호는 0041·0042뿐이다. master의 0040·0050과 충돌 없음을 병합 직전에 `ls supabase/migrations`로 다시 확인할 것.
+- 이 브랜치가 쓰는 번호는 0041·0042·0043이다. master의 0040·0050과 충돌 없음을 병합 직전에 `ls supabase/migrations`로 다시 확인할 것.
 - 0042는 병합 전이라 같은 파일을 여러 번 고쳤다(재적용 안전: `create or replace` / `drop function if exists`). 일회용 DB에는 최종본이 적용돼 있다. 새 환경의 일회용 DB가 같은 프로젝트라면 다시 적용할 필요 없음(`revert_mcp_proposal(uuid,boolean,text)` 하나만 존재).
 - 공유 DB 적용은 이 세션이 하지 않았다. 병합 뒤 별도 승인 하에 파일 단위로 적용한다(0022~0039 미적용·백업 없음 상태이므로 STATE Blockers/Concerns와 `.planning/gaps/2026-11-03-shared-db-catchup-plan.md` 순서를 따를 것 — 0041은 0039 뒤).
 
@@ -141,7 +169,7 @@
 
 ## 12. 14-09 수동 인수에 반드시 넣을 것
 
-- Claude에서 `save_draft` / `propose_kb_document` 왕복, 쓰기 도구의 승인 흐름, 큐의 출처 표시, 본문은 수락 전까지 불변, 같은 회차 재저장 시 이전 건 `새 초안으로 대체됨`.
+- Claude에서 `save_draft` / `propose_kb_document` 왕복, 쓰기 도구의 승인 흐름, 큐의 출처 표시, 본문은 수락 전까지 불변, 같은 회차에 다른 내용으로 재저장하면 두 건이 모두 대기(대체되지 않음), 같은 내용이면 같은 건.
 - 덩어리 일부 수락, 직접 고치기, 원본 변경 경고·재비교·`적용할 수 없음`, 반영 되돌리기 1회, 되돌리기 확인 흐름(`confirm_required`), 설정집 수정안·신규 생성안(폴더 선택, 기본값 없음), 연결 해제 후 출처 `연결 해제됨`, 정지 계정 쓰기 거부.
 - 12-06 Task 2 잔여: #7 동의 화면 상태, #8 375px·접근성, #9 연결 1시간 후 refresh token 재호출(시간이 걸리니 인수 시작 시점에 먼저 기다림을 걸어 둘 것).
 - `propose_kb_document` 스키마 호환성(위 §5 기타).
@@ -180,7 +208,7 @@
 - 신규 생성안 폴더 선택은 UI-SPEC D의 Select 대신 승인 목업(KbNew)대로 **라디오 목록**, 기본 선택 없음.
 - 하단 결정 바는 모바일에서도 `sticky`(fixed는 모바일 하단 탭 바를 가림). 도착 시각은 1시간 미만이면 `n분 전`.
 - 완료 화면은 수락 시점에 화면에 있던 detail을 고정해 그린다(stale 새로고침 뒤에도 적용된 덩어리와 일치). 직접 고친 텍스트는 같은 세션에서만 보이고, 새로고침 후에는 서버가 덩어리별 텍스트를 저장하지 않으므로 안내 문구로 대신한다.
-- 구현하지 않은 것: UI-SPEC B의 `변경 없는 문단 {k}개` 접힌 줄(승인 목업에도 없음), 대기 50건 상한 안내 문구(작가 전체 대기 건수 조회 함수 없음), 설정 문서에 대기 제안이 여러 건일 때 해당 문서로 거른 큐 링크(큐에 대상 필터 없어 일반 대기 큐로 연결).
+- 구현하지 않은 것: UI-SPEC B의 `변경 없는 문단 {k}개` 접힌 줄(승인 목업에도 없음), 대기 상한 안내 문구(작품당 30·작가당 100건. 도구가 AI에게 오류를 돌려주는 것이 본질), 설정 문서에 대기 제안이 여러 건일 때 해당 문서로 거른 큐 링크(큐에 대상 필터 없어 일반 대기 큐로 연결).
 - 모바일 `전체 보기` 접기는 길이(240자 초과 또는 6줄 초과)만 보고 판단하며 실제 렌더 높이를 재지 않는다.
 - AI와 다듬기: 입력은 ID·seenHash·메시지(≤1000자)·이력(≤6턴)·UUID 멱등성 키만(추가 필드는 거부), 덩어리는 서버가 저장된 제안과 현재 원문에서 재계산(대기·미만료·본인 소유, 바뀜/추가 덩어리, 잠기거나 삭제된 대상 제외, kb_create 제외). 덩어리당 6회 상한, 대화 비저장. 모델을 못 정하면 사이드 채팅만 숨는다. 패널에 모델 선택·서비스 키 대체 동의 흐름은 없다. 후보에서 프로토콜 태그를 모두 제거하고 비면 `empty_answer`(재시도 버튼 없음: 같은 키 재전송은 already_processed), 후보 상한은 꼬리 줄바꿈을 포함한 삽입 길이 기준.
 - **`createAdminClient` 결정**: `refine-actions.ts`가 `resolveGenerationRoute`에만 `createAdminClient()`를 넘긴다(작가 본인의 BYOK 키 복호화, 기존 `chatAction`과 동일한 방식). 제안·작품 읽기는 모두 세션 클라이언트. 이 phase의 금지 범위는 bearer 토큰 경로(`lib/mcp/**`, `app/mcp/**`)이며 `no-admin-client` 테스트가 그것을 계속 지킨다. 병합 리뷰에서 이 한 곳을 확인할 것.

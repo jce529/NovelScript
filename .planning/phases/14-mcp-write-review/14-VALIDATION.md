@@ -34,7 +34,7 @@ created: 2026-11-04
 
 | Req | Behavior | Test Type | Automated Command | File Exists | Status |
 |-----|----------|-----------|-------------------|-------------|--------|
-| MCP-05 | `save_draft`가 pending만 만들고 `chapters.content` 불변, 회차당 pending 1개(superseded), 50건 상한 | db | `tests/proposals/draft-tools.database.test.ts --project db` | ❌ W0 | ⬜ |
+| MCP-05 | `save_draft`가 pending만 만들고 `chapters.content` 불변, 회차당 pending 여러 개(동일 텍스트는 1행), 작품당 30·작가당 100건 상한 (14-10, 0043) | db | `tests/proposals/draft-tools.database.test.ts --project db` | ❌ W0 | ⬜ |
 | MCP-05 | 도구 9개·쓰기 annotation·strict schema·한국어 describe·정지 계정·scope 거부 | unit | `npx vitest run tests/mcp/tool-annotations.test.ts tests/mcp/tools-proposals.test.ts --project unit` | ❌ W0 | ⬜ |
 | MCP-05/06 | 교차 사용자 주입 쓰기 | db | `tests/mcp/tools.proposals.cross-user.database.test.ts --project db` | ❌ W0 | ⬜ |
 | MCP-06 | `propose_kb_document` edit/create 제약(잠김·삭제·scope·카테고리) | db | `tests/proposals/kb-tools.database.test.ts --project db` | ❌ W0 | ⬜ |

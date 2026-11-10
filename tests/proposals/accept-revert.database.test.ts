@@ -135,6 +135,32 @@ describe.skipIf(!ready)('MCP proposal decisions (0042)', () => {
       expect(days).toBeLessThan(7.1);
     });
 
+    it('14-10: with several pending drafts on one chapter, accepting one makes the others stale (mcp_stale, nothing changes) until re-read', async () => {
+      const original = '원본 문단\n';
+      const chapter = await insertChapter(fx, wA, original, { orderIndex: 91 });
+      const first = await seedChapterProposal(chapter, wA, '원본 문단\n\n첫 초안이 더한 문단\n');
+      const second = await seedChapterProposal(chapter, wA, '원본 문단\n\n둘째 초안이 더한 문단\n');
+      expect([first.id, second.id]).toHaveLength(2);
+
+      const accepted = await acceptChapter(fx.aBrowser, first.id, hashContent(original), '원본 문단\n\n첫 초안이 더한 문단\n');
+      expect(accepted.status, String(accepted.message)).toBe(200);
+      const afterFirst = (await chapterBody(chapter)).content;
+
+      // The second draft was read against the old original: the stored hash no longer matches.
+      const stale = await acceptChapter(fx.aBrowser, second.id, hashContent(original), '원본 문단\n\n둘째 초안이 더한 문단\n');
+      expect(stale.status).not.toBe(200);
+      expect(stale.message).toBe('mcp_stale');
+      expect((await chapterBody(chapter)).content).toBe(afterFirst);
+      expect((await proposalRow(second.id)).status).toBe('pending');
+
+      // Re-read against the latest original: accepting works and is undoable from that state.
+      const merged = `${afterFirst}\n둘째 초안이 더한 문단\n`;
+      const retry = await acceptChapter(fx.aBrowser, second.id, hashContent(afterFirst), merged);
+      expect(retry.status, String(retry.message)).toBe(200);
+      expect((await chapterBody(chapter)).content).toBe(merged);
+      expect((await proposalRow(second.id)).undo_content).toBe(afterFirst);
+    });
+
     it('atomic: a failure after the body update rolls back the body and the proposal together', async () => {
       const chapter = await insertChapter(fx, wA, 'atomic original', { orderIndex: 2 });
       const { id } = await seedChapterProposal(chapter, wA, 'atomic draft');

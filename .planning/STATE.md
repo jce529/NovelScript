@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Overview
 status: executing
-stopped_at: Phase 14 UI-SPEC approved
+stopped_at: Phase 14 코드 plan 완료(14-09 수동 인수 대기) — 데스크탑 병행 계획 병합 브랜치 claude/phase14-merge
 last_updated: "2026-11-09T12:59:09.529Z"
 last_activity: 2026-11-09
 progress:
@@ -26,9 +26,11 @@ See: .planning/PROJECT.md (updated 2026-08-25)
 ## Current Position
 
 Phase: 14 (MCP 쓰기 도구 + 스튜디오 리뷰 큐) — EXECUTING
-Plan: 2 of 12
-Status: Ready to execute
+Plan: 11 of 12 (14-09 수동 인수만 남음)
+Status: Ready for manual acceptance
 **2026-11-01 병합:** Phase 12(12-01~05 완료, 12-06 Task 2 수동 대기)와 Phase 17(17-01~07 코드 완료, 수동 UAT 대기)을 master에 병합·push했다. 두 phase 모두 사람 검증 전이라 완료로 올리지 않았다. 남은 수동 항목은 `12-06-SUMMARY.md`·`17-UAT.md`의 '수동 확인 필요' 절. Phase 19(작가용 작품 홈 디자인)는 ROADMAP에만 등록, discuss 전.
+**2026-11-10 Phase 14 두 갈래 병합(브랜치 `claude/phase14-merge`, 푸시·master 병합 전):** 데스크탑이 `14-mcp/`(12 plan, 0051)로 새로 시작한 Phase 14와 로컬 `14-mcp-write-review/`(0041·0042, 14-01~14-08 완료)를 하나로 합쳤다. 로컬 구현을 뼈대로 쓰고 데스크탑 결정 일부(다중 초안, 작품당 30·작가당 100건 상한, 제어 문자 정규화, 전역 인박스·헤더 진입·트리 배지)를 14-10(0043)·14-11로 얹었다. `0051`·데스크탑 plan 12개는 채택하지 않고 설계 문서만 `_superseded/`에 보관. 공유 DB 미접촉. 남은 일: 14-09 수동 인수, 병합 전 Codex 교차 검증, 푸시·master 병합·공유 DB 0041~0043(+0050) 적용(각각 승인 필요).
+
 **2026-11-03 Phase 13 완료·master 병합(6d69b29):** 6/6 plan(9커밋)이 master에 `--no-ff`로 병합됐다(push 안 함). 일회용 DB(`anzafn…`)+터널+`next start`로 실제 Claude 커스텀 커넥터를 인수했다 — 연결, 읽기 전용 그룹 인식, "항상 허용" 후 읽기 도구 6개 무확인 실행, 본인 데이터만 반환(타인 작품 미노출), 해제 후 같은 연결 호출 차단 통과(12-06 Task 2 #3~#6·#10에 해당). 성공 기준 4는 사용자 판정으로 충족(메모: 기본 승인 카드는 Claude 클라이언트 정책). 12-06 #7·#8·#9는 pending이라 Phase 12는 완료로 올리지 않았다. 병합 후 `tests/mcp`+`tests/ai` 1339개 통과, 22개 실패는 모두 DB 연동 테스트(`tests/ai/chat`·`ai-service-settlement.database`·`ai-usage-db`, 환경 없이 postgres 접속 불가)이며 병합 전과 같은 수, tsc 오류 0건. 남은 것: 0037·0038·0039는 공유 DB 미적용(별도 승인, 이 순서로 적용), 일회용 DB의 임시 작가·작품 "전은재 개패기"는 0023 보호로 삭제 불가(live MCP grant 0), 일회용 Supabase Site URL은 원래 값 이력이 없어 `http://localhost:3100`으로 복구(원래 값 미확인), 터널 터미널 종료는 사용자 몫. 응답 프로토콜 기본 제외는 사용자 확정 기록 없이 계획대로 진행. 워크트리 `.env.disposable` 사본은 삭제했다.
 
 Last activity: 2026-11-09
@@ -179,7 +181,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-11-09T12:59:09.515Z
-Stopped at: Phase 14 UI-SPEC approved
+Stopped at: Phase 14 코드 plan 완료, 14-09 수동 인수 대기 (브랜치 claude/phase14-merge, 푸시·master 병합 전)
 Next (2026-10-04 정정): 열린 일은 `.planning/gaps/2026-10-04-gap-analysis.md` §0 우선순위를 따른다.
 
   - **v1.1:** Phase 11 코드 완료(11-01~07), 11-08 Task 2 브라우저 UAT 6건 대기(`11-VERIFICATION.md`). Phase 8 BUG-04(사고·본문 몫 분리) 정책은 2026-10-08 결정 완료(후보 4, Gemini만·BYOK 제외, `T` 기본값은 관측 후)라 실행을 막지 않는다. Phase 12는 research-phase 필수. Phase 17은 `/gsd:plan-phase 17`.

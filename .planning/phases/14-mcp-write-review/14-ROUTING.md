@@ -13,3 +13,12 @@ Jev 분류(jev-1.14.0, task=plan 단위) → 고정 표. 모든 plan이 P1(자�
 | 14-07 | routine / low | T3 (Claude는 T2 칸 없음) | sonnet | 테스트 + diff 확인 |
 | 14-08 | multi_file / medium, P3 불확실 | T4 | opus | codex gpt-6-sol |
 | 14-09 | 수동 인수 | — | 사람 | — |
+
+## 2026-11-10 병합 세션(14-10 ~ 14-12)
+
+| plan | 한 곳 | 모델 | 검증자 |
+|---|---|---|---|
+| 14-10 | 병합 세션이 직접 구현(Sonnet 5.5). Jev 분류·외부 AI 호출 없음 | sonnet | 일회용 DB 스위트 직접 재실행. **Codex 교차 검증 미실시**(high 위험이라 병합 전 필요) |
+| 14-11 | 같은 세션이 직접 구현 | sonnet | 단위·eslint·tsc 직접 재실행. 화면 확인은 14-09 |
+| 14-12 | 같은 세션 | sonnet | 위와 같음 |
+
