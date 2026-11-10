@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { McpServer, type AuthInfo } from '@modelcontextprotocol/server';
 import { z } from 'zod';
@@ -18,6 +19,7 @@ const SHARED = '77777777-7777-4777-8777-777777777777';
 const ABSENT = '88888888-8888-4888-8888-888888888888';
 const BEARER = 'unit-caller-bearer';
 const SECRET = `SELECT token FROM kb_nodes; SQL 42501 ${BEARER}`;
+const sha = (text: string) => createHash('sha256').update(text, 'utf8').digest('hex');
 const id = (i: number) => `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`;
 type Row = Record<string, unknown>;
 type Response = { data: unknown; error: unknown };
@@ -284,7 +286,8 @@ describe('get_kb_document', () => {
     expect(spy).toHaveBeenCalledExactlyOnceWith(expect.anything(), { ownerId: USER, workId: WORK, nodeIds: [nodeId] });
     expect(result).toEqual({ id: nodeId, workId: WORK, name: nodeId === NODE ? '설정' : '공유 설정',
       scope: nodeId === NODE ? 'work' : 'account_template', category: nodeId === NODE ? 'custom' : 'template',
-      content: '설정 본문 [[연결]]', offset: 0, maxChars: 20000, totalChars: 12, nextOffset: null, truncated: false });
+      content: '설정 본문 [[연결]]', offset: 0, maxChars: 20000, totalChars: 12, nextOffset: null, truncated: false,
+      contentHash: sha('설정 본문 [[연결]]') });
     for (const c of calls.filter((c) => c.table === 'kb_nodes')) {
       expect(c.filters).toEqual(expect.arrayContaining([['eq', 'owner_id', USER], ['eq', 'node_type', 'file'], ['is', 'deleted_at', null]]));
       expect(c.filters).toContainEqual(['eq', 'scope', c.filters.some((f) => f[1] === 'work_id') ? 'work' : 'account_template']);
@@ -336,6 +339,36 @@ describe('get_kb_document', () => {
     expect(payload(await read({ offset: 10000, maxChars: 50000 }))).toMatchObject({ content: content.slice(10000, 60000), nextOffset: 60000, truncated: true });
     expect(payload(await read({ offset: 60000 }))).toMatchObject({ content: '가', nextOffset: null, truncated: false });
     for (const offset of [60001, 70000]) expect(payload(await read({ offset }))).toMatchObject({ content: '', offset, nextOffset: null, truncated: false });
+  });
+
+  it.each([
+    ['한글', '가'.repeat(60001)], ['CRLF', 'a\r\nb\r\n\r\nc'], ['CR/LF 혼합', 'a\rb\nc\r\n'],
+    ['이모지', 'A😀B🚀C'], ['빈 본문', ''], ['NFD', '\u1100\u1161 e\u0301'],
+  ])('contentHash는 정규화 없는 전체 원문의 SHA-256이며 페이지와 무관하다 (%s)', async (_label, content) => {
+    const { call, rows } = tools();
+    rows.kb_nodes[0].content = content;
+    const expected = sha(content);
+    expect(expected).toMatch(/^[0-9a-f]{64}$/);
+    const total = content.length;
+    for (const args of [{}, { offset: 0, maxChars: 1 }, { offset: Math.floor(total / 2), maxChars: 3 }, { offset: Math.max(0, total - 1), maxChars: 5 }, { offset: total + 10 }]) {
+      expect(payload(await call('get_kb_document', { workId: WORK, nodeId: NODE, ...args })).contentHash).toBe(expected);
+    }
+  });
+
+  it('KB content가 null이면 빈 문자열의 해시를 반환한다', async () => {
+    const { call, rows } = tools();
+    rows.kb_nodes[0].content = null;
+    expect(payload(await call('get_kb_document', { workId: WORK, nodeId: NODE })).contentHash).toBe(sha(''));
+  });
+
+  it('계정 공유 파일도 같은 해시 규칙을 따르고 접근 불가 파일은 해시를 노출하지 않는다', async () => {
+    const { call, rows } = tools();
+    rows.kb_nodes[1].content = '공유\r\n본문';
+    expect(payload(await call('get_kb_document', { workId: WORK, nodeId: SHARED })).contentHash).toBe(sha('공유\r\n본문'));
+    rows.kb_nodes[0].owner_id = OTHER;
+    const denied = await call('get_kb_document', { workId: WORK, nodeId: NODE });
+    expect(denied.isError).toBe(true);
+    expect(JSON.stringify(denied)).not.toMatch(/contentHash|[0-9a-f]{64}/);
   });
 
   it.each(['', null])('returns a genuine empty document for %j content', async (content) => {
