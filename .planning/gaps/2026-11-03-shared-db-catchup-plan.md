@@ -197,3 +197,6 @@
 - 사전 점검(읽기 전용): `mcp_proposals`·제안/결정/패치 함수 0개, 선행 조건(0037~0040: `mcp_reject_oauth_caller`, `mcp_grant_is_live`, `user_can_write`, 0040의 `soft_delete_kb_node` 가드) 모두 있음, `chapters.content`는 text, works 1905·profiles 2864행.
 - 사후 점검(읽기 전용): `mcp_proposals` RLS 켜짐, 정책 `mcp_proposals_select_own`·`oauth_browser_only`, authenticated는 SELECT만(INSERT/UPDATE/DELETE 없음). 제안 RPC 3개와 결정 RPC 3개(accept 3 + reject + revert)는 SECURITY DEFINER에 authenticated 전용(anon·service_role EXECUTE 없음). 내부 helper(`mcp_patch_*`, `mcp_proposal_*`, `mcp_decision_*`)는 어느 API 역할도 EXECUTE 불가. 옛 3-인자 제안 RPC 잔존 0. 0040 가드 유지. `mcp_proposals` 행 0. works·profiles 행 수 적용 전과 동일. `chapters_public_read`는 0050을 쓰지 않음(미적용 확인).
 - 이 적용은 DB 스키마만이다. 공유 DB의 MCP 실사용(공개 HTTPS 배포, `MCP_PUBLIC_ORIGIN`, OAuth 서버 설정)은 별개로 남아 있다. 14-09 수동 인수는 일회용 환경에서 진행한다.
+
+## 17. 0050(BUG-02) 공유 DB 적용 (2026-11-11)
+사용자 승인("커밋 후 적용") 하에 `scripts/apply-pending-migrations.mjs --env-file .env.local --expect-ref ymudwgso --allow-shared --from 0050 --to 0050 --execute`로 `0050_feed_public_read_cost.sql` 한 파일을 적용했다(416ms 성공). 적용 뒤 쿠키 없이 로컬 앱(공유 DB 연결) 홈을 세 번 요청해 모두 HTTP 200(적용 전 500)이고 서버 로그에 timeout이 없었다. 이로써 공유 DB는 0001~0044 + 0050까지 적용됐다(0045~0049는 번호 없음). 근거와 EXPLAIN 수치는 `.planning/fixed/18-02 비로그인 홈 피드 타임아웃 수정.md`.
