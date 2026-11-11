@@ -1,9 +1,15 @@
 {
   "_comment": "PLAN/SUMMARY frontmatter로 연결할 수 없는 요구사항(GSD 밖 구현)의 수동 매핑. scripts/graph-link-requirements.py가 읽는다. 키는 요구사항 ID, 값은 {implemented_in, verified_by, evidenced_by} 경로 목록.",
   "STUDIO-01": {
-    "implemented_in": ["app/account/page.tsx"],
+    "implemented_in": [
+      "app/account/page.tsx"
+    ],
     "verified_by": [],
-    "evidenced_by": [".planning/phases/16-studio-workflow-upload/16-SUMMARY.md", ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md", ".planning/phases/16-studio-workflow-upload/16-UAT.md"]
+    "evidenced_by": [
+      ".planning/phases/16-studio-workflow-upload/16-SUMMARY.md",
+      ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md",
+      ".planning/phases/16-studio-workflow-upload/16-UAT.md"
+    ]
   },
   "STUDIO-02": {
     "implemented_in": [
@@ -14,7 +20,11 @@
       "lib/ai/prompt.ts"
     ],
     "verified_by": [],
-    "evidenced_by": [".planning/phases/16-studio-workflow-upload/16-SUMMARY.md", ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md", ".planning/phases/16-studio-workflow-upload/16-UAT.md"]
+    "evidenced_by": [
+      ".planning/phases/16-studio-workflow-upload/16-SUMMARY.md",
+      ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md",
+      ".planning/phases/16-studio-workflow-upload/16-UAT.md"
+    ]
   },
   "STUDIO-03": {
     "implemented_in": [
@@ -24,8 +34,14 @@
       "lib/ai/document-plan.ts",
       "lib/ai/decision/plan.ts"
     ],
-    "verified_by": ["tests/ai/upload-classify.test.ts"],
-    "evidenced_by": [".planning/phases/16-studio-workflow-upload/16-SUMMARY.md", ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md", ".planning/phases/16-studio-workflow-upload/16-UAT.md"]
+    "verified_by": [
+      "tests/ai/upload-classify.test.ts"
+    ],
+    "evidenced_by": [
+      ".planning/phases/16-studio-workflow-upload/16-SUMMARY.md",
+      ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md",
+      ".planning/phases/16-studio-workflow-upload/16-UAT.md"
+    ]
   },
   "STUDIO-04": {
     "implemented_in": [
@@ -35,6 +51,73 @@
       "app/account/page.tsx"
     ],
     "verified_by": [],
-    "evidenced_by": [".planning/phases/16-studio-workflow-upload/16-SUMMARY.md", ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md", ".planning/phases/16-studio-workflow-upload/16-UAT.md"]
+    "evidenced_by": [
+      ".planning/phases/16-studio-workflow-upload/16-SUMMARY.md",
+      ".planning/phases/16-studio-workflow-upload/16-VERIFICATION.md",
+      ".planning/phases/16-studio-workflow-upload/16-UAT.md"
+    ]
+  },
+  "AUTH-04": {
+    "implemented_in": [
+      "lib/auth/password-actions.ts",
+      "lib/auth/email-password.ts",
+      "components/auth/EmailAuthForms.tsx"
+    ],
+    "verified_by": [
+      "tests/auth/email-password.test.ts",
+      "tests/auth/password-actions.test.ts"
+    ],
+    "evidenced_by": [
+      ".planning/phases/24-email-password-auth/24-SUMMARY.md"
+    ]
+  },
+  "AUTH-05": {
+    "implemented_in": [
+      "lib/auth/password-actions.ts",
+      "lib/auth/email-password.ts",
+      "components/auth/EmailAuthForms.tsx"
+    ],
+    "verified_by": [
+      "tests/auth/email-password.test.ts",
+      "tests/auth/password-actions.test.ts"
+    ],
+    "evidenced_by": [
+      ".planning/phases/24-email-password-auth/24-SUMMARY.md"
+    ]
+  },
+  "AUTH-06": {
+    "implemented_in": [
+      "lib/auth/password-actions.ts",
+      "lib/auth/email-password.ts",
+      "components/auth/EmailAuthForms.tsx"
+    ],
+    "verified_by": [
+      "tests/auth/email-password.test.ts",
+      "tests/auth/password-actions.test.ts"
+    ],
+    "evidenced_by": [
+      ".planning/phases/24-email-password-auth/24-SUMMARY.md"
+    ]
+  },
+  "AUTH-07": {
+    "implemented_in": [
+      "supabase/migrations/0051_verified_account_gates.sql"
+    ],
+    "verified_by": [],
+    "evidenced_by": [
+      ".planning/phases/24-email-password-auth/24-SUMMARY.md"
+    ]
+  },
+  "AUTH-08": {
+    "implemented_in": [
+      "supabase/migrations/0051_verified_account_gates.sql",
+      "lib/chapters/actions.ts"
+    ],
+    "verified_by": [
+      "tests/chapters/publish-verification.test.ts"
+    ],
+    "evidenced_by": [
+      ".planning/phases/24-email-password-auth/24-SUMMARY.md"
+    ]
   }
 }

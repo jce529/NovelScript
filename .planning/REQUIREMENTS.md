@@ -10,9 +10,11 @@
 - [x] **AUTH-01**: User can sign up/log in via social login (Kakao 또는 Google 중 1개 이상)
 - [x] **AUTH-02**: One account serves both reader and writer roles — no separate signup flow; a "글쓰기 시작하기" entry point upgrades the same account
 - [x] **AUTH-03**: User session persists across visits/browser refresh
-- [x] **AUTH-04**: User can sign up with email + password (verification mail required); duplicate emails (including social-registered) get an "already registered" notice, no auto-linking
-- [x] **AUTH-05**: User can log in/out with email + password; unverified, wrong-password and soft-deleted accounts get distinct, non-enumerating messages
-- [x] **AUTH-06**: User can reset a forgotten password via emailed link
+- [ ] **AUTH-04**: User can sign up with email + password (verification mail required); duplicate emails (including social-registered) get an "already registered" notice, no auto-linking
+- [ ] **AUTH-05**: User can log in/out with email + password; unverified, wrong-password and soft-deleted accounts get distinct, non-enumerating messages
+- [ ] **AUTH-06**: User can reset a forgotten password via emailed link
+- [ ] **AUTH-07**: 본인 확인(카카오·구글 연결 또는 번호 인증)이 없는 로그인 계정의 조회·완독 기록은 랭킹 입력 지표에 새로 집계하지 않는다(기존 누적값 유지)
+- [ ] **AUTH-08**: 본인 확인이 없는 계정은 회차를 유료로 발행할 수 없다(무료 발행·초안·AI 작성은 허용)
 
 ### Knowledge Base (KB)
 
@@ -229,6 +231,11 @@ Explicitly excluded. Documented to prevent scope creep.
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 24 | Code complete (일회용 DB 검증: 로그인·트리거·유료 발행·집계 제외. 메일 가입 end-to-end는 SMTP 제한으로 미검증) |
+| AUTH-05 | Phase 24 | Code complete (일회용 DB 검증: 로그인·트리거·유료 발행·집계 제외. 메일 가입 end-to-end는 SMTP 제한으로 미검증) |
+| AUTH-06 | Phase 24 | Code complete (일회용 DB 검증: 로그인·트리거·유료 발행·집계 제외. 메일 가입 end-to-end는 SMTP 제한으로 미검증) |
+| AUTH-07 | Phase 24 | Code complete (일회용 DB 검증: 로그인·트리거·유료 발행·집계 제외. 메일 가입 end-to-end는 SMTP 제한으로 미검증) |
+| AUTH-08 | Phase 24 | Code complete (일회용 DB 검증: 로그인·트리거·유료 발행·집계 제외. 메일 가입 end-to-end는 SMTP 제한으로 미검증) |
 | KB-01 | Phase 2 | Complete (Phase 2 재개 보완 02-07~13: 일회용 DB·브라우저 UAT 통과 2026-10-19) |
 | KB-02 | Phase 2 | Complete (Phase 2 재개 보완 02-07~13: 일회용 DB·브라우저 UAT 통과 2026-10-19) |
 | KB-03 | Phase 04.1 | Complete |
@@ -332,6 +339,7 @@ Explicitly excluded. Documented to prevent scope creep.
 - v1.1 requirements: 40 total (PROV 7 + BYOK 9 + COST 2 + MCP 9 + AIDOC 4 + STUDIO 4 + BUGFIX 5) / mapped 40 / unmapped 0 ✓ (Phases 8–16)
 - 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
 - 작품 홈(WORKHOME): 7 defined / mapped 7 (Phase 19) — v1.1 합계 40과 별도
+- v1.1 확장(AUTH-04~08): 5 total / mapped 5 (Phase 24, 번호 인증 화면은 Phase 25)
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
 - 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
