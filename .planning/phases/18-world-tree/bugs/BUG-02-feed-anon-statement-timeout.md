@@ -85,3 +85,10 @@ from works w where w.deleted_at is null and w.admin_blinded = false order by w.i
 - D 중 **캐싱·피드 페이지 크기 축소는 하지 않았다.** 인덱스만 포함했고, A 적용 후 측정으로 부족할 때 추가한다.
 - 검증은 끝나지 않았다. 테스트를 먼저 썼고(마이그레이션 없이 실행하면 `ENOENT`로 실패, 의도한 red), 0050을 넣은 뒤 실행했으나 그 실행은 PC가 중간에 절전 상태가 되어 소요 시간이 86,400초로 기록되고 `ECONNRESET`이 섞여 **결과를 믿을 수 없다**(BUG-02 테스트 6개 실패 포함, 기존 `visibility.database`의 1건도 같은 오류). 같은 조건에서 다시 실행해야 한다.
 - 남은 작업: ① `tests/world-tree/public-read-cost.database` + `visibility.database` 재실행(일회용 DB, 한도 간섭을 피해 Phase 14 세션이 DB 테스트를 돌리지 않을 때) ② 발행 회차 약 500개 합성 데이터로 `EXPLAIN` 재측정 ③ `tsc`·`eslint` ④ 일회용 DB에 0050 적용 후 비로그인 홈 렌더 확인 ⑤ 공유 DB 적용(파일 단위, 승인) ⑥ 수정 완료 후 `/bug-complete`.
+
+## 검증 기록 (2026-11-11, 일회용 `anzafn…`)
+
+- **DB 테스트:** `tests/world-tree/public-read-cost.database` + `visibility.database`를 `--mode disposable`로 재실행해 **29/29 통과**했다(이전 실행은 PC 절전으로 무효). 이 과정에서 테스트 쪽 결함 둘을 고쳤다: 차단 작품 시드가 `works_admin_blind_shape` 제약(`admin_blind_reason`·`admin_blinded_at` 필요)을 어겼고, "정책 본문이 평평하다" 검사가 함수 정의 머리글의 자기 이름까지 중첩 호출로 셌다. 마이그레이션(0050)은 바꾸지 않았다.
+- **EXPLAIN 재측정:** 격리 스키마(작품 500·발행 회차 1,000, 롤백)에서 anon 피드 쿼리(위 재현 쿼리) 최소값 **225ms → 22ms(약 10배), buffers 11,010 → 8,010**. 절대값은 공유 DB의 1,440ms(작품 511·회차 625)보다 작다. 공유 DB는 네트워크·캐시 조건이 달라 같은 수치가 나온다고 보장하지 못하므로, **공유 DB 적용 후 비로그인 홈 실제 렌더로 최종 확인**해야 한다.
+- **anon 노출 검토:** 새 헬퍼 `world_work_base_visible(uuid)`는 anon이 실행할 수 있어야 정책이 동작한다(정책 식은 호출자 권한으로 평가). 기존 `world_work_reader_visible`·`world_work_public_meta_visible`도 이미 anon에게 열려 있어 같은 종류의 존재 여부 질의가 가능했다. 새 헬퍼는 발행 회차가 없는 미삭제 작품에도 참을 돌려주므로 노출 범위가 조금 넓다. 작품 ID는 v4 UUID라 추측이 어렵고 내용은 노출되지 않아 수용하기로 한다(내용·제목은 돌려주지 않는 불리언이다).
+- **남은 일:** 공유 DB에 0050 적용(파일 단위, 승인) → 비로그인 홈 렌더 확인 → `/bug-complete`.

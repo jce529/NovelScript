@@ -83,7 +83,9 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BUG-02 public read cost (PostgreS
     const id = `35000000-0000-4000-8000-${String(i).padStart(12, '0')}`;
     await exec('insert into works(id, owner_id, title) values ($1, $2, $3)', [id, owner, `work-${i}`]);
     if (c.branchDraft) await exec('update works set is_branch_draft = true where id = $1', [id]);
-    if (c.blinded) await exec('update works set admin_blinded = true where id = $1', [id]);
+    if (c.blinded) {
+      await exec("update works set admin_blinded = true, admin_blind_reason = 'bug02 test', admin_blinded_at = now() where id = $1", [id]);
+    }
     if (c.chapter !== 'none') {
       await exec('insert into chapters(work_id, title, content, order_index, is_published) values ($1, $2, $3, 1, $4)',
         [id, 'C1', 'body', c.chapter !== 'draft']);
@@ -130,8 +132,11 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('BUG-02 public read cost (PostgreS
 
   it('keeps the policy bodies flat: no nested helper call and a one-lookup chapters helper', async () => {
     const meta = await scalar<string>("select pg_get_functiondef('world_work_public_meta_visible(uuid)'::regprocedure)");
-    expect(meta).not.toContain('world_work_reader_visible');
-    expect(meta).not.toContain('world_work_public_meta_visible(p_work_id');
+    // The definition header carries the function's own name; only the body can nest calls.
+    const metaBody = meta.slice(meta.indexOf('AS $function$'));
+    expect(metaBody).not.toContain('world_work_reader_visible');
+    expect(metaBody).not.toContain('world_work_public_meta_visible');
+    expect(metaBody).not.toContain('world_work_base_visible');
     const chaptersPolicy = await scalar<string>(`select qual from pg_policies where tablename = 'chapters' and policyname = 'chapters_public_read' and schemaname = $1`, [schema]);
     expect(chaptersPolicy).toContain('world_work_base_visible');
     expect(chaptersPolicy).not.toContain('world_work_public_meta_visible');
