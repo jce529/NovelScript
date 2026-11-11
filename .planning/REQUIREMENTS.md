@@ -10,6 +10,9 @@
 - [x] **AUTH-01**: User can sign up/log in via social login (Kakao 또는 Google 중 1개 이상)
 - [x] **AUTH-02**: One account serves both reader and writer roles — no separate signup flow; a "글쓰기 시작하기" entry point upgrades the same account
 - [x] **AUTH-03**: User session persists across visits/browser refresh
+- [x] **AUTH-04**: User can sign up with email + password (verification mail required); duplicate emails (including social-registered) get an "already registered" notice, no auto-linking
+- [x] **AUTH-05**: User can log in/out with email + password; unverified, wrong-password and soft-deleted accounts get distinct, non-enumerating messages
+- [x] **AUTH-06**: User can reset a forgotten password via emailed link
 
 ### Knowledge Base (KB)
 
