@@ -287,7 +287,18 @@
   color: var(--muted-foreground, #52525b);
 }
 
-/* Mobile: 340px scroll area, detail always visible below it (non-modal bottom sheet, no scale transform). */
+/* Desktop: the sheet wrapper is transparent so the detail stays the right-hand grid item; no toggle. */
+.sheet,
+.sheetBody {
+  display: contents;
+}
+
+.sheetToggle {
+  display: none;
+}
+
+/* Mobile: 340px scroll area; detail is a collapsible, non-modal bottom sheet (no scale transform).
+   Collapsed = one 48px bar showing the selected title, so it never covers half the screen. */
 @media (max-width: 767px) {
   .root {
     --wt-canvas-height: 340px;
@@ -305,13 +316,93 @@
     font-size: 14px;
   }
 
-  .detail {
-    max-height: none;
-    min-height: max(220px, calc(100dvh - var(--wt-canvas-height) - var(--wt-chrome)));
-    border-radius: 14px 14px 0 0;
-    border-bottom: 0;
+  .sheet {
+    display: block;
     position: sticky;
     bottom: 0;
+    z-index: 5;
+    border: 1px solid var(--border, #e4e4e7);
+    border-bottom: 0;
+    border-radius: 14px 14px 0 0;
+    background: var(--card, Canvas);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .sheetToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 14px 14px 0 0;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .sheetToggle:focus-visible {
+    outline: 3px solid var(--tree-accent);
+    outline-offset: -3px;
+  }
+
+  .sheetTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sheetAction {
+    flex: none;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted-foreground, #52525b);
+  }
+
+  /* CSS chevron (no extra <svg>: the canvas is the only svg on this surface). Points up when collapsed. */
+  .sheetChevron {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px 0 2px;
+    border-top: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+    transform: translateY(2px) rotate(45deg);
+    transition: transform 150ms ease;
+  }
+
+  .sheet[data-open='true'] .sheetChevron {
+    transform: translateY(-2px) rotate(225deg);
+  }
+
+  .sheetBody {
+    display: block;
+    max-height: min(55dvh, 480px);
     overflow-y: auto;
+  }
+
+  .sheet[data-open='false'] .sheetBody {
+    display: none;
+  }
+
+  .detail {
+    max-height: none;
+    border: 0;
+    border-top: 1px solid var(--border, #e4e4e7);
+    border-radius: 0;
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheetChevron {
+    transition: none;
   }
 }

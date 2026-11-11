@@ -157,3 +157,26 @@ describe('owner view', () => {
     expect(html).not.toContain('미발행');
   });
 });
+
+describe('WorldTreeView mobile detail sheet', () => {
+  it('starts collapsed as a one-line bar that names the selection and controls the panel', () => {
+    const html = render(readerNormalTree, { metricResult: metrics({ n0: 80, n1: 40, n2: 10 }) });
+    expect(html).toContain('data-part="detail-sheet"');
+    expect(html).toContain('data-open="false"');
+    expect(html).toMatch(/<button[^>]*aria-expanded="false"[^>]*aria-controls="wt-detail-panel"/);
+    expect(html).toContain('자세히 보기');
+    expect(html).toContain('id="wt-detail-panel"');
+  });
+
+  it('keeps the full detail in the DOM so desktop (CSS) always shows it', () => {
+    const html = render(readerNormalTree, { metricResult: metrics({ n0: 80, n1: 40, n2: 10 }) });
+    expect(html).toContain('id="wt-detail-title"');
+    expect(html).toContain('작품 보러 가기');
+  });
+
+  it('labels a stub selection with the generic copy only', () => {
+    const html = render({ ...readerPrivateRootTree, focusNodeKey: 'n0' });
+    expect(html).toContain('비공개된 가지');
+    expect(html).not.toContain(ROOT_TITLE);
+  });
+});

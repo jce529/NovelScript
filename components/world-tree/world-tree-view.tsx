@@ -8,8 +8,10 @@ import type { WorldTreePopularityResult } from '@/lib/world-tree/metric-adapter'
 import type { WorldTreeResponse } from '@/lib/world-tree/types';
 import { WorldTreeCanvas } from '@/components/world-tree/world-tree-canvas';
 import {
+  STUB_TITLE,
   WorldTreeDetail,
   buildWorldTreeEntries,
+  type WorldTreeEntry,
   type WorldTreeStudioLinks,
 } from '@/components/world-tree/world-tree-detail';
 import { WorldTreeList } from '@/components/world-tree/world-tree-list';
@@ -30,7 +32,17 @@ export const COPY = {
   preview: '독자에게 어떻게 보이는지 확인해요.',
   listFallback: '작품이 많아서 목록으로 먼저 보여드려요.',
   metricsFailed: '인기 지표를 불러오지 못해 열매 크기를 기본값으로 보여요.',
+  sheetEmpty: '열매나 가지를 눌러 보세요',
+  sheetOpen: '자세히 보기',
+  sheetClose: '접기',
 } as const;
+
+/** One-line label for the collapsed mobile sheet. Stubs reuse the generic copy so no private title leaks. */
+export function sheetSummary(entry: WorldTreeEntry | null): string {
+  if (!entry) return COPY.sheetEmpty;
+  if (entry.type === 'broken') return STUB_TITLE;
+  return entry.title ?? COPY.sheetEmpty;
+}
 
 export interface WorldTreePreviewResult {
   projection: WorldTreeResponse;
@@ -78,7 +90,11 @@ export function WorldTreeView({ projection, metricResult, mode, onRetry, onReade
   const [preview, setPreview] = useState<PreviewState>({ status: 'off' });
   const [selected, setSelected] = useState<string | null>(null);
   const [viewPref, setViewPref] = useState<'tree' | 'list' | null>(null);
+  // Mobile bottom sheet: collapsed to a one-line bar by default so it never covers half the screen.
+  // Desktop ignores this (CSS shows the side panel and hides the toggle).
+  const [sheetOpen, setSheetOpen] = useState(false);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
   const focusPending = useRef(false);
 
   const previewing = preview.status !== 'off';
@@ -115,7 +131,9 @@ export function WorldTreeView({ projection, metricResult, mode, onRetry, onReade
   useEffect(() => {
     if (!focusPending.current) return;
     focusPending.current = false;
-    titleRef.current?.focus();
+    // A collapsed sheet hides its title, so focus the bar that carries the same text instead.
+    (sheetOpen ? titleRef.current : toggleRef.current)?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run on selection change only, not when the sheet toggles
   }, [effectiveKey]);
 
   const togglePreview = useCallback(
@@ -217,15 +235,31 @@ export function WorldTreeView({ projection, metricResult, mode, onRetry, onReade
             )}
           </div>
 
-          <WorldTreeDetail
-            entry={selectedEntry}
-            entries={entries}
-            audience={audience}
-            studioLinks={mode === 'owner' && !previewing ? studioLinks : undefined}
-            titleRef={titleRef}
-            popularityUnavailable={scores === null}
-            className={styles.detail}
-          />
+          <div className={styles.sheet} data-part="detail-sheet" data-open={sheetOpen ? 'true' : 'false'}>
+            <button
+              ref={toggleRef}
+              type="button"
+              className={styles.sheetToggle}
+              aria-expanded={sheetOpen}
+              aria-controls="wt-detail-panel"
+              onClick={() => setSheetOpen((open) => !open)}
+            >
+              <span className={styles.sheetTitle}>{sheetSummary(selectedEntry)}</span>
+              <span className={styles.sheetAction}>{sheetOpen ? COPY.sheetClose : COPY.sheetOpen}</span>
+              <span aria-hidden="true" className={styles.sheetChevron} />
+            </button>
+            <div id="wt-detail-panel" className={styles.sheetBody}>
+              <WorldTreeDetail
+                entry={selectedEntry}
+                entries={entries}
+                audience={audience}
+                studioLinks={mode === 'owner' && !previewing ? studioLinks : undefined}
+                titleRef={titleRef}
+                popularityUnavailable={scores === null}
+                className={styles.detail}
+              />
+            </div>
+          </div>
         </div>
       );
     }
