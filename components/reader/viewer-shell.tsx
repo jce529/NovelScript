@@ -10,6 +10,7 @@ import type { PublicChapter, PublicChapterListItem } from '@/lib/chapters/action
 import { ChapterPurchaseEntry } from '@/components/reader/chapter-purchase-entry';
 import { TocSheet } from '@/components/reader/toc-sheet';
 import { ViewerSettingsPopover } from '@/components/reader/viewer-settings-sheet';
+import { useViewerDark } from '@/components/reader/viewer-dark';
 import { ViewTracker, chapterVisitKey } from '@/components/reader/view-tracker';
 import { useReadingProgress } from '@/components/reader/use-reading-progress';
 import styles from '@/components/reader/viewer.module.css';
@@ -50,6 +51,7 @@ export function ViewerShell({
 }) {
   const [chrome, dispatch] = useReducer(chromeReducer, INITIAL_CHROME);
   const [preferences, setPreferences] = useState(initialPreferences);
+  const dark = useViewerDark(preferences.mode);
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [subscribing, startSubscribe] = useTransition();
   // undefined = open snapshot not back yet; null = opened without a snapshot.
@@ -179,7 +181,7 @@ export function ViewerShell({
 
   return (
     <div
-      className={`${styles.viewer} flex min-h-screen flex-col ${preferences.mode === 'dark' ? 'dark' : ''}`}
+      className={`${styles.viewer} flex min-h-screen flex-col ${dark ? 'dark' : ''}`}
       data-viewer-theme={preferences.mode}
       data-viewer-font={preferences.font}
       style={rootStyle}
@@ -217,6 +219,7 @@ export function ViewerShell({
             onOpenChange={onOverlay('settings')}
             preferences={preferences}
             onPreferencesChange={setPreferences}
+            dark={dark}
             trigger={<Button variant="ghost" size="icon-sm" aria-label="보기 설정"><Settings className="size-4" /></Button>}
             workId={workId}
             chapterId={chapter.id}

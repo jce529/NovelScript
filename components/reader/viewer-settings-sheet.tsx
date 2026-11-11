@@ -115,8 +115,10 @@ export function ViewerSettingsPanel({
 
 export function ViewerSettingsPopover({
   open, onOpenChange, preferences, onPreferencesChange, trigger,
-  workId, chapterId, loggedIn, onSubmitReport,
+  workId, chapterId, loggedIn, onSubmitReport, dark = false,
 }: {
+  /** The popover is portaled outside the viewer root, so it needs its own `dark` token scope. */
+  dark?: boolean;
   open: boolean;
   onOpenChange: (next: boolean) => void;
   preferences: ViewerPreferences;
@@ -131,7 +133,7 @@ export function ViewerSettingsPopover({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger render={trigger} />
-      <PopoverContent align="end" className="w-80 gap-3 p-4">
+      <PopoverContent align="end" className={`w-80 gap-3 p-4${dark ? ' dark' : ''}`}>
         <PopoverTitle>보기 설정</PopoverTitle>
         <ViewerSettingsPanel
           preferences={preferences}
