@@ -20,7 +20,7 @@ No real payments, no AI generation, and no token-spending UI exist yet in this p
 ### Social Login
 - **D-01:** Google is implemented first; Kakao is added as a fast-follow within Phase 1 itself (not deferred to a later phase). Auth architecture should be provider-agnostic from the start to support both.
 - **D-02:** Email is required from the social provider. If a provider (commonly Kakao) doesn't supply an email, block signup or require additional input to obtain one — never create an account without an email on file.
-- **D-03:** No email/password signup — social login only (Google + Kakao).
+- **D-03:** No email/password signup — social login only (Google + Kakao). **[2026-11-11 Phase 24가 대체]** 이메일/비밀번호 가입·로그인을 소셜과 병행해 허용한다(인증 메일 필수, 소셜과 자동 연결 없음). 소셜이 기본 경로인 점과 Kakao 이메일 미제공 처리(D-02)는 유지. 근거: `.planning/phases/24-email-password-auth/24-SUMMARY.md`.
 
 ### Writer Upgrade Flow
 - **D-04:** Clicking "글쓰기 시작하기" prompts for a pen name (필명, required) and a short bio/intro (소개글, optional), then immediately flips the account to writer role on submit. This happens only on the first conversion.

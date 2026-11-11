@@ -19,7 +19,7 @@ For the wallet ledger, the concurrency-safety literature converges on **derived 
 ### Locked Decisions (from CONTEXT.md)
 - **D-01:** Google implemented first; Kakao added as a fast-follow within Phase 1 itself (not deferred). Auth architecture must be provider-agnostic from the start.
 - **D-02:** Email is required from the social provider. If a provider (commonly Kakao) doesn't supply an email, block signup or require additional input to obtain one — never create an account without an email on file.
-- **D-03:** No email/password signup — social login only (Google + Kakao).
+- **D-03:** No email/password signup — social login only (Google + Kakao). **[2026-11-11 Phase 24가 대체]** 이메일/비밀번호 가입·로그인을 소셜과 병행해 허용한다(인증 메일 필수, 소셜과 자동 연결 없음). 소셜이 기본 경로인 점과 Kakao 이메일 미제공 처리(D-02)는 유지. 근거: `.planning/phases/24-email-password-auth/24-SUMMARY.md`.
 - **D-04:** Clicking "글쓰기 시작하기" prompts for pen name (필명, required) and short bio (소개글, optional), then immediately flips the account to writer role on submit. Only on first conversion.
 - **D-05:** Pen name must be unique platform-wide — requires a uniqueness check at submission.
 - **D-06:** Pen name is not editable in Phase 1 (deferred to later settings/마이페이지 phase).

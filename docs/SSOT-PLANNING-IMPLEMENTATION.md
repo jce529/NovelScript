@@ -39,6 +39,11 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 | 인증 | AUTH-01 소셜 로그인 | 구현됨 | Supabase OAuth, `/login`, `/auth/callback`; Kakao scope 이슈 해결 기록 |
 | 인증 | AUTH-02 단일 계정의 독자/작가 역할 | 구현됨 | `/write/start`, writer upgrade action |
 | 인증 | AUTH-03 세션 유지 | 구현됨 | Supabase SSR와 `proxy.ts` 세션 갱신 |
+| 인증 | AUTH-04 이메일 가입(인증 메일 필수) | 부분 구현 (코드 완료·검증 대기) | `/signup`, `lib/auth/password-actions.ts`. 일회용 DB의 내장 SMTP 제한으로 메일 가입 end-to-end 미검증. 소셜과 자동 연결 없음 |
+| 인증 | AUTH-05 이메일·비밀번호 로그인 | 부분 구현 (코드 완료·검증 대기) | `/login` 폼, 미인증·오류·탈퇴 계정 문구 분리. 일회용 DB에서 로그인·프로필/지갑 트리거 확인 |
+| 인증 | AUTH-06 비밀번호 재설정 | 부분 구현 (코드 완료·검증 대기) | `/auth/forgot-password`, `/auth/reset-password`. 메일 발송 미검증 |
+| 인증 | AUTH-07 미인증 계정 랭킹 지표 집계 제외 | 부분 구현 (코드 완료·검증 대기) | 마이그레이션 `0051`: 조회수·완독 기록을 새로 쌓지 않음(기존 누적 유지). 공유 DB 미적용 |
+| 인증 | AUTH-08 미인증 계정 유료 발행 차단 | 부분 구현 (코드 완료·검증 대기) | `0051` 트리거 + `publishChapter` 문구. 본인 확인 = 카카오·구글 연결 또는 번호 인증(번호 인증 화면은 Phase 25) |
 | KB | KB-01 5종 템플릿 문서 CRUD | 구현됨 | 2026-10-19 재개 보완(02-07~13): 기본 템플릿 5종 읽기 전용·사본 만들어 수정·영역 내 이름 유일성. 마이그레이션 `0022`·`0023`을 일회용 DB에서 이관·재실행 10/10, `--project db` 66개 통과, 브라우저 UAT 통과. 실제 터치 기기 길게 누르기는 수용(미검증) |
 | KB | KB-02 작품별 IDE형 트리 | 구현됨 | 2026-10-19 재개 보완: 템플릿 섹션·접이식 트리·우클릭/길게 누르기 메뉴·좌우 패널 접기·저장 상태 칩. 일회용 DB·브라우저 UAT 통과(BUG-02·03 수정). AI 응답 진행 중 접기는 키 없이 미검증 |
 | KB | KB-03 사용자 정의 폴더 | 구현됨 | migration `0004`, `createFolder`, 중첩 폴더 UI |
@@ -152,7 +157,7 @@ Platty 프로젝트: `NovelScript MVP` (`qlEXtwsu7YJjMVDZhrC2H`)
 - KB 템플릿: `docs/Template/*.md`
 - 현재 제품 계약: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`
 - 실행 순서와 상태: `.planning/ROADMAP.md`, `.planning/STATE.md`
-- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다. 2026-10-19 기준 최신은 `0036_world_tree_reader_visibility`였고, 2026-11-10 기준으로는 Phase 12·13의 `0037`~`0039`, `0040`(soft_delete_kb_node 가드 복구), Phase 14의 `0041_mcp_proposals`·`0042_mcp_proposal_decisions`·`0043_mcp_proposal_multi_draft`·`0044_mcp_proposal_patches`, BUG-02의 `0050_feed_public_read_cost`(공유 DB 미적용)가 더해졌다. 공유 DB는 0001~0044(0028·0031 결번 제외, 0050 제외)까지 적용됐다. `0022`·`0023`(Phase 2 템플릿)은 일회용 DB에서 검증됐고, `0024`~`0027`·`0029`·`0030`·`0032`~`0036`은 파일만 있고 어떤 DB에도 적용·실행되지 않았다. `0028`·`0031`은 의도적 결번이다. 공유 프로젝트 적용 전에 일회용 DB에서 먼저 검증한다.
+- 마이그레이션 번호: 2026-10-02 중복 해소 — `0015_byok_secret_cleanup`, `0016_payments`, `0017_author_settlement`. `0018_ai_usage`(Phase 11, 원격 적용·DB 테스트 통과)와 2026-10-02 버그 수정으로 `0019_reader_atomic_toggle`, `0020_create_chapter_atomic`, `0021_ai_generation_locks`가 추가됐다(원격 테스트 DB 적용 완료). 신규는 `0022`부터이며 `tests/migrations/numbering.test.ts`가 번호 유일성을 검사한다. 2026-10-19 기준 최신은 `0036_world_tree_reader_visibility`였고, 2026-11-10 기준으로는 Phase 12·13의 `0037`~`0039`, `0040`(soft_delete_kb_node 가드 복구), Phase 14의 `0041_mcp_proposals`·`0042_mcp_proposal_decisions`·`0043_mcp_proposal_multi_draft`·`0044_mcp_proposal_patches`, BUG-02의 `0050_feed_public_read_cost`(공유 DB 미적용)가 더해졌다. `0051_verified_account_gates`(Phase 24, 미인증 계정의 유료 발행 차단·랭킹 지표 집계 제외, 일회용 DB에서만 검증·공유 DB 미적용, 적용하면 이메일 전용 기존 가입자가 미인증이 된다)도 더해졌다. 공유 DB는 0001~0044(0028·0031 결번 제외, 0050 제외)까지 적용됐다. `0022`·`0023`(Phase 2 템플릿)은 일회용 DB에서 검증됐고, `0024`~`0027`·`0029`·`0030`·`0032`~`0036`은 파일만 있고 어떤 DB에도 적용·실행되지 않았다. `0028`·`0031`은 의도적 결번이다. 공유 프로젝트 적용 전에 일회용 DB에서 먼저 검증한다.
 - 완료 근거: `.planning/phases/**/**-SUMMARY.md`, `**-VERIFICATION.md`
 - 미완료·환경 이슈: `.planning/phases/**/deferred-items.md`, `04-HUMAN-UAT.md`
 - 조사 근거(비확정): `.planning/research/*.md`, 각 phase `*-RESEARCH.md`
