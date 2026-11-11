@@ -6,6 +6,9 @@ import { MOVE_COPY, normalizeChapterFolder } from '../kb/move-rules';
 
 export const PRICE_TIERS = [10, 30, 50, 100] as const;
 
+export const VERIFICATION_REQUIRED_PAID_MESSAGE =
+  '카카오·구글 또는 번호 인증을 마친 계정만 유료 회차를 발행할 수 있어요. 무료로 발행하거나 인증 후 다시 시도해주세요.';
+
 const ERROR_CREATE_FAILED = '회차를 만들지 못했어요. 잠시 후 다시 시도해주세요.';
 const ERROR_INVALID_FOLDER = '선택한 폴더를 찾을 수 없어요. 새로고침 후 다시 시도해주세요.';
 
@@ -130,6 +133,10 @@ export async function publishChapter(
     .update({ is_published: true, price_tier: parsed.data.priceTier, published_at: new Date().toISOString() })
     .eq('id', input.chapterId);
 
+  // 0051 트리거: 본인 확인(카카오·구글·번호) 없는 계정은 유료 발행 불가.
+  if (error?.message?.includes('verification_required_for_paid')) {
+    return { ok: false, error: VERIFICATION_REQUIRED_PAID_MESSAGE };
+  }
   if (error) return { ok: false, error: error.message };
   return { ok: true, chapterId: input.chapterId };
 }
