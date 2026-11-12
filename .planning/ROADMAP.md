@@ -650,7 +650,7 @@ Plans:
 
 ## 미배정 청사진 영역 (phase 없음)
 
-청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있으나 요구사항 ID·phase가 없는 영역. 신규 phase로 만들지, 재개한 phase에 흡수할지는 논의 후 결정한다. 상세는 `.planning/gaps/2026-10-12-blueprint-reconcile.md` 마지막 표: 댓글, 완독 데이터(스크롤 진도·완독률·연독률), 독자 공간 화면(랭킹 창·연재 목록·내서재·검색·작가 페이지·명예의 전당), 결제 확장(대여·정주행·구독·결제 내역), 작가 허브(대시보드·경제 관리·정산·설정 허브·세계관 공개 설정), 관리자 확장(제재 이력·정산 보류), 에셋 스토어.
+청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있으나 요구사항 ID·phase가 없는 영역. 신규 phase로 만들지, 재개한 phase에 흡수할지는 논의 후 결정한다. 상세는 `.planning/gaps/2026-10-12-blueprint-reconcile.md` 마지막 표: 댓글, 완독 데이터(스크롤 진도·완독률·연독률), 독자 공간 화면 중 검색·작가 페이지(연재 목록은 Phase 21, 내서재는 Phase 22, 랭킹 목록·명예의 전당은 Phase 23으로 배정, 2026-11-11), 결제 확장(대여·정주행·구독·결제 내역), 작가 허브(대시보드·경제 관리·정산·설정 허브·세계관 공개 설정), 관리자 확장(제재 이력·정산 보류), 에셋 스토어.
 
 ## Launch Gate (법무) — phase 아님
 
@@ -678,6 +678,53 @@ Plans:
 Plans:
 
 - [ ] TBD (run /gsd:plan-phase 20 to break down)
+
+### Phase 21: 독자용 연재 목록 (무료·유료 연재, 서브 행 필터)
+
+**Goal:** 독자가 헤더의 무료연재·유료연재 탭에서 연재 목록 화면으로 이동해 서브 행(전체·신작·인기·완결)으로 작품을 거를 수 있다. 신작은 연재 시작일 기준, 인기는 현행 인기 점수 기준이며, 카드에 NEW·완결 라벨과 가격 문구를 보이고, 조건에 맞는 작품이 없으면 `필터 초기화` 안내를 보인다. 헤더 서브 행의 해당 항목(`lib/reader/navigation.ts`의 `href: null`)이 이 화면으로 연결된다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 19번.
+**Requirements**: TBD
+**Depends on:** Phase 3 (독자 코어 · 헤더 서브 행). 완독률 기반 인기 정렬은 완독 데이터 산출 phase 전까지 현행 인기 점수로 대체
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 21 to break down)
+
+### Phase 22: 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함)
+
+**Goal:** 독자가 헤더의 내서재 탭에서 서브 행 4종(이어 읽기·선호작·알림 구독·소장함)을 탭으로 쓰는 내서재 화면을 본다. 이어 읽기는 진도 바와 기록 삭제, 선호작은 정렬 3종과 `새 회차` 배지, 알림 구독은 작품 알림 스위치, 소장함은 소유 상태 필터를 제공한다. 비로그인·빈 상태는 화면 안 안내와 다음 행동 버튼으로 처리한다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 18번.
+**Requirements**: TBD
+**Depends on:** Phase 21 (목록·카드 구조 재사용), Phase 3 (독자 진도·선호작·구독), Phase 6 (소장함의 구매 상태). 작가 알림 스위치는 작가 페이지 phase가 생길 때까지 제외
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 22 to break down)
+
+### Phase 23: 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작)
+
+**Goal:** 독자가 홈의 `더보기 ›`와 헤더 랭킹 탭에서 랭킹 목록 화면으로 이동해 서브 행(주간 랭킹·루키 쿼터존·명예의 전당·완결작)을 보고, 장르 칩·정렬·기간·연재 선택과 순위 그리드(순위 숫자 표시, 모바일 3열)를 쓸 수 있다. 연독률·완독률 배지는 완독 데이터 산출 phase 전까지 현행 인기 점수·툴팁을 유지하며 연독률로 부르지 않는다. 루키 쿼터존과 명예의 전당은 실제 데이터가 없으면 준비 안내 셸로 둔다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 7·8번.
+**Requirements**: TBD
+**Depends on:** Phase 21 (공통 목록 구조), Phase 3 (랭킹 점수·홈 섹션)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 23 to break down)
+
+### Phase 24: 이메일 가입 · 비밀번호 로그인 (소셜 로그인과 병행)
+
+**Goal:** 사용자가 이메일·비밀번호로 가입(인증 메일 필수)하고 로그인·로그아웃·비밀번호 재설정을 할 수 있다. 같은 이메일의 소셜 계정과는 자동 연결하지 않고 "이미 가입된 이메일"로 안내한다. 가입 시 `handle_new_user`로 프로필·지갑이 생기고, 소프트 삭제 계정은 소셜 경로와 같은 정책으로 막는다. 결정(2026-11-11): 인증 메일 필수 · 재설정 포함 · 자동 연결 없음. 추가로 본인 확인(카카오·구글 연결 또는 번호 인증)이 없는 계정은 랭킹 입력 지표(조회·완독)를 새로 집계하지 않고 유료 회차를 발행할 수 없다(마이그레이션 0051, 공유 DB 적용은 사용자가 직접).
+**Requirements**: AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08
+**Depends on:** Phase 1 (인증 기반). 운영 적용은 Supabase Auth의 Email provider 허용·SMTP 설정을 사용자가 켠 뒤.
+**Status:** Code complete — 구현·단위 테스트 완료(`lib/auth/email-password.ts`, `lib/auth/password-actions.ts`, `/signup`, `/auth/forgot-password`, `/auth/reset-password`). 일회용 DB는 내장 SMTP 제한으로 메일 가입 end-to-end 미검증.
+
+### Phase 25: 본인 확인 수단 연결 (번호 인증 · 소셜 연결 화면)
+
+**Goal:** 이메일로만 가입한 사용자가 번호 인증 또는 카카오·구글 연결로 본인 확인을 마쳐 Phase 24의 유료 발행 차단·랭킹 집계 제외를 풀 수 있다. 번호 인증은 SMS 공급자(비용) 결정이 선행 조건이다. `user_is_verified`(0051)는 이미 휴대폰 확인 여부를 본다.
+**Requirements**: TBD
+**Depends on:** Phase 24
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 25 to break down)
 
 ---
 
@@ -721,6 +768,12 @@ Plans:
 | 17. 버그 수정 통합 (Phase 16 UAT 갭 + 누적 미해결 버그) | 7/7 | Code complete — 수동 UAT(실키·실기기·E1·E2 등 `17-UAT.md` M1~M13) 대기. 코드 완료이며 검증 완료 아님 | - |
 | 18. 세계수 (셀프 가지 · 연표 · 세계수 보기) | 13/14 | Code complete — 18-12(실DB·브라우저, 수동) 대기. 18-01~11·13·14 완료(0032~0036 공유 DB 적용 2026-11-05, 단위 테스트만 통과) | - |
 | 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 4/4 | Complete (실화면 UAT pending) | 2026-11-01 |
+| 20. 최종 모바일 실기기 확인 | 0/0 | Not planned | - |
+| 21. 독자용 연재 목록 (무료·유료 연재, 서브 행 필터) | 0/0 | Not planned | - |
+| 22. 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함) | 0/0 | Not planned | - |
+| 23. 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작) | 0/0 | Not planned | - |
+| 24. 이메일 가입 · 비밀번호 로그인 (+ 미인증 제한) | 0/0 | Code complete (GSD plan 없이 구현, 메일 가입 end-to-end 미검증) | - |
+| 25. 본인 확인 수단 연결 (번호 인증 · 소셜 연결) | 0/0 | Not planned | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
 

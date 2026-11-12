@@ -145,6 +145,7 @@ Recent decisions affecting current work:
 - 2026-09-22: Phase 4 BUG-01의 수정 범위가 Jev 평가·선계획, Gemini 템플릿 생성, 폴더/템플릿 선택 UI와 저장 권한 검증까지 확장되어 단일 버그 수정 단위를 초과함. v1.1 마지막 Phase 15로 승격하고 AIDOC-01~04를 배정함
 - 로드맵 순서 고정 제약(편의로 재배열하지 않을 것): (1) 로컬 토큰 추정이 어댑터 시그니처의 선행 조건(원격 countTokens는 Gemini 전용), (2) 어댑터+Gemini 이관(P8) 이 OpenAI/Anthropic(P9)보다 먼저 회귀 증명돼야 함, (3) 멱등 차감(COST-01, P8)이 재시도/백오프 로직(P11)보다 먼저, (4) BYOK 키 검증과 모델 피커 배지는 같은 페이즈(P10), (5) MCP OAuth는 BYOK와 코드를 공유하지 않으므로 합치지 않음, (6) MCP 리뷰 큐 UI는 실제 스코프(축소 금지)
 - 2026-11-01: Phase 20 추가 — 최종 모바일 실기기 확인 (Phase 17 UAT 이월: M8 파일 선택, M9 터치 이동, A4 실기기). 데스크탑 웹 완료 후 마지막에 진행
+- 2026-11-11: Phase 21~23 추가 — 독자 공간 화면을 연재 목록(21) → 내서재(22) → 랭킹 목록(23) 순으로 배정. 헤더 서브 행이 `href: null`로 비활성인 원인이 화면 부재였기 때문이다. 요구사항 ID는 아직 없다(discuss에서 정한다). 검색·작가 페이지는 계속 미배정.
 - 2026-10-02: Phase 17 추가 — 버그 수정 통합 (Phase 16 UAT 갭 4건 + Phase 4·8·15 미해결 버그). 범위·분류는 `.planning/phases/17-bugfix-consolidation/17-CONTEXT.md`.
 
 ### Pending Todos
