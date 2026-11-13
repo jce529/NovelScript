@@ -106,7 +106,8 @@ import {
   type SerialStatus,
   type UpdateSerialStatusResult,
 } from '@/app/studio/[workId]/settings/actions';
-import WorkSettingsPage, { SETTINGS_SECTIONS } from '@/app/studio/[workId]/settings/page';
+import WorkSettingsPage from '@/app/studio/[workId]/settings/page';
+import { SETTINGS_SECTIONS } from '@/app/studio/[workId]/settings/sections';
 import WorkHomePage from '@/app/studio/[workId]/page';
 import {
   SERIAL_STATUS_COPY,
