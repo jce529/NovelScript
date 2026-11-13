@@ -12,7 +12,7 @@
 
 **이 단계가 전달하지 않는 것:** 제재 이력 탭·조기 해제·기간 변경(Phase 35), 닉네임 변경 UI와 14일 제한(Phase 33 RENT-05), 통합 설정 허브 화면(Phase 32 HUB-09 — 이 단계는 작품별 스위치의 데이터·서버 경계만 만든다), 외부 알림(이메일·푸시), 자동 필터링.
 
-**마이그레이션 번호는 '미정'** — 다른 phase와 동시 진행되므로 실행 직전에 최신 번호 다음으로 확정한다.
+**마이그레이션 번호는 0059·0060 확정(26=0053~0055, 21=0056, 28=0057, 27=0058)** — `0059_comments_foundation.sql`(29-01), `0060_comment_moderation.sql`(29-02).
 </domain>
 
 <decisions>
@@ -69,7 +69,7 @@
 ## Existing Code Insights
 - 제재는 `user_sanctions`(append-only, kind: warning/suspension/permanent_suspension/lift) + `profiles.sanction_kind/sanctioned_until` 캐시(트리거 가드, `apply_user_sanction()`만 갱신). 쓰기 차단은 제한적(RESTRICTIVE) RLS + SECURITY DEFINER RPC의 명시 검사.
 - `user_is_verified(uuid)`/`is_verified_account()`가 0051에 이미 있다.
-- 독자 닉네임은 없다(`pen_name`만). 마이그레이션 최신은 0052(번호 충돌 주의, '미정').
+- 독자 닉네임은 없다(`pen_name`만). 마이그레이션 번호는 0059·0060 확정(26=0053~0055, 21=0056, 28=0057, 27=0058).
 - 뷰어 하단 바에 댓글 버튼 자리가 설계돼 있으나 구현은 없다.
 </code_context>
 
