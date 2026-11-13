@@ -119,9 +119,28 @@ describe('shouldSendSample (5s throttle, 1%p generic skip)', () => {
   it('skips when nothing changed', () => {
     expect(shouldSendSample(base)).toBe(false);
   });
-  it('skips ratio change below 1%p when active time did not move', () => {
+  it('skips ratio change below 1%p when active time did not move (forward or reverse)', () => {
     expect(shouldSendSample({ ...base, ratio: 0.5 + MIN_RATIO_DELTA / 2 })).toBe(false);
+    expect(shouldSendSample({ ...base, ratio: 0.5 - MIN_RATIO_DELTA / 2 })).toBe(false);
     expect(shouldSendSample({ ...base, ratio: 0.5 + MIN_RATIO_DELTA })).toBe(true);
+    expect(shouldSendSample({ ...base, ratio: 0.5 - MIN_RATIO_DELTA })).toBe(true);
+  });
+  it('reverse scroll >= 1%p saves the new lower scrollRatio so re-entry restores to that position', () => {
+    // Reader scrolled to 0.84 (scrollTop = 200 + 0.84 * 2200 = 2048), then scrolled back up to 0.25 (scrollTop = 750)
+    const peakTop = restoreScrollTop(0.84, G);
+    const reverseTop = restoreScrollTop(0.25, G);
+    const reverseRatio = computeScrollRatio({ ...G, scrollTop: reverseTop });
+    expect(computeScrollRatio({ ...G, scrollTop: peakTop })).toBeCloseTo(0.84, 6);
+    expect(reverseRatio).toBeCloseTo(0.25, 6);
+    expect(
+      shouldSendSample({
+        ...base,
+        lastSentRatio: 0.84,
+        ratio: reverseRatio,
+      }),
+    ).toBe(true);
+    // Re-entering with saved scrollRatio (0.25) restores to reverseTop while server maxScrollRatio stays 0.84
+    expect(restoreScrollTop(reverseRatio, G)).toBeCloseTo(reverseTop, 6);
   });
   it('active time growth alone is saved even with no scroll', () => {
     expect(shouldSendSample({ ...base, activeMs: 6000 })).toBe(true);
