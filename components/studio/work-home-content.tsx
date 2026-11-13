@@ -7,6 +7,7 @@ interface WorkHomeContentProps {
   title: string;
   synopsis: string | null;
   state: WorkHomeState;
+  settingsHref?: string;
 }
 
 const stepCopy: Record<Exclude<WorkHomeGuideStepId, 'work'>, { href: string; label: string }> = {
@@ -24,9 +25,20 @@ const shortcutCopy = {
 
 const focusClass = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
 
-export function WorkHomeContent({ workId, title, synopsis, state }: WorkHomeContentProps) {
+export function WorkHomeContent({ workId, title, synopsis, state, settingsHref }: WorkHomeContentProps) {
   const { chapterCounts, guide } = state;
   const baseHref = `/studio/${workId}`;
+  const resolvedSettingsHref = settingsHref ?? `${baseHref}/settings`;
+  const settingsLink = (
+    <div className="flex justify-end">
+      <Link
+        href={resolvedSettingsHref}
+        className={`inline-flex min-h-11 items-center rounded-md px-2 text-xs text-muted-foreground underline hover:text-foreground ${focusClass}`}
+      >
+        작품 설정
+      </Link>
+    </div>
+  );
   const shortcutGrid = (
     <div className="grid min-w-0 grid-cols-1 gap-2 md:gap-4 lg:max-w-[640px] lg:grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))]">
       {WORK_HOME_SHORTCUTS.map((shortcut) => {
@@ -110,13 +122,17 @@ export function WorkHomeContent({ workId, title, synopsis, state }: WorkHomeCont
         <section aria-labelledby="work-home-shortcuts-heading" className="min-w-0 space-y-3">
           <h2 id="work-home-shortcuts-heading" className="text-base font-semibold">작업 화면</h2>
           {shortcutGrid}
+          {settingsLink}
         </section>
       ) : (
         <details className="group min-w-0 rounded-xl border bg-card">
           <summary className={`flex min-h-11 cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${focusClass}`}>
             작업 화면 4개 <span aria-hidden="true" className="text-xs text-primary group-open:hidden">펼치기 ▾</span><span aria-hidden="true" className="hidden text-xs text-primary group-open:inline">접기 ▴</span>
           </summary>
-          <div className="px-4 pb-4">{shortcutGrid}</div>
+          <div className="space-y-3 px-4 pb-4">
+            {shortcutGrid}
+            {settingsLink}
+          </div>
         </details>
       )}
     </div>
