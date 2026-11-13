@@ -48,6 +48,24 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 18: 세계수 (셀프 가지 · 연표 · 세계수 보기)** - 작가가 자기 세계관을 가지 쳐 If·확장 가지 작품을 연재하고, 연표로 작품을 배치하며, 독자가 작품 상세 세계관 탭에서 세계수를 본다
 - [x] **Phase 19: 작가용 작품 홈 디자인 (`/studio/[workId]`)** - 제목·시놉시스·밑줄 링크 3개뿐인 작가용 작품 홈을 디자인한다 (UI phase — UI-SPEC → 예시 목업 Artifact까지)
 
+**v1.1 확장 — 공개 출시 범위 (2026-11-13 배정, 최소 플랫폼형 + 작가 허브)**
+
+- [ ] **Phase 26: 독자 읽기 진도 · 완독 데이터 (스크롤 진도 · 완독 판정 · 완독률 · 연독률)**
+- [ ] **Phase 27: 독자 검색 (작품 · 태그 · 작가, 최근·추천 검색어)**
+- [ ] **Phase 28: 작가 페이지 · 작가 알림 구독**
+- [ ] **Phase 29: 댓글 · 댓글 신고 처리**
+- [ ] **Phase 30: 작가 대시보드 (작품 카드 · 완독률 · 이탈 구간)**
+- [ ] **Phase 31: 작가 경제 관리 · 정산 화면**
+- [ ] **Phase 32: 통합 설정 허브 (계정 · AI · 작품)**
+
+**v1.2 후보 — 공개 출시 이후 (2026-11-13 배정)**
+
+- [ ] **Phase 33: 소장 · 대여 · 정주행 (Phase 6 확장)**
+- [ ] **Phase 34: 구독 플랜 · 결제 내역 · 영수증 · 환불**
+- [ ] **Phase 35: 관리자 확장 (제재 이력 · 조기 해제 · 정산 보류)**
+- [ ] **Phase 36: Lore 위키 · 세계관 공개 설정 · AI 시각화 에셋**
+- [ ] **Phase 37: 에셋 스토어 · 판매자 대시보드**
+
 ## Phase Details
 
 ### Phase 1: Foundation & Wallet Infrastructure
@@ -648,9 +666,22 @@ Plans:
 - **설정 문서 변경분만 출력 (토큰 절감)**: 현재 재생성은 문서 전체를 다시 쓴다([document-regenerate.ts](../lib/ai/document-regenerate.ts)). 목표는 AI가 바뀐 부분만 출력하고, 서버가 원문에 적용하도록 바꾸는 것이다. 성공 기준: 문서 수정 1건의 출력 토큰이 문서 전체 길이가 아니라 변경 분량에 비례한다. 근거·산정 가정은 `.planning/business/토큰단가-산정.md`(작성 예정)에 정리한다. 대략 월 AI 원가를 절반 가까이 낮출 것으로 추정한다(추정치, 실측 전).
 - **AI 호출 토큰 차감 환산값 조정**: 충전 묶음(100토큰 1,000원, 550토큰 5,000원)의 순매출이 AI 원가 환산값(1토큰 = 10원)보다 낮아 AI 사용분에서 손실이 난다. `lib/ai/cost.ts`의 `KRW_PER_WALLET_TOKEN`을 10에서 7로 낮춰(2026-10-27 확정) 같은 AI 호출에 토큰을 더 차감한다. 충전 묶음 가격 인상은 대안이다. 환산값 변경 시 관련 테스트·화면 문구를 함께 고친다. 근거는 `.planning/business/토큰단가-산정.md` 8-10.
 
-## 미배정 청사진 영역 (phase 없음)
+## 미배정 청사진 영역 — 2026-11-13 전부 배정됨
 
-청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있으나 요구사항 ID·phase가 없는 영역. 신규 phase로 만들지, 재개한 phase에 흡수할지는 논의 후 결정한다. 상세는 `.planning/gaps/2026-10-12-blueprint-reconcile.md` 마지막 표: 댓글, 완독 데이터(스크롤 진도·완독률·연독률), 독자 공간 화면 중 검색·작가 페이지(연재 목록은 Phase 21, 내서재는 Phase 22, 랭킹 목록·명예의 전당은 Phase 23으로 배정, 2026-11-11), 결제 확장(대여·정주행·구독·결제 내역), 작가 허브(대시보드·경제 관리·정산·설정 허브·세계관 공개 설정), 관리자 확장(제재 이력·정산 보류), 에셋 스토어.
+청사진에 확정돼 있으나 ID·phase가 없던 영역은 2026-11-13에 모두 배정했다. 범위 결정(최소 플랫폼형 + 작가 허브를 v1.1, 나머지를 v1.2 후보)과 근거는 `.planning/gaps/2026-11-13-unassigned-areas-scope.md`.
+
+| 영역 | 배정 |
+|---|---|
+| 완독 데이터 | Phase 26 (RDATA-01~04) |
+| 검색 | Phase 27 (SEARCH-01~04) |
+| 작가 페이지 | Phase 28 (APAGE-01~03) |
+| 댓글 · 댓글 신고 | Phase 29 (CMT-01~06) |
+| 작가 허브 (대시보드 · 경제 관리 · 정산 · 설정 허브) | Phase 30~32 (HUB-01~09) |
+| 결제 확장 (대여 · 정주행) | Phase 33 (RENT-01~05, v1.2) |
+| 결제 확장 (구독 · 결제 내역) | Phase 34 (SUB-01~04, v1.2) |
+| 관리자 확장 | Phase 35 (ADMIN-06~08, v1.2) |
+| 세계관 공개 설정 · Lore 위키 | Phase 36 (LORE-01~03, WTREE-09, v1.2) |
+| 에셋 스토어 | Phase 37 (STORE-01~05, WTREE-11~13 해제, v1.2) |
 
 ## Launch Gate (법무) — phase 아님
 
@@ -726,13 +757,157 @@ Plans:
 Plans:
 - [ ] TBD (run /gsd:plan-phase 25 to break down)
 
+### Phase 26: 독자 읽기 진도 · 완독 데이터 (스크롤 진도 · 완독 판정 · 완독률 · 연독률)
+
+**Goal:** 독자의 스크롤 진도가 회차별로 저장·복귀되고, 사람이 읽는 속도 기준을 넘긴 완독만 인정되며, 작품별 완독률·연독률과 회차 내 이탈 구간이 산출된다. 작가 본인과 본인 확인이 없는 계정의 기록은 제외한다. 이 지표는 작가 대시보드(Phase 30)·랭킹(Phase 23의 배지)·연재 목록 인기 정렬(Phase 21)·세계수 굵기(WTREE-08)의 기반이다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 읽기 진도 규칙(속도 기준 값은 미정 — plan에서 상수로 확정).
+**Milestone:** v1.1
+**Requirements**: RDATA-01, RDATA-02, RDATA-03, RDATA-04
+**Depends on:** Phase 3 (뷰어·읽기 진행 `progress.ts`), Phase 24 (본인 확인 `user_is_verified`)
+**UI hint**: no (DB·집계 중심, 뷰어 동작만 변경)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 26 to break down)
+
+### Phase 27: 독자 검색 (작품 · 태그 · 작가, 최근·추천 검색어)
+
+**Goal:** 독자가 헤더 검색창에서 작품·태그·작가를 검색하고 전체·작품·태그·작가 탭으로 결과를 본다. 자동완성은 없고, 검색창을 누르면 최근 검색어(개별·전체 삭제)와 추천 검색어(운영 선정 + 인기, 비율은 운영 설정값)를 분리해 보여준다. 결과 없음은 안내와 다음 행동 버튼. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 검색 결과(21번 보드).
+**Milestone:** v1.1
+**Requirements**: SEARCH-01, SEARCH-02, SEARCH-03, SEARCH-04
+**Depends on:** Phase 3 (헤더·작품 상세). 작가 결과 이동은 Phase 28
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 27 to break down)
+
+### Phase 28: 작가 페이지 · 작가 알림 구독
+
+**Goal:** 독자가 작가 프로필과 공개 작품 그리드를 보고 `작가 알림 구독`을 켜고 끌 수 있다. 작품 상세의 작가 이름과 검색 결과(Phase 27)에서 진입한다. 구독 상태 저장까지가 범위이며 전달 채널은 정의하지 않는다. 내서재 `알림 구독` 탭(Phase 22)의 작가 스위치와 연결된다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 작가 페이지(22번 보드).
+**Milestone:** v1.1
+**Requirements**: APAGE-01, APAGE-02, APAGE-03
+**Depends on:** Phase 3 (작품 상세·알림 구독 모델), Phase 22 (내서재 알림 구독 탭)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 28 to break down)
+
+### Phase 29: 댓글 · 댓글 신고 처리
+
+**Goal:** 독자·작가가 회차 댓글 창에서 댓글·답글·좋아요를 쓰고, 수정은 본인만·삭제는 본인 또는 관리자만 한다. 신고(사유 4종)를 접수하고 관리자 `댓글 신고` 탭에서 댓글 숨김·경고·댓글 정지(1·7·30일·영구)·계정 정지·기각을 처리한다. 작품 단위 댓글 허용 스위치를 둔다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 댓글 신고·답글, 댓글 권한 규칙(11~13번 보드). 제재 이력 탭은 Phase 35.
+**Milestone:** v1.1
+**Requirements**: CMT-01, CMT-02, CMT-03, CMT-04, CMT-05, CMT-06
+**Depends on:** Phase 7 (신고 큐·조치), Phase 3 (뷰어 하단 바), Phase 24 (본인 확인)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 29 to break down)
+
+### Phase 30: 작가 대시보드 (작품 카드 · 완독률 · 이탈 구간)
+
+**Goal:** 작가가 대시보드에서 작품 카드 그리드와 선택 작품의 KPI 4개(연독률·평균 완독률·누적 조회·선호작), 회차별 완독률·회차 내 이탈 구간 그래프를 보고, 경제 관리 요약과 이번 달 크레딧을 확인한다. Phase 19 작품 홈과 역할을 나눈다(대시보드 = 작품 목록·통계, 작품 홈 = 작품 하나의 시작 화면). 설계 근거: `design/UI-DESIGN-BACKLOG.md` 작가 대시보드(26번 보드).
+**Milestone:** v1.1
+**Requirements**: HUB-01, HUB-02, HUB-03
+**Depends on:** Phase 26 (완독 데이터), Phase 19 (작품 홈)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 30 to break down)
+
+### Phase 31: 작가 경제 관리 · 정산 화면
+
+**Goal:** 작가가 경제 관리 상세에서 기간별 소모·충전·작품별/모델별 소모를 보고 거래 내역을 CSV로 내려받으며, 정산·수익 화면에서 작품·회차별 크레딧을 확인한다. 90/10 잠정 배너를 보이고 현금 환전은 지원하지 않는다. 대여 건수는 Phase 33 전까지 0. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 경제 관리 상세·작가 정산·수익(27·28번 보드).
+**Milestone:** v1.1
+**Requirements**: HUB-04, HUB-05, HUB-06
+**Depends on:** Phase 30 (대시보드 진입), Phase 6 (작가 정산 DB), Phase 11 (AI 사용 기록)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 31 to break down)
+
+### Phase 32: 통합 설정 허브 (계정 · AI · 작품)
+
+**Goal:** 좌 메뉴로 계정(프로필·지갑·결제 내역 링크) / AI(기존 키 관리·MCP·사용량) / 작품(알림·기본값) 섹션을 묶는 설정 허브를 만들고, 작가 이름·소개 편집과 새 작품·회차 기본값(작품별 유료 회차 기본 가격 포함)을 둔다. 기존 `/account`와 Phase 16 D-01 결정(`/account` 요약+링크)과의 충돌은 discuss에서 정리한다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 통합 설정 허브(29번 보드).
+**Milestone:** v1.1
+**Requirements**: HUB-07, HUB-08, HUB-09
+**Depends on:** Phase 10·16 (AI 설정·계정 요약), Phase 31 (지갑·정산 링크)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 32 to break down)
+
+### Phase 33: 소장 · 대여 · 정주행 (Phase 6 확장)
+
+**Goal:** 유료 회차에서 소장/대여 선택 팝업, 대여중·대여 만료 표시, 뷰어 정주행 자동 결제, 독자 계정 설정(닉네임 14일 제한·자동 결제 방식)을 제공하고 작가 정산이 대여를 포함한다. 대여 기간은 기존 `entitlements.expires_at`·`can_view`가 처리하므로 스키마 변경이 필요 없다. 설계 근거: 뷰어 결제·대여 상태 표시·독자 계정 설정(9~15번 보드). `06-CONTEXT`가 대여를 후속으로 뺀 결정을 이 phase가 푼다.
+**Milestone:** v1.2
+**Requirements**: RENT-01, RENT-02, RENT-03, RENT-04, RENT-05
+**Depends on:** Phase 6, Phase 5 (실결제), Phase 22 (소장함 필터)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 33 to break down)
+
+### Phase 34: 구독 플랜 · 결제 내역 · 영수증 · 환불
+
+**Goal:** 구독 플랜 3종(무료·Pro·BYOK 플랜, 값은 임시)의 시작·해지·결제 실패 처리와, 결제 내역·영수증·환불 요청 화면을 만든다. 정기결제(빌링) 인프라가 선행이다(PAY-04 승격). 환불 기준은 LEGAL 게이트 결과를 따른다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 구독 플랜·결제 내역(35번 보드).
+**Milestone:** v1.2
+**Requirements**: SUB-01, SUB-02, SUB-03, SUB-04
+**Depends on:** Phase 5 (Toss 실결제), Launch Gate (환불·약관), Phase 32 (설정 허브 결제 내역 링크)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 34 to break down)
+
+### Phase 35: 관리자 확장 (제재 이력 · 조기 해제 · 정산 보류)
+
+**Goal:** 관리자 제재 이력 탭(사용자별 타임라인), 제재 조기 해제·기간 변경(DB `lift`만 있고 호출부 없음)과 해제 알림, 정산 보류·상계 규칙을 구현한다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 관리자 탭 구조(13·31~33번 보드).
+**Milestone:** v1.2
+**Requirements**: ADMIN-06, ADMIN-07, ADMIN-08
+**Depends on:** Phase 7, Phase 29 (댓글 정지 포함 제재), Launch Gate (정산 보류 약관)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 35 to break down)
+
+### Phase 36: Lore 위키 · 세계관 공개 설정 · AI 시각화 에셋
+
+**Goal:** 작가가 설정 문서별 공개·등장 회차·세부 항목 잠금을 정하고 AI 시각화 이미지를 관리하며, 독자가 진도 이후 항목이 가려진 세계관 탭을 본다. 세계수의 스포일러 잠금(WTREE-09)이 함께 확장된다. Phase 18이 만든 최소 세계관 공개 설정을 확장한다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 세계관 탭·세계관 공개 설정(9·10·25번 보드).
+**Milestone:** v1.2
+**Requirements**: LORE-01, LORE-02, LORE-03, WTREE-09
+**Depends on:** Phase 18 (세계수·최소 공개 설정), Phase 26 (독자 진도)
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 36 to break down)
+
+### Phase 37: 에셋 스토어 · 판매자 대시보드
+
+**Goal:** 세계관·문체 프롬프트·템플릿을 통째로 사고파는 스토어(메인·상세·장바구니·구매 완료)와 판매자 대시보드, 구매 세계관 편입(세계수 가지 연결, WTREE-11~13)을 만든다. 현재 REQUIREMENTS Out of Scope였던 항목을 v1.2에서 범위 안으로 옮긴다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 에셋 스토어(36~39번 보드). 환불·저작권은 LEGAL 게이트 확인이 선행.
+**Milestone:** v1.2
+**Requirements**: STORE-01, STORE-02, STORE-03, STORE-04, STORE-05 (+ WTREE-11, WTREE-12, WTREE-13 해제)
+**Depends on:** Phase 18, Phase 5·6 (결제·정산), Phase 29·35 (신고·제재), Launch Gate
+**UI hint**: yes
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 37 to break down)
+
 ---
 
 ## Progress
 
 **Execution Order:**
 **v1.0 track:** 1 → 2 → 3 → 4 → 04.1 → 5 → 6 → 7
-**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 → 18 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
+**v1.1 track:** 8 → 9 → 10 → 11 → [하드 경계] → 12 → 13 → 14 → 15 → 16 → 17 → 18 (이후 19~25는 번호 순서와 무관하게 의존 관계로 진행). **v1.1 확장 의존 순서:** 26 → {27, 28} → 29 → 30 → 31 → 32 (21~23은 26과 독립, 28은 22의 작가 알림 스위치보다 먼저). **v1.2 후보:** 33~37 — v1.0 잔여 Phase 5/6/7과는 독립적인 트랙으로 진행한다
 
 **Parallel track (outside phase sequence):** Toss Payments merchant application + 사업자등록 should start no later than Phase 1's kickoff — external review commonly runs ~2+ weeks and should not become the launch-blocking critical path by starting late.
 
@@ -774,6 +949,18 @@ Plans:
 | 23. 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작) | 0/0 | Not planned | - |
 | 24. 이메일 가입 · 비밀번호 로그인 (+ 미인증 제한) | 0/0 | Code complete (GSD plan 없이 구현, 메일 가입 end-to-end 미검증) | - |
 | 25. 본인 확인 수단 연결 (번호 인증 · 소셜 연결) | 0/0 | Not planned | - |
+| 26. 독자 읽기 진도 · 완독 데이터 (스크롤 진도 · 완독 판정 · 완독률 · 연독률) | 0/0 | Not planned (v1.1) | - |
+| 27. 독자 검색 (작품 · 태그 · 작가, 최근·추천 검색어) | 0/0 | Not planned (v1.1) | - |
+| 28. 작가 페이지 · 작가 알림 구독 | 0/0 | Not planned (v1.1) | - |
+| 29. 댓글 · 댓글 신고 처리 | 0/0 | Not planned (v1.1) | - |
+| 30. 작가 대시보드 (작품 카드 · 완독률 · 이탈 구간) | 0/0 | Not planned (v1.1) | - |
+| 31. 작가 경제 관리 · 정산 화면 | 0/0 | Not planned (v1.1) | - |
+| 32. 통합 설정 허브 (계정 · AI · 작품) | 0/0 | Not planned (v1.1) | - |
+| 33. 소장 · 대여 · 정주행 (Phase 6 확장) | 0/0 | Not planned (v1.2) | - |
+| 34. 구독 플랜 · 결제 내역 · 영수증 · 환불 | 0/0 | Not planned (v1.2) | - |
+| 35. 관리자 확장 (제재 이력 · 조기 해제 · 정산 보류) | 0/0 | Not planned (v1.2) | - |
+| 36. Lore 위키 · 세계관 공개 설정 · AI 시각화 에셋 | 0/0 | Not planned (v1.2) | - |
+| 37. 에셋 스토어 · 판매자 대시보드 | 0/0 | Not planned (v1.2) | - |
 
 **v1.1 병행 트랙 (페이즈 순서 밖):** OpenAI Organization Verification(정부 신분증 기반) + Anthropic 빌링·rate-limit tier 신청은 Phase 8 킥오프와 동시에 시작한다 — v1.0 Phase 5의 PG 심사와 구조적으로 동일한 외부 큐이며, STATE.md Blockers에 추적한다.
 
