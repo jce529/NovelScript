@@ -21,3 +21,4 @@
 - **인기 점수 계약(27-01·27-02):** `28-PLAN-INDEX.md`의 현행 공개 전역 기준(발행 회차 `view_count` 합계 0.4 + `work_likes` 행 수 0.3 + 인접 발행 회차 조회 비율 평균 0.3)으로 고정.
 - **Vitest 프로젝트 분류(`vitest.config.ts`):** `db` 테스트(`tests/search/search.database.test.ts`)는 `helpers/db` import 마커를 사용하고, `unit` 테스트는 mock만 쓰며 `helpers/db`·`SUPABASE_DB_URL`·`SUPABASE_SERVICE_ROLE_KEY`·`postgres(` 문자열을 피한다.
 - **Open Decisions (`hidden-terms` 확장):** D-04 범위 밖 확장(`search_hidden_terms`·욕설 노출 제어·관리자 숨김 UI)은 미채택 시 **27-01 T1·T2 / 27-06 T1·T2 / 27-06 truth 2 수정**. 개인정보 패턴 차단(이메일·전화·주민번호)은 D-03 범위로 채택 여부와 무관하게 유지.
+- **병합 충돌 주의:** 27-06과 29-06이 모두 `app/admin/page.tsx`를 수정한다(27은 링크 한 줄, 29는 `댓글 신고` 탭). 나중에 병합하는 쪽이 먼저 병합된 쪽을 rebase한다.
