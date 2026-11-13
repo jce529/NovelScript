@@ -106,7 +106,7 @@ accent 예약 목록(이 화면에서 accent를 쓰는 곳은 이것뿐):
 - 좌: 상태 필터 3개 `전체` · `연재중` · `완결` (`role="radiogroup"` 또는 `Tabs`, 기본 `전체`). 우: 정렬 3개 `업데이트순` · `신작순` · `인기순`(기본 `업데이트순`).
 - 데스크톱은 둘 다 칩 줄. 모바일(<640px)은 필터 칩 줄은 유지하고 정렬은 `Select`(높이 44px)로 바꿔 한 줄에 둔다. 칩 줄이 넘치면 가로 스크롤하되 페이지 전체 가로 스크롤은 금지(STUDIO-04 기준).
 - 정렬 기준: 업데이트=최근 발행 회차 일시 내림차순, 신작=작품 생성 일시 내림차순, 인기=Phase 23 랭킹과 같은 지표 어댑터 한 곳 재사용. 동률은 작품 생성 일시, 그다음 id.
-- 필터·정렬은 URL 쿼리(`?status=ongoing|ended&sort=updated|new|popular`)로 유지해 공유·뒤로 가기가 동작한다. 변경은 `router.replace`(스크롤 위치 유지), 그리드 영역에 `aria-live="polite"`로 `N편 표시 중` 안내.
+- 필터·정렬은 URL 쿼리(`?status=ongoing|completed&sort=updated|new|popular`)로 유지해 공유·뒤로 가기가 동작한다. 변경은 `router.replace`(스크롤 위치 유지), 그리드 영역에 `aria-live="polite"`로 `N편 표시 중` 안내.
 - 선택 변경 후 포커스는 눌렀던 칩에 남는다.
 
 ### 작품 그리드

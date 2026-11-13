@@ -6,7 +6,7 @@
 
 1. **URL·식별자:** `/author/[uuid]` — `profiles.id`를 그대로 쓴다(필명 변경에도 링크 유지). Phase 27 검색 결과의 작가 링크와 작품 상세의 작가 이름 링크가 같은 형태다. 필명(`pen_name`)이 없는 계정·삭제 계정(`deleted_at`)·작품이 없는 계정은 작가 페이지가 없는 것으로 보고 안내 화면(404 성격)을 보인다.
 2. **구독자 수:** 실시간 count. 공개 조회용 SECURITY DEFINER 함수가 `author_subscriptions` 행 수를 센다. 작가가 숨기는 스위치는 두지 않는다. 규모가 커지면 캐시 컬럼으로 전환(후속).
-3. **구독 테이블:** `author_subscriptions` 신설 — `(author_id, user_id)` PK, 본인 RLS, `toggle_author_subscriptions` RPC(`work_subscriptions`의 `toggle_*` 패턴과 동일, 로그인 필수·정지 계정 차단). `work_subscriptions`(READ-07)와 완전히 분리 저장한다. 마이그레이션 번호는 **미정**(다른 phase와 충돌 방지, 실행 직전에 확정).
+3. **구독 테이블:** `author_subscriptions` 신설 — `(author_id, user_id)` PK, 본인 RLS, `toggle_author_subscriptions` RPC(`work_subscriptions`의 `toggle_*` 패턴과 동일, 로그인 필수·정지 계정 차단). `work_subscriptions`(READ-07)와 완전히 분리 저장한다. 마이그레이션 번호는 **0057 확정**(2026-11-13 상위 조정: 26=0053~0055, 21=0056, 27=0058, 29=0059~0060).
 4. **작가 본인 페이지:** `작가 알림 구독` 버튼을 숨기고 구독자 수만 보인다. DB RPC도 자기 자신 구독을 거부한다.
 
 ## 기본값으로 정한 사항 (사용자 확인 불필요한 관례)
