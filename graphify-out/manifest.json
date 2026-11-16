@@ -66,15 +66,15 @@
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/actions.ts": {
-    "mtime": 1793667793.57723,
-    "seen": 1794288958.9937952,
-    "ast_hash": "639b80cb2b7fdd517f9ed97e1af74be1",
+    "mtime": 1794793540.3516376,
+    "seen": 1794793793.0363379,
+    "ast_hash": "9491246a80f64dab5341cd47292878f6",
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/AiPanel.tsx": {
-    "mtime": 1793510507.7980475,
-    "seen": 1794288958.993799,
-    "ast_hash": "4f79a77c806126c175ca907c7b84e701",
+    "mtime": 1794793523.690752,
+    "seen": 1794793793.0363455,
+    "ast_hash": "88b1a7fb764958e11615b599ee826b98",
     "semantic_hash": ""
   },
   "app/studio/[workId]/chapters/[chapterId]/ai-panel/ChatMessageBubble.tsx": {
@@ -444,9 +444,9 @@
     "semantic_hash": ""
   },
   "lib/ai/prompt.ts": {
-    "mtime": 1794274893.425552,
-    "seen": 1794288958.9941664,
-    "ast_hash": "7f96201af441077f544bf0099e4a6737",
+    "mtime": 1794793481.3385472,
+    "seen": 1794793793.0368888,
+    "ast_hash": "06f14a806c914cd599081e3f9f7f0d12",
     "semantic_hash": ""
   },
   "lib/auth/account.ts": {
@@ -918,15 +918,15 @@
     "semantic_hash": ""
   },
   ".planning/ROADMAP.md": {
-    "mtime": 1794384982.2413063,
-    "seen": 1794385070.8203998,
-    "ast_hash": "857159803db63e41e86dcc15ecc5ef4c",
+    "mtime": 1794793217.1413136,
+    "seen": 1794793793.038386,
+    "ast_hash": "2bb811a64a049937e4c1c0fc06aa411f",
     "semantic_hash": ""
   },
   ".planning/STATE.md": {
-    "mtime": 1794382476.2255309,
-    "seen": 1794385070.8204014,
-    "ast_hash": "d5aa879ad2c1d90fb3ee889f3af27d02",
+    "mtime": 1794793122.7799625,
+    "seen": 1794793793.0383885,
+    "ast_hash": "5fc288ca95d6d0e540e4d1cf61788a4b",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-01-PLAN.md": {
@@ -990,15 +990,15 @@
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-CONTEXT.md": {
-    "mtime": 1787980904.033,
-    "seen": 1794288958.9958248,
-    "ast_hash": "a4731a899ee2ee2c04b770b95cc8f23c",
+    "mtime": 1794385313.5962827,
+    "seen": 1794793793.038698,
+    "ast_hash": "bfd3604d77f22065bc6fb40e5051e9d0",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-RESEARCH.md": {
-    "mtime": 1787980904.033,
-    "seen": 1794288958.9958296,
-    "ast_hash": "7a8622c297e85e6e7b1687b1b86a4fb3",
+    "mtime": 1794385313.5962827,
+    "seen": 1794793793.0387032,
+    "ast_hash": "55faa2fd645d5a9e29cfbe3d4df2d93f",
     "semantic_hash": ""
   },
   ".planning/phases/01-foundation-wallet-infrastructure/01-VALIDATION.md": {
@@ -1476,9 +1476,9 @@
     "semantic_hash": ""
   },
   "docs/SSOT-PLANNING-IMPLEMENTATION.md": {
-    "mtime": 1794288667.8815522,
-    "seen": 1794288958.9969332,
-    "ast_hash": "30981a238f76d03ca1c1223d451cb59c",
+    "mtime": 1794385313.619824,
+    "seen": 1794793793.0403595,
+    "ast_hash": "1d661dd7d1e5b77e50f8717864b82906",
     "semantic_hash": ""
   },
   "docs/Template/\uc0ac\uac74 \ud15c\ud50c\ub9bf.md": {
@@ -3504,9 +3504,9 @@
     "semantic_hash": ""
   },
   "tests/ai/chat-action.test.ts": {
-    "mtime": 1791780723.101049,
-    "seen": 1794288958.994862,
-    "ast_hash": "3173d11bd09587247b453639a41e7e62",
+    "mtime": 1794793505.6168878,
+    "seen": 1794793793.0375378,
+    "ast_hash": "d4c8a928dcaad6fdb8a1043f8fa0bc60",
     "semantic_hash": ""
   },
   ".planning/phases/08-provider-adapter-idempotent-debit/08-03-SUMMARY.md": {
@@ -5832,9 +5832,9 @@
     "semantic_hash": ""
   },
   ".planning/model-routing/models.md": {
-    "mtime": 1793596872.690713,
-    "seen": 1794288958.9957945,
-    "ast_hash": "7fb83855c57616e1ef8d3371e3cab94c",
+    "mtime": 1794791726.8533437,
+    "seen": 1794793793.0386684,
+    "ast_hash": "793c10ac92133d658832f460f82b4b9e",
     "semantic_hash": ""
   },
   ".planning/phases/02-studio-core-writer-loop-no-ai/02-07-PLAN.md": {
@@ -6282,9 +6282,9 @@
     "semantic_hash": ""
   },
   ".planning/skills/jev-model-routing.md": {
-    "mtime": 1793596876.2719004,
-    "seen": 1794288958.9969034,
-    "ast_hash": "a4f2396d0b80840ee384284bdbea8632",
+    "mtime": 1794791812.5040174,
+    "seen": 1794793793.0403063,
+    "ast_hash": "8c3391ea45d33b6495b8fc46f634a84c",
     "semantic_hash": ""
   },
   ".claude/settings.json": {
@@ -8586,9 +8586,9 @@
     "semantic_hash": ""
   },
   "tests/ai/prompt.test.ts": {
-    "mtime": 1794274893.4449685,
-    "seen": 1794288958.9949663,
-    "ast_hash": "5add05cc6513fc7bbbfb366a4e3b01a1",
+    "mtime": 1794793460.0549223,
+    "seen": 1794793793.037636,
+    "ast_hash": "3fd3e57fc89c2ea000b856bed974b7ee",
     "semantic_hash": ""
   },
   "tests/helpers/disposable-ref.ts": {
@@ -9675,6 +9675,24 @@
     "mtime": 1794384997.3935525,
     "seen": 1794385070.8215103,
     "ast_hash": "f3a937d1a6f27085b0761bb04c5a3596",
+    "semantic_hash": ""
+  },
+  ".planning/quick/261116-h1c-chat-history-dedupe/261116-h1c-02-PLAN.md": {
+    "mtime": 1794793205.2700782,
+    "seen": 1794793793.0402515,
+    "ast_hash": "9e2599d311d68ff7c124d52a8f2d0cb1",
+    "semantic_hash": ""
+  },
+  ".planning/quick/261116-h1c-chat-history-dedupe/261116-h1c-PLAN.md": {
+    "mtime": 1794793351.8874242,
+    "seen": 1794793793.0402544,
+    "ast_hash": "51cde364396e7d159749fe9ebd9806a2",
+    "semantic_hash": ""
+  },
+  ".planning/quick/261116-h1c-chat-history-dedupe/261116-h1c-SUMMARY.md": {
+    "mtime": 1794793674.1262527,
+    "seen": 1794793793.040257,
+    "ast_hash": "6d7c3f6ee23421caf6625ad8c6ea24ec",
     "semantic_hash": ""
   },
   "package-lock.json": {
