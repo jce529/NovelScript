@@ -10,6 +10,7 @@ const h = vi.hoisted(() => ({
   sessionUserId: 'session-user' as string | null,
   chatResult: { ok: true, status: 'completed', reply: 'r', remainingBalance: 9 },
   chat: vi.fn(),
+  from: vi.fn(),
   resolveRoute: vi.fn(),
   client: { provider: 'gemini', generateContent: vi.fn() },
 }));
@@ -24,7 +25,8 @@ vi.mock('@/lib/supabase/server', () => ({
           ? { data: { user: { id: h.sessionUserId } }, error: null }
           : { data: { user: null }, error: { message: 'no session' } },
     },
-    from: () => {
+    from: (...args: unknown[]) => {
+      h.from(...args);
       const query: Record<string, unknown> = {
         select: () => query, eq: () => query, is: () => query,
         maybeSingle: async () => ({ data: { id: 'owned-resource' }, error: null }),
@@ -70,6 +72,7 @@ let errorSpy: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
   h.sessionUserId = SESSION_USER;
   h.chat.mockReset();
+  h.from.mockReset();
   h.chat.mockImplementation(async () => h.chatResult);
   h.resolveRoute.mockReset();
   h.resolveRoute.mockImplementation(async ({ selection }: { selection: { providerId: string; model: string; keySource: string } }) => ({ kind: selection.keySource, selection, client: h.client, keyId: 'server-key' }));
@@ -78,6 +81,25 @@ beforeEach(() => {
 });
 
 describe('chatAction boundary', () => {
+  it.each([
+    ['41 turns', { chatHistory: Array.from({ length: 41 }, () => ({ role: 'user', content: 'hi' })) }],
+    ['oversized turn', { chatHistory: [{ role: 'user', content: 'x'.repeat(40_001) }] }],
+    ['oversized body', { precedingText: 'x'.repeat(200_001) }],
+    ['invalid role', { chatHistory: [{ role: 'system', content: 'hi' }] }],
+    ['assistant tail', { chatHistory: [{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'reply' }] }],
+    ['empty history', { chatHistory: [] }],
+  ])('rejects %s before resource lookup', async (_label, overrides) => {
+    const result = await chatAction(validInput(overrides));
+    expect(result).toEqual({ ok: false, status: 'failed', failureKind: 'invalid_input', error: CHAT_COPY.invalid_input });
+    expect(h.from).not.toHaveBeenCalled();
+    expect(h.chat).not.toHaveBeenCalled();
+  });
+
+  it('forwards parsed body and history values', async () => {
+    await chatAction(validInput({ precedingText: '본문', chatHistory: [{ role: 'user', content: 'hi', ignored: 'remove me' }] }));
+    expect(h.chat.mock.calls[0][2]).toMatchObject({ precedingText: '본문', chatHistory: [{ role: 'user', content: 'hi' }] });
+    expect(h.chat.mock.calls[0][2].chatHistory[0]).not.toHaveProperty('ignored');
+  });
   it('returns replacement_required for unavailable BYOK before chat', async () => {
     h.resolveRoute.mockResolvedValueOnce({ kind: 'replacement_required', replacement: { providerId: 'openai', model: 'gpt-4o-mini', keySource: 'service' } });
     const result = await chatAction(validInput({ keySource: 'byok' }));

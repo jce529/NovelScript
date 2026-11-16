@@ -1,8 +1,45 @@
 import { describe, expect, it } from 'vitest';
 import {
-  assembleUserContent, composeSystemInstruction, createUntrustedBoundary, DEFAULT_STYLE_PRESET, neutralizeProtocolTags,
+  assembleUserContent, chatHistoryTurnContent, compactChatHistory, composeSystemInstruction, createUntrustedBoundary, DEFAULT_STYLE_PRESET, neutralizeProtocolTags,
   PRESET_INSTRUCTIONS, quoteUntrusted, REFINE_SYSTEM_DIRECTIVE, RESPONSE_PROTOCOL_INSTRUCTIONS, STYLE_PRESETS,
 } from '@/lib/ai/prompt';
+
+describe('compactChatHistory', () => {
+  const proposal = { category: '인물' as const, name: '주인공', content: '설정 문서 본문' };
+
+  it('replaces a reflected draft with a marker and keeps the reply and document intact', () => {
+    const messages = [
+      { role: 'user' as const, text: '써 줘' },
+      { role: 'assistant' as const, text: '초안입니다', draft: '첫 줄\n둘째 줄', proposal },
+    ];
+    const result = compactChatHistory(messages, '앞 문단\n첫 줄\n둘째 줄\n뒷 문단');
+    expect(result[0]).toEqual({ role: 'user', content: '써 줘' });
+    expect(result[1].content).toContain('초안입니다');
+    expect(result[1].content).toContain('(제시한 본문 초안 — 본문에 반영됨)');
+    expect(result[1].content).not.toContain('첫 줄\n둘째 줄');
+    expect(result[1].content).toContain(proposal.content);
+  });
+
+  it('keeps rejected or edited drafts and document proposals verbatim', () => {
+    const messages = [{ role: 'assistant' as const, text: '답변', draft: '원래 초안', proposal }];
+    expect(compactChatHistory(messages, '다른 본문')).toEqual([{ role: 'assistant', content: chatHistoryTurnContent(messages[0]) }]);
+    expect(compactChatHistory(messages, '')).toEqual([{ role: 'assistant', content: chatHistoryTurnContent(messages[0]) }]);
+  });
+
+  it('keeps only the latest 40 turns and is deterministic', () => {
+    const messages = Array.from({ length: 41 }, (_, i) => ({ role: 'user' as const, text: `turn ${i}` }));
+    const first = compactChatHistory(messages, '');
+    expect(first).toHaveLength(40);
+    expect(first[0].content).toBe('turn 1');
+    expect(first.at(-1)?.content).toBe('turn 40');
+    expect(compactChatHistory(messages, '')).toEqual(first);
+  });
+
+  it('handles empty drafts and null proposals without adding a marker', () => {
+    expect(compactChatHistory([{ role: 'assistant', text: '답변', draft: '', proposal: null }], '본문'))
+      .toEqual([{ role: 'assistant', content: '답변' }]);
+  });
+});
 
 // Capture the unmodified app output before adding MCP's opt-out switch.
 describe('optional app response protocol', () => {

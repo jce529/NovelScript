@@ -15,7 +15,7 @@ import { Paperclip, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { GENRES } from '@/lib/works/genres';
 import {
-  STYLE_PRESETS, DEFAULT_STYLE_PRESET, chatHistoryTurnContent,
+  STYLE_PRESETS, DEFAULT_STYLE_PRESET, compactChatHistory,
   type StylePresetId, type PresetLevel, type DocumentProposal,
 } from '@/lib/ai/prompt';
 import type { ProviderId } from '@/lib/ai/providers/types';
@@ -270,7 +270,7 @@ export function AiPanel({ workId, chapterId, nodeId, content, defaultGenre, defa
         styleId: p.styleId,
         genre: p.genre,
         precedingText: p.precedingText,
-        chatHistory: base.map((m) => ({ role: m.role, content: chatHistoryTurnContent(m) })),
+        chatHistory: compactChatHistory(base, p.precedingText),
         idempotencyKey: attempt.idempotencyKey,
         replacementConsent: p.replacementConsent,
         replacementSelection: p.replacementSelection,

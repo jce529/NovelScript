@@ -196,6 +196,27 @@ export interface ChatTurn {
   content: string;
 }
 
+export const CHAT_HISTORY_SERVER_MAX_TURNS = 40;
+export const CHAT_TURN_MAX_CHARS = 40_000;
+
+/** Build the transmitted history without repeating an accepted draft already in the canvas. */
+export function compactChatHistory(
+  messages: { role: 'user' | 'assistant'; text: string; draft?: string | null; proposal?: DocumentProposal | null }[],
+  precedingText: string,
+): ChatTurn[] {
+  return messages.slice(-CHAT_HISTORY_SERVER_MAX_TURNS).map((message) => {
+    const draft = message.role === 'assistant' ? message.draft?.trim() : undefined;
+    if (!draft || !precedingText.includes(draft)) {
+      return { role: message.role, content: chatHistoryTurnContent(message) };
+    }
+    const parts = [message.text, '(제시한 본문 초안 — 본문에 반영됨)'];
+    if (message.proposal) {
+      parts.push(`(제안한 설정 문서 — [${message.proposal.category}] ${message.proposal.name})\n${message.proposal.content}`);
+    }
+    return { role: message.role, content: parts.join('\n\n') };
+  });
+}
+
 /** A chat-proposed KB(설정집) document — see RESPONSE_PROTOCOL_INSTRUCTIONS'
  * [DOCUMENT] block and lib/ai/chat.ts's parseChatResponse. Lives here (not
  * lib/ai/chat.ts, which is server-only) so client components can reference

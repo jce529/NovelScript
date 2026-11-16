@@ -18,7 +18,7 @@ import { isKnownModel } from '@/lib/ai/providers/catalog';
 import { resolveDefaultProviderModel } from '@/lib/ai/providers/settings';
 import { loadConnectedByokModels } from '@/lib/ai/providers/byok-models';
 import { CHAT_COPY, type ChatResult } from '@/lib/ai/chat-result';
-import type { PresetLevel, StylePresetId, ChatTurn } from '@/lib/ai/prompt';
+import { CHAT_HISTORY_SERVER_MAX_TURNS, CHAT_TURN_MAX_CHARS, type PresetLevel, type StylePresetId, type ChatTurn } from '@/lib/ai/prompt';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAiDocPlanningMode } from '@/lib/ai/decision/activation';
 import { createJevClient } from '@/lib/ai/decision/jev';
@@ -135,6 +135,7 @@ export interface ChatActionInput {
 
 // Not exported: 'use server' modules may only export async functions.
 const customInstructionSchema = z.string().max(CUSTOM_INSTRUCTION_MAX_LENGTH).nullable().optional();
+const PRECEDING_TEXT_MAX_CHARS = 200_000;
 
 /** 04-09: the two instructions for chat()/regenerate, built only from validated input and the
  * server-read work instruction. Beginner applies neither (no lookup). A lookup error fails closed
@@ -166,6 +167,10 @@ const chatActionSchema = z.object({
   chapterId: z.string().min(1).max(100).optional(),
   nodeId: z.string().min(1).max(100).optional(),
   attachments: z.array(z.object({ name: z.string().max(200), content: z.string().max(MAX_ATTACHMENT_CHARS) })).max(MAX_ATTACHMENTS).optional(),
+  precedingText: z.string().max(PRECEDING_TEXT_MAX_CHARS),
+  chatHistory: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(CHAT_TURN_MAX_CHARS) }))
+    .min(1).max(CHAT_HISTORY_SERVER_MAX_TURNS)
+    .refine((history) => history.at(-1)?.role === 'user', { message: 'last chat turn must be user' }),
 }).refine((value) => isKnownModel(value.providerId, value.model), { message: 'unknown model for provider' })
   .refine((value) => Boolean(value.chapterId) !== Boolean(value.nodeId), { message: 'exactly one of chapterId/nodeId' });
 
@@ -250,8 +255,8 @@ export async function chatAction(input: ChatActionInput): Promise<ChatResult> {
     presetLevel: input.presetLevel,
     styleId: input.styleId,
     genre: input.genre,
-    precedingText: input.precedingText,
-    chatHistory: input.chatHistory,
+    precedingText: parsed.data.precedingText,
+    chatHistory: parsed.data.chatHistory,
     idempotencyKey: parsed.data.idempotencyKey,
     ownerId: user.id,
     customInstruction: instructions.customInstruction,
