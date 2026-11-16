@@ -1,6 +1,6 @@
 ---
 name: jev-model-routing
-description: GSD 워크플로우에서 에이전트 역할·plan·task를 어떤 모델(Claude Opus/Sonnet/Haiku, GPT 6.1 Sol/6 Sol/6 Luna/5.6 Terra/5.6 Luna, Gemini 4 Argon)에 배정할지 Jev로 분류해 정한다. plan-phase·execute-phase·quick·bug-execute 등 모델을 고르는 모든 순간, 또는 "모델 배정", "어떤 모델로 돌릴까", "토큰 아끼면서" 같은 요청에 사용한다.
+description: GSD 워크플로우에서 에이전트 역할·plan·task를 어떤 모델(Claude Opus/Sonnet/Haiku, GPT 6.1 Sol/6 Sol/6 Luna/5.6 Terra/5.6 Luna, Gemini 4 Argon/3.8 Flash)에 배정할지 Jev로 분류해 정한다. plan-phase·execute-phase·quick·bug-execute 등 모델을 고르는 모든 순간, 또는 "모델 배정", "어떤 모델로 돌릴까", "토큰 아끼면서" 같은 요청에 사용한다.
 ---
 
 # Jev 기반 GSD 모델 라우팅
@@ -13,7 +13,7 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 
 1. **판단은 Jev, 결정은 표.** Jev는 작업의 *성질*(복잡도·위험도·문맥 의존)만 확률로 분류한다. 모델 선택은 아래 고정 표가 한다. Jev에게 "어느 모델?"을 직접 묻지 않는다 — 모델 능력은 Jev가 모르는 우리 쪽 사실이다.
 2. **싸게 시작, 실패하면 한 칸 위로.** 같은 모델 재시도는 1회, 그다음은 한 티어 위. 처음부터 최상위를 쓰는 건 위험도 high일 때만.
-3. **작성자와 검증자는 다른 계열.** Claude가 쓰면 GPT가, GPT가 쓰면 Claude가 검증한다. 같은 계열의 같은 실수를 같이 놓치는 걸 줄인다.
+3. **작성자와 검증자는 다른 계열.** 계열은 Claude·GPT·Gemini(agy) 셋이다. Gemini나 GPT가 쓰면 Claude가, Claude가 쓰면 Gemini(안 되면 GPT)가 검증한다. 같은 계열의 같은 실수를 같이 놓치는 걸 줄인다.
 4. **Jev 호출은 plan 단위로 묶는다.** task마다 따로 부르지 않는다(배치 호출). 결정은 plan frontmatter에 박아 재호출하지 않는다.
 5. **불확실하면 높은 쪽.** Jev가 `review`(확신 부족)로 돌려준 축은 상위 두 후보 중 높은 쪽을 쓴다. 단, 이 규칙은 비용이 아니라 정확도를 위한 안전장치라 한 칸 이상 올리지 않는다.
 6. **측정한 것만 믿는다.** 아래 티어 표는 가설이다. 로그(§9)로 보정하기 전까지 고정 사실처럼 쓰지 않는다.
@@ -30,9 +30,10 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
 
 - **티어 배치는 이름·세대에서 추정한 가설이다** (Sol > Terra > Luna, 6.1 > 6 > 5.6). 실제 격차는 §9 로그로 보정한다.
 - **Codex 모델 ID를 추측하지 않는다.** `gpt-6-sol`, `gpt-6-luna`는 이 레포에서 쓰는 값이고, `6.1 Sol`·`5.6 Terra/Luna`의 정확한 ID는 최초 1회 `codex exec --help`/모델 목록으로 확인해 `.planning/model-routing/models.md`에 적어 둔다. 지원하지 않는 ID면 임의 대체하지 말고 사용자에게 묻는다(AGENTS.md "외부 AI 호출 시 모델 명시").
-- **Antigravity 채널 (2026-11-02 추가, Gemini 4 Argon)**: Claude·GPT와 별개의 세 번째 계열이다. 티어 매핑은 `models.md`의 agy 표를 따른다(T4 `gemini-4-argon-high`, T3 `gemini-4-argon-medium`, T2 `gemini-4-argon-low`, 모두 가설). T0·T1 칸은 비어 있다.
-  - **작성자·검증자 계열 규칙 (원칙 3)**: Argon이 작성하면 검증자는 Claude 또는 GPT, Argon이 검증하면 작성자는 Claude 또는 GPT로 둔다. Argon끼리 작성·검증하지 않는다.
-  - 채널 결정(§4-③)의 GPT/Claude 이분법은 그대로 두고, Argon은 사용자가 지정하거나 `models.md`의 agy 호출 템플릿으로 명시적으로 고를 때만 쓴다. 자동 배정에는 아직 넣지 않는다(로그 5건 이상 쌓인 뒤 보정).
+- **Antigravity 채널 (2026-11-02 추가 · 2026-11-16 자동 배정 편입, Gemini 4 Argon / 3.8 Flash)**: Claude·GPT와 별개의 세 번째 계열이며, **자족적인 작업의 1순위 채널**이다(사용자 결정 2026-11-16: Claude·GPT 토큰 절약). 티어 매핑은 `models.md`의 agy 표를 따른다(T4 `gemini-4-argon-high`, T3 `gemini-4-argon-medium`, T2 `gemini-4-argon-low`, T1 `gemini-3.8-flash-medium`, T0 `gemini-3.8-flash-low`, 모두 가설. Flash 칸은 근거 없이 채웠다).
+  - **작성자·검증자 계열 규칙 (원칙 3)**: Gemini가 작성하면 검증자는 Claude(안 되면 GPT), Gemini가 검증하면 작성자는 Claude 또는 GPT로 둔다. Gemini끼리 작성·검증하지 않는다.
+  - **호출**: 읽기 전용(계획·조사·검증)은 `agy -p "<프롬프트>" --model <ID> --mode plan --output-format text --print-timeout <상한>`. 파일 수정(구현)만 `--mode accept-edits`로 하고 `--add-dir`로 범위를 좁힌다. `--dangerously-skip-permissions`는 쓰지 않는다. 추론 강도는 모델 ID 접미사에 있으므로 `--effort`는 붙이지 않는다. 프롬프트에 수정 허용 파일 목록을 명시하고 끝난 뒤 `git status`로 범위 밖 변경이 없는지 확인한다.
+  - **agy 폴백**: agy 호출이 실패(미설치·미로그인·ID 없음·한도·시간 초과)하면 원인을 사용자에게 한 줄로 알리고, `git status`로 적용 범위를 확인한 뒤 **같은 티어의 GPT(Codex)** 로 남은 부분만 수행한다. GPT도 한도면 Claude로 간다. 에스컬레이션 횟수(§5)에 넣지 않는다. 한도로 실패했으면 같은 세션에서 해제 시각까지 agy를 다시 시도하지 않는다. 로그 `비고`에 `agy <원인> → codex 폴백`을 남긴다.
 - 호출 규칙은 AGENTS.md 그대로: Codex는 `-m`+`-c model_reasoning_effort`를 매번 명시하고 로그 첫머리 `model:` 줄을 확인, Agent 도구는 `model` 파라미터를 명시.
 - **Codex 호출 템플릿 (Windows, 2026-11-02 갱신)**: 기본값 `[windows] sandbox = "elevated"` 그대로 쉘·`apply_patch`·vitest가 정상 동작한다(codex-cli 0.166.0, 프로젝트 폴더 쓰기 포함 시험 통과). 이전(2026-10-19)에 `setup refresh had errors`로 실패해 붙이던 `-c 'windows.sandbox="unelevated"'`는 **더 이상 붙이지 않는다.** 설정 파일(`config.toml`)은 고치지 않는다.
   ```
@@ -44,13 +45,14 @@ GSD가 일을 나눌 때마다 **"이 일을 통과시킬 수 있는 가장 싼 
   - 호출 후 출력에서 `setup refresh`/`Rejected` 건수가 0인지 확인한다(0이 아니면 `-c 'windows.sandbox="unelevated"'`를 붙여 1회 재시도하고, 그래도 실패하면 Claude로 폴백한다).
   - 조사 기록: `.planning/model-routing/codex-sandbox-findings.md`
 
-### 채널 선택 (같은 티어 안에서 Claude vs GPT)
+### 채널 선택 (같은 티어 안에서 Claude vs Gemini vs GPT)
 
 | 조건 | 채널 |
 |---|---|
 | 현재 대화 문맥에 크게 의존, 브라우저·MCP·Artifact·네트워크/원격 DB 필요 | **Claude** (Codex 샌드박스는 네트워크 차단) |
-| 문서·파일 경로만으로 자족적인 구현·계획·테스트 작성 | **GPT (Codex)** — Claude 한도를 아끼고 병렬화 쉬움 |
+| 문서·파일 경로만으로 자족적인 구현·계획·조사·테스트 작성 | **Gemini (agy)** → 실패 시 GPT (Codex) — Claude·GPT 한도를 아낀다 |
 | 위 둘 다 아님 | 작성자와 검증자가 다른 계열이 되도록 배분 |
+| agy 사용 불가·한도 초과 | 같은 티어 GPT로 폴백 (절차: §1 "agy 폴백") |
 | ChatGPT 사용 한도 초과 | Claude로 폴백하고 해제 시각을 사용자에게 알림 (절차: 아래 "한도 초과 폴백 절차") |
 
 ### 한도 초과 폴백 절차 (ChatGPT/Codex)
@@ -67,16 +69,16 @@ Codex 호출이 사용 한도 오류("usage limit", "try again at ..." 류 문�
 
 | GSD 역할 | 기본 | 채널 | 비고 |
 |---|---|---|---|
-| gsd-planner | T3 | GPT 6 Sol | 위험도 high 또는 architectural이면 T4(6.1 Sol) |
-| gsd-phase-researcher / project-researcher | T2 | GPT 5.6 Terra | 웹 검색이 필요하면 Claude sonnet |
-| gsd-plan-checker | T3 | Claude sonnet | planner와 반대 계열 (현행 유지) |
+| gsd-planner | T3 | Gemini Argon medium → 폴백 GPT 6 Sol | 위험도 high 또는 architectural이면 T4(Argon high, 폴백 6.1 Sol). 현재 `model_overrides`가 `gpt-6-sol`로 고정해 두어 그 값이 우선 |
+| gsd-phase-researcher / project-researcher | T2 | Gemini Argon low → 폴백 GPT Terra | 웹 검색이 필요하면 Claude sonnet |
+| gsd-plan-checker | T3 | Claude sonnet | planner와 다른 계열 (현행 유지) |
 | gsd-executor | **task별 Jev 결정** (§3~4) | | 이 문서의 핵심 대상 |
-| gsd-verifier | T3 | Claude sonnet | executor가 GPT면 Claude, Claude면 GPT Sol |
+| gsd-verifier | T3 | Claude sonnet | executor가 Gemini·GPT면 Claude, Claude면 Gemini Argon medium(폴백 GPT Sol) |
 | gsd-debugger | T3 | Claude sonnet → 실패 시 opus | 원인 추적은 대화 문맥 의존이 큼 |
 | gsd-codebase-mapper, research-synthesizer | T1 | Claude haiku | 읽기·요약 위주 |
 | gsd-ui-researcher / ui-checker / ui-auditor | T2~T3 | Claude sonnet | 목업·Artifact가 Claude 도구라서 |
 | gsd-roadmapper, integration-checker | T3 | Claude sonnet | |
-| gsd-nyquist-auditor | T2 | GPT 5.6 Terra | 테스트 생성 |
+| gsd-nyquist-auditor | T2 | Gemini Argon low → 폴백 GPT Terra | 테스트 생성 |
 | 문서 정합(traceability-sync, 로드맵 동기화) | T1 | Claude haiku | 스크립트가 대부분 처리 |
 
 `config.json`의 `model_overrides`는 **사용자가 박아 둔 값이 항상 우선**이다. 이 스킬은 override가 없는 곳과 executor의 task 단위만 채운다.
@@ -137,20 +139,21 @@ task마다 아래 명제를 같은 `jev_ask` 호출에 담는다.
 3. P4(설계 판단 필요)가 참 → 최소 T3.
 4. P3가 참이고 위험도 `low` → −1 가능(단 T0 미만 불가, trivial은 이미 최저라 적용 안 함).
 
-**③ 채널 결정** (2026-10-19 개정, 문턱 완화): **P1(자족성) ≥ 0.5 그리고 P2 ≤ 0.3 → GPT(Codex).** 그 외(P2 > 0.3 이거나 P1 < 0.5) → Claude. 확률을 그대로 쓰며 "불확실" 구간에서 자동으로 Claude로 보내지 않는다. 경계(P1 0.4~0.6 또는 P2 0.25~0.4)는 로그 `비고`에 표시해 보정 대상으로 삼는다.
+**③ 채널 결정** (2026-10-19 개정, 문턱 완화 · 2026-11-16 agy 편입): **P1(자족성) ≥ 0.5 그리고 P2 ≤ 0.3 → Gemini(agy), agy를 쓸 수 없으면 GPT(Codex).** 그 외(P2 > 0.3 이거나 P1 < 0.5) → Claude. 확률을 그대로 쓰며 "불확실" 구간에서 자동으로 Claude로 보내지 않는다. 경계(P1 0.4~0.6 또는 P2 0.25~0.4)는 로그 `비고`에 표시해 보정 대상으로 삼는다.
 
-**④ 모델 결정**: ①~③ 결과의 (티어, 채널)을 §1 표에서 찾는다. 해당 칸이 비어 있으면(Claude T2·T0) 같은 채널의 한 칸 위 티어를 쓴다.
+**④ 모델 결정**: ①~③ 결과의 (티어, 채널)을 §1 표(Gemini는 `models.md`의 agy 표)에서 찾는다. 해당 칸이 비어 있으면(Claude T2·T0) 같은 채널의 한 칸 위 티어를 쓴다.
 
-**⑤ 검증자 결정**: 작성자 티어 −1 이상, 반대 계열. 위험도 `high`면 검증자도 T3 이상. 위험도 `low` + P3 참이면 별도 모델 검증 없이 테스트 통과 + 오케스트레이터 diff 확인으로 갈음한다(토큰 절약 구간). 검증자 Codex도 `-s workspace-write`로 돌려 테스트를 직접 실행하게 한다(§1 템플릿, 프롬프트에 수정 금지 명시).
+**⑤ 검증자 결정**: 작성자 티어 −1 이상, 다른 계열(작성자가 Gemini·GPT면 Claude, 작성자가 Claude면 Gemini, 폴백 GPT). 검증자 agy는 `--mode plan`으로 돌린다. 위험도 `high`면 검증자도 T3 이상. 위험도 `low` + P3 참이면 별도 모델 검증 없이 테스트 통과 + 오케스트레이터 diff 확인으로 갈음한다(토큰 절약 구간). 검증자 Codex도 `-s workspace-write`로 돌려 테스트를 직접 실행하게 한다(§1 템플릿, 프롬프트에 수정 금지 명시).
 
 ### 예시
 
 | task | Jev 결과 | 결정 |
 |---|---|---|
-| 에러 문구 5곳 교체 | trivial / low / P3 참 | T0, GPT 5.6 Luna, 검증은 테스트만 |
-| 신규 API route + zod 스키마 + 테스트 | routine / medium / P3 참 | T2, GPT 5.6 Terra, 검증은 Claude sonnet diff 리뷰 |
-| 결제 웹훅 서명 검증 수정 | multi_file / high | T3+1=T4, GPT 6.1 Sol, 검증 Claude sonnet(T3) |
+| 에러 문구 5곳 교체 | trivial / low / P3 참 | T0, Gemini 3.8 Flash low, 검증은 테스트만 |
+| 신규 API route + zod 스키마 + 테스트 | routine / medium / P3 참 | T2, Gemini Argon low, 검증은 Claude sonnet diff 리뷰 |
+| 결제 웹훅 서명 검증 수정 | multi_file / high | T3+1=T4, Gemini Argon high, 검증 Claude sonnet(T3) |
 | 브라우저로 화면 확인하며 UI 수정 | routine / low / P2 참 | T2→Claude는 T2 없음→T3 sonnet |
+| 위 2번째 task인데 agy 한도 초과 | (동일) | 같은 티어 GPT로 폴백 → T2 `gpt-6.1-terra` |
 
 ## 5. 에스컬레이션 사다리
 
@@ -161,7 +164,7 @@ task마다 아래 명제를 같은 `jev_ask` 호출에 담는다.
 3. 그래도 실패 → **한 티어 위로 올려 처음부터가 아니라 이어서** 재실행
 4. 그래도 실패 → 사용자에게 보고(무한 상승 금지). task 하나당 모델 호출은 최대 3회.
 
-티어를 올릴 때도 채널은 유지하되, 실패 원인이 샌드박스 제약(네트워크·DB)이면 Claude로 채널을 바꾼다. 같은 task가 두 번 에스컬레이션되면 §9 로그의 `routing_miss`로 표시해 분류 규칙 보정 대상으로 삼는다.
+티어를 올릴 때도 채널은 유지하되, 실패 원인이 샌드박스 제약(네트워크·DB)이면 Claude로 채널을 바꾼다. agy 자체가 안 되는 경우(미설치·한도·시간 초과)는 에스컬레이션이 아니라 §1 "agy 폴백"으로 처리한다. 같은 task가 두 번 에스컬레이션되면 §9 로그의 `routing_miss`로 표시해 분류 규칙 보정 대상으로 삼는다.
 
 ## 6. 호출 절차 (오케스트레이터 = Claude)
 
@@ -170,12 +173,12 @@ task마다 아래 명제를 같은 `jev_ask` 호출에 담는다.
 3. task마다 `mcp__plugin_claude-jev_jev__jev_ask`를 1회 호출해 복잡도·위험도·P1~P4를 한 번에 받는다(§3). 도구 스키마는 추측하지 않고 ToolSearch로 확인한다(deferred일 수 있다).
 4. §4 표로 task별 (모델, 채널, 검증자)를 계산한다.
 5. 결과를 PLAN.md frontmatter의 `routing:` 블록에 기록한다(§7). **기록 후에는 같은 입력에 Jev를 다시 부르지 않는다.**
-6. 사용자에게 한 줄로 알린다: `task 3개 → GPT 5.6 Terra ×2, GPT 6.1 Sol ×1 (결제 위험). 검증은 sonnet.` (AGENTS.md "호출 전 보고")
+6. 사용자에게 한 줄로 알린다: `task 3개 → Gemini Argon low ×2, Argon high ×1 (결제 위험). 검증은 sonnet.` (AGENTS.md "호출 전 보고")
 7. 같은 모델·같은 wave의 task는 한 번의 Codex/Agent 호출로 묶어 프롬프트 오버헤드를 줄인다(파일이 겹치지 않을 때만).
 
 ### Jev를 쓸 수 없을 때
 
-도구가 없거나 호출 실패 → §2 역할 기본 티어를 쓰고 executor는 T2(GPT 5.6 Terra)로 시작한다. 로그에 `classifier: fallback`을 남긴다. Jev 호출 실패로 작업을 멈추지 않는다.
+도구가 없거나 호출 실패 → §2 역할 기본 티어를 쓰고 executor는 T2(Gemini Argon low, 폴백 GPT Terra)로 시작한다. 로그에 `classifier: fallback`을 남긴다. Jev 호출 실패로 작업을 멈추지 않는다.
 
 ## 7. 결과 기록 형식 (PLAN frontmatter)
 
@@ -189,8 +192,8 @@ routing:
       risk: medium             # jev p=0.88
       flags: {P1: false, P2: false, P3: true, P4: false}
       tier: 2
-      model: gpt-5.6-terra     # models.md의 실제 ID
-      channel: codex
+      model: gemini-4-argon-low  # models.md의 실제 ID
+      channel: agy             # agy | codex | claude
       verifier: sonnet
 ```
 
