@@ -29,3 +29,4 @@
 2026-11-10 | 14-13 task1 | multi_file/low | T3 | sonnet (claude) | 통과(재실행 159/159) | 0 | 검증 모델 없음(테스트+diff) | no | classifier: jev(P1=.44 → Claude). T2 칸 없음으로 한 칸 위
 2026-11-10 | 14-13 task2 | multi_file→architectural(review)/medium | T4 | opus (claude) | 통과(재실행 단위 350/350) | 0 | Codex gpt-6-sol: 지적은 task3 범위와 함께 처리 | no | classifier: jev(복잡도 신뢰도 .57). review → 높은 쪽
 2026-11-10 | 14-13 task3 | architectural(review)/high | T4 | opus (claude) | 통과(재실행 patch-edits 26/26 등) | 1 (Codex 지적 수정 라운드, 에이전트 600초 무응답 후 재개) | Codex gpt-6-sol high: 블로커 1·경고 2, 모두 반영 | no | classifier: jev(복잡도 신뢰도 .39). Codex 첫 호출 출력 끊김 → 재시도
+2026-11-16 | quick-261116-h1c-01 | multi_file/medium(review) | T3 | gpt-6-sol (codex, medium) | 통과(재실행 tests/ai+mcp 1575/1575, 64 skip) | 0 | 검증 모델 없음(Claude 오케스트레이터 diff 검수+테스트 재실행): 지적 0 | no | classifier: jev(위험도 신뢰도 .20, P1=.44 → Claude 쪽이나 사용자가 Codex 지정). Codex 샌드박스 안에서는 Supabase 연결 불가로 37건 실패 → 샌드박스 밖 재실행에서 전부 통과
