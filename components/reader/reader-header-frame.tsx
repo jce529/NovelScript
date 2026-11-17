@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { Suspense, type FocusEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Search, Coins } from 'lucide-react';
 import {
   READER_MAIN_TABS,
+  buildSubRowHref,
+  getActiveMainTab,
+  getActiveSubKey,
   getHeaderVariant,
   getSubRow,
   type ReaderMainTab,
@@ -25,12 +28,79 @@ export interface ReaderHeaderFrameProps {
   balanceSlot?: ReactNode;
 }
 
-const TOUCH = 'inline-flex min-h-11 items-center px-3 text-sm';
+const TOUCH =
+  'inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm transition-colors motion-reduce:transition-none';
+const FOCUS_RING =
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
+const SCROLL_ROW =
+  'flex overflow-x-auto px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
-export function ReaderHeaderFrame({ brand, account, loggedIn, balance, balanceSlot }: ReaderHeaderFrameProps) {
+function handleItemFocus(event: FocusEvent<HTMLElement>) {
+  event.currentTarget?.scrollIntoView?.({
+    block: 'nearest',
+    inline: 'nearest',
+  });
+}
+
+function ReaderHeaderSubRowNav({
+  activeTab,
+  searchParams,
+}: {
+  activeTab: ReaderMainTab;
+  searchParams: Pick<URLSearchParams, 'get'> | null;
+}) {
+  const subRow = getSubRow(activeTab);
+  const activeSub = getActiveSubKey(searchParams?.get('sub'));
+
+  return (
+    <nav aria-label="서브 구분" className={SCROLL_ROW} data-row="sub">
+      {subRow.map((s) => {
+        const href = buildSubRowHref(s, searchParams);
+        const isActive = s.sub ? activeSub === s.sub : false;
+        return href ? (
+          <Link
+            key={s.key}
+            href={href}
+            aria-current={isActive ? 'page' : undefined}
+            onFocus={handleItemFocus}
+            className={`${TOUCH} ${FOCUS_RING} shrink-0 whitespace-nowrap ${
+              isActive
+                ? 'font-semibold text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {s.label}
+          </Link>
+        ) : (
+          <span
+            key={s.key}
+            aria-disabled="true"
+            title="준비 중"
+            className={`${TOUCH} shrink-0 whitespace-nowrap text-muted-foreground opacity-50`}
+          >
+            {s.label}
+          </span>
+        );
+      })}
+    </nav>
+  );
+}
+
+function ReaderHeaderSubRow({ activeTab }: { activeTab: ReaderMainTab }) {
+  const searchParams = useSearchParams();
+
+  return <ReaderHeaderSubRowNav activeTab={activeTab} searchParams={searchParams} />;
+}
+
+export function ReaderHeaderFrame({
+  brand,
+  account,
+  loggedIn,
+  balance,
+  balanceSlot,
+}: ReaderHeaderFrameProps) {
   const pathname = usePathname();
   const variant = getHeaderVariant(pathname);
-  const [tab, setTab] = useState<ReaderMainTab>('free');
 
   if (variant === 'viewer') return null;
 
@@ -43,7 +113,7 @@ export function ReaderHeaderFrame({ brand, account, loggedIn, balance, balanceSl
     );
   }
 
-  const subRow = getSubRow(tab);
+  const activeTab = getActiveMainTab(pathname);
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background" data-header="reader">
@@ -78,43 +148,42 @@ export function ReaderHeaderFrame({ brand, account, loggedIn, balance, balanceSl
           {account}
         </div>
       </div>
-      <nav aria-label="메인 탭" className="flex overflow-x-auto px-2" data-row="main">
-        {READER_MAIN_TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            aria-pressed={tab === t.key}
-            className={`${TOUCH} shrink-0 whitespace-nowrap border-b-2 ${
-              tab === t.key ? 'border-foreground font-semibold' : 'border-transparent text-muted-foreground'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-      <nav aria-label="서브 메뉴" className="flex overflow-x-auto px-2" data-row="sub">
-        {subRow.map((s) =>
-          s.href ? (
+      <nav aria-label="연재 구분" className={SCROLL_ROW} data-row="main">
+        {READER_MAIN_TABS.map((t) => {
+          const isActive = activeTab === t.key;
+          return t.href ? (
             <Link
-              key={s.key}
-              href={s.href}
-              className={`${TOUCH} shrink-0 whitespace-nowrap text-muted-foreground hover:text-foreground`}
+              key={t.key}
+              href={t.href}
+              aria-current={isActive ? 'page' : undefined}
+              onFocus={handleItemFocus}
+              className={`${TOUCH} ${FOCUS_RING} shrink-0 whitespace-nowrap border-b-2 ${
+                isActive
+                  ? 'border-primary font-semibold text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
             >
-              {s.label}
+              {t.label}
             </Link>
           ) : (
             <span
-              key={s.key}
+              key={t.key}
               aria-disabled="true"
               title="준비 중"
-              className={`${TOUCH} shrink-0 whitespace-nowrap text-muted-foreground opacity-50`}
+              className={`${TOUCH} shrink-0 whitespace-nowrap border-b-2 border-transparent text-muted-foreground opacity-50`}
             >
-              {s.label}
+              {t.label}
             </span>
-          ),
-        )}
+          );
+        })}
       </nav>
+      {activeTab !== null ? (
+        <Suspense
+          fallback={<ReaderHeaderSubRowNav activeTab={activeTab} searchParams={null} />}
+        >
+          <ReaderHeaderSubRow activeTab={activeTab} />
+        </Suspense>
+      ) : null}
     </header>
   );
 }
