@@ -3,18 +3,27 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   anonClient, createTestUser, deleteTestUserStrict, pgPool, signedInClient,
 } from '../helpers/db';
-import { minimumReadingMs } from '../../lib/reader/completion';
+import {
+  ACTIVE_TIME_SLACK_MS,
+  COMPLETION_SCROLL_RATIO,
+  END_SENTINEL_VISIBLE_MS,
+  MINIMUM_READING_FLOOR_MS,
+  MINIMUM_READING_RATIO,
+  MIN_SAMPLE_READERS,
+  READING_CHARS_PER_MINUTE,
+  minimumReadingMs,
+} from '../../lib/reader/completion';
 
 /**
- * Real-DB regression suite for 0025_reader_completion.sql (03-12, READ-04).
+ * Real-DB regression suite for 0025_reader_completion.sql + 0053_reader_completion_config.sql (03-12, 26-01, READ-04, RDATA-02).
  *
- * RESERVED FOR THE 03-19 CHECKPOINT: 0024 and 0025 must be applied to the target test project first
- * (`node --env-file=.env.local scripts/apply-migration.mjs 0025_reader_completion.sql`). Run with:
+ * RESERVED FOR MANUAL DB GATE: 0024, 0025, 0052 and 0053 must be applied to the target test project first
+ * (`node --env-file=.env.local scripts/apply-migration.mjs 0053_reader_completion_config.sql`). Run with:
  *
  *   COMPLETION_DB_TEST=1 npx vitest run tests/reader/completion.database.test.ts
  *
  * Without the flag the suite is a visible `todo`. With the flag, a missing env or unapplied
- * 0024/0025 FAILS in beforeAll.
+ * 0024/0025/0053 FAILS in beforeAll.
  *
  * Roles: the pg pool only creates fixtures, shifts DB clocks (session_started_at) and observes rows.
  * Every reading-state write and every completion call goes through a browser session, so the stored
@@ -37,12 +46,12 @@ type ChapterReadingState = {
 type TestUser = { id: string; email?: string };
 
 if (!OPT_IN) {
-  describe('chapter completion (real DB, 0025)', () => {
-    it.todo('reserved for 03-19: apply 0024 + 0025, then run with COMPLETION_DB_TEST=1');
+  describe('chapter completion (real DB, 0025 + 0053)', () => {
+    it.todo('reserved for manual DB gate: apply 0024 + 0025 + 0052 + 0053, then run with COMPLETION_DB_TEST=1');
   });
 }
 
-describe.runIf(OPT_IN)('chapter completion (real DB, 0025)', () => {
+describe.runIf(OPT_IN)('chapter completion (real DB, 0025 + 0053)', () => {
   const sql = pgPool(2);
   const users: TestUser[] = [];
   const workIds: string[] = [];
@@ -72,11 +81,13 @@ describe.runIf(OPT_IN)('chapter completion (real DB, 0025)', () => {
       .filter((name) => !process.env[name]);
     if (missing.length) throw new Error(`COMPLETION_DB_TEST=1 but missing env: ${missing.join(', ')}`);
     const [{ applied }] = await sql`select to_regprocedure('public.save_chapter_reading(uuid,uuid,uuid,bigint,numeric,bigint,integer)') is not null
-      and to_regprocedure('public.complete_chapter(uuid,uuid,uuid)') is not null as applied`;
-    if (!applied) throw new Error('0024/0025 are not applied to this database (03-19 Task 1)');
+      and to_regprocedure('public.complete_chapter(uuid,uuid,uuid)') is not null
+      and to_regprocedure('public.reading_completion_config()') is not null as applied`;
+    if (!applied) throw new Error('0024/0025/0053 are not applied to this database');
 
     [reader, other, author, sanctioned] = await Promise.all(Array.from({ length: 4 }, () => createTestUser()));
     users.push(reader, other, author, sanctioned);
+    await sql`update auth.users set phone_confirmed_at = now() where id = any(${[reader.id, sanctioned.id]}::uuid[])`;
     await sql`update profiles set role = 'writer', pen_name = ${'CP' + author.id.slice(0, 8)} where id = ${author.id}`;
     work = uuid();
     otherWork = uuid();
@@ -149,8 +160,39 @@ describe.runIf(OPT_IN)('chapter completion (real DB, 0025)', () => {
   }
 
   // ---------------------------------------------------------------------------
-  // formula parity
+  // formula parity & single-source config (0053)
   // ---------------------------------------------------------------------------
+  it('reading_completion_config() returns the single-source threshold tuple matching lib/reader/completion.ts', async () => {
+    const [cfg] = await sql`
+      select
+        chars_per_minute,
+        minimum_reading_ratio,
+        minimum_reading_floor_ms,
+        completion_scroll_ratio,
+        end_sentinel_visible_ms,
+        active_time_slack_ms,
+        min_sample_readers
+      from reading_completion_config()
+    `;
+    expect({
+      charsPerMinute: Number(cfg.chars_per_minute),
+      minimumReadingRatio: Number(cfg.minimum_reading_ratio),
+      minimumReadingFloorMs: Number(cfg.minimum_reading_floor_ms),
+      completionScrollRatio: Number(cfg.completion_scroll_ratio),
+      endSentinelVisibleMs: Number(cfg.end_sentinel_visible_ms),
+      activeTimeSlackMs: Number(cfg.active_time_slack_ms),
+      minSampleReaders: Number(cfg.min_sample_readers),
+    }).toEqual({
+      charsPerMinute: READING_CHARS_PER_MINUTE,
+      minimumReadingRatio: MINIMUM_READING_RATIO,
+      minimumReadingFloorMs: MINIMUM_READING_FLOOR_MS,
+      completionScrollRatio: COMPLETION_SCROLL_RATIO,
+      endSentinelVisibleMs: END_SENTINEL_VISIBLE_MS,
+      activeTimeSlackMs: ACTIVE_TIME_SLACK_MS,
+      minSampleReaders: MIN_SAMPLE_READERS,
+    });
+  });
+
   it('chapter_minimum_reading_ms matches minimumReadingMs on fixture boundaries', async () => {
     for (const chars of [0, 1, 1199, 1200, 1201, 5000, 10_000, 123_457]) {
       const [{ ms }] = await sql`select chapter_minimum_reading_ms(${chars}::integer) as ms`;
@@ -158,7 +200,11 @@ describe.runIf(OPT_IN)('chapter completion (real DB, 0025)', () => {
     }
   });
 
-  it('the minimum-time helper is not callable by API roles', async () => {
+  it('reading_completion_config() and the minimum-time helper are not callable by API roles', async () => {
+    expect(await errorOf(readerDb.rpc('reading_completion_config')))
+      .toMatch(/permission denied|Could not find/);
+    expect(await errorOf(anonClient().rpc('reading_completion_config')))
+      .toMatch(/permission denied|Could not find/);
     expect(await errorOf(readerDb.rpc('chapter_minimum_reading_ms', { p_char_count: 5000 })))
       .toMatch(/permission denied|Could not find/);
   });
@@ -181,6 +227,17 @@ describe.runIf(OPT_IN)('chapter completion (real DB, 0025)', () => {
     expect(done.completedAt).not.toBeNull();
     expect(done.activeMs).toBe(125_000);
     expect(Object.keys(done)).not.toContain('userId');
+  });
+
+  it('unverified account saves scroll progress and active time but complete_chapter leaves completedAt null (0052/0053)', async () => {
+    const chapterId = await insertChapter(work, 17);
+    const session = await readTo(otherDb, other.id, chapterId, { ratio: 0.98, activeMs: 125_000, endVisibleMs: 1000 });
+    const snapshot = await rpcOk<ChapterReadingState>(complete(otherDb, chapterId, session));
+    expect(snapshot.scrollRatio).toBe(0.98);
+    expect(snapshot.maxScrollRatio).toBe(0.98);
+    expect(snapshot.activeMs).toBe(125_000);
+    expect(snapshot.completedAt).toBeNull();
+    expect((await row(other.id, chapterId))!.completed_at).toBeNull();
   });
 
   it('ratio .9799 or end sentinel 999 ms is not complete', async () => {
