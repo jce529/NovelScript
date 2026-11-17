@@ -71,8 +71,8 @@ describe.runIf(OPT_IN)('work reading metrics (real DB, 0054)', () => {
   async function createWork(ownerId: string, title: string, opts: { deleted?: boolean; blinded?: boolean } = {}) {
     const id = uuid();
     await sql`
-      insert into works (id, owner_id, title, deleted_at, admin_blinded)
-      values (${id}, ${ownerId}, ${title}, ${opts.deleted ? sql`now()` : null}, ${opts.blinded ?? false})
+      insert into works (id, owner_id, title, deleted_at, admin_blinded, admin_blind_reason, admin_blinded_at)
+      values (${id}, ${ownerId}, ${title}, ${opts.deleted ? sql`now()` : null}, ${opts.blinded ?? false}, ${opts.blinded ? '테스트 블라인드' : null}, ${opts.blinded ? sql`now()` : null})
     `;
     workIds.push(id);
     return id;
@@ -85,7 +85,7 @@ describe.runIf(OPT_IN)('work reading metrics (real DB, 0054)', () => {
   ) {
     const id = uuid();
     await sql`
-      insert into chapters (id, work_id, title, content, order_index, is_published, deleted_at, admin_blinded)
+      insert into chapters (id, work_id, title, content, order_index, is_published, deleted_at, admin_blinded, admin_blind_reason, admin_blinded_at)
       values (
         ${id},
         ${workId},
@@ -94,7 +94,9 @@ describe.runIf(OPT_IN)('work reading metrics (real DB, 0054)', () => {
         ${orderIndex},
         ${opts.published ?? true},
         ${opts.deleted ? sql`now()` : null},
-        ${opts.blinded ?? false}
+        ${opts.blinded ?? false},
+        ${opts.blinded ? '테스트 블라인드' : null},
+        ${opts.blinded ? sql`now()` : null}
       )
     `;
     return id;
@@ -318,10 +320,12 @@ describe.runIf(OPT_IN)('work reading metrics (real DB, 0054)', () => {
     const sufficient = await rpcOk<WorkReadingMetricsDto>(
       readerDb.rpc('work_reading_metrics', { p_work_id: workId })
     );
+    // SQL numeric 나눗셈은 소수 15자리까지라 JS 4/9와 마지막 자리가 다르다 → 허용 오차 비교.
+    expect(sufficient.completionRate).toBeCloseTo(4 / 9, 12);
     expect(sufficient).toEqual({
       workId,
       reachedReaders: 5,
-      completionRate: 4 / 9,
+      completionRate: sufficient.completionRate,
       retentionRate: 1,
       sampleSufficient: true,
     });

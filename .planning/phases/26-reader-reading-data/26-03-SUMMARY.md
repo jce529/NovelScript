@@ -75,3 +75,7 @@ metrics:
 
 - 일회용 DB 수동 게이트에서 `0053`·`0054`·`0055` 마이그레이션 적용 및 `COMPLETION_DB_TEST=1`·`WORK_READING_METRICS_DB_TEST=1`·`CHAPTER_DROPOFF_DB_TEST=1` 실DB 회귀 테스트 실행 대기.
 - 작가 대시보드 UI(Phase 30), 연재 목록·랭킹 인기 점수 교체(Phase 21·23), 세계수 굵기 연동(WTREE-08)은 각 후속 phase에서 `lib/reader/reading-metrics.ts` DTO를 소비해 구현한다.
+
+## DB 테스트 실행 결과 (2026-11-17)
+
+일회용 DB 실행 통과(26-01 SUMMARY의 합산 결과 참조). 수정 1건, 테스트만: 'rejects non-live chapters' 픽스처가 블라인드 시 `admin_blind_reason`·`admin_blinded_at`을 세팅하지 않아 0006 CHECK 위반 → 함께 세팅.
