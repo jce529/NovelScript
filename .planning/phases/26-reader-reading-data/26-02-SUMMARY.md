@@ -71,3 +71,7 @@ metrics:
 
 - 일회용 DB 수동 게이트에서 `0053`·`0054` 마이그레이션 적용 및 `WORK_READING_METRICS_DB_TEST=1` 실DB 회귀 실행 대기.
 - 회차 내 20구간 이탈 분포 RPC(`chapter_dropoff`) 및 세 집계 DTO의 TypeScript 소비자 타입(`lib/reader/reading-metrics.ts`)은 후속 계획 `26-03`에서 구현한다.
+
+## DB 테스트 실행 결과 (2026-11-17)
+
+일회용 DB 실행 통과(26-01 SUMMARY의 합산 결과 참조). 수정 2건, 모두 테스트만: (1) 블라인드 픽스처가 `admin_blinded=true`만 넣어 0006 `*_admin_blind_shape` CHECK를 위반 → `admin_blind_reason`·`admin_blinded_at`을 함께 세팅. (2) 완독률 4/9 비교가 SQL numeric 반올림(0.444444444444444)과 JS 값이 달라 실패 → `toBeCloseTo(4/9, 12)`.

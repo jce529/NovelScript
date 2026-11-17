@@ -73,3 +73,7 @@ metrics:
     - `npx vitest run tests/reader/reading-progress.test.ts tests/reader/scroll-progress.test.ts tests/reader/completion.test.ts`
     - `npx vitest run tests/reader/completion.test.ts tests/reader/completion-migration.test.ts`
   - 실DB 테스트(`tests/reader/completion.database.test.ts`)는 코드 작성만 완료했으며 실행하지 않았다. 일회용 DB에 `0024`·`0025`·`0052`·`0053` 적용 후 `COMPLETION_DB_TEST=1 npx vitest run tests/reader/completion.database.test.ts`로 수동 게이트에서 실행한다.
+
+## DB 테스트 실행 결과 (2026-11-17, 일회용 DB에 0053~0056 적용 후)
+
+위 '미실행' 표기는 작성 시점 기록이다. 병합 후 일회용 DB에서 `--project db`로 실행: `completion.database.test.ts`·`work-reading-metrics.database.test.ts`·`chapter-dropoff.database.test.ts` 3파일 26건 통과, skipped 0, failed 0 (26-02·26-03과 합산). 처음 3건 실패는 테스트 픽스처 문제(아래 26-02·26-03 SUMMARY 참조)였고 마이그레이션 SQL은 바꾸지 않았다.
