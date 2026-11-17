@@ -413,10 +413,14 @@ Explicitly excluded. Documented to prevent scope creep.
 | WORKHOME-05 | Phase 19 | Code complete (실화면 UAT pending) |
 | WORKHOME-06 | Phase 19 | Code complete (실화면 UAT pending) |
 | WORKHOME-07 | Phase 19 | Code complete (실화면 UAT pending) |
-| RDATA-01 | Phase 26 | Not started (v1.1 확장) |
-| RDATA-02 | Phase 26 | Not started (v1.1 확장) |
-| RDATA-03 | Phase 26 | Not started (v1.1 확장) |
-| RDATA-04 | Phase 26 | Not started (v1.1 확장) |
+| LIST-01 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIST-02 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIST-03 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIST-04 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| RDATA-04 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
 | SEARCH-01 | Phase 27 | Not started (v1.1 확장) |
 | SEARCH-02 | Phase 27 | Not started (v1.1 확장) |
 | SEARCH-03 | Phase 27 | Not started (v1.1 확장) |
