@@ -125,3 +125,22 @@ export async function getPublicWork(
     blinded, blindReason: blinded ? data.admin_blind_reason ?? null : null,
   };
 }
+
+/** APAGE-01: optional public author DTO; keep the existing work queries unchanged. */
+export interface PublicWorkAuthor {
+  authorId: string | null;
+  penName: string | null;
+}
+
+export async function getPublicWorkAuthor(
+  supabase: SupabaseClient,
+  work: Pick<PublicWork, 'ownerId' | 'blinded'>,
+): Promise<PublicWorkAuthor> {
+  if (!work.blinded) {
+    const { getAuthorProfile } = await import('@/lib/author/queries');
+    const result = await getAuthorProfile(supabase, work.ownerId);
+    // The public RPC excludes unnamed/deleted profiles and authors without visible works.
+    if (result.ok) return { authorId: result.profile.authorId, penName: result.profile.penName };
+  }
+  return { authorId: null, penName: null };
+}
