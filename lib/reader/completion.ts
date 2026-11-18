@@ -1,31 +1,33 @@
 /**
- * 03-12 (READ-04): provisional chapter-completion thresholds.
+ * 03-12 (READ-04) / 26-01 (RDATA-02, D-01, D-02, D-10): chapter-completion thresholds (client copy).
  *
- * This module is the client-side display/unit contract (progress UI, flush decisions, tests). It does
- * NOT decide completion: the final decision is `complete_chapter` (supabase/migrations/0025) using
- * server-stored active time, scroll ratio, sentinel time and `chapters.char_count`. Both sides use the
- * same formula and boundaries; tests/reader/completion-migration.test.ts pins them against each other.
+ * Single source of truth: `reading_completion_config()` in `supabase/migrations/0053_reader_completion_config.sql`.
+ * This TypeScript module is a read-only client-side copy used only for display and flush-candidate
+ * decisions (progress UI, `use-reading-progress` completion candidate check, unit tests). It does NOT
+ * decide completion: the authoritative decision is `complete_chapter` (0053, preserving 0039 OAuth guard
+ * and 0052 verified-account gate) reading `reading_completion_config()` and server-stored state.
  *
- * All values are LOW-confidence provisional defaults (03-CONTEXT Reopen "분당 1,200자",
- * 03-RESEARCH-REOPEN ratio 0.5 / 30 s floor / 120 s idle / 1 s end sentinel). There is no Korean
- * silent-reading speed source; recalibrate from beta data (p5 of active_ms / char_count among
- * completions). Every threshold is inclusive ("이상"): reaching the value exactly counts as met.
+ * `tests/reader/completion-migration.test.ts` pins every constant and formula here against `0053`.
+ * For beta recalibration (p5 of `active_ms / char_count`), see `.planning/phases/26-reader-reading-data/26-READING-CALIBRATION.md`.
+ * Every threshold is inclusive ("이상"): reaching the value exactly counts as met.
  */
 
-/** Reopen provisional reading speed: 1,200 characters per minute. */
+/** Reopen provisional reading speed: 1,200 characters per minute (DB: `reading_completion_config().chars_per_minute`). */
 export const READING_CHARS_PER_MINUTE = 1200;
-/** Research provisional share of the nominal reading time that must be actively spent. */
+/** Share of nominal reading time that must be actively spent (DB: `reading_completion_config().minimum_reading_ratio`). */
 export const MINIMUM_READING_RATIO = 0.5;
-/** Lower bound for any chapter, including empty or very short ones. */
+/** Lower bound for any chapter, including empty or very short ones (DB: `reading_completion_config().minimum_reading_floor_ms`). */
 export const MINIMUM_READING_FLOOR_MS = 30_000;
-/** Client stops counting active time after this long without input (not used by the server). */
+/** Client stops counting active time after this long without input (client-only idle cutoff). */
 export const IDLE_TIMEOUT_MS = 120_000;
-/** The end sentinel must stay fully visible this long. */
+/** The end sentinel must stay fully visible this long (DB: `reading_completion_config().end_sentinel_visible_ms`). */
 export const END_SENTINEL_VISIBLE_MS = 1000;
-/** max_scroll_ratio that counts as "reached the end". */
+/** max_scroll_ratio that counts as "reached the end" (DB: `reading_completion_config().completion_scroll_ratio`). */
 export const COMPLETION_SCROLL_RATIO = 0.98;
-/** Server slack over DB-measured session elapsed time (0024/0025). */
+/** Server slack over DB-measured session elapsed time (DB: `reading_completion_config().active_time_slack_ms`). */
 export const ACTIVE_TIME_SLACK_MS = 5000;
+/** Minimum reached readers required before public work-level rates are exposed (D-10, DB: `reading_completion_config().min_sample_readers`). */
+export const MIN_SAMPLE_READERS = 5;
 
 const isNonNegativeFinite = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0;

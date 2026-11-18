@@ -6,16 +6,17 @@ import {
   IDLE_TIMEOUT_MS,
   MINIMUM_READING_FLOOR_MS,
   MINIMUM_READING_RATIO,
+  MIN_SAMPLE_READERS,
   READING_CHARS_PER_MINUTE,
   completionEligible,
   minimumReadingMs,
 } from '../../lib/reader/completion';
 
-// 03-12 (READ-04): provisional completion thresholds. This module is the client display/unit
-// contract only; the final decision is complete_chapter (0025) on server-stored values.
+// 03-12 (READ-04) / 26-01 (RDATA-02, D-01, D-10): client display/flush copy of completion thresholds.
+// Authoritative source is reading_completion_config() in 0053_reader_completion_config.sql.
 
-describe('provisional constants (LOW confidence, research defaults)', () => {
-  it('pins 1,200 chars/min, ratio 0.5, 30 s floor, 120 s idle, 1 s sentinel, 0.98 ratio, 5 s slack', () => {
+describe('provisional constants (LOW confidence, research defaults, DB copy)', () => {
+  it('pins 1,200 chars/min, ratio 0.5, 30 s floor, 120 s idle, 1 s sentinel, 0.98 ratio, 5 s slack, 5 min sample readers', () => {
     expect(READING_CHARS_PER_MINUTE).toBe(1200);
     expect(MINIMUM_READING_RATIO).toBe(0.5);
     expect(MINIMUM_READING_FLOOR_MS).toBe(30_000);
@@ -23,6 +24,7 @@ describe('provisional constants (LOW confidence, research defaults)', () => {
     expect(END_SENTINEL_VISIBLE_MS).toBe(1000);
     expect(COMPLETION_SCROLL_RATIO).toBe(0.98);
     expect(ACTIVE_TIME_SLACK_MS).toBe(5000);
+    expect(MIN_SAMPLE_READERS).toBe(5);
   });
 });
 

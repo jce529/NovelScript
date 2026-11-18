@@ -145,6 +145,90 @@
 - **멱등 차감(COST-01)이 재시도 로직보다 먼저 와야 한다.** 순서가 뒤집히면 429 재시도가 이중 차감을 만든다.
 - **BYOK 경로는 "상한 0인 서비스 경로"가 아니다.** 현재 `maxOutputTokens <= 0`에서 하드 에러를 던지는 분기를 BYOK에서는 구조적으로 건너뛰어야 한다.
 
+## v1.1 확장 — 공개 출시 범위 (2026-11-13 확정: 최소 플랫폼형 + 작가 허브)
+
+청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있었으나 ID·phase가 없던 영역을 정의한다. 범위 결정: `.planning/gaps/2026-11-13-unassigned-areas-scope.md`. 화면 설계는 목업 보드(21·22·26~29번 등)가 있고, 구현 전 phase별 UI-SPEC에서 확정한다.
+
+### 완독 데이터 (RDATA) — Phase 26
+
+- [ ] **RDATA-01**: 뷰어가 독자의 스크롤 위치(끝 기준)를 회차별로 저장하고 다시 들어오면 그 위치로 복귀시킨다 (비로그인은 저장하지 않음)
+- [ ] **RDATA-02**: 회차 완독은 끝까지 스크롤하고 사람이 읽는 속도 기준 최소 읽기 시간을 넘겼을 때만 인정하며, 너무 빠른 스크롤은 미인정한다 (속도 기준 값은 phase 계획에서 확정하고 설정 상수 하나로 둔다)
+- [ ] **RDATA-03**: 작품별 완독률(회차 도달 독자 중 완독 비율)과 연독률(이전 회차 완독 독자가 다음 회차를 이어 읽은 비율)이 산출된다 — 작가 본인과 본인 확인이 없는 계정(AUTH-07)의 기록은 제외한다
+- [ ] **RDATA-04**: 회차 내 이탈 구간(스크롤 위치별 이탈 분포)이 집계되어 작가 대시보드(HUB-02)와 랭킹·연재 목록·세계수(WTREE-08)가 쓸 수 있는 형태로 제공된다 (기존 인기 점수는 이 지표가 안정될 때까지 병행)
+
+### 독자 검색 (SEARCH) — Phase 27
+
+- [ ] **SEARCH-01**: 독자가 헤더 검색창에서 작품·태그·작가를 검색하고 전체·작품·태그·작가 탭으로 결과를 본다 (자동완성 없음, 발행·공개 작품만 노출)
+- [ ] **SEARCH-02**: 검색창을 누르면 `최근 검색어`(개별·전체 삭제)와 `추천 검색어`(운영 선정 + 최근 인기 검색어, `운영`·`인기` 표시, 비율은 운영 설정값)를 분리해 보여준다
+- [ ] **SEARCH-03**: 작품 결과를 누르면 작품 상세로, 작가 결과(키워드가 이름에 포함된 작가 명단)를 누르면 작가 페이지(APAGE-01)로 이동한다
+- [ ] **SEARCH-04**: 결과가 없으면 화면 안에 안내와 다음 행동 버튼을 보인다 (자동 이동 없음)
+
+### 작가 페이지 (APAGE) — Phase 28
+
+- [ ] **APAGE-01**: 독자가 작가 프로필(소개·작품 수·연재중/완결 수·구독자 수)과 공개 작품 그리드(연재 상태 필터, 업데이트·신작·인기 정렬)를 볼 수 있고, 작품 상세의 작가 이름과 검색 결과에서 진입한다
+- [ ] **APAGE-02**: 독자가 `작가 알림 구독`을 켜고 끌 수 있다(로그인 필요, 구독 중 표시) — 작가의 새 작품·새 회차 알림이며 작품별 알림 구독(READ-07)과 별개로 저장된다. 실제 전달 채널은 정의하지 않고 구독 상태 저장까지가 범위다
+- [ ] **APAGE-03**: 내서재 `알림 구독` 탭(Phase 22)에서 작가별 스위치로 구독을 끄면 알림만 멈추고 목록에는 남으며, 이름을 누르면 작가 페이지로 이동한다
+
+### 댓글 (CMT) — Phase 29
+
+- [ ] **CMT-01**: 독자·작가가 회차 댓글 창에서 댓글을 열람하고 작성한다 (익명 불가, 독자 닉네임 공개, 로그인 필요, 본인 확인이 없는 계정의 제한 여부는 phase 계획에서 확정)
+- [ ] **CMT-02**: 댓글에 답글을 달 수 있고 좋아요를 누를 수 있다
+- [ ] **CMT-03**: 수정은 작성자 본인만, 삭제는 작성자 본인 또는 관리자만 할 수 있다 (작가도 같은 규칙)
+- [ ] **CMT-04**: 댓글·답글을 신고할 수 있다 (본인 글 제외, 사유: 욕설·비하·혐오 / 스포일러 / 광고·도배 / 기타). 작성자가 독자든 작가든 같은 기준이다
+- [ ] **CMT-05**: 관리자가 `댓글 신고` 탭에서 큐·상세를 보고 댓글 숨김 · 경고 · 댓글 정지(1일·7일·30일·영구) · 계정 정지(7일·30일·영구) · 기각을 처리한다 — 기존 작품·회차 신고(ADMIN-01~04)와 탭으로 병렬
+- [ ] **CMT-06**: 작가가 작품 단위로 댓글 허용 여부를 정할 수 있다 (통합 설정 허브 HUB-09의 기본값과 연결). 독자 닉네임 변경 시 이전 댓글에도 새 닉네임이 반영된다 (닉네임 변경 UI와 14일 제한은 RENT-05)
+
+### 작가 허브 (HUB) — Phase 30~32
+
+- [ ] **HUB-01**: 작가 대시보드가 작품 카드 그리드(표지·연재 상태·무료/유료·최신 회차·업데이트일·연독률/완독률, 임시저장 작품 포함)와 `새 작품 만들기`를 보인다 — Phase 19 작품 홈과 역할을 나눈다 (RDATA-03 선행)
+- [ ] **HUB-02**: 선택한 작품의 통계로 KPI 4개(연독률·평균 완독률·누적 조회·선호작)와 그래프 2종(회차별 완독률 / 회차 내 이탈 구간)을 보이고 가장 크게 하락한 지점을 표시한다 (RDATA-04 선행). 작품·회차가 없으면 `데이터 없음`
+- [ ] **HUB-03**: 대시보드 오른쪽에 경제 관리 요약(토큰 잔액·토큰 충전·BYOK 관리 링크, 현금 환전은 비활성 `준비 중`)과 이번 달 작가 크레딧(정산 화면 링크)을 보인다
+- [ ] **HUB-04**: 작가가 경제 관리 상세에서 기간(7일·이번 달·30일)별 KPI·일별 누적 막대(AI 코워커 대화·AI 이미지 생성·회차 구매)·작품별/모델별 소모를 본다 (내 키 모델은 호출 수만 표시하고 `차감 없음`)
+- [ ] **HUB-05**: 작가가 거래 내역 표(전체·소모·충전·작가 크레딧 필터)를 보고 CSV로 내려받는다
+- [ ] **HUB-06**: 작가가 정산·수익 화면에서 기간·작품별 크레딧(소장·대여·누적·결제 독자 수), 일별 막대, 회차별 표를 본다 — 90/10 잠정 안내 배너를 보이고 현금 환전은 지원하지 않는다 (PAY-02 데이터 사용, 대여 건수는 대여 도입 전까지 0)
+- [ ] **HUB-07**: 통합 설정 허브가 계정(프로필·지갑·결제 내역 링크) / AI(기존 키 관리·MCP·사용량 링크) / 작품(알림·공개 설정) 섹션을 좌 메뉴로 묶는다 — 에디터·프로필 메뉴에서 진입하고 기존 `/account`와의 통합 방식은 phase 논의에서 확정한다
+- [ ] **HUB-08**: 작가 프로필 설정에서 작가 이름(2~20자, 독자 닉네임과 별개)·소개를 편집하고 탈퇴(확인 문구 `탈퇴` 입력)로 이동한다
+- [ ] **HUB-09**: 작품 설정에서 새 작품·회차 기본값(선호작 알림·댓글 허용·설정 문서 기본 공개·AI 이미지 표기)과 작품별 유료 회차 기본 가격(10·30·50·100토큰, 이미 발행한 회차는 불변)을 정하고, 에디터 발행 설정에 그 기본값이 미리 선택된다
+
+## v1.2 후보 요구사항 — 공개 출시 이후 (2026-11-13 정의, Phase 33~37)
+
+공개 출시 범위 밖이다. ID와 phase만 확보해 두며 착수 시 discuss에서 범위를 다시 확정한다.
+
+### 소장·대여·정주행 (RENT) — Phase 33
+
+- [ ] **RENT-01**: 유료 회차를 누르면 소장/대여 선택 팝업이 뜨고, 토큰이 부족하면 충전 모달로 갔다가 결제로 복귀한다 (대여 기간은 기존 `entitlements.expires_at` 사용, 스키마 변경 불필요)
+- [ ] **RENT-02**: 대여 회차는 `대여중`(만료 일시 작은 글씨)과 `대여 만료`(빨간색) 두 상태만 표시하고 만료 회차를 누르면 결제 팝업이 뜬다 (대여 알림은 보내지 않음)
+- [ ] **RENT-03**: 뷰어의 `정주행` 토글이 켜져 있으면 보유 토큰이 소진될 때까지 다음 화로 이동할 때마다 자동 결제하고, 소진되면 꺼지며 팝업을 띄운다 (자동 결제 방식은 독자 계정 설정에서 소장/대여 중 선택, 기본 대여)
+- [ ] **RENT-04**: 작가 크레딧 정산이 대여를 포함하고 대여 크레딧 소수 처리 규칙이 확정된다 (PAY-02 확장)
+- [ ] **RENT-05**: 독자 계정 설정에서 닉네임 변경(변경 후 14일 재변경 불가, 남은 일수 표시)과 자동 결제 방식을 바꾼다
+
+### 구독 플랜 · 결제 내역 (SUB) — Phase 34
+
+- [ ] **SUB-01**: 독자·작가가 구독 플랜(무료 / Pro / BYOK 플랜, 가격·지급 토큰은 임시값)을 보고 시작·해지(기간 말일까지 혜택 유지)·해지 취소할 수 있다 — 정기결제(빌링) 인프라가 선행이며 PAY-04를 승격한다
+- [ ] **SUB-02**: 결제 실패는 원인을 보여주지 않고 알림만 띄우며 3일 안에 재결제하지 않으면 자동 종료된다
+- [ ] **SUB-03**: 결제 내역(전체·토큰 충전·구독·환불)에서 영수증을 보고 PDF로 저장한다
+- [ ] **SUB-04**: 충전 후 7일 안 미사용 토큰 등 환불 기준(임시)으로 환불을 요청한다 (환불 기준은 LEGAL 게이트 결과를 따른다)
+
+### 관리자 확장 (ADMIN) — Phase 35
+
+- [ ] **ADMIN-06**: 관리자가 제재 이력 탭에서 사용자별 현재 제재와 경고·댓글 정지·계정 정지·해제 타임라인을 조회한다
+- [ ] **ADMIN-07**: 관리자가 제재를 조기 해제하거나 기간을 바꾸고(이력에 남김), 해제 시 선호작 독자에게 공개 알림만 보낸다
+- [ ] **ADMIN-08**: 정산 보류·상계 규칙이 관리자 화면과 약관 조항(LEGAL)에 맞게 구현된다
+
+### Lore 위키 · 세계관 공개 설정 (LORE) — Phase 36
+
+- [ ] **LORE-01**: 작가가 세계관 공개 설정에서 설정 문서별 공개 스위치·등장 회차·세부 항목 잠금 회차를 정하고 독자 화면 미리보기로 확인한다 (READ-06 승격)
+- [ ] **LORE-02**: 작가가 설정 문서의 AI 시각화 이미지를 생성·업로드·승인·교체·노출 중지하고 독자에게 `AI 생성 이미지` 표기와 함께 노출한다 (생성 비용 20토큰은 임시, 내 키 모델은 지갑 차감 없음)
+- [ ] **LORE-03**: 독자가 세계관 탭에서 진도 이후 항목이 가려진 Lore 위키를 보고, WTREE-09의 세계수 단위 스포일러 잠금이 함께 적용된다
+
+### 에셋 스토어 (STORE) — Phase 37
+
+- [ ] **STORE-01**: 판매자가 세계관·문체 프롬프트·템플릿을 한 세트 가격으로 패키징해 등록한다 (등록 전 확인 통과 필요, 임시저장 지원)
+- [ ] **STORE-02**: 구매자가 스토어에서 검색·필터·장바구니·바로 구매로 에셋을 사고 `내 구매 에셋`에 보관한다 (WTREE-11 연계)
+- [ ] **STORE-03**: 판매자 대시보드에서 수익(90/10 잠정, 토큰 입금)·에셋별 판매·파생작 전시를 본다
+- [ ] **STORE-04**: 에셋 환불·판매 중지·신고 처리는 WTREE-12·13 규칙을 따른다
+- [ ] **STORE-05**: 구매 에셋을 쓴 작품은 작품 상세 소개 탭 맨 아래에 `세계관 출처`를 표기한다
+
 ## 출시 게이트 (LEGAL) — phase가 아닌 출시 조건
 
 코드 phase가 아니라 **서비스 공개 전에 충족해야 하는 조건**이다. 원문·질문 목록은 `.planning/business/` (`이용약관_저작권리스크_대응안.md`, `변호사_자문_필요사항.md`). 이 문서의 AI 검토 결과는 법률 판단이 아니며, 법령 사실은 원문 대조 전까지 확정으로 쓰지 않는다.
@@ -184,7 +268,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Reader
 
-- **READ-06**: Reader-facing opt-in "AI로 작성됨" / lore-wiki showcase — **2026-10-10 결정: Lore 위키 + 스포일러 잠금은 최종 청사진 범위로 승격**(요구사항 정의·phase 배정 대기, 아직 v2 후보로 유지)
+- **READ-06**: Reader-facing opt-in "AI로 작성됨" / lore-wiki showcase — **2026-10-10 결정: Lore 위키 + 스포일러 잠금은 최종 청사진 범위로 승격**(2026-11-13: LORE-01~03·WTREE-09로 Phase 36에 배정, v1.2 후보)
 
 ### Admin
 
@@ -199,7 +283,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Payments
 
-- **PAY-04**: 구독제(월정액 무제한 열람) — 정기결제(빌링) 인프라가 필요하며 v1엔 존재하지 않음. 지금 당장 개발하지 않고, v1 핵심 루프(소장형 결제) 검증 이후 별도 마일스톤에서 재검토할 후보 기능으로만 명시한다. Phase 6(06-CONTEXT.md D-09)에서 v1 범위 밖으로 확인됨.
+- **PAY-04**: [2026-11-13 SUB-01~04로 승격, Phase 34] 구독제(월정액 무제한 열람) — 정기결제(빌링) 인프라가 필요하며 v1엔 존재하지 않음. 지금 당장 개발하지 않고, v1 핵심 루프(소장형 결제) 검증 이후 별도 마일스톤에서 재검토할 후보 기능으로만 명시한다. Phase 6(06-CONTEXT.md D-09)에서 v1 범위 밖으로 확인됨.
 
 ## Out of Scope
 
@@ -207,7 +291,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| 에셋 스토어 (설정집/프롬프트 마켓플레이스) | v1 핵심 루프(집필-열람-결제) 검증 이후로 유예 |
+| 에셋 스토어 (설정집/프롬프트 마켓플레이스) | v1 핵심 루프(집필-열람-결제) 검증 이후로 유예 — 2026-11-13 v1.2 후보로 이동(STORE-01~05, Phase 37) |
 | ~~BYOK (외부 API 키 연동)~~ | v1.0 한정 제외였음 — **v1.1에서 범위 안으로 이동** (BYOK-01~09) |
 | 커스텀 OpenAI 호환 엔드포인트 / 로컬 모델 (Ollama, LM Studio, OpenRouter, LiteLLM) | 서버를 임의 외부 HTTP 프록시로 만들어 SSRF 노출·응답 형태 불확정·단가 추정 불가. 고정 3개 제공자로 한정 |
 | 전역 "BYOK 모드" on/off 토글 | 지난주에 켠 모드는 오늘 누가 돈 내는지 알려주지 못함. 모드는 선택한 모델 + 키 존재 여부에서 파생되고 피커 배지로 노출 (PROV-05) |
@@ -329,6 +413,56 @@ Explicitly excluded. Documented to prevent scope creep.
 | WORKHOME-05 | Phase 19 | Code complete (실화면 UAT pending) |
 | WORKHOME-06 | Phase 19 | Code complete (실화면 UAT pending) |
 | WORKHOME-07 | Phase 19 | Code complete (실화면 UAT pending) |
+| LIST-01 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIST-02 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIST-03 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIST-04 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| RDATA-04 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
+| SEARCH-01 | Phase 27 | Not started (v1.1 확장) |
+| SEARCH-02 | Phase 27 | Not started (v1.1 확장) |
+| SEARCH-03 | Phase 27 | Not started (v1.1 확장) |
+| SEARCH-04 | Phase 27 | Not started (v1.1 확장) |
+| APAGE-01 | Phase 28 | Not started (v1.1 확장) |
+| APAGE-02 | Phase 28 | Not started (v1.1 확장) |
+| APAGE-03 | Phase 28 | Not started (v1.1 확장) |
+| CMT-01 | Phase 29 | Not started (v1.1 확장) |
+| CMT-02 | Phase 29 | Not started (v1.1 확장) |
+| CMT-03 | Phase 29 | Not started (v1.1 확장) |
+| CMT-04 | Phase 29 | Not started (v1.1 확장) |
+| CMT-05 | Phase 29 | Not started (v1.1 확장) |
+| CMT-06 | Phase 29 | Not started (v1.1 확장) |
+| HUB-01 | Phase 30 | Not started (v1.1 확장) |
+| HUB-02 | Phase 30 | Not started (v1.1 확장) |
+| HUB-03 | Phase 30 | Not started (v1.1 확장) |
+| HUB-04 | Phase 31 | Not started (v1.1 확장) |
+| HUB-05 | Phase 31 | Not started (v1.1 확장) |
+| HUB-06 | Phase 31 | Not started (v1.1 확장) |
+| HUB-07 | Phase 32 | Not started (v1.1 확장) |
+| HUB-08 | Phase 32 | Not started (v1.1 확장) |
+| HUB-09 | Phase 32 | Not started (v1.1 확장) |
+| RENT-01 | Phase 33 | Not started (v1.2 후보) |
+| RENT-02 | Phase 33 | Not started (v1.2 후보) |
+| RENT-03 | Phase 33 | Not started (v1.2 후보) |
+| RENT-04 | Phase 33 | Not started (v1.2 후보) |
+| RENT-05 | Phase 33 | Not started (v1.2 후보) |
+| SUB-01 | Phase 34 | Not started (v1.2 후보) |
+| SUB-02 | Phase 34 | Not started (v1.2 후보) |
+| SUB-03 | Phase 34 | Not started (v1.2 후보) |
+| SUB-04 | Phase 34 | Not started (v1.2 후보) |
+| ADMIN-06 | Phase 35 | Not started (v1.2 후보) |
+| ADMIN-07 | Phase 35 | Not started (v1.2 후보) |
+| ADMIN-08 | Phase 35 | Not started (v1.2 후보) |
+| LORE-01 | Phase 36 | Not started (v1.2 후보) |
+| LORE-02 | Phase 36 | Not started (v1.2 후보) |
+| LORE-03 | Phase 36 | Not started (v1.2 후보) |
+| STORE-01 | Phase 37 | Not started (v1.2 후보) |
+| STORE-02 | Phase 37 | Not started (v1.2 후보) |
+| STORE-03 | Phase 37 | Not started (v1.2 후보) |
+| STORE-04 | Phase 37 | Not started (v1.2 후보) |
+| STORE-05 | Phase 37 | Not started (v1.2 후보) |
 | LEGAL-01 | Launch Gate | Not started |
 | LEGAL-02 | Launch Gate | Not started |
 | LEGAL-03 | Launch Gate | Not started |
@@ -340,13 +474,16 @@ Explicitly excluded. Documented to prevent scope creep.
 - 세계수(WTREE): 13 defined / mapped 9 (Phase 18: WTREE-01~08·10) + deferred 4 (WTREE-09는 READ-06 phase, WTREE-11~13은 스토어 보류 해제 후) — v1.1 합계 40과 별도
 - 작품 홈(WORKHOME): 7 defined / mapped 7 (Phase 19) — v1.1 합계 40과 별도
 - v1.1 확장(AUTH-04~08): 5 total / mapped 5 (Phase 24, 번호 인증 화면은 Phase 25)
+- v1.1 확장 — 공개 출시 범위(2026-11-13): 26 defined / mapped 26 (RDATA 4 → Phase 26, SEARCH 4 → 27, APAGE 3 → 28, CMT 6 → 29, HUB 9 → 30~32)
+- v1.2 후보(2026-11-13): 20 defined / mapped 20 (RENT 5 → Phase 33, SUB 4 → 34, ADMIN-06~08 3 → 35, LORE 3 → 36, STORE 5 → 37). WTREE-09는 Phase 36, WTREE-11~13은 Phase 37 이후
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
-- 전체: 75 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- 전체: 121 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-10-12 — 청사진 기준 재판정으로 14개 요구사항을 Reopened 처리(`.planning/gaps/2026-10-12-blueprint-reconcile.md`), 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
+*Last updated: 2026-11-13 — 미배정 청사진 영역을 RDATA·SEARCH·APAGE·CMT·HUB(v1.1 확장, Phase 26~32)와 RENT·SUB·ADMIN-06~08·LORE·STORE(v1.2 후보, Phase 33~37)로 정의*
+*Previously updated: 2026-10-12 — 청사진 기준 재판정으로 14개 요구사항을 Reopened 처리(`.planning/gaps/2026-10-12-blueprint-reconcile.md`), 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
 *Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
 *Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
 *Previously updated: 2026-10-01 — Phase 7·9·10 요구사항 완료 반영, Phase 6 정산 DB 검증 반영, Phase 15 코드 완료·활성화 보류 표기*

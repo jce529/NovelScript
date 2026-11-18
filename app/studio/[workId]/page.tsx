@@ -45,7 +45,13 @@ export default async function WorkHomePage({ params }: { params: Promise<{ workI
       {showReviewPanel && reviewState && (
         <ReviewRequestPanel workId={workId} chapterId={null} initialState={reviewState} />
       )}
-      <WorkHomeContent workId={workId} title={work.title} synopsis={work.synopsis} state={buildWorkHomeState(chapters, kbNodes)} />
+      <WorkHomeContent
+        workId={workId}
+        title={work.title}
+        synopsis={work.synopsis}
+        state={buildWorkHomeState(chapters, kbNodes)}
+        settingsHref={`/studio/${workId}/settings`}
+      />
     </div>
   );
 }
