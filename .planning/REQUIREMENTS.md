@@ -149,6 +149,16 @@
 
 청사진(`design/UI-DESIGN-BACKLOG.md`)에 확정돼 있었으나 ID·phase가 없던 영역을 정의한다. 범위 결정: `.planning/gaps/2026-11-13-unassigned-areas-scope.md`. 화면 설계는 목업 보드(21·22·26~29번 등)가 있고, 구현 전 phase별 UI-SPEC에서 확정한다.
 
+### 내서재 (LIB) — Phase 22
+
+2026-11-18 Phase 22 discuss·UI-SPEC 확정(`22-CONTEXT.md` D-01~D-09, 브랜치 `claude/phase22-my-shelf-161f84`)으로 정의했다.
+
+- [ ] **LIB-01**: 독자가 헤더 `내서재` 탭과 서브 행 4종(이어 읽기·선호작·알림 구독·소장함)으로 내서재에 진입하고, 서브 행이 곧 탭이며 선택 탭·정렬·필터·페이지가 URL에 유지된다. 비로그인은 화면 안 로그인 안내(돌아올 경로 보존), 탭마다 빈 상태 안내와 다음 행동 버튼을 보인다
+- [ ] **LIB-02**: 이어 읽기 탭이 최근 읽은 순으로 작품 전체 진도 바(마지막 읽은 회차 순번 / 공개 회차 수)와 `이어 읽기` 버튼을 보이고, 숨겨진 회차는 `볼 수 없음`으로 표시한다. X는 목록에서만 숨기며(실행 취소 가능) 진도·완독 기록은 유지하고, 다시 읽으면 목록에 돌아온다
+- [ ] **LIB-03**: 선호작 탭이 `최근 업데이트순`·`최근 추가순`·`제목순` 정렬을 제공하고, 안 읽은 새 회차가 있는 작품에 `새 회차` 배지를 붙인다
+- [ ] **LIB-04**: 알림 구독 탭이 작품 알림(작품별 스위치)과 작가 알림(작가별 스위치, APAGE-03)을 보이고, 스위치를 꺼도 목록에 남는다(`알림 꺼짐`). 작품 알림은 `work_subscriptions`의 알림 여부 플래그로 행을 유지하며 작품 상세의 알림 버튼도 같은 플래그를 토글한다
+- [ ] **LIB-05**: 소장함 탭이 소장한 유료 회차를 작품별로 묶어 `전체`·`소장중` 필터로 보이고, 소유 상태 계산은 소장/대여중/대여 만료를 구분할 수 있게 만든다(대여 필터·팝업은 Phase 33, RENT)
+
 ### 완독 데이터 (RDATA) — Phase 26
 
 - [ ] **RDATA-01**: 뷰어가 독자의 스크롤 위치(끝 기준)를 회차별로 저장하고 다시 들어오면 그 위치로 복귀시킨다 (비로그인은 저장하지 않음)
@@ -417,6 +427,11 @@ Explicitly excluded. Documented to prevent scope creep.
 | LIST-02 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
 | LIST-03 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
 | LIST-04 | Phase 21 | Code complete (0056 일회용 DB 적용, 브라우저 화면 확인 pending, 공유 DB 미적용) |
+| LIB-01 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
+| LIB-02 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
+| LIB-03 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
+| LIB-04 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
+| LIB-05 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
 | RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
 | RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
 | RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
@@ -476,13 +491,14 @@ Explicitly excluded. Documented to prevent scope creep.
 - v1.1 확장(AUTH-04~08): 5 total / mapped 5 (Phase 24, 번호 인증 화면은 Phase 25)
 - v1.1 확장 — 공개 출시 범위(2026-11-13): 26 defined / mapped 26 (RDATA 4 → Phase 26, SEARCH 4 → 27, APAGE 3 → 28, CMT 6 → 29, HUB 9 → 30~32)
 - v1.2 후보(2026-11-13): 20 defined / mapped 20 (RENT 5 → Phase 33, SUB 4 → 34, ADMIN-06~08 3 → 35, LORE 3 → 36, STORE 5 → 37). WTREE-09는 Phase 36, WTREE-11~13은 Phase 37 이후
+- 내서재(LIB, 2026-11-18): 5 defined / mapped 5 (Phase 22)
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
-- 전체: 121 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- 전체: 126 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-11-13 — 미배정 청사진 영역을 RDATA·SEARCH·APAGE·CMT·HUB(v1.1 확장, Phase 26~32)와 RENT·SUB·ADMIN-06~08·LORE·STORE(v1.2 후보, Phase 33~37)로 정의*
+*Last updated: 2026-11-18 — Phase 22 내서재 요구사항 LIB-01~05 정의(discuss·UI-SPEC 확정). 이전: 2026-11-13 — 미배정 청사진 영역을 RDATA·SEARCH·APAGE·CMT·HUB(v1.1 확장, Phase 26~32)와 RENT·SUB·ADMIN-06~08·LORE·STORE(v1.2 후보, Phase 33~37)로 정의*
 *Previously updated: 2026-10-12 — 청사진 기준 재판정으로 14개 요구사항을 Reopened 처리(`.planning/gaps/2026-10-12-blueprint-reconcile.md`), 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
 *Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
 *Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*

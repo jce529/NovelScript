@@ -724,12 +724,15 @@ Plans:
 ### Phase 22: 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함)
 
 **Goal:** 독자가 헤더의 내서재 탭에서 서브 행 4종(이어 읽기·선호작·알림 구독·소장함)을 탭으로 쓰는 내서재 화면을 본다. 이어 읽기는 진도 바와 기록 삭제, 선호작은 정렬 3종과 `새 회차` 배지, 알림 구독은 작품 알림 스위치, 소장함은 소유 상태 필터를 제공한다. 비로그인·빈 상태는 화면 안 안내와 다음 행동 버튼으로 처리한다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 18번.
-**Requirements**: TBD
-**Depends on:** Phase 21 (목록·카드 구조 재사용), Phase 3 (독자 진도·선호작·구독), Phase 6 (소장함의 구매 상태). 작가 알림 스위치는 작가 페이지 phase가 생길 때까지 제외
+**Requirements**: LIB-01, LIB-02, LIB-03, LIB-04, LIB-05
+**Depends on:** Phase 21 (목록 구조), Phase 3 (독자 진도·선호작·구독), Phase 6 (소장함의 구매 상태), Phase 28 (작가 알림 스위치 — 구독 조회·토글 API. 22 실행은 28 병합 뒤)
+**Migration:** 0061 배정(2026-11-18, `work_subscriptions` 알림 여부·`reading_progress` 숨김 표시, 한 파일로 묶어도 됨)
 **Plans:** 0 plans
 
+**Status (2026-11-18):** discuss(`22-CONTEXT.md` D-01~D-09)·UI-SPEC(checker 승인, 목업 Artifact) 완료, 사용자 검증 끝. 산출물은 브랜치 `claude/phase22-my-shelf-161f84`(`2a27757`·`beaebdc`)에 있고 master 미병합. 소장함 대여 필터·팝업은 Phase 33으로 미룸.
+
 Plans:
-- [ ] TBD (run /gsd:plan-phase 22 to break down)
+- [ ] TBD (run /gsd:plan-phase 22 to break down — Phase 28 PLAN의 함수명·DTO에 맞춘다)
 
 ### Phase 23: 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작)
 
@@ -966,7 +969,7 @@ Plans:
 | 19. 작가용 작품 홈 디자인 (`/studio/[workId]`) | 4/4 | Complete (실화면 UAT pending) | 2026-11-01 |
 | 20. 최종 모바일 실기기 확인 | 0/0 | Not planned | - |
 | 21. 독자용 연재 목록 (무료·유료 연재, 서브 행 필터) | 4/4 | Code complete — 0056 일회용 DB 적용(2026-11-17). 브라우저 화면 확인 pending, 공유 DB 미적용. agy 구현·Claude 검수 | - |
-| 22. 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함) | 0/0 | Not planned | - |
+| 22. 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함) | 0/0 | Discussed + UI-SPEC approved (브랜치 미병합) — plan 전, 28 병합 후 실행 | - |
 | 23. 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작) | 0/0 | Not planned | - |
 | 24. 이메일 가입 · 비밀번호 로그인 (+ 미인증 제한) | 0/0 | Code complete (GSD plan 없이 구현, 메일 가입 end-to-end 미검증) | - |
 | 25. 본인 확인 수단 연결 (번호 인증 · 소셜 연결) | 0/0 | Not planned | - |

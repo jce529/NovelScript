@@ -144499,6 +144499,66 @@
       "description": "작품 설정에서 새 작품·회차 기본값(선호작 알림·댓글 허용·설정 문서 기본 공개·AI 이미지 표기)과 작품별 유료 회차 기본 가격(10·30·50·100토큰, 이미 발행한 회차는 불변)을 정하고, 에디터 발행 설정에 그 기본값이 미리 선택된다"
     },
     {
+      "id": "req_lib_01",
+      "label": "LIB-01",
+      "norm_label": "lib-01",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "source_location": null,
+      "_origin": "req-link",
+      "requirement_status": "Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정)",
+      "requirement_phase": "Phase 22",
+      "description": "독자가 헤더 `내서재` 탭과 서브 행 4종(이어 읽기·선호작·알림 구독·소장함)으로 내서재에 진입하고, 서브 행이 곧 탭이며 선택 탭·정렬·필터·페이지가 URL에 유지된다. 비로그인은 화면 안 로그인 안내(돌아올 경로 보존), 탭마다 빈 상태 안내와 다음 행동 버튼을 보인다"
+    },
+    {
+      "id": "req_lib_02",
+      "label": "LIB-02",
+      "norm_label": "lib-02",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "source_location": null,
+      "_origin": "req-link",
+      "requirement_status": "Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정)",
+      "requirement_phase": "Phase 22",
+      "description": "이어 읽기 탭이 최근 읽은 순으로 작품 전체 진도 바(마지막 읽은 회차 순번 / 공개 회차 수)와 `이어 읽기` 버튼을 보이고, 숨겨진 회차는 `볼 수 없음`으로 표시한다. X는 목록에서만 숨기며(실행 취소 가능) 진도·완독 기록은 유지하고, 다시 읽으면 목록에 돌아온다"
+    },
+    {
+      "id": "req_lib_03",
+      "label": "LIB-03",
+      "norm_label": "lib-03",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "source_location": null,
+      "_origin": "req-link",
+      "requirement_status": "Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정)",
+      "requirement_phase": "Phase 22",
+      "description": "선호작 탭이 `최근 업데이트순`·`최근 추가순`·`제목순` 정렬을 제공하고, 안 읽은 새 회차가 있는 작품에 `새 회차` 배지를 붙인다"
+    },
+    {
+      "id": "req_lib_04",
+      "label": "LIB-04",
+      "norm_label": "lib-04",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "source_location": null,
+      "_origin": "req-link",
+      "requirement_status": "Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정)",
+      "requirement_phase": "Phase 22",
+      "description": "알림 구독 탭이 작품 알림(작품별 스위치)과 작가 알림(작가별 스위치, APAGE-03)을 보이고, 스위치를 꺼도 목록에 남는다(`알림 꺼짐`). 작품 알림은 `work_subscriptions`의 알림 여부 플래그로 행을 유지하며 작품 상세의 알림 버튼도 같은 플래그를 토글한다"
+    },
+    {
+      "id": "req_lib_05",
+      "label": "LIB-05",
+      "norm_label": "lib-05",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "source_location": null,
+      "_origin": "req-link",
+      "requirement_status": "Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정)",
+      "requirement_phase": "Phase 22",
+      "description": "소장함 탭이 소장한 유료 회차를 작품별로 묶어 `전체`·`소장중` 필터로 보이고, 소유 상태 계산은 소장/대여중/대여 만료를 구분할 수 있게 만든다(대여 필터·팝업은 Phase 33, RENT)"
+    },
+    {
       "id": "req_list_01",
       "label": "LIST-01",
       "norm_label": "list-01",
@@ -393710,7 +393770,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_apage_02",
@@ -393767,7 +393827,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_apage_03",
@@ -393802,7 +393862,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_auth_01",
@@ -394271,7 +394331,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 747
+      "line": 750
     },
     {
       "source": "req_auth_04",
@@ -394372,7 +394432,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 747
+      "line": 750
     },
     {
       "source": "req_auth_05",
@@ -394473,7 +394533,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 747
+      "line": 750
     },
     {
       "source": "req_auth_06",
@@ -394552,7 +394612,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 747
+      "line": 750
     },
     {
       "source": "req_auth_07",
@@ -394620,7 +394680,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 747
+      "line": 750
     },
     {
       "source": "req_auth_08",
@@ -397335,7 +397395,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_cmt_02",
@@ -397392,7 +397452,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_cmt_03",
@@ -397449,7 +397509,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_cmt_04",
@@ -397506,7 +397566,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_cmt_05",
@@ -397596,7 +397656,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_cmt_06",
@@ -397675,7 +397735,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_cost_01",
@@ -398330,7 +398390,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_02",
@@ -398365,7 +398425,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_03",
@@ -398400,7 +398460,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_04",
@@ -398435,7 +398495,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_05",
@@ -398470,7 +398530,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_06",
@@ -398505,7 +398565,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_07",
@@ -398540,7 +398600,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_08",
@@ -398575,7 +398635,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_hub_09",
@@ -398610,7 +398670,182 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
+    },
+    {
+      "source": "req_lib_01",
+      "target": "_planning_requirements_v1_requirements",
+      "relation": "defined_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "traceability"
+    },
+    {
+      "source": "req_lib_01",
+      "target": "_planning_roadmap_delivery_roadmap",
+      "relation": "scheduled_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 727
+    },
+    {
+      "source": "req_lib_01",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
+    },
+    {
+      "source": "req_lib_02",
+      "target": "_planning_requirements_v1_requirements",
+      "relation": "defined_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "traceability"
+    },
+    {
+      "source": "req_lib_02",
+      "target": "_planning_roadmap_delivery_roadmap",
+      "relation": "scheduled_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 727
+    },
+    {
+      "source": "req_lib_02",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
+    },
+    {
+      "source": "req_lib_03",
+      "target": "_planning_requirements_v1_requirements",
+      "relation": "defined_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "traceability"
+    },
+    {
+      "source": "req_lib_03",
+      "target": "_planning_roadmap_delivery_roadmap",
+      "relation": "scheduled_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 727
+    },
+    {
+      "source": "req_lib_03",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
+    },
+    {
+      "source": "req_lib_04",
+      "target": "_planning_requirements_v1_requirements",
+      "relation": "defined_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "traceability"
+    },
+    {
+      "source": "req_lib_04",
+      "target": "_planning_roadmap_delivery_roadmap",
+      "relation": "scheduled_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 727
+    },
+    {
+      "source": "req_lib_04",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
+    },
+    {
+      "source": "req_lib_05",
+      "target": "_planning_requirements_v1_requirements",
+      "relation": "defined_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "traceability"
+    },
+    {
+      "source": "req_lib_05",
+      "target": "_planning_roadmap_delivery_roadmap",
+      "relation": "scheduled_in",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 727
+    },
+    {
+      "source": "req_lib_05",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
     },
     {
       "source": "req_list_01",
@@ -399408,7 +399643,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_lore_02",
@@ -399443,7 +399678,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_lore_03",
@@ -399478,7 +399713,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_mcp_01",
@@ -403802,7 +404037,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_rdata_01",
@@ -403914,7 +404149,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_rdata_02",
@@ -404015,7 +404250,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_rdata_03",
@@ -404094,7 +404329,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_rdata_04",
@@ -404162,7 +404397,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_rent_02",
@@ -404197,7 +404432,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_rent_03",
@@ -404232,7 +404467,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_rent_04",
@@ -404267,7 +404502,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_rent_05",
@@ -404302,7 +404537,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_search_01",
@@ -404381,7 +404616,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_search_01",
@@ -404471,7 +404706,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_search_02",
@@ -404517,7 +404752,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_search_04",
@@ -404552,7 +404787,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_store_01",
@@ -404587,7 +404822,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     },
     {
       "source": "req_store_02",
@@ -404622,7 +404857,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     },
     {
       "source": "req_store_03",
@@ -404657,7 +404892,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     },
     {
       "source": "req_store_04",
@@ -404692,7 +404927,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     },
     {
       "source": "req_store_05",
@@ -404727,7 +404962,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     },
     {
       "source": "req_studio_01",
@@ -405353,7 +405588,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_sub_02",
@@ -405388,7 +405623,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_sub_03",
@@ -405423,7 +405658,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_sub_04",
@@ -405458,7 +405693,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_workhome_01",
@@ -409423,7 +409658,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     },
     {
       "source": "req_wtree_13",
@@ -409458,7 +409693,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 113
+      "line": 114
     }
   ],
   "hyperedges": [
@@ -409837,5 +410072,5 @@
       "source_file": "docs/ssot/epics/0oF0HLK2dJTtWk5Y-fQCJ/overview.md"
     }
   ],
-  "built_at_commit": "2c5eeb30354287f9b685d268ee48b8703c7ca85e"
+  "built_at_commit": "121a0b07b6caaf1ef37019b4f98f0255c4b06a33"
 }

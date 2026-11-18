@@ -1,7 +1,7 @@
 # Graph Report - NovelScript  (2026-11-18)
 
 ## Corpus Check
-- 1616 files · ~1,449,014 words
+- 1616 files · ~1,449,436 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 33 file(s) not represented in the graph (top: .jsonl 18, (none) 9, .css 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2c5eeb30`
+- Built from commit: `121a0b07`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -701,16 +701,16 @@
 10. `@supabase/supabase-js` - 108 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Task order and test evidence` --references--> `getChapterAction()`  [INFERRED]
-  .planning/phases/09-openai-anthropic/09-05-SUMMARY.md → app/studio/[workId]/chapters/[chapterId]/actions.ts
-- `Accomplishments` --references--> `ChatActionInput`  [INFERRED]
-  .planning/phases/08-provider-adapter-idempotent-debit/08-05-SUMMARY.md → app/studio/[workId]/chapters/[chapterId]/actions.ts
-- `Q1 결과: 지갑 변경은 원자적, AI 요청 전체는 비원자적` --references--> `chatAction()`  [INFERRED]
-  docs/GRAPHIFY-INVESTIGATION-QUESTIONS.md → app/studio/[workId]/chapters/[chapterId]/actions.ts
-- `Verification` --references--> `chatAction()`  [INFERRED]
-  .planning/phases/04-ai-gateway-mention-based-generation/04-10-SUMMARY.md → app/studio/[workId]/chapters/[chapterId]/actions.ts
-- `Integration Points` --references--> `chatAction()`  [INFERRED]
-  .planning/phases/08-provider-adapter-idempotent-debit/08-CONTEXT.md → app/studio/[workId]/chapters/[chapterId]/actions.ts
+- `사전 단계: requireOwnedWork 통합` --references--> `McpToolError`  [INFERRED]
+  .planning/phases/13-mcp-read-context/13-05-SUMMARY.md → lib/mcp/tool-runtime.ts
+- `Suggestions` --references--> `DecisionCallError`  [INFERRED]
+  .planning/phases/15-jev-ai/15-REVIEWS.md → lib/ai/decision/errors.ts
+- `Architecture and File Responsibilities` --references--> `GenerateResult`  [INFERRED]
+  .planning/phases/08-provider-adapter-idempotent-debit/08-RESEARCH.md → lib/ai/providers/types.ts
+- `Anti-Patterns Found` --references--> `ModelTier`  [INFERRED]
+  .planning/phases/08-provider-adapter-idempotent-debit/08-VERIFICATION.md → lib/ai/providers/types.ts
+- `모델 카탈로그` --references--> `ModelTier`  [INFERRED]
+  .planning/phases/09-openai-anthropic/09-CONTEXT.md → lib/ai/providers/types.ts
 
 ## Import Cycles
 - None detected.
@@ -2917,16 +2917,16 @@ Nodes (8): classifyUploadFilesAction(), importClassifiedFilesAction(), documentN
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `vitest` connect `vitest` to `providers/types.ts`, `reading-metrics.ts`, `plan.ts`, `dependencies`, `mcp/auth.ts`, `viewer-settings-sheet.tsx`, `devDependencies`, `eligibility.ts`, `cn`, `series-list-content.tsx`, `kb-node-menu.tsx`, `layout.ts`, `proposal-detail.tsx`, `entrypoints.test.ts`, `route-auth.test.ts`, `react`, `createClient`, `wallet-status.ts`, `works/[workId]/chapters/[chapterId]/actions.ts`, `mobile-workspace-wiring.test.ts`, `templates.ts`, `connections.ts`, `sanction-adjustment.database.test.ts`, `checkWriteAccess`, `view-count.database.test.ts`, `works/[workId]/chapters/[chapterId]/page.tsx`, `[nodeId]/actions.ts`, `navigation.ts`, `viewer-shell.tsx`, `branches.ts`, `ref_node_fs`, `settlement.test.ts`, `schema-source.test.ts`, `public-read-cost.database.test.ts`, `refine.ts`, `success/route.ts`, `commerce/concurrency.database.test.ts`, `database.test.ts`, `catalog.database.test.ts`, `UploadFilesDialog`, `proposals/queries.ts`, `timeline.ts`, `proposals/actions.ts`, `unblind-notifications.database.test.ts`, `run-eval.ts`, `use-topup-flow.ts`, `react`, `requireAdminPage`, `shadow.ts`, `chat-result.ts`, `MCP-06`, `reports-cleanup.database.test.ts`, `world-tree-detail.tsx`, `app/page.tsx`, `inbox.tsx`, `work-list.ts`, `studio/[workId]/chapters/[chapterId]/page.tsx`, `byok.ts`, `jev-plan.test.ts`, `queries.test.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `admin/queries.ts`, `chat`, `moderation-form.tsx`, `chapter-reading.ts`, `sanction-history.tsx`, `reading-progress.test.ts`, `branch-wizard.tsx`, `tree-move-ui.test.ts`, `use-reading-progress.ts`, `serial-status.test.ts`, `kb-tree.tsx`, `lib/admin/actions.ts`, `system-instruction-state.ts`, `@supabase/supabase-js`, `mcp-oauth.ts`, `activation.ts`, `works/[workId]/page.tsx`, `WTREE-03`, `user-actions.ts`, `world-tree/types.ts`, `completion.database.test.ts`, `world/actions.ts`, `pending-badges.tsx`, `sanctions.test.ts`, `SaveDocumentPlanModal.tsx`, `cleanup-uat-accounts.database.test.ts`, `blinding.database.test.ts`, `catalog.test.ts`, `mobile-tabs.tsx`, `admin/types.ts`, `move-rules.ts`, `progress/route.ts`, `tools-works.test.ts`, `chapter-dropoff-migration.test.ts`, `chapter-dropoff.database.test.ts`, `client-bundle-fs-free.test.ts`, `timeline.database.test.ts`, `work-reading-metrics-migration.test.ts`, `metric-adapter.ts`, `work-instructions.ts`, `getWorkSystemInstruction`, `payment-flow.integration.test.ts`, `folder-candidates.test.ts`, `operations.database.test.ts`, `branching.database.test.ts`, `admin/concurrency.database.test.ts`, `foundation.database.test.ts`, `tool-annotations.test.ts`, `[workId]/layout.tsx`, `NovelScript v1 Requirements`, `kb/actions.ts`, `amount-tamper.test.ts`, `paid-generation.ts`, `classifyUploadFilesAction`, `tool-runtime.ts`, `KbCategory`, `payments/actions.ts`, `password-actions.ts`, `webhook/route.ts`, `template-copy.test.ts`, `login-return.test.ts`, `MCP-01`, `lucide-react`, `sanctions.database.test.ts`, `reading-state.database.test.ts`?**
-  _High betweenness centrality (0.197) - this node is a cross-community bridge._
+  _High betweenness centrality (0.168) - this node is a cross-community bridge._
 - **What connects `RFC-9728`, `RFC-9728`, `Login Error Screen State` to the rest of the system?**
   _140 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `providers/types.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.027759107406909532 - nodes in this community are weakly interconnected._
 - **Why does `@supabase/supabase-js` connect `sanctions.test.ts` to `vitest`, `paid-generation.ts`, `plan.ts`, `proposals/actions.ts`, `dependencies`, `mcp/auth.ts`, `serial-status.test.ts`, `tool-runtime.ts`, `KbCategory`, `series-list-content.tsx`, `owner.ts`, `run-eval.ts`, `lib/admin/actions.ts`, `entrypoints.test.ts`, `@supabase/supabase-js`, `createClient`, `wallet-status.ts`, `works/[workId]/chapters/[chapterId]/actions.ts`, `requireAdminPage`, `templates.ts`, `connections.ts`, `activation.ts`, `mcp-oauth.ts`, `works/[workId]/page.tsx`, `checkWriteAccess`, `template-copy.test.ts`, `works/[workId]/chapters/[chapterId]/page.tsx`, `user-actions.ts`, `shadow.ts`, `branches.ts`, `completion.database.test.ts`, `ref_node_fs`, `world/actions.ts`, `reports-cleanup.database.test.ts`, `app/page.tsx`, `cleanup-uat-accounts.database.test.ts`, `writing-context.ts`, `move-rules.ts`, `proposals.ts`, `work-list.ts`, `byok.ts`, `chapter-dropoff.database.test.ts`, `refine.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `world-tree/queries.ts`, `admin/queries.ts`, `metric-adapter.ts`, `chat`, `work-instructions.ts`, `chapter-reading.ts`, `proposals/queries.ts`, `reading-progress.test.ts`, `timeline.ts`, `kb/actions.ts`, `reading-state.database.test.ts`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Should `vitest` be split into smaller, more focused modules?**
   _Cohesion score 0.0772520716385993 - nodes in this community are weakly interconnected._
-- **Why does `chatAction()` connect `chat` to `providers/types.ts`, `paid-generation.ts`, `plan.ts`, `classifyUploadFilesAction`, `Phase 8 — UI Design Contract`, `KbCategory`, `@supabase/supabase-js`, `createClient`, `Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Context`, `checkWriteAccess`, `Phase 4 Plan 10: AI 패널 지시 편집 UX와 피커·상한 계약 소비 Summary`, `Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 - Context`, `shadow.ts`, `Goal Achievement`, `Phase 8: 프로바이더 어댑터 기반 · 멱등 차감 수정 — Research`, `chat-result.ts`, `trackChapterOpenAction`, `byok.ts`, `jev-plan.test.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `Phase 9 Plan 04 Summary`, `Phase 10: BYOK 키 등록 · 검증 · 관리 + 모델 피커 배지 - Research`, `getWorkSystemInstruction`, `총평`, `NovelScript v1 Requirements`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+- **Why does `createClient()` connect `createClient` to `proposals/actions.ts`, `classifyUploadFilesAction`, `serial-status.test.ts`, `KbCategory`, `series-list-content.tsx`, `cn`, `owner.ts`, `payments/actions.ts`, `proposal-detail.tsx`, `entrypoints.test.ts`, `react`, `wallet-status.ts`, `works/[workId]/chapters/[chapterId]/actions.ts`, `password-actions.ts`, `connections.ts`, `works/[workId]/page.tsx`, `checkWriteAccess`, `works/[workId]/chapters/[chapterId]/page.tsx`, `[nodeId]/actions.ts`, `user-actions.ts`, `MCP-01`, `trackChapterOpenAction`, `world/actions.ts`, `pending-badges.tsx`, `sanctions.test.ts`, `app/page.tsx`, `proposal-queue.tsx`, `listChapters`, `inbox.tsx`, `mobile-tabs.tsx`, `progress/route.ts`, `studio/[workId]/chapters/[chapterId]/page.tsx`, `byok.ts`, `refine.ts`, `studio/[workId]/chapters/[chapterId]/actions.ts`, `chat`, `getWorkSystemInstruction`, `tree-dnd.tsx`, `UploadFilesDialog`, `NovelScript v1 Requirements`?**
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Should `plan.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.10570824524312897 - nodes in this community are weakly interconnected._
