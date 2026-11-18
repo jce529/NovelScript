@@ -144002,7 +144002,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (28-01~04, 0057)",
       "requirement_phase": "Phase 28",
       "description": "독자가 작가 프로필(소개·작품 수·연재중/완결 수·구독자 수)과 공개 작품 그리드(연재 상태 필터, 업데이트·신작·인기 정렬)를 볼 수 있고, 작품 상세의 작가 이름과 검색 결과에서 진입한다"
     },
@@ -144014,7 +144014,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (28-01~04, 0057)",
       "requirement_phase": "Phase 28",
       "description": "독자가 `작가 알림 구독`을 켜고 끌 수 있다(로그인 필요, 구독 중 표시) — 작가의 새 작품·새 회차 알림이며 작품별 알림 구독(READ-07)과 별개로 저장된다. 실제 전달 채널은 정의하지 않고 구독 상태 저장까지가 범위다"
     },
@@ -144026,7 +144026,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (28-01~04, 0057)",
       "requirement_phase": "Phase 28",
       "description": "내서재 `알림 구독` 탭(Phase 22)에서 작가별 스위치로 구독을 끄면 알림만 멈추고 목록에는 남으며, 이름을 누르면 작가 페이지로 이동한다"
     },
@@ -144302,7 +144302,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (29-01~09, 0059·0060)",
       "requirement_phase": "Phase 29",
       "description": "독자·작가가 회차 댓글 창에서 댓글을 열람하고 작성한다 (익명 불가, 독자 닉네임 공개, 로그인 필요, 본인 확인이 없는 계정의 제한 여부는 phase 계획에서 확정)"
     },
@@ -144314,7 +144314,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (29-01~09, 0059·0060)",
       "requirement_phase": "Phase 29",
       "description": "댓글에 답글을 달 수 있고 좋아요를 누를 수 있다"
     },
@@ -144326,7 +144326,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (29-01~09, 0059·0060)",
       "requirement_phase": "Phase 29",
       "description": "수정은 작성자 본인만, 삭제는 작성자 본인 또는 관리자만 할 수 있다 (작가도 같은 규칙)"
     },
@@ -144338,7 +144338,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (29-01~09, 0059·0060)",
       "requirement_phase": "Phase 29",
       "description": "댓글·답글을 신고할 수 있다 (본인 글 제외, 사유: 욕설·비하·혐오 / 스포일러 / 광고·도배 / 기타). 작성자가 독자든 작가든 같은 기준이다"
     },
@@ -144350,7 +144350,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (29-01~09, 0059·0060)",
       "requirement_phase": "Phase 29",
       "description": "관리자가 `댓글 신고` 탭에서 큐·상세를 보고 댓글 숨김 · 경고 · 댓글 정지(1일·7일·30일·영구) · 계정 정지(7일·30일·영구) · 기각을 처리한다 — 기존 작품·회차 신고(ADMIN-01~04)와 탭으로 병렬"
     },
@@ -144362,7 +144362,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned, 실행 중 (29-01~09, 0059·0060)",
       "requirement_phase": "Phase 29",
       "description": "작가가 작품 단위로 댓글 허용 여부를 정할 수 있다 (통합 설정 허브 HUB-09의 기본값과 연결). 독자 닉네임 변경 시 이전 댓글에도 새 닉네임이 반영된다 (닉네임 변경 UI와 14일 제한은 RENT-05)"
     },
@@ -144890,7 +144890,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용)",
+      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용)",
       "requirement_phase": "Phase 26",
       "description": "뷰어가 독자의 스크롤 위치(끝 기준)를 회차별로 저장하고 다시 들어오면 그 위치로 복귀시킨다 (비로그인은 저장하지 않음)"
     },
@@ -144902,7 +144902,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용)",
+      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용)",
       "requirement_phase": "Phase 26",
       "description": "회차 완독은 끝까지 스크롤하고 사람이 읽는 속도 기준 최소 읽기 시간을 넘겼을 때만 인정하며, 너무 빠른 스크롤은 미인정한다 (속도 기준 값은 phase 계획에서 확정하고 설정 상수 하나로 둔다)"
     },
@@ -144914,7 +144914,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용)",
+      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용)",
       "requirement_phase": "Phase 26",
       "description": "작품별 완독률(회차 도달 독자 중 완독 비율)과 연독률(이전 회차 완독 독자가 다음 회차를 이어 읽은 비율)이 산출된다 — 작가 본인과 본인 확인이 없는 계정(AUTH-07)의 기록은 제외한다"
     },
@@ -144926,7 +144926,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용)",
+      "requirement_status": "Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용)",
       "requirement_phase": "Phase 26",
       "description": "회차 내 이탈 구간(스크롤 위치별 이탈 분포)이 집계되어 작가 대시보드(HUB-02)와 랭킹·연재 목록·세계수(WTREE-08)가 쓸 수 있는 형태로 제공된다 (기존 인기 점수는 이 지표가 안정될 때까지 병행)"
     },
@@ -144998,7 +144998,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned (27-01~06, 실행 전, 0058)",
       "requirement_phase": "Phase 27",
       "description": "독자가 헤더 검색창에서 작품·태그·작가를 검색하고 전체·작품·태그·작가 탭으로 결과를 본다 (자동완성 없음, 발행·공개 작품만 노출)"
     },
@@ -145010,7 +145010,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned (27-01~06, 실행 전, 0058)",
       "requirement_phase": "Phase 27",
       "description": "검색창을 누르면 `최근 검색어`(개별·전체 삭제)와 `추천 검색어`(운영 선정 + 최근 인기 검색어, `운영`·`인기` 표시, 비율은 운영 설정값)를 분리해 보여준다"
     },
@@ -145022,7 +145022,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned (27-01~06, 실행 전, 0058)",
       "requirement_phase": "Phase 27",
       "description": "작품 결과를 누르면 작품 상세로, 작가 결과(키워드가 이름에 포함된 작가 명단)를 누르면 작가 페이지(APAGE-01)로 이동한다"
     },
@@ -145034,7 +145034,7 @@
       "source_file": ".planning/REQUIREMENTS.md",
       "source_location": null,
       "_origin": "req-link",
-      "requirement_status": "Not started (v1.1 확장)",
+      "requirement_status": "Planned (27-01~06, 실행 전, 0058)",
       "requirement_phase": "Phase 27",
       "description": "결과가 없으면 화면 안에 안내와 다음 행동 버튼을 보인다 (자동 이동 없음)"
     },
@@ -393818,7 +393818,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_apage_02",
@@ -393875,7 +393875,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_apage_03",
@@ -393910,7 +393910,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 108
+      "line": 109
     },
     {
       "source": "req_auth_01",
@@ -394379,7 +394379,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 753
+      "line": 756
     },
     {
       "source": "req_auth_04",
@@ -394480,7 +394480,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 753
+      "line": 756
     },
     {
       "source": "req_auth_05",
@@ -394581,7 +394581,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 753
+      "line": 756
     },
     {
       "source": "req_auth_06",
@@ -394660,7 +394660,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 753
+      "line": 756
     },
     {
       "source": "req_auth_07",
@@ -394728,7 +394728,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 753
+      "line": 756
     },
     {
       "source": "req_auth_08",
@@ -397443,7 +397443,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_cmt_02",
@@ -397500,7 +397500,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_cmt_03",
@@ -397557,7 +397557,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_cmt_04",
@@ -397614,7 +397614,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_cmt_05",
@@ -397704,7 +397704,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_cmt_06",
@@ -397783,7 +397783,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 109
+      "line": 110
     },
     {
       "source": "req_cost_01",
@@ -398438,7 +398438,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_02",
@@ -398473,7 +398473,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_03",
@@ -398508,7 +398508,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_04",
@@ -398543,7 +398543,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_05",
@@ -398578,7 +398578,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_06",
@@ -398613,7 +398613,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_07",
@@ -398648,7 +398648,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_08",
@@ -398683,7 +398683,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_hub_09",
@@ -398718,7 +398718,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 110
+      "line": 111
     },
     {
       "source": "req_lib_01",
@@ -398741,7 +398741,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 727
+      "line": 730
     },
     {
       "source": "req_lib_01",
@@ -398753,7 +398753,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_lib_02",
@@ -398776,7 +398776,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 727
+      "line": 730
     },
     {
       "source": "req_lib_02",
@@ -398788,7 +398788,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_lib_03",
@@ -398811,7 +398811,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 727
+      "line": 730
     },
     {
       "source": "req_lib_03",
@@ -398823,7 +398823,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_lib_04",
@@ -398846,7 +398846,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 727
+      "line": 730
     },
     {
       "source": "req_lib_04",
@@ -398858,7 +398858,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_lib_05",
@@ -398881,7 +398881,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 727
+      "line": 730
     },
     {
       "source": "req_lib_05",
@@ -398893,7 +398893,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 104
+      "line": 105
     },
     {
       "source": "req_list_01",
@@ -399016,6 +399016,18 @@
       "confidence_score": 1.0,
       "basis": "mention",
       "line": 717
+    },
+    {
+      "source": "req_list_01",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
     },
     {
       "source": "req_list_01",
@@ -399160,6 +399172,18 @@
       "confidence_score": 1.0,
       "basis": "mention",
       "line": 717
+    },
+    {
+      "source": "req_list_02",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
     },
     {
       "source": "req_list_02",
@@ -399337,6 +399361,18 @@
       "confidence_score": 1.0,
       "basis": "mention",
       "line": 717
+    },
+    {
+      "source": "req_list_03",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
     },
     {
       "source": "req_list_03",
@@ -399594,6 +399630,18 @@
     },
     {
       "source": "req_list_04",
+      "target": "docs_ssot_planning_implementation_document",
+      "relation": "tracked_in_ssot",
+      "_origin": "req-link",
+      "source_file": ".planning/REQUIREMENTS.md",
+      "weight": 1.0,
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "basis": "mention",
+      "line": 104
+    },
+    {
+      "source": "req_list_04",
       "target": "tests_discovery_serial_status_schema_test",
       "relation": "verified_by",
       "_origin": "req-link",
@@ -399691,7 +399739,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 114
+      "line": 115
     },
     {
       "source": "req_lore_02",
@@ -399726,7 +399774,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 114
+      "line": 115
     },
     {
       "source": "req_lore_03",
@@ -399761,7 +399809,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 114
+      "line": 115
     },
     {
       "source": "req_mcp_01",
@@ -404051,7 +404099,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 740
+      "line": 743
     },
     {
       "source": "req_rank_01",
@@ -404063,7 +404111,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_rank_02",
@@ -404086,7 +404134,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 740
+      "line": 743
     },
     {
       "source": "req_rank_02",
@@ -404098,7 +404146,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_rank_03",
@@ -404121,7 +404169,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 740
+      "line": 743
     },
     {
       "source": "req_rank_03",
@@ -404133,7 +404181,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_rank_04",
@@ -404156,7 +404204,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 740
+      "line": 743
     },
     {
       "source": "req_rank_04",
@@ -404168,7 +404216,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 105
+      "line": 106
     },
     {
       "source": "req_rdata_01",
@@ -404225,7 +404273,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_rdata_01",
@@ -404337,7 +404385,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_rdata_02",
@@ -404438,7 +404486,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_rdata_03",
@@ -404517,7 +404565,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 106
+      "line": 107
     },
     {
       "source": "req_rdata_04",
@@ -404585,7 +404633,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 111
+      "line": 112
     },
     {
       "source": "req_rent_02",
@@ -404620,7 +404668,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 111
+      "line": 112
     },
     {
       "source": "req_rent_03",
@@ -404655,7 +404703,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 111
+      "line": 112
     },
     {
       "source": "req_rent_04",
@@ -404690,7 +404738,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 111
+      "line": 112
     },
     {
       "source": "req_rent_05",
@@ -404725,7 +404773,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 111
+      "line": 112
     },
     {
       "source": "req_search_01",
@@ -404804,7 +404852,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_search_01",
@@ -404894,7 +404942,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_search_02",
@@ -404940,7 +404988,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_search_04",
@@ -404975,7 +405023,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 107
+      "line": 108
     },
     {
       "source": "req_store_01",
@@ -405010,7 +405058,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     },
     {
       "source": "req_store_02",
@@ -405045,7 +405093,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     },
     {
       "source": "req_store_03",
@@ -405080,7 +405128,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     },
     {
       "source": "req_store_04",
@@ -405115,7 +405163,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     },
     {
       "source": "req_store_05",
@@ -405150,7 +405198,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     },
     {
       "source": "req_studio_01",
@@ -405776,7 +405824,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_sub_02",
@@ -405811,7 +405859,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_sub_03",
@@ -405846,7 +405894,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_sub_04",
@@ -405881,7 +405929,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 112
+      "line": 113
     },
     {
       "source": "req_workhome_01",
@@ -409846,7 +409894,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     },
     {
       "source": "req_wtree_13",
@@ -409881,7 +409929,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "basis": "mention",
-      "line": 115
+      "line": 116
     }
   ],
   "hyperedges": [

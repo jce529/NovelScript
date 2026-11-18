@@ -445,23 +445,23 @@ Explicitly excluded. Documented to prevent scope creep.
 | RANK-02 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
 | RANK-03 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
 | RANK-04 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
-| RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
-| RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
-| RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
-| RDATA-04 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
-| SEARCH-01 | Phase 27 | Not started (v1.1 확장) |
-| SEARCH-02 | Phase 27 | Not started (v1.1 확장) |
-| SEARCH-03 | Phase 27 | Not started (v1.1 확장) |
-| SEARCH-04 | Phase 27 | Not started (v1.1 확장) |
-| APAGE-01 | Phase 28 | Not started (v1.1 확장) |
-| APAGE-02 | Phase 28 | Not started (v1.1 확장) |
-| APAGE-03 | Phase 28 | Not started (v1.1 확장) |
-| CMT-01 | Phase 29 | Not started (v1.1 확장) |
-| CMT-02 | Phase 29 | Not started (v1.1 확장) |
-| CMT-03 | Phase 29 | Not started (v1.1 확장) |
-| CMT-04 | Phase 29 | Not started (v1.1 확장) |
-| CMT-05 | Phase 29 | Not started (v1.1 확장) |
-| CMT-06 | Phase 29 | Not started (v1.1 확장) |
+| RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
+| RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
+| RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
+| RDATA-04 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
+| SEARCH-01 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
+| SEARCH-02 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
+| SEARCH-03 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
+| SEARCH-04 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
+| APAGE-01 | Phase 28 | Planned, 실행 중 (28-01~04, 0057) |
+| APAGE-02 | Phase 28 | Planned, 실행 중 (28-01~04, 0057) |
+| APAGE-03 | Phase 28 | Planned, 실행 중 (28-01~04, 0057) |
+| CMT-01 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
+| CMT-02 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
+| CMT-03 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
+| CMT-04 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
+| CMT-05 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
+| CMT-06 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
 | HUB-01 | Phase 30 | Not started (v1.1 확장) |
 | HUB-02 | Phase 30 | Not started (v1.1 확장) |
 | HUB-03 | Phase 30 | Not started (v1.1 확장) |

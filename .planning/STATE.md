@@ -150,6 +150,7 @@ Recent decisions affecting current work:
 - 2026-11-17: Phase 21(0056)·26(0053~0055) 구현을 master에 로컬 병합(729cf50·86e40fb)하고 일회용 DB에 적용했다(agy `gemini-4-argon-high`가 파일 편집, Claude가 테스트·검수 — Codex 사용량 한도로 구현만 agy 대체). 단위 3538/3538·tsc 통과, Phase 26 DB 테스트 3건은 픽스처·반올림 문제로 수정 중. 28·27·29 구현은 28(사용자의 세션 내 직접 승인 필요) → 27·29 순. 공유 DB 적용 없음.
 - 2026-11-16: Phase 26 추가 — 설정 동기화 큐(원격 병합 시 번호가 겹쳐 2026-11-18 Phase 38로 변경) (문서 링크 그래프 · 회차 저장 시 변경 감지 · 연결 문서 수정 제안 인박스). AI 자동 수정이 아니라 Phase 14 리뷰 큐에 제안을 올리는 방식이며, 회차 요약 추출을 같은 호출로 묶는다. 출발점은 ROADMAP Phase 38 Notes, `/gsd:discuss-phase 38`부터.
 - 2026-11-18: GSD manager가 Phase 28·29(execute)와 22·23(discuss)을 각자 worktree 세션으로 dispatch. Phase 22 discuss·UI-SPEC 사용자 검증 끝 → LIB-01~05 정의, 마이그레이션 0061 배정(0053~0060은 26~29 예약). 22 실행은 Phase 28 병합 뒤. 산출물 브랜치 `claude/phase22-my-shelf-161f84`(미병합). Phase 23 discuss 사용자 반영 승인 → RANK-01~04 정의, 마이그레이션 0062 배정, 순위·배지를 Phase 26 완독 데이터로 전환(ROADMAP 문구 변경). 산출물 브랜치 `claude/phase23-ranking-eed36d`(미병합).
+- 2026-11-18 문서 동기화: 리서치·plan이 끝났는데 ROADMAP에 'Not planned/0 plans'로 남아 있던 Phase 21·26·27·28·29의 Plans 목록·Progress 표·REQUIREMENTS 추적 표·SSOT를 실제 PLAN/SUMMARY 기준으로 맞췄다. Phase 26 DB 테스트는 26/26 통과(7746349)로 정정. 마이그레이션 예약: 0053~0055(26)·0056(21)·0057(28)·0058(27)·0059·0060(29)·0061(22)·0062(23).
 - 2026-10-02: Phase 17 추가 — 버그 수정 통합 (Phase 16 UAT 갭 4건 + Phase 4·8·15 미해결 버그). 범위·분류는 `.planning/phases/17-bugfix-consolidation/17-CONTEXT.md`.
 
 ### Pending Todos

@@ -716,10 +716,13 @@ Plans:
 **Goal:** 독자가 헤더의 무료연재·유료연재 탭에서 연재 목록 화면으로 이동해 서브 행(전체·신작·인기·완결)으로 작품을 거를 수 있다. 신작은 연재 시작일 기준, 인기는 현행 인기 점수 기준이며, 카드에 NEW·완결 라벨과 가격 문구를 보이고, 조건에 맞는 작품이 없으면 `필터 초기화` 안내를 보인다. 헤더 서브 행의 해당 항목(`lib/reader/navigation.ts`의 `href: null`)이 이 화면으로 연결된다. 설계 근거: `design/UI-DESIGN-BACKLOG.md` 19번.
 **Requirements**: LIST-01, LIST-02, LIST-03, LIST-04
 **Depends on:** Phase 3 (독자 코어 · 헤더 서브 행). 완독률 기반 인기 정렬은 완독 데이터 산출 phase 전까지 현행 인기 점수로 대체
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 21 to break down)
+- [ ] 21-01-PLAN.md — 독자 연재 목록의 조회 계약과 순수 판정을 TDD로 만든다.
+- [ ] 21-02-PLAN.md — 작품 연재 상태 저장 경로와 작가 설정 UI를 마련한다.
+- [ ] 21-03-PLAN.md — Phase 21·22·23이 함께 쓸 세 가지 표시 컴포넌트를 구현한다.
+- [x] 21-04-PLAN.md — 공개 연재 목록 경로와 헤더 탐색을 연결하고 전체 Phase 21을 검증한다.
 
 ### Phase 22: 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함)
 
@@ -771,10 +774,12 @@ Plans:
 **Requirements**: RDATA-01, RDATA-02, RDATA-03, RDATA-04
 **Depends on:** Phase 3 (뷰어·읽기 진행 `progress.ts`), Phase 24 (본인 확인 `user_is_verified`)
 **UI hint**: no (DB·집계 중심, 뷰어 동작만 변경)
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 26 to break down)
+- [x] 26-01-PLAN.md — 기존 회차별 진도 저장·복귀와 완독 경계를 회귀 테스트로 고정하고, 완독 기준을 DB 단일 원본으로 옮긴다.
+- [x] 26-02-PLAN.md — RDATA-03의 작품 요약과 회차별 완독률·연독률을 실시간 SQL RPC로 제공한다.
+- [x] 26-03-PLAN.md — 회차 내 이탈 분포를 실시간 RPC로 제공하고 세 집계 응답의 소비자 타입을 고정한다.
 
 ### Phase 27: 독자 검색 (작품 · 태그 · 작가, 최근·추천 검색어)
 
@@ -783,10 +788,15 @@ Plans:
 **Requirements**: SEARCH-01, SEARCH-02, SEARCH-03, SEARCH-04
 **Depends on:** Phase 3 (헤더·작품 상세). 작가 결과 이동은 Phase 28
 **UI hint**: yes
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 27 to break down)
+- [ ] 27-01-PLAN.md — 검색 데이터와 공개 조회의 보안 경계를 DB에서 확정한다.
+- [ ] 27-02-PLAN.md — 검색 입력과 DB 결과 사이의 서버 계약을 만든다.
+- [ ] 27-03-PLAN.md — 데스크톱·모바일 헤더에 검색 진입과 최근·추천 패널을 연결한다.
+- [ ] 27-04-PLAN.md — 검색 결과 4탭과 태그 필터, 상태별 안내를 완성한다.
+- [ ] 27-05-PLAN.md — Phase 21이 신설한 작품 설정 화면(`/studio/[workId]/settings`)에 검색 태그 입력(`WorkTagsField`)을 붙인다.
+- [ ] 27-06-PLAN.md — 관리자가 독자 추천 검색어를 운영할 수 있게 한다.
 
 ### Phase 28: 작가 페이지 · 작가 알림 구독
 
@@ -795,10 +805,13 @@ Plans:
 **Requirements**: APAGE-01, APAGE-02, APAGE-03
 **Depends on:** Phase 3 (작품 상세·알림 구독 모델), Phase 22 (내서재 알림 구독 탭)
 **UI hint**: yes
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 28 to break down)
+- [ ] 28-01-PLAN.md — 작가 페이지와 알림 구독의 DB 계약을 먼저 만든다.
+- [ ] 28-02-PLAN.md — 작가 공개 조회와 개인 구독 API를 타입이 분명한 라이브러리로 제공한다.
+- [ ] 28-03-PLAN.md — 승인된 UI 계약대로 작가 페이지, 구독 동작, 작품 상세 진입 링크를 만든다.
+- [ ] 28-04-PLAN.md — 작가 페이지 전체 경로와 Phase 22 소비 계약을 검증한다.
 
 ### Phase 29: 댓글 · 댓글 신고 처리
 
@@ -807,10 +820,18 @@ Plans:
 **Requirements**: CMT-01, CMT-02, CMT-03, CMT-04, CMT-05, CMT-06
 **Depends on:** Phase 7 (신고 큐·조치), Phase 3 (뷰어 하단 바), Phase 24 (본인 확인)
 **UI hint**: yes
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 29 to break down)
+- [ ] 29-01-PLAN.md — 회차 댓글의 신뢰 가능한 DB 경계와 계정·작품 필드를 만든다.
+- [ ] 29-02-PLAN.md — 댓글 신고·관리자 조치의 DB 원천을 구축한다.
+- [ ] 29-03-PLAN.md — 독자 댓글의 조회와 모든 서버 액션 계약을 만든다.
+- [ ] 29-04-PLAN.md — 뷰어 하단 바의 댓글 경험을 완성한다.
+- [ ] 29-05-PLAN.md — 댓글 신고 관리자의 서버 계약을 구축한다.
+- [ ] 29-06-PLAN.md — 관리자 `댓글 신고` 탭과 조치 화면을 제공한다.
+- [ ] 29-07-PLAN.md — 작품별 댓글 허용 스위치를 스튜디오 `/studio/[workId]/settings`에 놓는다(21-02 완료 및 Phase 28 병합에 의존, Phase 29 wave 2).
+- [ ] 29-08-PLAN.md — 댓글 조치 결과를 작성자에게 알린다.
+- [ ] 29-09-PLAN.md — Phase 29의 종단 동작과 기존 기능 무회귀를 검증한다.
 
 ### Phase 30: 작가 대시보드 (작품 카드 · 완독률 · 이탈 구간)
 
@@ -976,10 +997,10 @@ Plans:
 | 23. 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작) | 0/0 | Discussed (브랜치 미병합) — UI-SPEC·plan 전 | - |
 | 24. 이메일 가입 · 비밀번호 로그인 (+ 미인증 제한) | 0/0 | Code complete (GSD plan 없이 구현, 메일 가입 end-to-end 미검증) | - |
 | 25. 본인 확인 수단 연결 (번호 인증 · 소셜 연결) | 0/0 | Not planned | - |
-| 26. 독자 읽기 진도 · 완독 데이터 (스크롤 진도 · 완독 판정 · 완독률 · 연독률) | 3/3 | Code complete — 0053~0055 일회용 DB 적용(2026-11-17), DB 테스트 3건 수정 중. 공유 DB 미적용. agy 구현·Claude 검수 | - |
-| 27. 독자 검색 (작품 · 태그 · 작가, 최근·추천 검색어) | 0/0 | Not planned (v1.1) | - |
-| 28. 작가 페이지 · 작가 알림 구독 | 0/0 | Not planned (v1.1) | - |
-| 29. 댓글 · 댓글 신고 처리 | 0/0 | Not planned (v1.1) | - |
+| 26. 독자 읽기 진도 · 완독 데이터 (스크롤 진도 · 완독 판정 · 완독률 · 연독률) | 3/3 | Code complete — 0053~0055 일회용 DB 적용·DB 테스트 26/26 통과(2026-11-17, 픽스처만 수정). 공유 DB 미적용, 사람 검증 전. agy 구현·Claude 검수 | - |
+| 27. 독자 검색 (작품 · 태그 · 작가, 최근·추천 검색어) | 0/6 | Planned — CONTEXT·UI-SPEC·PLAN 6개(0058). 27-03·04는 Phase 21·28 병합 뒤 | - |
+| 28. 작가 페이지 · 작가 알림 구독 | 0/4 | Planned, 실행 중(2026-11-18 phase-28 세션, 0057) — 28-01 브랜치 커밋, master 미병합 | - |
+| 29. 댓글 · 댓글 신고 처리 | 0/9 | Planned, 실행 중(2026-11-18 phase-29 세션, 0059·0060) — 29-07은 Phase 28 병합 뒤 | - |
 | 30. 작가 대시보드 (작품 카드 · 완독률 · 이탈 구간) | 0/0 | Not planned (v1.1) | - |
 | 31. 작가 경제 관리 · 정산 화면 | 0/0 | Not planned (v1.1) | - |
 | 32. 통합 설정 허브 (계정 · AI · 작품) | 0/0 | Not planned (v1.1) | - |
