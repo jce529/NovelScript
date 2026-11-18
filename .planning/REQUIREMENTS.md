@@ -159,6 +159,15 @@
 - [ ] **LIB-04**: 알림 구독 탭이 작품 알림(작품별 스위치)과 작가 알림(작가별 스위치, APAGE-03)을 보이고, 스위치를 꺼도 목록에 남는다(`알림 꺼짐`). 작품 알림은 `work_subscriptions`의 알림 여부 플래그로 행을 유지하며 작품 상세의 알림 버튼도 같은 플래그를 토글한다
 - [ ] **LIB-05**: 소장함 탭이 소장한 유료 회차를 작품별로 묶어 `전체`·`소장중` 필터로 보이고, 소유 상태 계산은 소장/대여중/대여 만료를 구분할 수 있게 만든다(대여 필터·팝업은 Phase 33, RENT)
 
+### 랭킹 목록 (RANK) — Phase 23
+
+2026-11-18 Phase 23 discuss 확정(`23-CONTEXT.md`, 브랜치 `claude/phase23-ranking-eed36d`)으로 정의했다.
+
+- [ ] **RANK-01**: 헤더 랭킹 탭·홈 `더보기 ›`에서 `/ranking`으로 진입하고, 서브 행 4종(주간 랭킹·루키 쿼터존·명예의 전당·완결작)을 URL(`?sub=`)로 유지한다
+- [ ] **RANK-02**: 순위는 완독·연독 종합 점수(RDATA-03)로 매기고 정렬 3종을 제공한다. 도달 독자 5명 미만인 작품은 배지와 순위에서 모두 빼며, 카드에 순위 숫자와 `연독률 N%` 배지를 보인다(최대 100위, 24개씩 더보기)
+- [ ] **RANK-03**: 주간(지난주 월~일, KST)·월간(지난달)·전체(누적) 스냅샷을 월요일 0시 예약 작업이 계산·저장하고, 기간 셀렉트로 읽는다
+- [ ] **RANK-04**: 루키 쿼터존(10화 또는 5만 자 이상, 연재 시작 90일 이내)·완결작(`serial_status` 완결) 필터, 명예의 전당 준비 셸, 빈 상태 안내를 제공한다
+
 ### 완독 데이터 (RDATA) — Phase 26
 
 - [ ] **RDATA-01**: 뷰어가 독자의 스크롤 위치(끝 기준)를 회차별로 저장하고 다시 들어오면 그 위치로 복귀시킨다 (비로그인은 저장하지 않음)
@@ -432,6 +441,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | LIB-03 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
 | LIB-04 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
 | LIB-05 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
+| RANK-01 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
+| RANK-02 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
+| RANK-03 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
+| RANK-04 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
 | RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
 | RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
 | RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 일부 수정 중, 공유 DB 미적용) |
@@ -492,13 +505,14 @@ Explicitly excluded. Documented to prevent scope creep.
 - v1.1 확장 — 공개 출시 범위(2026-11-13): 26 defined / mapped 26 (RDATA 4 → Phase 26, SEARCH 4 → 27, APAGE 3 → 28, CMT 6 → 29, HUB 9 → 30~32)
 - v1.2 후보(2026-11-13): 20 defined / mapped 20 (RENT 5 → Phase 33, SUB 4 → 34, ADMIN-06~08 3 → 35, LORE 3 → 36, STORE 5 → 37). WTREE-09는 Phase 36, WTREE-11~13은 Phase 37 이후
 - 내서재(LIB, 2026-11-18): 5 defined / mapped 5 (Phase 22)
+- 랭킹 목록(RANK, 2026-11-18): 4 defined / mapped 4 (Phase 23)
 - 출시 게이트(LEGAL): 4 total / mapped 4 (phase 아님, ROADMAP "Launch Gate" 절)
 - Reopened(청사진 갭, 2026-10-12): KB-01·02는 2026-10-19 실DB·브라우저 검증을 통과해 Complete로 복구. READ-01~04, ADMIN-01~03, PROV-05, COST-02, STUDIO-04, PAY-01·03, WTREE-01~08·10은 보완 코드 완료·실DB/브라우저 검증 대기(체크박스 해제 유지). EDIT-03은 04-09·04-10으로 자유형 지시 입력·전달을 구현해 코드 완료(04-12 대기). PAY-02는 Phase 6이 GSD 밖이라 아직 Reopened. 구현·검증 기록은 유효
-- 전체: 126 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
+- 전체: 130 mapped, 0 unmapped ✓ (see .planning/ROADMAP.md)
 
 ---
 *Requirements defined: 2026-08-25*
-*Last updated: 2026-11-18 — Phase 22 내서재 요구사항 LIB-01~05 정의(discuss·UI-SPEC 확정). 이전: 2026-11-13 — 미배정 청사진 영역을 RDATA·SEARCH·APAGE·CMT·HUB(v1.1 확장, Phase 26~32)와 RENT·SUB·ADMIN-06~08·LORE·STORE(v1.2 후보, Phase 33~37)로 정의*
+*Last updated: 2026-11-18 — Phase 22 내서재 LIB-01~05(discuss·UI-SPEC 확정), Phase 23 랭킹 목록 RANK-01~04(discuss 확정) 정의. 이전: 2026-11-13 — 미배정 청사진 영역을 RDATA·SEARCH·APAGE·CMT·HUB(v1.1 확장, Phase 26~32)와 RENT·SUB·ADMIN-06~08·LORE·STORE(v1.2 후보, Phase 33~37)로 정의*
 *Previously updated: 2026-10-12 — 청사진 기준 재판정으로 14개 요구사항을 Reopened 처리(`.planning/gaps/2026-10-12-blueprint-reconcile.md`), 세계수 WTREE-01~13 정의, Phase 18에 01~08·10 배정(09·11~13 보류)*
 *Previously updated: 2026-10-02 — 스튜디오 작업 흐름 확장을 STUDIO-01~04로 정의하고 Phase 16에 배정 (사후 등록)*
 *Previously updated: 2026-10-10 — 최종 청사진 결정(독자 공간 확장·3패널 IDE·수동 검토 출시·AI 설정 허브)을 v2/Out of Scope 주석으로 반영, 요구사항 ID는 미배정*
