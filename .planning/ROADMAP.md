@@ -745,7 +745,7 @@ Plans:
 **Migration:** 0062 배정(2026-11-18, 랭킹 스냅샷·예약 작업)
 **Plans:** 0 plans
 
-**Status (2026-11-18):** discuss 완료(`23-CONTEXT.md`·`23-DISCUSSION-LOG.md`), 사용자 반영 승인. 산출물은 브랜치 `claude/phase23-ranking-eed36d`(`77c48a3`)에 있고 master 미병합. 남은 일: UI-SPEC·plan, 공유 DB pg_cron 활성화와 월요일 0시 스케줄 등록(사용자 몫), 종합 점수 독자 수 보정식·홈 슬라이더 스냅샷 전환(plan에서 결정), 21·22와 `navigation.ts` 병합 순서 확인.
+**Status (2026-11-18):** discuss 완료(`23-CONTEXT.md`·`23-DISCUSSION-LOG.md`, 사용자 반영 승인), UI-SPEC 작성·checker 통과(BLOCK 0·FLAG 4, FLAG는 plan에서 흡수; 사용자 최종 승인 기록은 없음)와 목업 Artifact 4판 발행. 산출물은 브랜치 `claude/phase23-ranking-eed36d`(`64e5a4b`)에 있고 master 미병합, phase 세션은 종료. 남은 일: plan, 공유 DB pg_cron 활성화와 월요일 0시 스케줄 등록(사용자 몫), 종합 점수 독자 수 보정식·홈 슬라이더 스냅샷 전환(plan에서 결정), 21·22와 `navigation.ts` 병합 순서 확인.
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 23 to break down)
@@ -994,7 +994,7 @@ Plans:
 | 20. 최종 모바일 실기기 확인 | 0/0 | Not planned | - |
 | 21. 독자용 연재 목록 (무료·유료 연재, 서브 행 필터) | 4/4 | Code complete — 0056 일회용 DB 적용(2026-11-17). 브라우저 화면 확인 pending, 공유 DB 미적용. agy 구현·Claude 검수 | - |
 | 22. 독자용 내서재 (이어 읽기 · 선호작 · 알림 구독 · 소장함) | 0/0 | Discussed + UI-SPEC approved (브랜치 미병합) — plan 전, 28 병합 후 실행 | - |
-| 23. 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작) | 0/0 | Discussed (브랜치 미병합) — UI-SPEC·plan 전 | - |
+| 23. 독자용 랭킹 목록 (주간 랭킹 · 루키 쿼터존 · 명예의 전당 · 완결작) | 0/0 | Discussed + UI-SPEC (checker 통과, 브랜치 미병합) — plan 전 | - |
 | 24. 이메일 가입 · 비밀번호 로그인 (+ 미인증 제한) | 0/0 | Code complete (GSD plan 없이 구현, 메일 가입 end-to-end 미검증) | - |
 | 25. 본인 확인 수단 연결 (번호 인증 · 소셜 연결) | 0/0 | Not planned | - |
 | 26. 독자 읽기 진도 · 완독 데이터 (스크롤 진도 · 완독 판정 · 완독률 · 연독률) | 3/3 | Code complete — 0053~0055 일회용 DB 적용·DB 테스트 26/26 통과(2026-11-17, 픽스처만 수정). 공유 DB 미적용, 사람 검증 전. agy 구현·Claude 검수 | - |

@@ -441,10 +441,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | LIB-03 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
 | LIB-04 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
 | LIB-05 | Phase 22 | Discussed + UI-SPEC approved (plan 전, Phase 28 병합 후 실행, 마이그레이션 0061 배정) |
-| RANK-01 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
-| RANK-02 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
-| RANK-03 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
-| RANK-04 | Phase 23 | Discussed (plan·UI-SPEC 전, 마이그레이션 0062 배정) |
+| RANK-01 | Phase 23 | Discussed + UI-SPEC (plan 전, 마이그레이션 0062 배정) |
+| RANK-02 | Phase 23 | Discussed + UI-SPEC (plan 전, 마이그레이션 0062 배정) |
+| RANK-03 | Phase 23 | Discussed + UI-SPEC (plan 전, 마이그레이션 0062 배정) |
+| RANK-04 | Phase 23 | Discussed + UI-SPEC (plan 전, 마이그레이션 0062 배정) |
 | RDATA-01 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
 | RDATA-02 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
 | RDATA-03 | Phase 26 | Code complete (0053~0055 일회용 DB 적용·DB 테스트 26/26 통과, 공유 DB 미적용) |
