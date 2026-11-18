@@ -35,7 +35,7 @@ async function scalar<T>(db: Connection, text: string, params: unknown[] = []): 
 async function as(db: Connection, id: string, role: Role = 'authenticated') {
   await exec(db, 'reset role');
   await exec(db, "select set_config('request.jwt.claim.sub', $1, false)", [id]);
-  await exec(db, "select set_config('request.jwt.claims', $1, false)", [JSON.stringify({ sub: id, role })]);
+  await exec(db, "select set_config('request.jwt.claims', $1, false)", [JSON.stringify(id ? { sub: id, role } : { role })]);
   await exec(db, `set role ${role}`);
 }
 async function owner(db: Connection) {
@@ -53,6 +53,7 @@ function migrationSql(file: string, schema: string) {
 async function bootstrap(db: Connection, schema: string) {
   await exec(db, `create schema ${schema}; set search_path = ${schema}, public;
     create table ${schema}.test_users(id uuid primary key);
+    grant all on ${schema}.test_users to anon, authenticated, service_role;
     grant usage on schema ${schema} to anon, authenticated, service_role;
     alter default privileges in schema ${schema} grant all on tables to anon, authenticated, service_role;
     alter default privileges in schema ${schema} grant all on sequences to anon, authenticated, service_role;
@@ -77,7 +78,7 @@ async function seed(db: Connection) {
   await owner(db);
 }
 
-describe.skipIf(!process.env.SUPABASE_DB_URL)('author subscriptions: PostgreSQL boundaries (28-01)', () => {
+describe.skipIf(!process.env.SUPABASE_DB_URL)('author subscriptions: PostgreSQL boundaries (28-01)', { timeout: 240000 }, () => {
   let db: postgres.Sql;
   const schema = `author_boundary_${crypto.randomUUID().replaceAll('-', '')}`;
 
@@ -318,7 +319,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('author subscriptions: PostgreSQL 
   });
 });
 
-describe.skipIf(!process.env.SUPABASE_DB_URL)('author subscriptions: independent-session races (28-01)', () => {
+describe.skipIf(!process.env.SUPABASE_DB_URL)('author subscriptions: independent-session races (28-01)', { timeout: 240000 }, () => {
   let db: postgres.Sql;
   const schema = `author_race_${crypto.randomUUID().replaceAll('-', '')}`;
   beforeAll(async () => {

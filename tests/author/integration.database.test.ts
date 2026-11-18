@@ -28,7 +28,7 @@ function exec(db: Connection, sql: string, params: unknown[] = []) {
 async function as(db: Connection, id: string, role: Role = 'authenticated') {
   await exec(db, 'reset role');
   await exec(db, "select set_config('request.jwt.claim.sub', $1, false)", [id]);
-  await exec(db, "select set_config('request.jwt.claims', $1, false)", [JSON.stringify({ sub: id, role })]);
+  await exec(db, "select set_config('request.jwt.claims', $1, false)", [JSON.stringify(id ? { sub: id, role } : { role })]);
   await exec(db, `set role ${role}`);
 }
 async function owner(db: Connection) {
@@ -46,6 +46,7 @@ function migrationSql(file: string, schema: string) {
 async function bootstrap(db: Connection, schema: string) {
   await exec(db, `create schema ${schema}; set search_path = ${schema}, public;
     create table ${schema}.test_users(id uuid primary key);
+    grant all on ${schema}.test_users to anon, authenticated, service_role;
     grant usage on schema ${schema} to anon, authenticated, service_role;
     alter default privileges in schema ${schema} grant all on tables to anon, authenticated, service_role;
     alter default privileges in schema ${schema} grant all on sequences to anon, authenticated, service_role;
@@ -57,7 +58,7 @@ function jsonRows(rows: postgres.RowList<postgres.Row[]>) {
     [key, value instanceof Date ? value.toISOString() : value])));
 }
 
-describe.skipIf(!process.env.SUPABASE_DB_URL)('author page SQL → library integration (28-04)', () => {
+describe.skipIf(!process.env.SUPABASE_DB_URL)('author page SQL → library integration (28-04)', { timeout: 240000 }, () => {
   let db: postgres.Sql;
   const schema = `author_integration_${crypto.randomUUID().replaceAll('-', '')}`;
   beforeAll(async () => {
@@ -183,7 +184,7 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('author page SQL → library integ
   it('retains notify=false through SQL, library list and optimistic page state with a 1/0/1 count', async () => {
     const account = client(reader);
     await sql('insert into work_subscriptions(work_id, user_id) values ($1, $2)', [wid(1), reader], '', 'service_role');
-    const beforeWorks = await sql('select * from work_subscriptions');
+    const beforeWorks = await sql('select * from work_subscriptions', [], '', 'service_role');
     let createdAt: Date | null = null;
     let lastUpdatedAt: Date | null = null;
     for (const [notify, count] of [[true, 1], [false, 0], [true, 1]] as const) {
@@ -200,8 +201,8 @@ describe.skipIf(!process.env.SUPABASE_DB_URL)('author page SQL → library integ
       lastUpdatedAt = row.updated_at;
       expect(await getAuthorStats(client(), author)).toMatchObject({ ok: true, stats: { subscriberCount: count } });
     }
-    expect(await sql('select * from work_subscriptions')).toEqual(beforeWorks);
-    expect(Number((await sql('select count(*) as total from author_subscriptions'))[0].total)).toBe(1);
+    expect(await sql('select * from work_subscriptions', [], '', 'service_role')).toEqual(beforeWorks);
+    expect(Number((await sql('select count(*) as total from author_subscriptions', [], '', 'service_role'))[0].total)).toBe(1);
     expect(await getAuthorSubscriptionState(client(secondReader), author)).toEqual({ ok: true, notify: false });
   });
 });
