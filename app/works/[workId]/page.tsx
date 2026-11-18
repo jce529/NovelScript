@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, BookOpen, EyeOff, Search } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import { getPublicWork } from '@/lib/works/actions';
+import { getPublicWork, getPublicWorkAuthor } from '@/lib/works/actions';
 import { listPublicChapters } from '@/lib/chapters/actions';
 import { getSubscriptionState } from '@/lib/reader/subscriptions';
 import { getBookmarkState } from '@/lib/reader/bookmarks';
@@ -64,6 +64,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
   ]);
   const stats = getWorkReadingStats();
   const resume = resolveResumeChapter(chapters, progress);
+  const author = await getPublicWorkAuthor(supabase, work);
 
   return (
     <>
@@ -89,6 +90,12 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ wor
 
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold">{work.title}</h1>
+          {author.penName && (author.authorId ? (
+            <Link href={`/author/${author.authorId}`} aria-label={`${author.penName} 작가 페이지`}
+              className="inline-flex min-h-11 w-fit items-center text-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              {author.penName}
+            </Link>
+          ) : <span className="text-sm">{author.penName}</span>)}
           {work.genre && <span className="text-sm text-muted-foreground">{work.genre}</span>}
           <dl className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <div className="flex gap-1"><dt>조회</dt><dd>{viewCount.toLocaleString('ko-KR')}</dd></div>
