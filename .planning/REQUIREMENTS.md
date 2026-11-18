@@ -453,9 +453,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | SEARCH-02 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
 | SEARCH-03 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
 | SEARCH-04 | Phase 27 | Planned (27-01~06, 실행 전, 0058) |
-| APAGE-01 | Phase 28 | Planned, 실행 중 (28-01~04, 0057) |
-| APAGE-02 | Phase 28 | Planned, 실행 중 (28-01~04, 0057) |
-| APAGE-03 | Phase 28 | Planned, 실행 중 (28-01~04, 0057) |
+| APAGE-01 | Phase 28 | Code complete (단위·DB 테스트 통과, 로그인 상태 UAT pending, 0057 일회용 DB만, 브랜치 미병합) |
+| APAGE-02 | Phase 28 | Code complete (단위·DB 테스트 통과, 로그인 상태 UAT pending, 0057 일회용 DB만, 브랜치 미병합) |
+| APAGE-03 | Phase 28 | Code complete (단위·DB 테스트 통과, 로그인 상태 UAT pending, 0057 일회용 DB만, 브랜치 미병합) |
 | CMT-01 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
 | CMT-02 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
 | CMT-03 | Phase 29 | Planned, 실행 중 (29-01~09, 0059·0060) |
